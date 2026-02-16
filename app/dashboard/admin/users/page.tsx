@@ -1,0 +1,397 @@
+'use client'
+
+import { useEffect, useState } from 'react'
+import { getClient } from '@/lib/supabase/client'
+import { Button, Input, Select, Card, CardHeader, CardContent, Badge, PageLoading, EmptyState, Spinner } from '@/components/ui'
+import { formatDateTime, SPECIALTIES } from '@/lib/utils'
+import type { User, UserRole } from '@/types/database'
+
+type UserForm = {
+  first_name: string
+  last_name: string
+  email: string
+  phone: string
+  role: UserRole
+  specialties: string[]
+  license_number: string
+  consultation_price: string
+  bio: string
+}
+
+const emptyForm: UserForm = {
+  first_name: '', last_name: '', email: '', phone: '',
+  role: 'doctor', specialties: [], license_number: '',
+  consultation_price: '', bio: '',
+}
+
+const ROLE_OPTIONS = [
+  { value: 'doctor', label: 'רופא' },
+  { value: 'staff', label: 'צוות שירות' },
+  { value: 'admin', label: 'מנהל' },
+]
+
+const ROLE_LABELS: Record<string, string> = {
+  patient: 'מטופל', doctor: 'רופא', staff: 'צוות', admin: 'מנהל',
+}
+
+export default function AdminUsersPage() {
+  const [users, setUsers] = useState<User[]>([])
+  const [loading, setLoading] = useState(true)
+  const [orgId, setOrgId] = useState('')
+  const [search, setSearch] = useState('')
+  const [roleFilter, setRoleFilter] = useState<string>('')
+  const [showModal, setShowModal] = useState(false)
+  const [editingUser, setEditingUser] = useState<User | null>(null)
+  const [form, setForm] = useState<UserForm>(emptyForm)
+  const [saving, setSaving] = useState(false)
+  const [error, setError] = useState('')
+  const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteRole, setInviteRole] = useState<UserRole>('doctor')
+  const [showInvite, setShowInvite] = useState(false)
+  const [inviting, setInviting] = useState(false)
+  const [inviteSuccess, setInviteSuccess] = useState('')
+  const supabase = getClient()
+
+  useEffect(() => {
+    loadUsers()
+  }, [])
+
+  async function loadUsers() {
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+    const { data: profile } = await supabase.from('users').select('organization_id').eq('id', user.id).single()
+    if (!profile) return
+    setOrgId(profile.organization_id)
+
+    const { data } = await supabase.from('users')
+      .select('*')
+      .eq('organization_id', profile.organization_id)
+      .neq('role', 'patient')
+      .order('created_at', { ascending: false })
+
+    setUsers((data || []) as unknown as User[])
+    setLoading(false)
+  }
+
+  function openEdit(user: User) {
+    setEditingUser(user)
+    setForm({
+      first_name: user.first_name,
+      last_name: user.last_name,
+      email: user.email,
+      phone: user.phone || '',
+      role: user.role,
+      specialties: user.specialties || [],
+      license_number: user.license_number || '',
+      consultation_price: user.consultation_price?.toString() || '',
+      bio: user.bio || '',
+    })
+    setError('')
+    setShowModal(true)
+  }
+
+  function openCreate() {
+    setEditingUser(null)
+    setForm(emptyForm)
+    setError('')
+    setShowModal(true)
+  }
+
+  async function handleSave() {
+    if (!form.first_name || !form.last_name || !form.email) {
+      setError('יש למלא שם פרטי, שם משפחה ואימייל')
+      return
+    }
+
+    setSaving(true)
+    setError('')
+
+    const updateData: Record<string, unknown> = {
+      first_name: form.first_name,
+      last_name: form.last_name,
+      email: form.email,
+      phone: form.phone || null,
+      role: form.role,
+      specialties: form.role === 'doctor' ? form.specialties : null,
+      license_number: form.role === 'doctor' ? form.license_number || null : null,
+      consultation_price: form.consultation_price ? Number(form.consultation_price) : null,
+      bio: form.bio || null,
+    }
+
+    if (editingUser) {
+      const { error: err } = await supabase.from('users')
+        .update(updateData)
+        .eq('id', editingUser.id)
+      if (err) {
+        setError('שגיאה בעדכון: ' + err.message)
+        setSaving(false)
+        return
+      }
+    } else {
+      // Create via Supabase Auth admin invite — requires server API
+      // For now, create user record directly (they'll need to set password via invite link)
+      const { error: err } = await supabase.from('users')
+        .insert({ ...updateData, organization_id: orgId })
+      if (err) {
+        setError('שגיאה ביצירה: ' + err.message)
+        setSaving(false)
+        return
+      }
+    }
+
+    setSaving(false)
+    setShowModal(false)
+    loadUsers()
+  }
+
+  async function toggleActive(user: User) {
+    await supabase.from('users')
+      .update({ is_active: !user.is_active })
+      .eq('id', user.id)
+    loadUsers()
+  }
+
+  async function handleInvite() {
+    if (!inviteEmail) return
+    setInviting(true)
+    setInviteSuccess('')
+
+    // Send invite via API
+    try {
+      const res = await fetch('/api/admin/invite', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
+      })
+      if (res.ok) {
+        setInviteSuccess(`הזמנה נשלחה ל-${inviteEmail}`)
+        setInviteEmail('')
+      } else {
+        const data = await res.json()
+        setError(data.error || 'שגיאה בשליחת הזמנה')
+      }
+    } catch {
+      setError('שגיאה בשליחת הזמנה')
+    }
+    setInviting(false)
+  }
+
+  const filtered = users.filter(u => {
+    const matchSearch = !search || `${u.first_name} ${u.last_name} ${u.email}`.includes(search)
+    const matchRole = !roleFilter || u.role === roleFilter
+    return matchSearch && matchRole
+  })
+
+  if (loading) return <PageLoading />
+
+  return (
+    <div className="space-y-6">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+        <h2 className="text-2xl font-bold">ניהול משתמשים</h2>
+        <div className="flex gap-2">
+          <Button onClick={() => setShowInvite(!showInvite)} variant="outline" size="sm">הזמנה באימייל</Button>
+          <Button onClick={openCreate} size="sm">+ הוסף משתמש</Button>
+        </div>
+      </div>
+
+      {/* Invite panel */}
+      {showInvite && (
+        <Card>
+          <CardContent>
+            <div className="flex flex-col sm:flex-row gap-3 items-end">
+              <div className="flex-1">
+                <Input
+                  label="אימייל להזמנה"
+                  type="email"
+                  value={inviteEmail}
+                  onChange={e => setInviteEmail(e.target.value)}
+                  placeholder="doctor@example.com"
+                />
+              </div>
+              <div className="w-40">
+                <Select
+                  label="תפקיד"
+                  options={ROLE_OPTIONS}
+                  value={inviteRole}
+                  onChange={e => setInviteRole(e.target.value as UserRole)}
+                />
+              </div>
+              <Button onClick={handleInvite} loading={inviting} size="md">שלח הזמנה</Button>
+            </div>
+            {inviteSuccess && <p className="text-sm text-green-600 mt-2">{inviteSuccess}</p>}
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Filters */}
+      <div className="flex flex-col sm:flex-row gap-3">
+        <div className="flex-1">
+          <Input
+            placeholder="חיפוש לפי שם או אימייל..."
+            value={search}
+            onChange={e => setSearch(e.target.value)}
+          />
+        </div>
+        <div className="w-44">
+          <Select
+            options={[{ value: '', label: 'כל התפקידים' }, ...ROLE_OPTIONS]}
+            value={roleFilter}
+            onChange={e => setRoleFilter(e.target.value)}
+          />
+        </div>
+      </div>
+
+      {/* Users table */}
+      {filtered.length === 0 ? (
+        <EmptyState icon="👥" title="לא נמצאו משתמשים" description="הוסף רופאים וצוות למערכת" />
+      ) : (
+        <Card>
+          <div className="overflow-x-auto">
+            <table className="w-full text-sm">
+              <thead>
+                <tr className="border-b bg-gray-50">
+                  <th className="text-right px-4 py-3 font-medium text-gray-600">שם</th>
+                  <th className="text-right px-4 py-3 font-medium text-gray-600">אימייל</th>
+                  <th className="text-right px-4 py-3 font-medium text-gray-600">תפקיד</th>
+                  <th className="text-right px-4 py-3 font-medium text-gray-600">התמחויות</th>
+                  <th className="text-right px-4 py-3 font-medium text-gray-600">תורים</th>
+                  <th className="text-right px-4 py-3 font-medium text-gray-600">סטטוס</th>
+                  <th className="text-right px-4 py-3 font-medium text-gray-600">הצטרפות</th>
+                  <th className="text-right px-4 py-3 font-medium text-gray-600">פעולות</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y">
+                {filtered.map(user => (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-4 py-3">
+                      <div className="flex items-center gap-2">
+                        <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700">
+                          {user.first_name.charAt(0)}{user.last_name.charAt(0)}
+                        </div>
+                        <div>
+                          <p className="font-medium">{user.first_name} {user.last_name}</p>
+                          {user.license_number && (
+                            <p className="text-xs text-gray-400">רישיון: {user.license_number}</p>
+                          )}
+                        </div>
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-gray-600">{user.email}</td>
+                    <td className="px-4 py-3">
+                      <Badge variant={user.role === 'admin' ? 'danger' : user.role === 'doctor' ? 'info' : 'default'}>
+                        {ROLE_LABELS[user.role]}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3">
+                      <div className="flex flex-wrap gap-1">
+                        {(user.specialties || []).map(s => {
+                          const spec = SPECIALTIES.find(sp => sp.id === s)
+                          return <Badge key={s} variant="default">{spec?.label || s}</Badge>
+                        })}
+                      </div>
+                    </td>
+                    <td className="px-4 py-3 text-gray-600">{user.total_appointments}</td>
+                    <td className="px-4 py-3">
+                      <Badge variant={user.is_active ? 'success' : 'danger'}>
+                        {user.is_active ? 'פעיל' : 'מושבת'}
+                      </Badge>
+                    </td>
+                    <td className="px-4 py-3 text-gray-500 text-xs">{formatDateTime(user.created_at)}</td>
+                    <td className="px-4 py-3">
+                      <div className="flex gap-1">
+                        <Button variant="ghost" size="sm" onClick={() => openEdit(user)}>עריכה</Button>
+                        <Button
+                          variant={user.is_active ? 'ghost' : 'outline'}
+                          size="sm"
+                          onClick={() => toggleActive(user)}
+                        >
+                          {user.is_active ? 'השבת' : 'הפעל'}
+                        </Button>
+                      </div>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </Card>
+      )}
+
+      {/* Edit/Create modal */}
+      {showModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="fixed inset-0 bg-black/40" onClick={() => setShowModal(false)} />
+          <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-4">
+            <h3 className="text-lg font-bold">{editingUser ? 'עריכת משתמש' : 'הוספת משתמש'}</h3>
+
+            <div className="grid grid-cols-2 gap-3">
+              <Input label="שם פרטי" value={form.first_name} onChange={e => setForm({ ...form, first_name: e.target.value })} />
+              <Input label="שם משפחה" value={form.last_name} onChange={e => setForm({ ...form, last_name: e.target.value })} />
+            </div>
+
+            <Input label="אימייל" type="email" value={form.email} onChange={e => setForm({ ...form, email: e.target.value })} disabled={!!editingUser} />
+            <Input label="טלפון" type="tel" value={form.phone} onChange={e => setForm({ ...form, phone: e.target.value })} placeholder="050-1234567" />
+
+            <Select
+              label="תפקיד"
+              options={ROLE_OPTIONS}
+              value={form.role}
+              onChange={e => setForm({ ...form, role: e.target.value as UserRole })}
+            />
+
+            {form.role === 'doctor' && (
+              <>
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-1.5">התמחויות</label>
+                  <div className="flex flex-wrap gap-2">
+                    {SPECIALTIES.map(s => (
+                      <button
+                        key={s.id}
+                        type="button"
+                        onClick={() => {
+                          const has = form.specialties.includes(s.id)
+                          setForm({
+                            ...form,
+                            specialties: has
+                              ? form.specialties.filter(x => x !== s.id)
+                              : [...form.specialties, s.id],
+                          })
+                        }}
+                        className={`px-2.5 py-1 rounded-full text-xs font-medium border transition-colors ${
+                          form.specialties.includes(s.id)
+                            ? 'bg-blue-100 text-blue-800 border-blue-300'
+                            : 'bg-gray-50 text-gray-600 border-gray-200 hover:bg-gray-100'
+                        }`}
+                      >
+                        {s.label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+                <Input label="מספר רישיון" value={form.license_number} onChange={e => setForm({ ...form, license_number: e.target.value })} />
+                <Input label="מחיר ייעוץ (₪)" type="number" value={form.consultation_price} onChange={e => setForm({ ...form, consultation_price: e.target.value })} />
+              </>
+            )}
+
+            <div className="space-y-1.5">
+              <label className="block text-sm font-medium text-gray-700">אודות</label>
+              <textarea
+                className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none resize-y min-h-[80px]"
+                value={form.bio}
+                onChange={e => setForm({ ...form, bio: e.target.value })}
+                placeholder="תיאור קצר..."
+              />
+            </div>
+
+            {error && <p className="text-sm text-red-600">{error}</p>}
+
+            <div className="flex gap-2 justify-end pt-2">
+              <Button variant="outline" onClick={() => setShowModal(false)}>ביטול</Button>
+              <Button onClick={handleSave} loading={saving}>{editingUser ? 'שמור שינויים' : 'צור משתמש'}</Button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
