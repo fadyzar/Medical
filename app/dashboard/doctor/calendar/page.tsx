@@ -1,22 +1,38 @@
 'use client'
 
-import { useEffect, useState, useMemo, useCallback } from 'react'
+import { useEffect, useState, useMemo, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import {
   startOfWeek, endOfWeek, eachDayOfInterval, format, addWeeks, subWeeks,
-  addDays, isSameDay, isToday, isBefore, startOfDay, parseISO
+  addDays, subDays, isSameDay, isToday, isBefore, startOfDay, parseISO
 } from 'date-fns'
 import { he } from 'date-fns/locale'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Card, CardHeader, CardContent, Badge, PageLoading, EmptyState, Input } from '@/components/ui'
-import { STATUS_LABELS, cn, formatTime } from '@/lib/utils'
+import { STATUS_LABELS, STATUS_COLORS, cn } from '@/lib/utils'
 import type { Appointment, User, AvailabilitySlot } from '@/types/database'
 
 type ViewMode = 'week' | 'day'
 type TabMode = 'calendar' | 'availability' | 'vacations'
 
 const DAY_NAMES = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת']
-const HOURS = Array.from({ length: 14 }, (_, i) => i + 7) // 07:00-20:00
+const HOUR_HEIGHT = 64
+const START_HOUR = 7
+const END_HOUR = 21
+const HOURS = Array.from({ length: END_HOUR - START_HOUR }, (_, i) => i + START_HOUR)
+
+function minutesFromStart(dateStr: string): number {
+  const d = parseISO(dateStr)
+  return (d.getHours() - START_HOUR) * 60 + d.getMinutes()
+}
+
+function topPx(minutes: number): number {
+  return minutes * (HOUR_HEIGHT / 60)
+}
+
+function heightPx(durationMinutes: number): number {
+  return Math.max(durationMinutes * (HOUR_HEIGHT / 60), 24) // min 24px for visibility
+}
 
 export default function DoctorCalendarPage() {
   const router = useRouter()
@@ -28,6 +44,7 @@ export default function DoctorCalendarPage() {
   const [currentDate, setCurrentDate] = useState(new Date())
   const [viewMode, setViewMode] = useState<ViewMode>('week')
   const [tab, setTab] = useState<TabMode>('calendar')
+  const [now, setNow] = useState(new Date())
 
   // Availability editing state
   const [availability, setAvailability] = useState<AvailabilitySlot[]>([])
@@ -40,9 +57,25 @@ export default function DoctorCalendarPage() {
   const [newVacNote, setNewVacNote] = useState('')
   const [savingVacation, setSavingVacation] = useState(false)
 
-  useEffect(() => { loadData() }, [])
+  const gridRef = useRef<HTMLDivElement>(null)
 
-  const loadData = async () => {
+  // Update current time every minute
+  useEffect(() => {
+    const interval = setInterval(() => setNow(new Date()), 60_000)
+    return () => clearInterval(interval)
+  }, [])
+
+  // Load profile + availability + vacations (once)
+  useEffect(() => {
+    loadProfile()
+  }, [])
+
+  // Load appointments when date or viewMode changes
+  useEffect(() => {
+    if (profile) loadAppointments(profile.id)
+  }, [currentDate, viewMode, profile?.id])
+
+  const loadProfile = async () => {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/auth/login'); return }
 
@@ -52,25 +85,33 @@ export default function DoctorCalendarPage() {
     const typedProf = prof as unknown as User
     setProfile(typedProf)
     setAvailability(typedProf.availability || [])
-
-    // Load vacations from metadata
     const vacs = (typedProf.metadata?.vacations as Array<{ start: string; end: string; note?: string }>) || []
     setVacations(vacs)
+    setLoading(false)
+  }
 
-    // Load appointments for a wide range (current month ±1)
-    const rangeStart = format(subWeeks(startOfWeek(new Date(), { weekStartsOn: 0 }), 4), 'yyyy-MM-dd')
-    const rangeEnd = format(addWeeks(endOfWeek(new Date(), { weekStartsOn: 0 }), 8), 'yyyy-MM-dd')
+  const loadAppointments = async (doctorId: string) => {
+    let rangeStart: string
+    let rangeEnd: string
+
+    if (viewMode === 'week') {
+      const ws = startOfWeek(currentDate, { weekStartsOn: 0 })
+      rangeStart = format(subWeeks(ws, 2), 'yyyy-MM-dd')
+      rangeEnd = format(addWeeks(endOfWeek(currentDate, { weekStartsOn: 0 }), 2), 'yyyy-MM-dd')
+    } else {
+      rangeStart = format(subDays(currentDate, 7), 'yyyy-MM-dd')
+      rangeEnd = format(addDays(currentDate, 7), 'yyyy-MM-dd')
+    }
 
     const { data: apts } = await supabase.from('appointments')
       .select('*, patient:patient_id(first_name, last_name, phone)')
-      .eq('doctor_id', user.id)
+      .eq('doctor_id', doctorId)
       .gte('scheduled_at', rangeStart)
       .lte('scheduled_at', rangeEnd)
       .not('status', 'in', '("cancelled_patient","cancelled_doctor")')
       .order('scheduled_at', { ascending: true })
 
     if (apts) setAppointments(apts as unknown as Appointment[])
-    setLoading(false)
   }
 
   // Week view dates
@@ -80,7 +121,6 @@ export default function DoctorCalendarPage() {
     return eachDayOfInterval({ start, end })
   }, [currentDate])
 
-  // Filter appointments for current view
   const getAppointmentsForDay = useCallback((day: Date): Appointment[] => {
     return appointments.filter(apt => {
       if (!apt.scheduled_at) return false
@@ -88,13 +128,10 @@ export default function DoctorCalendarPage() {
     })
   }, [appointments])
 
-  // Check if a day has availability
   const getDayAvailability = useCallback((day: Date): AvailabilitySlot | undefined => {
-    const dayOfWeek = day.getDay() // 0=Sunday
-    return availability.find(s => s.day === dayOfWeek)
+    return availability.find(s => s.day === day.getDay())
   }, [availability])
 
-  // Check if a day is a vacation day
   const isVacationDay = useCallback((day: Date): boolean => {
     const dayStr = format(day, 'yyyy-MM-dd')
     return vacations.some(v => dayStr >= v.start && dayStr <= v.end)
@@ -152,6 +189,28 @@ export default function DoctorCalendarPage() {
     setVacations(updatedVacs)
   }
 
+  // Stats
+  const stats = useMemo(() => {
+    const viewApts = viewMode === 'week'
+      ? weekDays.flatMap(d => getAppointmentsForDay(d))
+      : getAppointmentsForDay(currentDate)
+    const todayApts = getAppointmentsForDay(new Date())
+    const todayAvail = getDayAvailability(new Date())
+    const nextApt = todayApts.find(a => a.scheduled_at && parseISO(a.scheduled_at) > now)
+    return { total: viewApts.length, todayWorking: todayAvail ? `${todayAvail.start}–${todayAvail.end}` : null, nextApt }
+  }, [viewMode, weekDays, currentDate, getAppointmentsForDay, getDayAvailability, now])
+
+  // Auto-scroll to current hour on mount
+  useEffect(() => {
+    if (tab === 'calendar' && gridRef.current) {
+      const currentHour = new Date().getHours()
+      if (currentHour >= START_HOUR && currentHour < END_HOUR) {
+        const scrollTo = topPx((currentHour - START_HOUR - 1) * 60)
+        gridRef.current.scrollTop = Math.max(0, scrollTo)
+      }
+    }
+  }, [tab, loading])
+
   if (loading) return <PageLoading />
 
   return (
@@ -175,19 +234,90 @@ export default function DoctorCalendarPage() {
       </div>
 
       {tab === 'calendar' && (
-        <CalendarView
-          viewMode={viewMode}
-          setViewMode={setViewMode}
-          currentDate={currentDate}
-          weekDays={weekDays}
-          navigateWeek={navigateWeek}
-          navigateDay={navigateDay}
-          setCurrentDate={setCurrentDate}
-          getAppointmentsForDay={getAppointmentsForDay}
-          getDayAvailability={getDayAvailability}
-          isVacationDay={isVacationDay}
-          router={router}
-        />
+        <>
+          {/* Stats bar */}
+          <div className="flex items-center gap-6 text-sm text-gray-600 bg-white rounded-lg border border-gray-200 px-4 py-2.5">
+            <div>
+              <span className="font-medium text-gray-900">{stats.total}</span>{' '}
+              {viewMode === 'week' ? 'תורים השבוע' : 'תורים היום'}
+            </div>
+            {stats.todayWorking && (
+              <div>
+                שעות עבודה היום: <span className="font-medium text-gray-900">{stats.todayWorking}</span>
+              </div>
+            )}
+            {stats.nextApt && stats.nextApt.scheduled_at && (
+              <div>
+                תור הבא: <span className="font-medium text-gray-900">
+                  {format(parseISO(stats.nextApt.scheduled_at), 'HH:mm')}
+                </span>
+                {' '}
+                <span className="text-gray-400">
+                  ({(stats.nextApt.patient as unknown as User)?.first_name})
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Navigation bar */}
+          <div className="flex items-center justify-between flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <Button variant="outline" size="sm" onClick={() => viewMode === 'week' ? navigateWeek(-1) : navigateDay(-1)}>
+                ←
+              </Button>
+              <Button variant="ghost" size="sm" onClick={() => setCurrentDate(new Date())}>
+                היום
+              </Button>
+              <Button variant="outline" size="sm" onClick={() => viewMode === 'week' ? navigateWeek(1) : navigateDay(1)}>
+                →
+              </Button>
+              <h3 className="text-lg font-semibold mr-2">
+                {viewMode === 'week'
+                  ? `${format(weekDays[0], 'd MMM', { locale: he })} — ${format(weekDays[6], 'd MMM yyyy', { locale: he })}`
+                  : format(currentDate, 'EEEE, d MMMM yyyy', { locale: he })
+                }
+              </h3>
+            </div>
+            <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
+              {(['week', 'day'] as ViewMode[]).map(v => (
+                <button
+                  key={v}
+                  onClick={() => setViewMode(v)}
+                  className={cn(
+                    'px-3 py-1 rounded-md text-sm font-medium transition-colors',
+                    viewMode === v ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
+                  )}
+                >
+                  {v === 'week' ? 'שבועי' : 'יומי'}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {viewMode === 'week' ? (
+            <WeekTimeGrid
+              gridRef={gridRef}
+              weekDays={weekDays}
+              now={now}
+              getAppointmentsForDay={getAppointmentsForDay}
+              getDayAvailability={getDayAvailability}
+              isVacationDay={isVacationDay}
+              setCurrentDate={setCurrentDate}
+              setViewMode={setViewMode}
+              router={router}
+            />
+          ) : (
+            <DayTimeGrid
+              gridRef={gridRef}
+              date={currentDate}
+              now={now}
+              appointments={getAppointmentsForDay(currentDate)}
+              availability={getDayAvailability(currentDate)}
+              isVacation={isVacationDay(currentDate)}
+              router={router}
+            />
+          )}
+        </>
       )}
 
       {tab === 'availability' && (
@@ -218,89 +348,14 @@ export default function DoctorCalendarPage() {
   )
 }
 
-// ─── Calendar View ────────────────────────────────────────
-function CalendarView({
-  viewMode, setViewMode, currentDate, weekDays, navigateWeek, navigateDay,
-  setCurrentDate, getAppointmentsForDay, getDayAvailability, isVacationDay, router,
-}: {
-  viewMode: ViewMode
-  setViewMode: (v: ViewMode) => void
-  currentDate: Date
-  weekDays: Date[]
-  navigateWeek: (dir: number) => void
-  navigateDay: (dir: number) => void
-  setCurrentDate: (d: Date) => void
-  getAppointmentsForDay: (d: Date) => Appointment[]
-  getDayAvailability: (d: Date) => AvailabilitySlot | undefined
-  isVacationDay: (d: Date) => boolean
-  router: ReturnType<typeof useRouter>
-}) {
-  return (
-    <>
-      {/* Navigation bar */}
-      <div className="flex items-center justify-between flex-wrap gap-2">
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="sm" onClick={() => viewMode === 'week' ? navigateWeek(-1) : navigateDay(-1)}>
-            ←
-          </Button>
-          <Button variant="ghost" size="sm" onClick={() => setCurrentDate(new Date())}>
-            היום
-          </Button>
-          <Button variant="outline" size="sm" onClick={() => viewMode === 'week' ? navigateWeek(1) : navigateDay(1)}>
-            →
-          </Button>
-          <h3 className="text-lg font-semibold mr-2">
-            {viewMode === 'week'
-              ? `${format(weekDays[0], 'd MMM', { locale: he })} — ${format(weekDays[6], 'd MMM yyyy', { locale: he })}`
-              : format(currentDate, 'EEEE, d MMMM yyyy', { locale: he })
-            }
-          </h3>
-        </div>
-        <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
-          {(['week', 'day'] as ViewMode[]).map(v => (
-            <button
-              key={v}
-              onClick={() => setViewMode(v)}
-              className={cn(
-                'px-3 py-1 rounded-md text-sm font-medium transition-colors',
-                viewMode === v ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
-              )}
-            >
-              {v === 'week' ? 'שבועי' : 'יומי'}
-            </button>
-          ))}
-        </div>
-      </div>
-
-      {viewMode === 'week' ? (
-        <WeekView
-          weekDays={weekDays}
-          getAppointmentsForDay={getAppointmentsForDay}
-          getDayAvailability={getDayAvailability}
-          isVacationDay={isVacationDay}
-          setCurrentDate={setCurrentDate}
-          setViewMode={setViewMode}
-          router={router}
-        />
-      ) : (
-        <DayView
-          date={currentDate}
-          appointments={getAppointmentsForDay(currentDate)}
-          availability={getDayAvailability(currentDate)}
-          isVacation={isVacationDay(currentDate)}
-          router={router}
-        />
-      )}
-    </>
-  )
-}
-
-// ─── Week View ────────────────────────────────────────────
-function WeekView({
-  weekDays, getAppointmentsForDay, getDayAvailability, isVacationDay,
+// ─── Week Time Grid ──────────────────────────────────────
+function WeekTimeGrid({
+  gridRef, weekDays, now, getAppointmentsForDay, getDayAvailability, isVacationDay,
   setCurrentDate, setViewMode, router,
 }: {
+  gridRef: React.RefObject<HTMLDivElement | null>
   weekDays: Date[]
+  now: Date
   getAppointmentsForDay: (d: Date) => Appointment[]
   getDayAvailability: (d: Date) => AvailabilitySlot | undefined
   isVacationDay: (d: Date) => boolean
@@ -308,94 +363,163 @@ function WeekView({
   setViewMode: (v: ViewMode) => void
   router: ReturnType<typeof useRouter>
 }) {
+  const totalHeight = HOURS.length * HOUR_HEIGHT
+
   return (
-    <Card>
-      <div className="grid grid-cols-7 border-b border-gray-200">
+    <Card className="overflow-hidden">
+      {/* Day headers */}
+      <div className="grid grid-cols-[56px_repeat(7,1fr)] border-b border-gray-200 sticky top-0 bg-white z-10">
+        <div className="border-l border-gray-200" />
         {weekDays.map((day, i) => {
           const avail = getDayAvailability(day)
           const isVac = isVacationDay(day)
-          const dayApts = getAppointmentsForDay(day)
-          const isPast = isBefore(startOfDay(day), startOfDay(new Date()))
           const today = isToday(day)
 
           return (
-            <div
+            <button
               key={i}
+              onClick={() => { setCurrentDate(day); setViewMode('day') }}
               className={cn(
-                'border-l border-gray-200 first:border-l-0 min-h-[140px]',
-                isPast && 'opacity-60',
-                isVac && 'bg-orange-50',
-                today && 'bg-blue-50/50'
+                'border-l border-gray-200 px-1 py-2 text-center hover:bg-gray-50 transition-colors',
+                today && 'bg-blue-50/60'
               )}
             >
-              {/* Day header */}
-              <button
-                onClick={() => { setCurrentDate(day); setViewMode('day') }}
-                className="w-full px-2 py-2 text-center hover:bg-gray-50 transition-colors border-b border-gray-100"
-              >
-                <p className="text-xs text-gray-500">{DAY_NAMES[i]}</p>
-                <p className={cn(
-                  'text-lg font-bold mt-0.5',
-                  today ? 'text-blue-600' : 'text-gray-900'
-                )}>
-                  {format(day, 'd')}
-                </p>
-                {avail && !isVac && (
-                  <p className="text-[10px] text-green-600">{avail.start}–{avail.end}</p>
-                )}
-                {isVac && <p className="text-[10px] text-orange-600 font-medium">חופשה</p>}
-              </button>
+              <p className="text-xs text-gray-500">{DAY_NAMES[i]}</p>
+              <p className={cn(
+                'text-lg font-bold mt-0.5',
+                today ? 'text-blue-600' : 'text-gray-900'
+              )}>
+                {format(day, 'd')}
+              </p>
+              {avail && !isVac && (
+                <p className="text-[10px] text-green-600">{avail.start}–{avail.end}</p>
+              )}
+              {isVac && <p className="text-[10px] text-orange-600 font-medium">חופשה</p>}
+            </button>
+          )
+        })}
+      </div>
 
-              {/* Appointments */}
-              <div className="px-1 py-1 space-y-1">
-                {dayApts.slice(0, 4).map(apt => {
+      {/* Time grid */}
+      <div ref={gridRef} className="overflow-y-auto max-h-[calc(100vh-300px)]">
+        <div className="grid grid-cols-[56px_repeat(7,1fr)]" style={{ height: totalHeight }}>
+          {/* Time labels column */}
+          <div className="relative border-l border-gray-200">
+            {HOURS.map(hour => (
+              <div
+                key={hour}
+                className="absolute w-full text-left px-1.5 text-[11px] text-gray-400 -translate-y-1/2"
+                style={{ top: (hour - START_HOUR) * HOUR_HEIGHT }}
+              >
+                {`${hour.toString().padStart(2, '0')}:00`}
+              </div>
+            ))}
+          </div>
+
+          {/* Day columns */}
+          {weekDays.map((day, dayIdx) => {
+            const avail = getDayAvailability(day)
+            const isVac = isVacationDay(day)
+            const isPast = isBefore(startOfDay(day), startOfDay(new Date()))
+            const today = isToday(day)
+            const dayApts = getAppointmentsForDay(day)
+
+            return (
+              <div
+                key={dayIdx}
+                className={cn(
+                  'relative border-l border-gray-200',
+                  isPast && 'opacity-60',
+                  isVac && 'bg-orange-50/40',
+                  today && !isVac && 'bg-blue-50/30'
+                )}
+              >
+                {/* Hour gridlines */}
+                {HOURS.map(hour => {
+                  const hourStr = `${hour.toString().padStart(2, '0')}:00`
+                  const isWorking = avail && !isVac && hourStr >= avail.start && hourStr < avail.end
+                  return (
+                    <div
+                      key={hour}
+                      className={cn(
+                        'absolute w-full border-t border-gray-100',
+                        isWorking ? 'bg-white' : 'bg-gray-50/50'
+                      )}
+                      style={{ top: (hour - START_HOUR) * HOUR_HEIGHT, height: HOUR_HEIGHT }}
+                    />
+                  )
+                })}
+
+                {/* Appointment blocks */}
+                {dayApts.map(apt => {
+                  if (!apt.scheduled_at) return null
+                  const mins = minutesFromStart(apt.scheduled_at)
+                  if (mins < 0) return null
                   const patient = apt.patient as unknown as User | undefined
+                  const statusColor = STATUS_COLORS[apt.status] || 'bg-gray-100 text-gray-800'
+                  const top = topPx(mins)
+                  const height = heightPx(apt.duration_minutes || 30)
+
                   return (
                     <button
                       key={apt.id}
                       onClick={() => router.push(`/dashboard/doctor/appointments?id=${apt.id}`)}
                       className={cn(
-                        'w-full text-right px-1.5 py-1 rounded text-[11px] truncate transition-colors',
-                        apt.status === 'completed'
-                          ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                          : apt.status === 'in_progress'
-                          ? 'bg-purple-100 text-purple-800 hover:bg-purple-200'
-                          : 'bg-blue-100 text-blue-800 hover:bg-blue-200'
+                        'absolute left-0.5 right-0.5 rounded px-1 py-0.5 text-[10px] leading-tight overflow-hidden cursor-pointer transition-opacity hover:opacity-80 z-[1] border border-white/50',
+                        statusColor
                       )}
+                      style={{ top, height }}
+                      title={`${patient?.first_name || ''} ${patient?.last_name || ''} — ${apt.chief_complaint || ''}`}
                     >
-                      <span className="font-medium">
-                        {apt.scheduled_at ? format(parseISO(apt.scheduled_at), 'HH:mm') : ''}
-                      </span>{' '}
-                      {patient?.first_name} {patient?.last_name}
+                      <p className="font-semibold truncate">
+                        {format(parseISO(apt.scheduled_at), 'HH:mm')}{' '}
+                        {patient?.first_name}
+                      </p>
+                      {height >= 40 && (
+                        <p className="truncate opacity-75">{apt.chief_complaint}</p>
+                      )}
                     </button>
                   )
                 })}
-                {dayApts.length > 4 && (
-                  <p className="text-[10px] text-gray-500 text-center">
-                    +{dayApts.length - 4} נוספים
-                  </p>
+
+                {/* Current time indicator */}
+                {today && now.getHours() >= START_HOUR && now.getHours() < END_HOUR && (
+                  <div
+                    className="absolute left-0 right-0 z-[2] pointer-events-none"
+                    style={{ top: topPx((now.getHours() - START_HOUR) * 60 + now.getMinutes()) }}
+                  >
+                    <div className="flex items-center">
+                      <div className="w-2 h-2 rounded-full bg-red-500 -ml-1 shrink-0" />
+                      <div className="h-[2px] bg-red-500 flex-1" />
+                    </div>
+                  </div>
                 )}
               </div>
-            </div>
-          )
-        })}
+            )
+          })}
+        </div>
       </div>
     </Card>
   )
 }
 
-// ─── Day View ─────────────────────────────────────────────
-function DayView({
-  date, appointments, availability, isVacation, router,
+// ─── Day Time Grid ──────────────────────────────────────
+function DayTimeGrid({
+  gridRef, date, now, appointments, availability, isVacation, router,
 }: {
+  gridRef: React.RefObject<HTMLDivElement | null>
   date: Date
+  now: Date
   appointments: Appointment[]
   availability: AvailabilitySlot | undefined
   isVacation: boolean
   router: ReturnType<typeof useRouter>
 }) {
+  const totalHeight = HOURS.length * HOUR_HEIGHT
+  const today = isToday(date)
+
   return (
-    <Card>
+    <Card className="overflow-hidden">
       {isVacation && (
         <div className="bg-orange-50 border-b border-orange-200 px-4 py-2 text-sm text-orange-700 font-medium">
           יום חופשה — אין קבלת מטופלים
@@ -412,70 +536,100 @@ function DayView({
         </div>
       )}
 
-      <div className="divide-y divide-gray-100">
-        {HOURS.map(hour => {
-          const hourStr = `${hour.toString().padStart(2, '0')}:00`
-          const hourApts = appointments.filter(apt => {
-            if (!apt.scheduled_at) return false
-            const aptHour = parseISO(apt.scheduled_at).getHours()
-            return aptHour === hour
-          })
-          const isWorkingHour = availability && !isVacation
-            ? hourStr >= availability.start && hourStr < availability.end
-            : false
-
-          return (
-            <div key={hour} className={cn('flex min-h-[64px]', !isWorkingHour && 'bg-gray-50/50')}>
-              {/* Time label */}
-              <div className="w-16 shrink-0 px-2 py-2 text-left text-xs text-gray-400 border-l border-gray-200">
-                {hourStr}
+      <div ref={gridRef} className="overflow-y-auto max-h-[calc(100vh-320px)]">
+        <div className="grid grid-cols-[56px_1fr]" style={{ height: totalHeight }}>
+          {/* Time labels */}
+          <div className="relative border-l border-gray-200">
+            {HOURS.map(hour => (
+              <div
+                key={hour}
+                className="absolute w-full text-left px-1.5 text-[11px] text-gray-400 -translate-y-1/2"
+                style={{ top: (hour - START_HOUR) * HOUR_HEIGHT }}
+              >
+                {`${hour.toString().padStart(2, '0')}:00`}
               </div>
+            ))}
+          </div>
 
-              {/* Appointments in this hour */}
-              <div className="flex-1 p-1 space-y-1">
-                {hourApts.map(apt => {
-                  const patient = apt.patient as unknown as User | undefined
-                  return (
-                    <button
-                      key={apt.id}
-                      onClick={() => router.push(`/dashboard/doctor/appointments?id=${apt.id}`)}
-                      className={cn(
-                        'w-full text-right px-3 py-2 rounded-lg transition-colors',
-                        apt.status === 'completed'
-                          ? 'bg-green-50 border border-green-200 hover:bg-green-100'
-                          : apt.status === 'in_progress'
-                          ? 'bg-purple-50 border border-purple-200 hover:bg-purple-100'
-                          : 'bg-blue-50 border border-blue-200 hover:bg-blue-100'
+          {/* Main column */}
+          <div className={cn('relative border-l border-gray-200', isVacation && 'bg-orange-50/40')}>
+            {/* Hour gridlines */}
+            {HOURS.map(hour => {
+              const hourStr = `${hour.toString().padStart(2, '0')}:00`
+              const isWorking = availability && !isVacation && hourStr >= availability.start && hourStr < availability.end
+              return (
+                <div
+                  key={hour}
+                  className={cn(
+                    'absolute w-full border-t border-gray-100',
+                    isWorking ? 'bg-white' : 'bg-gray-50/50'
+                  )}
+                  style={{ top: (hour - START_HOUR) * HOUR_HEIGHT, height: HOUR_HEIGHT }}
+                />
+              )
+            })}
+
+            {/* Appointment blocks */}
+            {appointments.map(apt => {
+              if (!apt.scheduled_at) return null
+              const mins = minutesFromStart(apt.scheduled_at)
+              if (mins < 0) return null
+              const patient = apt.patient as unknown as User | undefined
+              const statusColor = STATUS_COLORS[apt.status] || 'bg-gray-100 text-gray-800'
+              const top = topPx(mins)
+              const height = heightPx(apt.duration_minutes || 30)
+
+              return (
+                <button
+                  key={apt.id}
+                  onClick={() => router.push(`/dashboard/doctor/appointments?id=${apt.id}`)}
+                  className={cn(
+                    'absolute left-1 right-1 rounded-lg px-3 py-1.5 text-right overflow-hidden cursor-pointer transition-opacity hover:opacity-80 z-[1] border',
+                    statusColor
+                  )}
+                  style={{ top, height }}
+                >
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0 flex-1">
+                      <p className="text-sm font-medium truncate">
+                        {patient?.first_name} {patient?.last_name}
+                      </p>
+                      {height >= 48 && (
+                        <p className="text-xs opacity-75 truncate mt-0.5">{apt.chief_complaint}</p>
                       )}
-                    >
-                      <div className="flex items-center justify-between">
-                        <div className="min-w-0">
-                          <p className="text-sm font-medium truncate">
-                            {patient?.first_name} {patient?.last_name}
-                          </p>
-                          <p className="text-xs text-gray-500 truncate">{apt.chief_complaint}</p>
-                        </div>
-                        <div className="flex items-center gap-2 shrink-0">
-                          <Badge variant={apt.status === 'completed' ? 'success' : apt.status === 'in_progress' ? 'info' : 'default'}>
-                            {STATUS_LABELS[apt.status]}
-                          </Badge>
-                          <span className="text-xs text-gray-400">
-                            {apt.scheduled_at ? format(parseISO(apt.scheduled_at), 'HH:mm') : ''}
-                          </span>
-                        </div>
-                      </div>
-                    </button>
-                  )
-                })}
-              </div>
-            </div>
-          )
-        })}
-      </div>
+                    </div>
+                    <div className="flex items-center gap-2 shrink-0">
+                      <Badge variant={apt.status === 'completed' ? 'success' : apt.status === 'in_progress' ? 'info' : 'default'}>
+                        {STATUS_LABELS[apt.status]}
+                      </Badge>
+                      <span className="text-xs text-gray-500">
+                        {format(parseISO(apt.scheduled_at), 'HH:mm')}
+                      </span>
+                    </div>
+                  </div>
+                </button>
+              )
+            })}
 
-      {appointments.length === 0 && (
-        <EmptyState icon="📅" title="אין תורים ליום זה" />
-      )}
+            {/* Current time indicator */}
+            {today && now.getHours() >= START_HOUR && now.getHours() < END_HOUR && (
+              <div
+                className="absolute left-0 right-0 z-[2] pointer-events-none"
+                style={{ top: topPx((now.getHours() - START_HOUR) * 60 + now.getMinutes()) }}
+              >
+                <div className="flex items-center">
+                  <div className="w-2.5 h-2.5 rounded-full bg-red-500 -ml-1.5 shrink-0" />
+                  <div className="h-[2px] bg-red-500 flex-1" />
+                </div>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {appointments.length === 0 && (
+          <EmptyState icon="📅" title="אין תורים ליום זה" />
+        )}
+      </div>
     </Card>
   )
 }
