@@ -300,7 +300,7 @@ export async function sendEmail(params: SendEmailParams, admin: SupabaseClient):
 
 async function fetchAppointmentContext(appointmentId: string, admin: SupabaseClient) {
   const { data: apt } = await admin.from('appointments')
-    .select('id, organization_id, patient_id, doctor_id, chief_complaint, requested_specialty, scheduled_at, diagnosis, follow_up_instructions, status, created_at')
+    .select('id, organization_id, patient_id, doctor_id, chief_complaint, requested_specialty, scheduled_at, diagnosis, follow_up_instructions, status, created_at, payment_amount')
     .eq('id', appointmentId)
     .single()
 
@@ -477,5 +477,222 @@ export async function sendConsultationSummary(params: { appointmentId: string; a
     appointmentId,
     templateName,
     organizationName: orgName,
+  }, admin)
+}
+
+// ── Payment Receipt Email ───────────────────────────
+
+type PaymentReceiptData = {
+  patientName: string
+  doctorName: string | null
+  specialty: string | null
+  amount: string
+  organizationName: string
+  dashboardUrl: string
+  invoiceUrl: string | null
+}
+
+function buildPaymentReceiptHtml(data: PaymentReceiptData): string {
+  const specialtyLabel = getSpecialtyLabel(data.specialty)
+  const doctorLine = data.doctorName
+    ? `<p style="margin:0 0 8px;">🩺 <strong>רופא:</strong> ד"ר ${data.doctorName}</p>`
+    : ''
+  const invoiceLine = data.invoiceUrl
+    ? `<p style="margin:16px 0 0;"><a href="${data.invoiceUrl}" style="color:#0EA5E9;text-decoration:none;font-weight:bold;">📄 הורד קבלה (PDF)</a></p>`
+    : ''
+
+  return wrapEmailHtml({
+    organizationName: data.organizationName,
+    ctaUrl: data.dashboardUrl,
+    ctaText: 'צפה בתור',
+    primaryColor: '#16a34a',
+    content: `
+      <h2 style="margin:0 0 16px;color:#1f2937;font-size:20px;">שלום ${data.patientName},</h2>
+      <p style="margin:0 0 20px;">התשלום שלך התקבל בהצלחה!</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0fdf4;border-radius:8px;margin:0 0 20px;">
+        <tr><td style="padding:16px;">
+          <p style="margin:0 0 8px;">💳 <strong>סכום שחויב:</strong> ${data.amount}</p>
+          ${doctorLine}
+          ${specialtyLabel ? `<p style="margin:0 0 8px;">📋 <strong>התמחות:</strong> ${specialtyLabel}</p>` : ''}
+          ${invoiceLine}
+        </td></tr>
+      </table>
+      <p style="margin:0;color:#6b7280;font-size:14px;">תקבל הודעה נוספת עם קישור לשיחת הווידאו לפני מועד התור.</p>
+    `,
+  })
+}
+
+export async function sendPaymentReceipt(params: {
+  appointmentId: string
+  invoiceUrl: string | null
+  admin: SupabaseClient
+}): Promise<void> {
+  const { appointmentId, invoiceUrl, admin } = params
+  const templateName = 'payment_receipt'
+
+  if (await alreadySent(appointmentId, templateName, admin)) return
+
+  const { apt, patient, doctor, org } = await fetchAppointmentContext(appointmentId, admin)
+  if (!apt.payment_amount) return
+
+  const orgName = org?.name || 'טלמדיסן'
+
+  const html = buildPaymentReceiptHtml({
+    patientName: `${patient.first_name} ${patient.last_name}`,
+    doctorName: doctor ? `${doctor.first_name} ${doctor.last_name}` : null,
+    specialty: apt.requested_specialty,
+    amount: `₪${apt.payment_amount}`,
+    organizationName: orgName,
+    dashboardUrl: `${APP_URL()}/dashboard/patient/dashboard`,
+    invoiceUrl,
+  })
+
+  await sendEmail({
+    to: patient.email,
+    subject: `אישור תשלום — ${orgName}`,
+    html,
+    organizationId: apt.organization_id,
+    userId: patient.id,
+    appointmentId,
+    templateName,
+    organizationName: orgName,
+    variables: { amount: apt.payment_amount, invoice_url: invoiceUrl },
+  }, admin)
+}
+
+// ── Staff/Admin Invite Email ────────────────────────
+
+type StaffInviteData = {
+  name: string
+  email: string
+  role: 'staff' | 'admin'
+  organizationName: string
+  inviterName: string
+  organizationId: string
+  registrationUrl: string
+}
+
+const ROLE_LABELS_EMAIL: Record<string, string> = {
+  staff: 'איש צוות',
+  admin: 'מנהל',
+  doctor: 'רופא',
+}
+
+function buildStaffInviteHtml(data: StaffInviteData): string {
+  const roleLabel = ROLE_LABELS_EMAIL[data.role] || data.role
+  return wrapEmailHtml({
+    organizationName: data.organizationName,
+    ctaUrl: data.registrationUrl,
+    ctaText: 'הירשם למערכת',
+    content: `
+      <h2 style="margin:0 0 16px;color:#1f2937;font-size:20px;">שלום ${data.name},</h2>
+      <p style="margin:0 0 20px;">${data.inviterName} מזמין אותך להצטרף כ<strong>${roleLabel}</strong> ל<strong>${data.organizationName}</strong> בפלטפורמת טלמדיסן.</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f9ff;border-radius:8px;margin:0 0 20px;">
+        <tr><td style="padding:16px;">
+          <p style="margin:0 0 8px;">🏥 <strong>מרפאה:</strong> ${data.organizationName}</p>
+          <p style="margin:0 0 8px;">👤 <strong>תפקיד:</strong> ${roleLabel}</p>
+          <p style="margin:0 0 8px;">📧 <strong>אימייל:</strong> ${data.email}</p>
+          <p style="margin:0;">🔑 <strong>הזמנה מאת:</strong> ${data.inviterName}</p>
+        </td></tr>
+      </table>
+      <p style="margin:0 0 8px;color:#6b7280;font-size:14px;">לחץ על הכפתור למטה כדי להשלים את ההרשמה שלך במערכת.</p>
+      <p style="margin:0;color:#6b7280;font-size:13px;">אם אינך מכיר את השולח, ניתן להתעלם מהודעה זו.</p>
+    `,
+  })
+}
+
+export async function sendStaffInvite(params: {
+  name: string
+  email: string
+  role: 'staff' | 'admin'
+  organizationId: string
+  organizationName: string
+  inviterName: string
+  inviterUserId: string
+  admin: SupabaseClient
+}): Promise<{ success: boolean; error?: string }> {
+  const { admin, ...data } = params
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const registrationUrl = `${appUrl}/auth/register?invite=true&org=${data.organizationId}&email=${encodeURIComponent(data.email)}&role=${data.role}`
+
+  const html = buildStaffInviteHtml({
+    ...data,
+    registrationUrl,
+  })
+
+  const roleLabel = ROLE_LABELS_EMAIL[data.role] || data.role
+  return sendEmail({
+    to: data.email,
+    subject: `הוזמנת להצטרף כ${roleLabel} ל${data.organizationName} בטלמדיסן`,
+    html,
+    organizationId: data.organizationId,
+    userId: data.inviterUserId,
+    appointmentId: null,
+    templateName: 'staff_invite',
+    organizationName: data.organizationName,
+    variables: { name: data.name, email: data.email, role: data.role },
+  }, admin)
+}
+
+// ── Doctor Invite Email ─────────────────────────────
+
+type DoctorInviteData = {
+  doctorName: string
+  doctorEmail: string
+  organizationName: string
+  inviterName: string
+  organizationId: string
+  registrationUrl: string
+}
+
+function buildDoctorInviteHtml(data: DoctorInviteData): string {
+  return wrapEmailHtml({
+    organizationName: data.organizationName,
+    ctaUrl: data.registrationUrl,
+    ctaText: 'הירשם כרופא',
+    content: `
+      <h2 style="margin:0 0 16px;color:#1f2937;font-size:20px;">שלום ${data.doctorName},</h2>
+      <p style="margin:0 0 20px;">${data.inviterName} מזמין אותך להצטרף לצוות הרפואי של <strong>${data.organizationName}</strong> בפלטפורמת טלמדיסן.</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f9ff;border-radius:8px;margin:0 0 20px;">
+        <tr><td style="padding:16px;">
+          <p style="margin:0 0 8px;">🏥 <strong>מרפאה:</strong> ${data.organizationName}</p>
+          <p style="margin:0 0 8px;">👤 <strong>הזמנה מאת:</strong> ${data.inviterName}</p>
+          <p style="margin:0;">📧 <strong>אימייל:</strong> ${data.doctorEmail}</p>
+        </td></tr>
+      </table>
+      <p style="margin:0 0 8px;color:#6b7280;font-size:14px;">לחץ על הכפתור למטה כדי להשלים את ההרשמה שלך כרופא במערכת.</p>
+      <p style="margin:0;color:#6b7280;font-size:13px;">אם אינך מכיר את השולח, ניתן להתעלם מהודעה זו.</p>
+    `,
+  })
+}
+
+export async function sendDoctorInvite(params: {
+  doctorName: string
+  doctorEmail: string
+  organizationId: string
+  organizationName: string
+  inviterName: string
+  inviterUserId: string
+  admin: SupabaseClient
+}): Promise<{ success: boolean; error?: string }> {
+  const { admin, ...data } = params
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const registrationUrl = `${appUrl}/auth/register?invite=true&org=${data.organizationId}&email=${encodeURIComponent(data.doctorEmail)}`
+
+  const html = buildDoctorInviteHtml({
+    ...data,
+    registrationUrl,
+  })
+
+  return sendEmail({
+    to: data.doctorEmail,
+    subject: `הוזמנת להצטרף ל${data.organizationName} בטלמדיסן`,
+    html,
+    organizationId: data.organizationId,
+    userId: data.inviterUserId,
+    appointmentId: null,
+    templateName: 'doctor_invite',
+    organizationName: data.organizationName,
+    variables: { doctor_name: data.doctorName, doctor_email: data.doctorEmail },
   }, admin)
 }

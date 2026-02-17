@@ -46,6 +46,7 @@ export default function AdminUsersPage() {
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
   const [inviteEmail, setInviteEmail] = useState('')
+  const [inviteName, setInviteName] = useState('')
   const [inviteRole, setInviteRole] = useState<UserRole>('doctor')
   const [showInvite, setShowInvite] = useState(false)
   const [inviting, setInviting] = useState(false)
@@ -90,14 +91,8 @@ export default function AdminUsersPage() {
     setShowModal(true)
   }
 
-  function openCreate() {
-    setEditingUser(null)
-    setForm(emptyForm)
-    setError('')
-    setShowModal(true)
-  }
-
   async function handleSave() {
+    if (!editingUser) return
     if (!form.first_name || !form.last_name || !form.email) {
       setError('יש למלא שם פרטי, שם משפחה ואימייל')
       return
@@ -118,25 +113,13 @@ export default function AdminUsersPage() {
       bio: form.bio || null,
     }
 
-    if (editingUser) {
-      const { error: err } = await supabase.from('users')
-        .update(updateData)
-        .eq('id', editingUser.id)
-      if (err) {
-        setError('שגיאה בעדכון: ' + err.message)
-        setSaving(false)
-        return
-      }
-    } else {
-      // Create via Supabase Auth admin invite — requires server API
-      // For now, create user record directly (they'll need to set password via invite link)
-      const { error: err } = await supabase.from('users')
-        .insert({ ...updateData, organization_id: orgId })
-      if (err) {
-        setError('שגיאה ביצירה: ' + err.message)
-        setSaving(false)
-        return
-      }
+    const { error: err } = await supabase.from('users')
+      .update(updateData)
+      .eq('id', editingUser.id)
+    if (err) {
+      setError('שגיאה בעדכון: ' + err.message)
+      setSaving(false)
+      return
     }
 
     setSaving(false)
@@ -155,17 +138,18 @@ export default function AdminUsersPage() {
     if (!inviteEmail) return
     setInviting(true)
     setInviteSuccess('')
+    setError('')
 
-    // Send invite via API
     try {
       const res = await fetch('/api/admin/invite', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ email: inviteEmail, role: inviteRole }),
+        body: JSON.stringify({ email: inviteEmail, role: inviteRole, name: inviteName || undefined }),
       })
       if (res.ok) {
         setInviteSuccess(`הזמנה נשלחה ל-${inviteEmail}`)
         setInviteEmail('')
+        setInviteName('')
       } else {
         const data = await res.json()
         setError(data.error || 'שגיאה בשליחת הזמנה')
@@ -188,37 +172,40 @@ export default function AdminUsersPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <h2 className="text-2xl font-bold">ניהול משתמשים</h2>
-        <div className="flex gap-2">
-          <Button onClick={() => setShowInvite(!showInvite)} variant="outline" size="sm">הזמנה באימייל</Button>
-          <Button onClick={openCreate} size="sm">+ הוסף משתמש</Button>
-        </div>
+        <Button onClick={() => setShowInvite(!showInvite)} size="sm">
+          {showInvite ? 'סגור הזמנה' : '+ הזמן משתמש'}
+        </Button>
       </div>
 
       {/* Invite panel */}
       {showInvite && (
         <Card>
           <CardContent>
-            <div className="flex flex-col sm:flex-row gap-3 items-end">
-              <div className="flex-1">
-                <Input
-                  label="אימייל להזמנה"
-                  type="email"
-                  value={inviteEmail}
-                  onChange={e => setInviteEmail(e.target.value)}
-                  placeholder="doctor@example.com"
-                />
-              </div>
-              <div className="w-40">
-                <Select
-                  label="תפקיד"
-                  options={ROLE_OPTIONS}
-                  value={inviteRole}
-                  onChange={e => setInviteRole(e.target.value as UserRole)}
-                />
-              </div>
+            <p className="text-sm text-gray-500 mb-3">שלח הזמנה באימייל — המוזמן יקבל קישור להרשמה במערכת</p>
+            <div className="grid grid-cols-1 sm:grid-cols-4 gap-3 items-end">
+              <Input
+                label="שם"
+                value={inviteName}
+                onChange={e => setInviteName(e.target.value)}
+                placeholder="שם מלא"
+              />
+              <Input
+                label="אימייל"
+                type="email"
+                value={inviteEmail}
+                onChange={e => setInviteEmail(e.target.value)}
+                placeholder="user@example.com"
+              />
+              <Select
+                label="תפקיד"
+                options={ROLE_OPTIONS}
+                value={inviteRole}
+                onChange={e => setInviteRole(e.target.value as UserRole)}
+              />
               <Button onClick={handleInvite} loading={inviting} size="md">שלח הזמנה</Button>
             </div>
             {inviteSuccess && <p className="text-sm text-green-600 mt-2">{inviteSuccess}</p>}
+            {error && <p className="text-sm text-red-600 mt-2">{error}</p>}
           </CardContent>
         </Card>
       )}
@@ -322,7 +309,7 @@ export default function AdminUsersPage() {
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="fixed inset-0 bg-black/40" onClick={() => setShowModal(false)} />
           <div className="relative bg-white rounded-xl shadow-xl w-full max-w-lg max-h-[90vh] overflow-y-auto p-6 space-y-4">
-            <h3 className="text-lg font-bold">{editingUser ? 'עריכת משתמש' : 'הוספת משתמש'}</h3>
+            <h3 className="text-lg font-bold">עריכת משתמש</h3>
 
             <div className="grid grid-cols-2 gap-3">
               <Input label="שם פרטי" value={form.first_name} onChange={e => setForm({ ...form, first_name: e.target.value })} />
@@ -387,7 +374,7 @@ export default function AdminUsersPage() {
 
             <div className="flex gap-2 justify-end pt-2">
               <Button variant="outline" onClick={() => setShowModal(false)}>ביטול</Button>
-              <Button onClick={handleSave} loading={saving}>{editingUser ? 'שמור שינויים' : 'צור משתמש'}</Button>
+              <Button onClick={handleSave} loading={saving}>שמור שינויים</Button>
             </div>
           </div>
         </div>

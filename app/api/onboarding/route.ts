@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServiceRole } from '@/lib/supabase/server'
 import { onboardingFullSchema } from '@/lib/validation/onboarding-schema'
 import { PLANS, RESERVED_SUBDOMAINS } from '@/lib/config/plans'
+import { sendDoctorInvite } from '@/lib/email'
 
 export async function POST(req: Request) {
   try {
@@ -108,6 +109,25 @@ export async function POST(req: Request) {
       description: `מרפאה חדשה נוצרה: ${data.name}`,
       metadata: { plan: data.plan, subdomain: data.subdomain },
     })
+
+    // Send doctor invite emails (fire-and-forget)
+    if (data.doctors && data.doctors.length > 0) {
+      for (const doc of data.doctors) {
+        if (doc.email) {
+          sendDoctorInvite({
+            doctorName: doc.name || 'רופא',
+            doctorEmail: doc.email,
+            organizationId: org.id,
+            organizationName: data.name,
+            inviterName: `${data.first_name} ${data.last_name}`,
+            inviterUserId: authUser.user.id,
+            admin,
+          }).catch(err => {
+            console.error('[Onboarding] Invite email failed:', err instanceof Error ? err.message : 'Unknown')
+          })
+        }
+      }
+    }
 
     // Stripe Checkout for paid plans
     if (data.plan !== 'free' && plan.stripe_price_id && process.env.STRIPE_SECRET_KEY) {

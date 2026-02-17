@@ -4,23 +4,19 @@ import { useEffect, useState, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Card, CardContent, Spinner } from '@/components/ui'
-import type { User, Appointment } from '@/types/database'
+import type { User, Appointment, Document } from '@/types/database'
 import {
   LiveKitRoom,
-  VideoConference,
   RoomAudioRenderer,
-  ControlBar,
   GridLayout,
   ParticipantTile,
-  ParticipantName,
-  ConnectionQualityIndicator,
   TrackToggle,
-  DisconnectButton,
+  Chat,
   useTracks,
+  useChat,
   useLocalParticipant,
   useRemoteParticipants,
   useRoomContext,
-  useConnectionQualityIndicator,
 } from '@livekit/components-react'
 import '@livekit/components-styles'
 import { Track, RoomEvent, ConnectionQuality } from 'livekit-client'
@@ -165,6 +161,8 @@ export default function VideoCallPage() {
             appointmentId={id!}
             otherParty={otherParty}
             complaint={appointment?.chief_complaint || ''}
+            patientId={appointment?.patient_id || ''}
+            roomName={roomName}
             supabase={supabase}
             onLeave={handleDisconnected}
             profile={profile}
@@ -308,13 +306,15 @@ interface ActiveRoomProps {
   appointmentId: string
   otherParty: string
   complaint: string
+  patientId: string
+  roomName: string
   supabase: ReturnType<typeof getClient>
   onLeave: () => void
   profile: User | null
   router: ReturnType<typeof useRouter>
 }
 
-function ActiveRoom({ appointmentId, otherParty, complaint, supabase, onLeave, profile, router }: ActiveRoomProps) {
+function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName, supabase, onLeave, profile, router }: ActiveRoomProps) {
   const room = useRoomContext()
   const { localParticipant } = useLocalParticipant()
   const remoteParticipants = useRemoteParticipants()
@@ -329,6 +329,24 @@ function ActiveRoom({ appointmentId, otherParty, complaint, supabase, onLeave, p
   const [elapsed, setElapsed] = useState(0)
   const [screenSharing, setScreenSharing] = useState(false)
 
+  // Chat state
+  const [chatOpen, setChatOpen] = useState(false)
+  const { chatMessages } = useChat()
+  const [lastSeenCount, setLastSeenCount] = useState(0)
+  const unreadCount = chatOpen ? 0 : chatMessages.length - lastSeenCount
+
+  // Documents state (doctor only)
+  const [docsOpen, setDocsOpen] = useState(false)
+  const [documents, setDocuments] = useState<Document[]>([])
+  const [docsLoading, setDocsLoading] = useState(false)
+
+  // Recording state (doctor only)
+  const [recording, setRecording] = useState(false)
+  const [egressId, setEgressId] = useState<string | null>(null)
+  const [showConsentDialog, setShowConsentDialog] = useState(false)
+
+  const isDoctor = profile?.role === 'doctor'
+
   // Timer
   useEffect(() => {
     const start = Date.now()
@@ -342,6 +360,47 @@ function ActiveRoom({ appointmentId, otherParty, complaint, supabase, onLeave, p
     setScreenSharing(isSharing)
   }, [localParticipant.isScreenShareEnabled])
 
+  // Update last seen count when chat opens
+  useEffect(() => {
+    if (chatOpen) setLastSeenCount(chatMessages.length)
+  }, [chatOpen, chatMessages.length])
+
+  // Close documents panel when chat opens and vice versa
+  const toggleChat = () => {
+    setChatOpen(prev => {
+      if (!prev) setDocsOpen(false)
+      return !prev
+    })
+  }
+
+  const toggleDocs = async () => {
+    const willOpen = !docsOpen
+    setDocsOpen(willOpen)
+    if (willOpen) {
+      setChatOpen(false)
+      if (documents.length === 0) await loadDocuments()
+    }
+  }
+
+  const loadDocuments = async () => {
+    if (!patientId) return
+    setDocsLoading(true)
+    const { data } = await supabase
+      .from('documents')
+      .select('*')
+      .eq('patient_id', patientId)
+      .order('created_at', { ascending: false })
+    setDocuments((data || []) as unknown as Document[])
+    setDocsLoading(false)
+  }
+
+  const openDocument = async (storagePath: string) => {
+    const { data } = await supabase.storage
+      .from('medical-documents')
+      .createSignedUrl(storagePath, 300)
+    if (data?.signedUrl) window.open(data.signedUrl, '_blank')
+  }
+
   const formatTime = (s: number) =>
     `${Math.floor(s / 60).toString().padStart(2, '0')}:${(s % 60).toString().padStart(2, '0')}`
 
@@ -353,7 +412,40 @@ function ActiveRoom({ appointmentId, otherParty, complaint, supabase, onLeave, p
     }
   }
 
+  const handleStartRecording = async () => {
+    try {
+      const res = await fetch('/api/livekit/recording', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ roomName, appointmentId }),
+      })
+      if (!res.ok) return
+      const { egressId: eid } = await res.json()
+      setEgressId(eid)
+      setRecording(true)
+      setShowConsentDialog(false)
+    } catch {
+      // Recording failed silently
+    }
+  }
+
+  const handleStopRecording = async () => {
+    if (!egressId) return
+    try {
+      await fetch('/api/livekit/recording', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ egressId }),
+      })
+    } catch {
+      // Stop failed silently
+    }
+    setRecording(false)
+    setEgressId(null)
+  }
+
   const handleDisconnect = async () => {
+    if (recording) await handleStopRecording()
     const duration = elapsed
     room.disconnect()
     await supabase.from('appointments').update({
@@ -361,6 +453,13 @@ function ActiveRoom({ appointmentId, otherParty, complaint, supabase, onLeave, p
       video_duration_seconds: duration,
     }).eq('id', appointmentId)
     onLeave()
+  }
+
+  const getFileIcon = (fileType: string) => {
+    if (fileType.startsWith('image/')) return '🖼️'
+    if (fileType === 'application/pdf') return '📄'
+    if (fileType.includes('word') || fileType.includes('document')) return '📝'
+    return '📎'
   }
 
   return (
@@ -372,6 +471,12 @@ function ActiveRoom({ appointmentId, otherParty, complaint, supabase, onLeave, p
           <span className="text-gray-400 text-xs hidden sm:inline">{complaint}</span>
         </div>
         <div className="flex items-center gap-3">
+          {recording && (
+            <span className="flex items-center gap-1.5 bg-red-600/90 px-2.5 py-1 rounded-md text-xs font-medium">
+              <span className="w-2 h-2 rounded-full bg-white animate-pulse" />
+              מוקלט
+            </span>
+          )}
           <RoomConnectionIndicator />
           <span className="bg-red-600/90 px-2.5 py-1 rounded-md text-xs font-mono animate-pulse">
             {formatTime(elapsed)}
@@ -382,23 +487,112 @@ function ActiveRoom({ appointmentId, otherParty, complaint, supabase, onLeave, p
         </div>
       </header>
 
-      {/* Video Grid */}
-      <div className="flex-1 relative overflow-hidden">
-        <RoomAudioRenderer />
-        <GridLayout tracks={tracks} style={{ height: '100%' }}>
-          <ParticipantTile />
-        </GridLayout>
+      {/* Video Grid + Side Panels */}
+      <div className="flex-1 relative overflow-hidden flex">
+        {/* Main video area */}
+        <div className="flex-1 relative">
+          <RoomAudioRenderer />
+          <GridLayout tracks={tracks} style={{ height: '100%' }}>
+            <ParticipantTile />
+          </GridLayout>
 
-        {/* Participant overlay info */}
-        {remoteParticipants.length === 0 && (
-          <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-            <div className="bg-gray-800/80 backdrop-blur-sm rounded-xl px-6 py-4 text-center">
-              <Spinner size="md" className="mx-auto mb-2" />
-              <p className="text-gray-300 text-sm">ממתין ל{otherParty || 'משתתף נוסף'}...</p>
+          {/* Participant overlay info */}
+          {remoteParticipants.length === 0 && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+              <div className="bg-gray-800/80 backdrop-blur-sm rounded-xl px-6 py-4 text-center">
+                <Spinner size="md" className="mx-auto mb-2" />
+                <p className="text-gray-300 text-sm">ממתין ל{otherParty || 'משתתף נוסף'}...</p>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Chat Side Panel */}
+        {chatOpen && (
+          <div className="w-80 max-sm:absolute max-sm:inset-0 max-sm:w-full bg-gray-800 border-r border-gray-700/50 flex flex-col z-20">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700/50">
+              <h3 className="font-bold text-sm">צ&apos;אט</h3>
+              <button onClick={() => setChatOpen(false)} className="text-gray-400 hover:text-white text-lg">✕</button>
+            </div>
+            <div className="flex-1 overflow-hidden [&_.lk-chat]:h-full [&_.lk-chat]:bg-transparent [&_.lk-chat-messages]:text-white [&_.lk-chat-form-input]:bg-gray-700 [&_.lk-chat-form-input]:text-white [&_.lk-chat-form-input]:border-gray-600 [&_.lk-chat-form-button]:bg-blue-600">
+              <Chat style={{ height: '100%' }} />
+            </div>
+          </div>
+        )}
+
+        {/* Documents Side Panel (doctor only) */}
+        {docsOpen && isDoctor && (
+          <div className="w-80 max-sm:absolute max-sm:inset-0 max-sm:w-full bg-gray-800 border-r border-gray-700/50 flex flex-col z-20">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700/50">
+              <h3 className="font-bold text-sm">מסמכי מטופל</h3>
+              <button onClick={() => setDocsOpen(false)} className="text-gray-400 hover:text-white text-lg">✕</button>
+            </div>
+            <div className="flex-1 overflow-y-auto p-3 space-y-2">
+              {docsLoading ? (
+                <div className="flex items-center justify-center py-8">
+                  <Spinner size="md" />
+                </div>
+              ) : documents.length === 0 ? (
+                <div className="text-center py-8 text-gray-400">
+                  <div className="text-3xl mb-2">📋</div>
+                  <p className="text-sm">אין מסמכים למטופל זה</p>
+                </div>
+              ) : (
+                documents.map(doc => (
+                  <button
+                    key={doc.id}
+                    onClick={() => openDocument(doc.storage_path)}
+                    className="w-full text-right bg-gray-700/50 hover:bg-gray-700 rounded-lg p-3 transition-colors"
+                  >
+                    <div className="flex items-start gap-3">
+                      <span className="text-xl shrink-0">{getFileIcon(doc.file_type)}</span>
+                      <div className="min-w-0 flex-1">
+                        <p className="text-sm font-medium text-white truncate">{doc.file_name}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          {doc.category && (
+                            <span className="text-xs bg-blue-600/30 text-blue-300 px-2 py-0.5 rounded">{doc.category}</span>
+                          )}
+                          <span className="text-xs text-gray-400">
+                            {new Date(doc.created_at).toLocaleDateString('he-IL')}
+                          </span>
+                        </div>
+                      </div>
+                    </div>
+                  </button>
+                ))
+              )}
             </div>
           </div>
         )}
       </div>
+
+      {/* Consent Dialog for Recording */}
+      {showConsentDialog && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
+          <div className="bg-gray-800 rounded-2xl p-6 max-w-sm w-full mx-4 border border-gray-700 text-center space-y-4">
+            <div className="text-4xl">⏺</div>
+            <h3 className="text-lg font-bold">הקלטת שיחה</h3>
+            <p className="text-gray-300 text-sm">
+              השיחה תוקלט לצורכי תיעוד רפואי. יש לוודא שכל המשתתפים מסכימים להקלטה.
+            </p>
+            <div className="flex gap-3">
+              <Button
+                onClick={handleStartRecording}
+                className="flex-1 bg-red-600 hover:bg-red-700"
+              >
+                התחל הקלטה
+              </Button>
+              <Button
+                onClick={() => setShowConsentDialog(false)}
+                variant="outline"
+                className="flex-1 border-gray-600 text-white"
+              >
+                ביטול
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* Controls */}
       <div className="bg-gray-800/80 backdrop-blur-sm border-t border-gray-700/50 px-4 py-3">
@@ -428,6 +622,57 @@ function ActiveRoom({ appointmentId, otherParty, complaint, supabase, onLeave, p
             <span className="text-lg">{screenSharing ? '🖥️' : '💻'}</span>
             <span className="hidden sm:inline">{screenSharing ? 'הפסק שיתוף' : 'שתף מסך'}</span>
           </button>
+
+          {/* Chat Toggle */}
+          <button
+            onClick={toggleChat}
+            className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+              chatOpen
+                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                : 'bg-gray-700 hover:bg-gray-600 text-white'
+            }`}
+            title="צ'אט"
+          >
+            <span className="text-lg">💬</span>
+            <span className="hidden sm:inline">צ&apos;אט</span>
+            {unreadCount > 0 && (
+              <span className="absolute -top-1 -left-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
+                {unreadCount > 9 ? '9+' : unreadCount}
+              </span>
+            )}
+          </button>
+
+          {/* Documents (doctor only) */}
+          {isDoctor && (
+            <button
+              onClick={toggleDocs}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                docsOpen
+                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  : 'bg-gray-700 hover:bg-gray-600 text-white'
+              }`}
+              title="מסמכי מטופל"
+            >
+              <span className="text-lg">📋</span>
+              <span className="hidden sm:inline">מסמכים</span>
+            </button>
+          )}
+
+          {/* Recording (doctor only) */}
+          {isDoctor && (
+            <button
+              onClick={recording ? handleStopRecording : () => setShowConsentDialog(true)}
+              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
+                recording
+                  ? 'bg-red-600 hover:bg-red-700 text-white'
+                  : 'bg-gray-700 hover:bg-gray-600 text-white'
+              }`}
+              title={recording ? 'הפסק הקלטה' : 'הקלט שיחה'}
+            >
+              <span className="text-lg">{recording ? '⏹' : '⏺'}</span>
+              <span className="hidden sm:inline">{recording ? 'הפסק הקלטה' : 'הקלטה'}</span>
+            </button>
+          )}
 
           {/* Disconnect */}
           <button

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { getClient } from '@/lib/supabase/client'
-import { Button, Input, Card, CardHeader, CardContent, PageLoading } from '@/components/ui'
+import { Button, Input, Card, CardHeader, CardContent, PageLoading, Spinner } from '@/components/ui'
 import type { Organization } from '@/types/database'
 
 type WorkingHours = {
@@ -35,6 +35,7 @@ export default function AdminSettingsPage() {
   const [contactEmail, setContactEmail] = useState('')
   const [contactPhone, setContactPhone] = useState('')
   const [logoUrl, setLogoUrl] = useState('')
+  const [uploadingLogo, setUploadingLogo] = useState(false)
   const [primaryColor, setPrimaryColor] = useState('#2563EB')
   const [secondaryColor, setSecondaryColor] = useState('#7C3AED')
   const [workingHours, setWorkingHours] = useState<WorkingHours[]>(DEFAULT_HOURS)
@@ -87,6 +88,43 @@ export default function AdminSettingsPage() {
     setEmailNotifications(features.email_notifications !== false)
 
     setLoading(false)
+  }
+
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0]
+    if (!file || !org) return
+
+    const maxSize = 2 * 1024 * 1024 // 2MB
+    if (file.size > maxSize) {
+      setError('הקובץ גדול מדי — מקסימום 2MB')
+      return
+    }
+
+    const allowedTypes = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/webp']
+    if (!allowedTypes.includes(file.type)) {
+      setError('סוג קובץ לא נתמך — PNG, JPG, SVG או WebP בלבד')
+      return
+    }
+
+    setUploadingLogo(true)
+    setError('')
+
+    const ext = file.name.split('.').pop() || 'png'
+    const path = `branding/${org.id}/logo.${ext}`
+
+    const { error: uploadErr } = await supabase.storage
+      .from('avatars')
+      .upload(path, file, { upsert: true, contentType: file.type })
+
+    if (uploadErr) {
+      setError('שגיאה בהעלאת הלוגו: ' + uploadErr.message)
+      setUploadingLogo(false)
+      return
+    }
+
+    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
+    setLogoUrl(`${urlData.publicUrl}?t=${Date.now()}`)
+    setUploadingLogo(false)
   }
 
   async function handleSave() {
@@ -150,14 +188,45 @@ export default function AdminSettingsPage() {
               <Input label="אימייל ליצירת קשר" type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} />
               <Input label="טלפון" type="tel" value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="03-1234567" />
             </div>
-            <Input label="כתובת לוגו (URL)" value={logoUrl} onChange={e => setLogoUrl(e.target.value)} placeholder="https://..." hint="קישור לתמונת הלוגו" />
-            {logoUrl && (
-              <div className="flex items-center gap-3">
-                <span className="text-sm text-gray-500">תצוגה מקדימה:</span>
-                {/* eslint-disable-next-line @next/next/no-img-element */}
-                <img src={logoUrl} alt="לוגו" className="h-12 w-auto rounded" onError={e => (e.currentTarget.style.display = 'none')} />
+            <div className="space-y-3">
+              <label className="block text-sm font-medium text-gray-700">לוגו המרפאה</label>
+              <div className="flex items-center gap-4">
+                {logoUrl ? (
+                  <div className="relative">
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={logoUrl} alt="לוגו" className="h-16 w-auto rounded-lg border border-gray-200" onError={e => (e.currentTarget.style.display = 'none')} />
+                  </div>
+                ) : (
+                  <div className="h-16 w-16 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-2xl">
+                    🏥
+                  </div>
+                )}
+                <div className="flex flex-col gap-2">
+                  <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                    {uploadingLogo ? <Spinner size="sm" /> : '📁'}
+                    {uploadingLogo ? 'מעלה...' : 'העלה לוגו'}
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                      className="hidden"
+                      onChange={handleLogoUpload}
+                      disabled={uploadingLogo}
+                    />
+                  </label>
+                  <p className="text-xs text-gray-400">PNG, JPG, SVG או WebP — עד 2MB</p>
+                </div>
+                {logoUrl && (
+                  <Button variant="ghost" size="sm" onClick={() => setLogoUrl('')}>הסר</Button>
+                )}
               </div>
-            )}
+              <Input
+                label="או הזן כתובת URL"
+                value={logoUrl}
+                onChange={e => setLogoUrl(e.target.value)}
+                placeholder="https://..."
+                hint="הזן קישור ישיר לתמונת הלוגו"
+              />
+            </div>
           </div>
         </CardContent>
       </Card>

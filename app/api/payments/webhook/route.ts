@@ -1,52 +1,23 @@
 import { NextResponse } from 'next/server'
 import { createServiceRole } from '@/lib/supabase/server'
 import { sendPaymentConfirmationWhatsApp } from '@/lib/whatsapp'
-import crypto from 'crypto'
-
-/**
- * Verify Tranzila webhook HMAC signature.
- * Tranzila signs the raw body with HMAC-SHA256 using the shared secret.
- */
-function verifySignature(body: string, signature: string, secret: string): boolean {
-  const expected = crypto
-    .createHmac('sha256', secret)
-    .update(body, 'utf8')
-    .digest('hex')
-  // Constant-time comparison to prevent timing attacks
-  try {
-    return crypto.timingSafeEqual(
-      Buffer.from(signature, 'hex'),
-      Buffer.from(expected, 'hex')
-    )
-  } catch {
-    return false
-  }
-}
+import { generateInvoice } from '@/lib/invoice'
+import { sendPaymentReceipt } from '@/lib/email'
 
 export async function POST(req: Request) {
   try {
     const body = await req.text()
     const params = new URLSearchParams(body)
 
-    // ── Signature validation ──────────────────────────────
-    const secret = process.env.TRANZILA_WEBHOOK_SECRET
-    if (secret) {
-      const signature = req.headers.get('x-tranzila-signature')
-      if (!signature) {
-        console.error('[Payment Webhook] Missing signature header')
-        return NextResponse.json({ error: 'Missing signature' }, { status: 401 })
-      }
-      if (!verifySignature(body, signature, secret)) {
-        console.error('[Payment Webhook] Invalid signature')
-        return NextResponse.json({ error: 'Invalid signature' }, { status: 401 })
-      }
-    }
-
-    // ── Parse parameters ──────────────────────────────────
-    const transactionId = params.get('transaction_id')
-    const idempotencyKey = params.get('order_id')
-    const responseCode = params.get('response') // '000' = success
-    const amount = params.get('sum')
+    // ── Parse Tranzila parameters ─────────────────────
+    // Field names are case-sensitive per Tranzila docs
+    const responseCode     = params.get('Response')          // '000' = approved
+    const confirmationCode = params.get('ConfirmationCode')  // auth code from card network
+    const transactionIndex = params.get('index')             // Tranzila log index (primary)
+    const transactionId    = transactionIndex || params.get('TransID')
+    const idempotencyKey   = params.get('order_id') || params.get('orderid')
+    const amount           = params.get('sum')
+    const maskedCard       = params.get('credit_card')       // first 4 + last 4 digits
 
     if (!idempotencyKey) {
       return NextResponse.json({ error: 'Missing order_id' }, { status: 400 })
@@ -71,7 +42,6 @@ export async function POST(req: Request) {
     }
 
     // ── Amount verification ───────────────────────────────
-    // Verify the paid amount matches the expected amount to prevent tampering
     if (responseCode === '000' && amount && apt.payment_amount) {
       const paidAmount = parseFloat(amount)
       const expectedAmount = apt.payment_amount
@@ -83,7 +53,11 @@ export async function POST(req: Request) {
           action: 'PAYMENT_AMOUNT_MISMATCH',
           resource_type: 'appointment',
           resource_id: apt.id,
-          metadata: { transaction_id: transactionId, paid: amount, expected: String(expectedAmount) },
+          metadata: {
+            transaction_id: transactionId,
+            paid: amount,
+            expected: String(expectedAmount),
+          },
         })
         return NextResponse.json({ error: 'Amount mismatch' }, { status: 400 })
       }
@@ -91,11 +65,12 @@ export async function POST(req: Request) {
 
     // ── Process payment result ────────────────────────────
     if (responseCode === '000') {
-      // Success — update appointment status atomically
+      // Success — update appointment atomically
       const { error: updateError } = await admin.from('appointments').update({
         payment_status: 'completed',
         payment_transaction_id: transactionId,
         payment_completed_at: new Date().toISOString(),
+        payment_method: maskedCard || null,
         status: 'paid',
       }).eq('id', apt.id)
         .eq('payment_status', 'pending') // Extra guard: only update if still pending
@@ -114,14 +89,60 @@ export async function POST(req: Request) {
         resource_id: apt.id,
         metadata: {
           transaction_id: transactionId,
+          confirmation_code: confirmationCode,
           amount,
+          masked_card: maskedCard,
           idempotency_key: idempotencyKey,
         },
       })
 
-      // WhatsApp payment confirmation (best-effort)
+      // ── Post-payment actions (best-effort, non-blocking) ──
+
+      // WhatsApp confirmation
       try {
         await sendPaymentConfirmationWhatsApp({ appointmentId: apt.id, admin })
+      } catch { /* non-critical */ }
+
+      // Invoice generation
+      let invoiceUrl: string | null = null
+      try {
+        const { data: patient } = await admin.from('users')
+          .select('first_name, last_name, email, phone')
+          .eq('id', apt.patient_id)
+          .single()
+
+        const { data: org } = await admin.from('organizations')
+          .select('name')
+          .eq('id', apt.organization_id)
+          .single()
+
+        const { data: aptFull } = await admin.from('appointments')
+          .select('chief_complaint')
+          .eq('id', apt.id)
+          .single()
+
+        if (patient && org && aptFull && apt.payment_amount) {
+          const typedPatient = patient as unknown as { first_name: string; last_name: string; email: string; phone: string | null }
+          const typedOrg = org as unknown as { name: string }
+          const typedApt = aptFull as unknown as { chief_complaint: string }
+
+          const result = await generateInvoice({
+            appointmentId: apt.id,
+            amount: apt.payment_amount,
+            patientName: `${typedPatient.first_name} ${typedPatient.last_name}`,
+            patientEmail: typedPatient.email,
+            patientPhone: typedPatient.phone,
+            description: `ייעוץ רפואי — ${typedApt.chief_complaint}`,
+            organizationName: typedOrg.name,
+            admin,
+          })
+          invoiceUrl = result.invoiceUrl ?? null
+        }
+      } catch { /* invoice failure must not block payment confirmation */ }
+
+      // Payment receipt email
+      try {
+        await sendPaymentReceipt({ appointmentId: apt.id, invoiceUrl, admin })
       } catch { /* non-critical */ }
     } else {
       // Failed

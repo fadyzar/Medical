@@ -20,13 +20,17 @@ const NAV: Record<string, NavItem[]> = {
     { label: 'תורים', href: '/dashboard/doctor/appointments', icon: '📋' },
     { label: 'יומן', href: '/dashboard/doctor/calendar', icon: '📅' },
     { label: 'מטופלים', href: '/dashboard/doctor/patients', icon: '👥' },
+    { label: 'שאלונים', href: '/dashboard/doctor/questionnaires', icon: '📝' },
+    { label: 'הפרופיל שלי', href: '/dashboard/doctor/profile', icon: '👤' },
   ],
   admin: [
     { label: 'דשבורד', href: '/dashboard/admin/dashboard', icon: '🏠' },
     { label: 'משתמשים', href: '/dashboard/admin/users', icon: '👥' },
     { label: 'שאלונים', href: '/dashboard/admin/questionnaires', icon: '📝' },
     { label: 'דוחות', href: '/dashboard/admin/reports', icon: '📊' },
+    { label: 'יומן פעילות', href: '/dashboard/admin/audit-log', icon: '📜' },
     { label: 'הגדרות', href: '/dashboard/admin/settings', icon: '⚙️' },
+    { label: 'חיוב ומנוי', href: '/dashboard/admin/billing', icon: '💳' },
   ],
   staff: [
     { label: 'דשבורד', href: '/dashboard/staff/dashboard', icon: '🏠' },

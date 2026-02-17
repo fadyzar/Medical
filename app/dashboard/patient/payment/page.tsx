@@ -20,6 +20,7 @@ export default function PaymentPage() {
   const [appointment, setAppointment] = useState<Appointment | null>(null)
   const [doctor, setDoctor] = useState<User | null>(null)
   const [iframeUrl, setIframeUrl] = useState<string | null>(null)
+  const [invoiceUrl, setInvoiceUrl] = useState<string | null>(null)
   const [error, setError] = useState('')
   const pollRef = useRef<ReturnType<typeof setInterval>>(undefined)
 
@@ -62,6 +63,9 @@ export default function PaymentPage() {
 
     if (typedApt.doctor) {
       setDoctor(typedApt.doctor as unknown as User)
+    }
+    if (typedApt.invoice_url) {
+      setInvoiceUrl(typedApt.invoice_url)
     }
 
     // Determine state based on payment status
@@ -123,6 +127,7 @@ export default function PaymentPage() {
       if (data?.payment_status === 'completed') {
         if (pollRef.current) clearInterval(pollRef.current)
         setState('success')
+        refreshInvoiceUrl(appointmentId)
       } else if (data?.payment_status === 'failed') {
         if (pollRef.current) clearInterval(pollRef.current)
         setState('failed')
@@ -133,6 +138,14 @@ export default function PaymentPage() {
   const retryPayment = () => {
     setIframeUrl(null)
     setState('summary')
+  }
+
+  const refreshInvoiceUrl = async (id: string) => {
+    const { data } = await supabase.from('appointments')
+      .select('invoice_url')
+      .eq('id', id)
+      .single()
+    if (data?.invoice_url) setInvoiceUrl(data.invoice_url as string)
   }
 
   if (state === 'loading') {
@@ -270,6 +283,17 @@ export default function PaymentPage() {
               <p className="text-lg font-semibold text-green-700">
                 {formatPrice(appointment.payment_amount)}
               </p>
+            )}
+            {invoiceUrl && (
+              <a
+                href={invoiceUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline font-medium"
+              >
+                <span>📄</span>
+                הורד קבלה
+              </a>
             )}
             <div className="flex gap-3 justify-center pt-4">
               <Button onClick={() => router.push('/dashboard/patient/dashboard')}>

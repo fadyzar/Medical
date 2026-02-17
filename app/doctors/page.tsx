@@ -93,6 +93,7 @@ export default async function DoctorsPage() {
           <Link href="/" className="text-2xl font-black text-blue-600">טלמדיסן</Link>
           <div className="flex items-center gap-4">
             <Link href="/doctors" className="text-sm text-blue-600 font-medium">הרופאים שלנו</Link>
+            <Link href="/blog" className="text-sm text-gray-600 hover:text-gray-900">בלוג</Link>
             <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900">התחברות</Link>
             <Link href="/auth/register" className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">הרשמה חינם</Link>
           </div>
@@ -156,7 +157,9 @@ export default async function DoctorsPage() {
                         {doc.first_name.charAt(0)}{doc.last_name.charAt(0)}
                       </div>
                       <div className="min-w-0">
-                        <h2 className="font-bold text-xl">ד&quot;ר {doc.first_name} {doc.last_name}</h2>
+                        <Link href={`/doctors/${doc.id}`} className="hover:text-blue-600 transition-colors">
+                          <h2 className="font-bold text-xl">ד&quot;ר {doc.first_name} {doc.last_name}</h2>
+                        </Link>
                         {doc.specialties && doc.specialties.length > 0 && (
                           <div className="flex flex-wrap gap-1.5 mt-2">
                             {doc.specialties.map(s => (
@@ -238,6 +241,7 @@ export default async function DoctorsPage() {
           <div>
             <h5 className="font-bold text-white mb-3">קישורים</h5>
             <p><Link href="/doctors" className="hover:text-white">הרופאים שלנו</Link></p>
+            <p><Link href="/blog" className="hover:text-white">בלוג</Link></p>
             <p><Link href="/auth/register" className="hover:text-white">הרשמה</Link></p>
             <p><Link href="/auth/login" className="hover:text-white">התחברות</Link></p>
           </div>

@@ -5,7 +5,11 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Card, CardContent, CardHeader, Badge, Textarea, Input, PageLoading, EmptyState } from '@/components/ui'
 import { STATUS_LABELS, STATUS_COLORS, formatDateTime, cn } from '@/lib/utils'
-import type { Appointment, User } from '@/types/database'
+import type { Appointment, User, QuestionnaireResponse, QuestionItem } from '@/types/database'
+
+type ResponseWithQuest = QuestionnaireResponse & {
+  questionnaire?: { id: string; title: string; questions: QuestionItem[] }
+}
 
 export default function DoctorAppointmentsPage() {
   const router = useRouter()
@@ -17,6 +21,8 @@ export default function DoctorAppointmentsPage() {
   const [saving, setSaving] = useState(false)
   const [filter, setFilter] = useState<string>('all')
   const [soapForm, setSoapForm] = useState({ subjective_notes: '', objective_notes: '', assessment: '', plan: '', diagnosis: '', follow_up_instructions: '' })
+  const [questResponses, setQuestResponses] = useState<ResponseWithQuest[]>([])
+  const [showQuestionnaire, setShowQuestionnaire] = useState(false)
   const supabase = getClient()
 
   useEffect(() => { loadData() }, [])
@@ -38,8 +44,9 @@ export default function DoctorAppointmentsPage() {
     setLoading(false)
   }
 
-  const selectAppointment = (apt: Appointment) => {
+  const selectAppointment = async (apt: Appointment) => {
     setSelected(apt)
+    setShowQuestionnaire(false)
     setSoapForm({
       subjective_notes: apt.subjective_notes || '',
       objective_notes: apt.objective_notes || '',
@@ -48,6 +55,15 @@ export default function DoctorAppointmentsPage() {
       diagnosis: apt.diagnosis || '',
       follow_up_instructions: apt.follow_up_instructions || '',
     })
+
+    // Fetch questionnaire responses for this appointment
+    const { data: qr } = await supabase.from('questionnaire_responses')
+      .select('*, questionnaire:questionnaire_id(id, title, questions)')
+      .eq('appointment_id', apt.id)
+      .eq('is_complete', true)
+      .order('created_at', { ascending: false })
+
+    setQuestResponses((qr || []) as unknown as ResponseWithQuest[])
   }
 
   const saveSOAP = async () => {
@@ -168,6 +184,39 @@ export default function DoctorAppointmentsPage() {
                   <div className="bg-blue-50 rounded-lg p-3">
                     <p className="font-medium text-blue-700 text-sm">🤖 סיכום AI</p>
                     <p className="text-sm text-blue-600 mt-1 whitespace-pre-wrap">{selected.ai_summary}</p>
+                  </div>
+                )}
+
+                {/* Questionnaire Responses */}
+                {questResponses.length > 0 && (
+                  <div className="bg-green-50 rounded-lg p-3">
+                    <button onClick={() => setShowQuestionnaire(!showQuestionnaire)}
+                      className="w-full flex items-center justify-between text-sm font-medium text-green-700">
+                      <span>📋 שאלון מטופל ({questResponses.length})</span>
+                      <span className="text-xs">{showQuestionnaire ? '▲ הסתר' : '▼ הצג'}</span>
+                    </button>
+                    {showQuestionnaire && questResponses.map(qr => {
+                      const quest = qr.questionnaire
+                      const answers = (qr.responses || {}) as Record<string, string | string[]>
+                      return (
+                        <div key={qr.id} className="mt-3 space-y-3">
+                          {quest && <p className="text-xs text-green-600 font-medium">{quest.title}</p>}
+                          {(quest?.questions || []).filter(q => q.text.trim()).map((q, idx) => {
+                            const answer = answers[q.id]
+                            const hasAnswer = answer && (Array.isArray(answer) ? answer.length > 0 : String(answer).trim().length > 0)
+                            if (!hasAnswer) return null
+                            return (
+                              <div key={q.id} className="text-xs">
+                                <p className="text-gray-600 font-medium">{idx + 1}. {q.text}</p>
+                                <p className="text-gray-800 mt-0.5 bg-white rounded px-2 py-1">
+                                  {Array.isArray(answer) ? answer.join(', ') : String(answer)}
+                                </p>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )
+                    })}
                   </div>
                 )}
 

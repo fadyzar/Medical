@@ -71,7 +71,8 @@ export type Appointment = {
   scheduled_at: string | null; duration_minutes: number
   payment_amount: number | null; payment_status: PaymentStatus | null
   payment_transaction_id: string | null; payment_idempotency_key: string | null
-  payment_completed_at: string | null
+  payment_completed_at: string | null; payment_method: string | null
+  invoice_number: string | null; invoice_url: string | null
   video_room_id: string | null; video_room_name: string | null
   video_started_at: string | null; video_ended_at: string | null; video_duration_seconds: number | null
   subjective_notes: string | null; objective_notes: string | null
