@@ -1,24 +1,22 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useState, useEffect, useCallback, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button, Input, Card, CardContent, Badge, Spinner } from '@/components/ui'
 import { cn, formatPrice } from '@/lib/utils'
 import { PLANS, FEATURE_LABELS, type PlanId } from '@/lib/config/plans'
-import { onboardingClinicSchema, onboardingBrandingSchema, onboardingAdminSchema } from '@/lib/validation/onboarding-schema'
+import { onboardingClinicSchema, onboardingAdminSchema, onboardingBrandingSchema } from '@/lib/validation/onboarding-schema'
+import { getClient } from '@/lib/supabase/client'
 
-type Step = 'clinic' | 'plan' | 'branding' | 'admin' | 'doctors' | 'complete'
+type Step = 'clinic' | 'plan' | 'branding' | 'doctor' | 'complete'
 
 const STEPS: { key: Step; label: string; num: number }[] = [
   { key: 'clinic', label: 'מרפאה', num: 1 },
   { key: 'plan', label: 'תוכנית', num: 2 },
   { key: 'branding', label: 'מיתוג', num: 3 },
-  { key: 'admin', label: 'מנהל', num: 4 },
-  { key: 'doctors', label: 'רופאים', num: 5 },
-  { key: 'complete', label: 'סיום', num: 6 },
+  { key: 'doctor', label: 'רופא', num: 4 },
+  { key: 'complete', label: 'סיום', num: 5 },
 ]
-
-type DoctorInvite = { name: string; email: string }
 
 export default function OnboardingPage() {
   const router = useRouter()
@@ -29,21 +27,34 @@ export default function OnboardingPage() {
 
   // Form state
   const [form, setForm] = useState({
+    // Clinic
     name: '',
     contact_email: '',
     contact_phone: '',
     subdomain: '',
-    plan: 'pro' as PlanId,
-    logo_url: '',
-    primary_color: '#2563EB',
-    secondary_color: '#7C3AED',
+    // Admin
     first_name: '',
     last_name: '',
     email: '',
     password: '',
     confirm_password: '',
+    // Plan
+    plan: 'pro' as PlanId,
+    // Branding
+    logo_url: '',
+    primary_color: '#2563EB',
+    secondary_color: '#7C3AED',
   })
-  const [doctors, setDoctors] = useState<DoctorInvite[]>([])
+
+  // Doctor invite
+  const [doctorName, setDoctorName] = useState('')
+  const [doctorEmail, setDoctorEmail] = useState('')
+
+  // Logo file upload
+  const [logoFile, setLogoFile] = useState<File | null>(null)
+  const [logoPreview, setLogoPreview] = useState<string | null>(null)
+  const [uploadingLogo, setUploadingLogo] = useState(false)
+  const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Subdomain availability
   const [subdomainAvailable, setSubdomainAvailable] = useState<boolean | null>(null)
@@ -79,30 +90,108 @@ export default function OnboardingPage() {
     })
   }, [])
 
+  // Logo file handling
+  const handleLogoSelect = async (file: File) => {
+    if (!file.type.startsWith('image/')) {
+      setErrors(prev => ({ ...prev, logo: 'יש לבחור קובץ תמונה' }))
+      return
+    }
+    if (file.size > 2 * 1024 * 1024) {
+      setErrors(prev => ({ ...prev, logo: 'הקובץ גדול מדי (מקסימום 2MB)' }))
+      return
+    }
+
+    setLogoFile(file)
+    setLogoPreview(URL.createObjectURL(file))
+    setErrors(prev => { const n = { ...prev }; delete n.logo; return n })
+
+    // Upload to Supabase Storage
+    setUploadingLogo(true)
+    try {
+      const supabase = getClient()
+      const ext = file.name.split('.').pop() || 'png'
+      const fileName = `onboarding/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
+
+      const { data, error } = await supabase.storage
+        .from('logos')
+        .upload(fileName, file, { contentType: file.type, upsert: false })
+
+      if (error) {
+        // Storage not configured — just use preview, logo will be optional
+        console.warn('Logo upload skipped:', error.message)
+      } else if (data) {
+        const { data: urlData } = supabase.storage.from('logos').getPublicUrl(data.path)
+        if (urlData?.publicUrl) {
+          setForm(prev => ({ ...prev, logo_url: urlData.publicUrl }))
+        }
+      }
+    } catch {
+      // Non-critical — logo is optional
+    } finally {
+      setUploadingLogo(false)
+    }
+  }
+
+  const handleDrop = (e: React.DragEvent) => {
+    e.preventDefault()
+    const file = e.dataTransfer.files[0]
+    if (file) handleLogoSelect(file)
+  }
+
+  const removeLogo = () => {
+    setLogoFile(null)
+    if (logoPreview) URL.revokeObjectURL(logoPreview)
+    setLogoPreview(null)
+    setForm(prev => ({ ...prev, logo_url: '' }))
+    if (fileInputRef.current) fileInputRef.current.value = ''
+  }
+
   const validateStep = (currentStep: Step): boolean => {
     setErrors({})
+
     if (currentStep === 'clinic') {
-      const result = onboardingClinicSchema.safeParse({
+      // Validate clinic fields
+      const clinicResult = onboardingClinicSchema.safeParse({
         name: form.name,
         contact_email: form.contact_email,
         contact_phone: form.contact_phone,
         subdomain: form.subdomain,
       })
-      if (!result.success) {
-        const fieldErrors: Record<string, string> = {}
-        for (const issue of result.error.issues) {
+      // Validate admin fields
+      const adminResult = onboardingAdminSchema.safeParse({
+        first_name: form.first_name,
+        last_name: form.last_name,
+        email: form.email,
+        password: form.password,
+        confirm_password: form.confirm_password,
+      })
+
+      const fieldErrors: Record<string, string> = {}
+
+      if (!clinicResult.success) {
+        for (const issue of clinicResult.error.issues) {
           const field = issue.path[0] as string
           if (!fieldErrors[field]) fieldErrors[field] = issue.message
         }
-        setErrors(fieldErrors)
-        return false
       }
+      if (!adminResult.success) {
+        for (const issue of adminResult.error.issues) {
+          const field = issue.path[0] as string
+          if (!fieldErrors[field]) fieldErrors[field] = issue.message
+        }
+      }
+
       if (subdomainAvailable === false) {
-        setErrors({ subdomain: 'תת-דומיין זה לא זמין' })
+        fieldErrors.subdomain = 'תת-דומיין זה לא זמין'
+      }
+
+      if (Object.keys(fieldErrors).length > 0) {
+        setErrors(fieldErrors)
         return false
       }
       return true
     }
+
     if (currentStep === 'branding') {
       const result = onboardingBrandingSchema.safeParse({
         logo_url: form.logo_url || undefined,
@@ -120,25 +209,16 @@ export default function OnboardingPage() {
       }
       return true
     }
-    if (currentStep === 'admin') {
-      const result = onboardingAdminSchema.safeParse({
-        first_name: form.first_name,
-        last_name: form.last_name,
-        email: form.email,
-        password: form.password,
-        confirm_password: form.confirm_password,
-      })
-      if (!result.success) {
-        const fieldErrors: Record<string, string> = {}
-        for (const issue of result.error.issues) {
-          const field = issue.path[0] as string
-          if (!fieldErrors[field]) fieldErrors[field] = issue.message
-        }
-        setErrors(fieldErrors)
+
+    if (currentStep === 'doctor') {
+      // Doctor invite is optional — validate only if fields are filled
+      if (doctorEmail && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(doctorEmail)) {
+        setErrors({ doctorEmail: 'כתובת אימייל לא תקינה' })
         return false
       }
       return true
     }
+
     return true
   }
 
@@ -159,13 +239,17 @@ export default function OnboardingPage() {
     setLoading(true)
     setSubmitError('')
     try {
+      const doctors = doctorEmail.trim()
+        ? [{ name: doctorName.trim() || 'רופא', email: doctorEmail.trim() }]
+        : undefined
+
       const res = await fetch('/api/onboarding', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           ...form,
           logo_url: form.logo_url || undefined,
-          doctors: doctors.length > 0 ? doctors : undefined,
+          doctors,
         }),
       })
 
@@ -177,16 +261,13 @@ export default function OnboardingPage() {
         return
       }
 
-      // Move to complete step
       setStep('complete')
 
       if (data.stripeCheckoutUrl) {
-        // Redirect to Stripe after short delay
         setTimeout(() => {
           window.location.href = data.stripeCheckoutUrl
         }, 2000)
       } else {
-        // Redirect to login
         setTimeout(() => {
           router.push(data.redirectUrl || '/auth/login?onboarding=success')
         }, 3000)
@@ -208,15 +289,18 @@ export default function OnboardingPage() {
         {STEPS.map((s, i) => (
           <div key={s.key} className="flex items-center flex-1">
             <div className={cn(
-              'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0',
-              i <= currentIdx ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
-            )}>{s.num}</div>
+              'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-colors',
+              i < currentIdx ? 'bg-green-500 text-white' :
+              i === currentIdx ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
+            )}>
+              {i < currentIdx ? '✓' : s.num}
+            </div>
             <span className={cn(
               'text-xs mr-1.5 hidden sm:block',
               i <= currentIdx ? 'text-blue-600 font-medium' : 'text-gray-400'
             )}>{s.label}</span>
             {i < STEPS.length - 1 && (
-              <div className={cn('h-0.5 flex-1 mx-2', i < currentIdx ? 'bg-blue-600' : 'bg-gray-200')} />
+              <div className={cn('h-0.5 flex-1 mx-2 transition-colors', i < currentIdx ? 'bg-green-500' : 'bg-gray-200')} />
             )}
           </div>
         ))}
@@ -224,60 +308,115 @@ export default function OnboardingPage() {
 
       <Card>
         <CardContent className="p-6">
-          {/* Step 1: Clinic */}
+          {/* Step 1: Clinic + Admin */}
           {step === 'clinic' && (
-            <div className="space-y-4">
-              <h3 className="font-bold text-lg">פרטי המרפאה</h3>
-              <p className="text-sm text-gray-500">ספרו לנו על המרפאה שלכם</p>
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-bold text-lg">פרטי המרפאה</h3>
+                <p className="text-sm text-gray-500">ספרו לנו על המרפאה ועל מנהל המערכת</p>
+              </div>
 
-              <Input
-                label="שם המרפאה"
-                placeholder="לדוגמה: מרפאת שלום"
-                value={form.name}
-                onChange={e => updateForm('name', e.target.value)}
-                error={errors.name}
-              />
-              <Input
-                label="אימייל ליצירת קשר"
-                type="email"
-                placeholder="clinic@example.com"
-                value={form.contact_email}
-                onChange={e => updateForm('contact_email', e.target.value)}
-                error={errors.contact_email}
-              />
-              <Input
-                label="טלפון המרפאה"
-                type="tel"
-                placeholder="03-1234567"
-                value={form.contact_phone}
-                onChange={e => updateForm('contact_phone', e.target.value)}
-                error={errors.contact_phone}
-              />
-
-              <div className="space-y-1.5">
+              {/* Clinic info */}
+              <div className="space-y-4">
                 <Input
-                  label="תת-דומיין"
-                  placeholder="my-clinic"
-                  value={form.subdomain}
-                  onChange={e => updateForm('subdomain', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-                  error={errors.subdomain}
-                  hint={form.subdomain.length >= 3 ? undefined : 'לפחות 3 תווים, אותיות קטנות באנגלית ומספרים'}
+                  label="שם המרפאה"
+                  placeholder="לדוגמה: מרפאת שלום"
+                  value={form.name}
+                  onChange={e => updateForm('name', e.target.value)}
+                  error={errors.name}
                 />
-                {form.subdomain.length >= 3 && (
-                  <div className="flex items-center gap-2 text-sm">
-                    {checkingSubdomain ? (
-                      <><Spinner size="sm" /><span className="text-gray-400">בודק זמינות...</span></>
-                    ) : subdomainAvailable === true ? (
-                      <span className="text-green-600 font-medium">{form.subdomain}.telemed.co.il — זמין</span>
-                    ) : subdomainAvailable === false ? (
-                      <span className="text-red-600 font-medium">{form.subdomain}.telemed.co.il — תפוס</span>
-                    ) : null}
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <Input
+                    label="אימייל ליצירת קשר"
+                    type="email"
+                    placeholder="clinic@example.com"
+                    value={form.contact_email}
+                    onChange={e => updateForm('contact_email', e.target.value)}
+                    error={errors.contact_email}
+                  />
+                  <Input
+                    label="טלפון המרפאה"
+                    type="tel"
+                    placeholder="03-1234567"
+                    value={form.contact_phone}
+                    onChange={e => updateForm('contact_phone', e.target.value)}
+                    error={errors.contact_phone}
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <Input
+                    label="תת-דומיין"
+                    placeholder="my-clinic"
+                    value={form.subdomain}
+                    onChange={e => updateForm('subdomain', e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                    error={errors.subdomain}
+                    hint={form.subdomain.length >= 3 ? undefined : 'לפחות 3 תווים, אותיות קטנות באנגלית ומספרים'}
+                  />
+                  {form.subdomain.length >= 3 && (
+                    <div className="flex items-center gap-2 text-sm">
+                      {checkingSubdomain ? (
+                        <><Spinner size="sm" /><span className="text-gray-400">בודק זמינות...</span></>
+                      ) : subdomainAvailable === true ? (
+                        <span className="text-green-600 font-medium">{form.subdomain}.telemed.co.il — זמין ✓</span>
+                      ) : subdomainAvailable === false ? (
+                        <span className="text-red-600 font-medium">{form.subdomain}.telemed.co.il — תפוס</span>
+                      ) : null}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Divider */}
+              <div className="border-t pt-6">
+                <h4 className="font-bold text-base mb-1">פרטי מנהל המרפאה</h4>
+                <p className="text-sm text-gray-500 mb-4">פרטי ההתחברות שלך למערכת</p>
+
+                <div className="space-y-4">
+                  <div className="grid grid-cols-2 gap-4">
+                    <Input
+                      label="שם פרטי"
+                      value={form.first_name}
+                      onChange={e => updateForm('first_name', e.target.value)}
+                      error={errors.first_name}
+                    />
+                    <Input
+                      label="שם משפחה"
+                      value={form.last_name}
+                      onChange={e => updateForm('last_name', e.target.value)}
+                      error={errors.last_name}
+                    />
                   </div>
-                )}
+                  <Input
+                    label="אימייל מנהל"
+                    type="email"
+                    placeholder="admin@clinic.com"
+                    value={form.email}
+                    onChange={e => updateForm('email', e.target.value)}
+                    error={errors.email}
+                  />
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <Input
+                      label="סיסמה"
+                      type="password"
+                      value={form.password}
+                      onChange={e => updateForm('password', e.target.value)}
+                      error={errors.password}
+                      hint="לפחות 8 תווים, אות גדולה, אות קטנה ומספר"
+                    />
+                    <Input
+                      label="אישור סיסמה"
+                      type="password"
+                      value={form.confirm_password}
+                      onChange={e => updateForm('confirm_password', e.target.value)}
+                      error={errors.confirm_password}
+                    />
+                  </div>
+                </div>
               </div>
 
               <div className="flex justify-end pt-2">
-                <Button onClick={goNext}>הבא</Button>
+                <Button onClick={goNext}>המשך לבחירת תוכנית</Button>
               </div>
             </div>
           )}
@@ -286,7 +425,7 @@ export default function OnboardingPage() {
           {step === 'plan' && (
             <div className="space-y-6">
               <div>
-                <h3 className="font-bold text-lg">בחר תוכנית</h3>
+                <h3 className="font-bold text-lg">בחרו תוכנית</h3>
                 <p className="text-sm text-gray-500">כל התוכניות כוללות 14 ימי ניסיון חינם</p>
               </div>
 
@@ -322,14 +461,17 @@ export default function OnboardingPage() {
                 ))}
               </div>
 
-              {/* Feature comparison table */}
+              {/* Feature comparison */}
               <div className="border rounded-xl overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
                     <tr className="bg-gray-50 border-b">
                       <th className="text-right p-3 font-medium text-gray-700">יכולת</th>
                       {PLANS.map(p => (
-                        <th key={p.id} className="p-3 text-center font-medium text-gray-700">{p.name}</th>
+                        <th key={p.id} className={cn(
+                          'p-3 text-center font-medium',
+                          form.plan === p.id ? 'text-blue-700 bg-blue-50' : 'text-gray-700'
+                        )}>{p.name}</th>
                       ))}
                     </tr>
                   </thead>
@@ -338,9 +480,12 @@ export default function OnboardingPage() {
                       <tr key={key} className="border-b last:border-b-0">
                         <td className="p-3 text-gray-600">{label}</td>
                         {PLANS.map(p => (
-                          <td key={p.id} className="p-3 text-center">
+                          <td key={p.id} className={cn(
+                            'p-3 text-center',
+                            form.plan === p.id ? 'bg-blue-50/50' : ''
+                          )}>
                             {p.features[key] ? (
-                              <span className="text-green-600 font-bold">V</span>
+                              <span className="text-green-600 font-bold">✓</span>
                             ) : (
                               <span className="text-gray-300">—</span>
                             )}
@@ -354,49 +499,89 @@ export default function OnboardingPage() {
 
               <div className="flex justify-between pt-2">
                 <Button variant="outline" onClick={goPrev}>הקודם</Button>
-                <Button onClick={goNext}>הבא</Button>
+                <Button onClick={goNext}>המשך למיתוג</Button>
               </div>
             </div>
           )}
 
           {/* Step 3: Branding */}
           {step === 'branding' && (
-            <div className="space-y-4">
-              <h3 className="font-bold text-lg">מיתוג המרפאה</h3>
-              <p className="text-sm text-gray-500">התאימו את המראה של המערכת למרפאה שלכם</p>
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-bold text-lg">מיתוג המרפאה</h3>
+                <p className="text-sm text-gray-500">התאימו את המראה של המערכת למרפאה שלכם</p>
+              </div>
 
-              <Input
-                label="לוגו (URL)"
-                type="url"
-                placeholder="https://example.com/logo.png"
-                value={form.logo_url}
-                onChange={e => updateForm('logo_url', e.target.value)}
-                error={errors.logo_url}
-                hint="אופציונלי — ניתן להוסיף גם מאוחר יותר"
-              />
+              {/* Logo upload */}
+              <div className="space-y-2">
+                <label className="block text-sm font-medium text-gray-700">לוגו המרפאה</label>
+                {logoPreview ? (
+                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 bg-gray-50">
+                    <div className="flex items-center gap-4">
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={logoPreview} alt="לוגו" className="h-20 w-20 object-contain rounded-lg bg-white p-2 border" />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium text-gray-900 truncate">{logoFile?.name}</p>
+                        <p className="text-xs text-gray-500">
+                          {logoFile && (logoFile.size / 1024).toFixed(0)} KB
+                          {uploadingLogo && ' — מעלה...'}
+                          {!uploadingLogo && form.logo_url && ' — הועלה בהצלחה ✓'}
+                          {!uploadingLogo && !form.logo_url && logoFile && ' — שמור מקומית'}
+                        </p>
+                        <button
+                          onClick={removeLogo}
+                          className="text-sm text-red-600 hover:text-red-700 mt-1"
+                        >
+                          הסר לוגו
+                        </button>
+                      </div>
+                      {uploadingLogo && <Spinner size="sm" />}
+                    </div>
+                  </div>
+                ) : (
+                  <div
+                    className={cn(
+                      'border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors',
+                      'hover:border-blue-400 hover:bg-blue-50/50',
+                      errors.logo ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50'
+                    )}
+                    onClick={() => fileInputRef.current?.click()}
+                    onDragOver={e => e.preventDefault()}
+                    onDrop={handleDrop}
+                    role="button"
+                    tabIndex={0}
+                    onKeyDown={e => { if (e.key === 'Enter' || e.key === ' ') fileInputRef.current?.click() }}
+                    aria-label="העלאת לוגו"
+                  >
+                    <div className="text-4xl mb-2">🖼️</div>
+                    <p className="text-sm font-medium text-gray-700">גררו תמונה לכאן או לחצו לבחירה</p>
+                    <p className="text-xs text-gray-500 mt-1">PNG, JPG, SVG — עד 2MB</p>
+                  </div>
+                )}
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={e => {
+                    const file = e.target.files?.[0]
+                    if (file) handleLogoSelect(file)
+                  }}
+                />
+                {errors.logo && <p className="text-sm text-red-600">{errors.logo}</p>}
+                <p className="text-xs text-gray-500">אופציונלי — ניתן להוסיף גם מאוחר יותר</p>
+              </div>
 
-              {form.logo_url && (
-                <div className="border rounded-lg p-4 bg-gray-50">
-                  <p className="text-xs text-gray-500 mb-2">תצוגה מקדימה:</p>
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={form.logo_url}
-                    alt="לוגו"
-                    className="h-16 object-contain"
-                    onError={e => { (e.target as HTMLImageElement).style.display = 'none' }}
-                  />
-                </div>
-              )}
-
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-1.5">
+              {/* Colors */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+                <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">צבע ראשי</label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <input
                       type="color"
                       value={form.primary_color}
                       onChange={e => updateForm('primary_color', e.target.value)}
-                      className="w-10 h-10 rounded border cursor-pointer"
+                      className="w-12 h-12 rounded-lg border-2 border-gray-200 cursor-pointer"
                     />
                     <Input
                       value={form.primary_color}
@@ -406,14 +591,14 @@ export default function OnboardingPage() {
                     />
                   </div>
                 </div>
-                <div className="space-y-1.5">
+                <div className="space-y-2">
                   <label className="block text-sm font-medium text-gray-700">צבע משני</label>
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-3">
                     <input
                       type="color"
                       value={form.secondary_color}
                       onChange={e => updateForm('secondary_color', e.target.value)}
-                      className="w-10 h-10 rounded border cursor-pointer"
+                      className="w-12 h-12 rounded-lg border-2 border-gray-200 cursor-pointer"
                     />
                     <Input
                       value={form.secondary_color}
@@ -426,16 +611,22 @@ export default function OnboardingPage() {
               </div>
 
               {/* Live preview */}
-              <div className="border rounded-xl overflow-hidden mt-4">
+              <div className="border rounded-xl overflow-hidden">
                 <p className="text-xs text-gray-500 p-3 bg-gray-50 border-b">תצוגה מקדימה</p>
-                <div className="p-4 space-y-3">
+                <div className="p-4 space-y-4">
+                  {/* Header preview */}
                   <div
-                    className="h-12 rounded-lg flex items-center px-4"
+                    className="h-14 rounded-lg flex items-center px-4 gap-3"
                     style={{ backgroundColor: form.primary_color }}
                   >
+                    {logoPreview && (
+                      // eslint-disable-next-line @next/next/no-img-element
+                      <img src={logoPreview} alt="" className="h-8 w-8 object-contain rounded bg-white/20 p-0.5" />
+                    )}
                     <span className="text-white font-bold">{form.name || 'שם המרפאה'}</span>
                   </div>
-                  <div className="flex gap-2">
+                  {/* Buttons preview */}
+                  <div className="flex gap-2 flex-wrap">
                     <button
                       className="px-4 py-2 rounded-lg text-white text-sm font-medium"
                       style={{ backgroundColor: form.primary_color }}
@@ -448,134 +639,57 @@ export default function OnboardingPage() {
                     >
                       כפתור משני
                     </button>
+                    <span
+                      className="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium text-white"
+                      style={{ backgroundColor: form.secondary_color }}
+                    >
+                      תגית לדוגמה
+                    </span>
                   </div>
-                  <span
-                    className="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white"
-                    style={{ backgroundColor: form.secondary_color }}
-                  >
-                    תגית לדוגמה
-                  </span>
                 </div>
               </div>
 
               <div className="flex justify-between pt-2">
                 <Button variant="outline" onClick={goPrev}>הקודם</Button>
-                <Button onClick={goNext}>הבא</Button>
+                <Button onClick={goNext}>המשך להזמנת רופא</Button>
               </div>
             </div>
           )}
 
-          {/* Step 4: Admin */}
-          {step === 'admin' && (
-            <div className="space-y-4">
-              <h3 className="font-bold text-lg">פרטי מנהל המרפאה</h3>
-              <p className="text-sm text-gray-500">פרטי ההתחברות שלך למערכת</p>
-
-              <div className="grid grid-cols-2 gap-4">
-                <Input
-                  label="שם פרטי"
-                  value={form.first_name}
-                  onChange={e => updateForm('first_name', e.target.value)}
-                  error={errors.first_name}
-                />
-                <Input
-                  label="שם משפחה"
-                  value={form.last_name}
-                  onChange={e => updateForm('last_name', e.target.value)}
-                  error={errors.last_name}
-                />
+          {/* Step 4: Doctor invite */}
+          {step === 'doctor' && (
+            <div className="space-y-6">
+              <div>
+                <h3 className="font-bold text-lg">הזמנת רופא ראשון</h3>
+                <p className="text-sm text-gray-500">
+                  הזמינו רופא להצטרף למערכת. הזמנה תישלח באימייל לאחר הגדרת המרפאה.
+                </p>
               </div>
 
-              <Input
-                label="אימייל"
-                type="email"
-                placeholder="admin@clinic.com"
-                value={form.email}
-                onChange={e => updateForm('email', e.target.value)}
-                error={errors.email}
-              />
-
-              <Input
-                label="סיסמה"
-                type="password"
-                value={form.password}
-                onChange={e => updateForm('password', e.target.value)}
-                error={errors.password}
-                hint="לפחות 8 תווים, אות גדולה, אות קטנה ומספר"
-              />
-
-              <Input
-                label="אישור סיסמה"
-                type="password"
-                value={form.confirm_password}
-                onChange={e => updateForm('confirm_password', e.target.value)}
-                error={errors.confirm_password}
-              />
-
-              <div className="flex justify-between pt-2">
-                <Button variant="outline" onClick={goPrev}>הקודם</Button>
-                <Button onClick={goNext}>הבא</Button>
-              </div>
-            </div>
-          )}
-
-          {/* Step 5: Doctors */}
-          {step === 'doctors' && (
-            <div className="space-y-4">
-              <h3 className="font-bold text-lg">הזמנת רופאים</h3>
-              <p className="text-sm text-gray-500">
-                הוסיפו רופאים שתרצו להזמין למערכת. ההזמנות יישלחו לאחר הגדרת המרפאה.
-              </p>
-
-              {doctors.map((doc, i) => (
-                <div key={i} className="flex items-end gap-3">
-                  <Input
-                    label={i === 0 ? 'שם הרופא' : undefined}
-                    placeholder="ד״ר ישראל ישראלי"
-                    value={doc.name}
-                    onChange={e => {
-                      const next = [...doctors]
-                      next[i] = { ...next[i], name: e.target.value }
-                      setDoctors(next)
-                    }}
-                    className="flex-1"
-                  />
-                  <Input
-                    label={i === 0 ? 'אימייל' : undefined}
-                    type="email"
-                    placeholder="doctor@example.com"
-                    value={doc.email}
-                    onChange={e => {
-                      const next = [...doctors]
-                      next[i] = { ...next[i], email: e.target.value }
-                      setDoctors(next)
-                    }}
-                    className="flex-1"
-                  />
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => setDoctors(prev => prev.filter((_, idx) => idx !== i))}
-                    aria-label="הסר רופא"
-                    className="text-red-500 mb-1"
-                  >
-                    הסר
-                  </Button>
+              <div className="bg-blue-50 rounded-xl p-5 space-y-4">
+                <div className="flex items-center gap-3 text-blue-700 mb-2">
+                  <span className="text-2xl">👨‍⚕️</span>
+                  <span className="font-medium">פרטי הרופא</span>
                 </div>
-              ))}
-
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={() => setDoctors(prev => [...prev, { name: '', email: '' }])}
-                disabled={doctors.length >= (selectedPlan?.max_doctors || 1)}
-              >
-                + הוסף רופא
-              </Button>
+                <Input
+                  label="שם הרופא"
+                  placeholder="ד״ר ישראל ישראלי"
+                  value={doctorName}
+                  onChange={e => setDoctorName(e.target.value)}
+                />
+                <Input
+                  label="אימייל הרופא"
+                  type="email"
+                  placeholder="doctor@example.com"
+                  value={doctorEmail}
+                  onChange={e => { setDoctorEmail(e.target.value); setErrors(prev => { const n = { ...prev }; delete n.doctorEmail; return n }) }}
+                  error={errors.doctorEmail}
+                />
+              </div>
 
               {selectedPlan && (
-                <p className="text-xs text-gray-400">
-                  התוכנית שבחרת ({selectedPlan.name}) מאפשרת עד {selectedPlan.max_doctors} רופאים
+                <p className="text-xs text-gray-500">
+                  התוכנית שבחרת ({selectedPlan.name}) מאפשרת עד {selectedPlan.max_doctors} רופאים. ניתן להזמין רופאים נוספים מהגדרות המרפאה.
                 </p>
               )}
 
@@ -587,22 +701,26 @@ export default function OnboardingPage() {
 
               <div className="flex justify-between pt-2">
                 <Button variant="outline" onClick={goPrev}>הקודם</Button>
-                <Button onClick={handleSubmit} loading={loading} size="lg">
-                  סיים הרשמה
-                </Button>
+                <div className="flex gap-3">
+                  <Button onClick={handleSubmit} loading={loading} size="lg">
+                    {doctorEmail.trim() ? 'סיים והזמן רופא' : 'סיים הרשמה'}
+                  </Button>
+                </div>
               </div>
 
-              <button
-                onClick={handleSubmit}
-                disabled={loading}
-                className="text-sm text-blue-600 hover:underline w-full text-center"
-              >
-                דלג — אזמין רופאים אחר כך
-              </button>
+              {doctorEmail.trim() && (
+                <button
+                  onClick={() => { setDoctorName(''); setDoctorEmail(''); handleSubmit() }}
+                  disabled={loading}
+                  className="text-sm text-blue-600 hover:underline w-full text-center"
+                >
+                  דלג — אזמין רופאים אחר כך
+                </button>
+              )}
             </div>
           )}
 
-          {/* Step 6: Complete */}
+          {/* Step 5: Complete */}
           {step === 'complete' && (
             <div className="text-center space-y-6 py-8">
               <div className="text-6xl">🎉</div>
@@ -613,23 +731,29 @@ export default function OnboardingPage() {
                 {form.plan === 'free' && ' מעבירים אתכם לדף ההתחברות...'}
               </p>
 
-              <div className="bg-gray-50 rounded-xl p-4 max-w-sm mx-auto space-y-2 text-sm text-right">
-                <div className="flex justify-between">
+              <div className="bg-gray-50 rounded-xl p-5 max-w-sm mx-auto space-y-3 text-sm text-right">
+                <div className="flex justify-between items-center">
                   <span className="text-gray-500">מרפאה</span>
                   <span className="font-medium">{form.name}</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-gray-500">תוכנית</span>
-                  <span className="font-medium">{selectedPlan?.name}</span>
+                  <Badge variant="info">{selectedPlan?.name}</Badge>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-gray-500">דומיין</span>
-                  <span className="font-medium">{form.subdomain}.telemed.co.il</span>
+                  <span className="font-medium text-blue-600">{form.subdomain}.telemed.co.il</span>
                 </div>
-                <div className="flex justify-between">
+                <div className="flex justify-between items-center">
                   <span className="text-gray-500">מנהל</span>
                   <span className="font-medium">{form.first_name} {form.last_name}</span>
                 </div>
+                {doctorEmail.trim() && (
+                  <div className="flex justify-between items-center">
+                    <span className="text-gray-500">הזמנה נשלחה ל</span>
+                    <span className="font-medium">{doctorEmail}</span>
+                  </div>
+                )}
               </div>
 
               <div className="flex justify-center">
