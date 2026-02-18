@@ -12,6 +12,7 @@ export default function LoginPage() {
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect')
   const errorParam = searchParams.get('error')
+  const onboardingSuccess = searchParams.get('onboarding') === 'success'
 
   const [form, setForm] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -80,6 +81,12 @@ export default function LoginPage() {
         <Card>
           <CardContent className="p-6">
             <h2 className="text-xl font-bold mb-6">התחברות</h2>
+
+            {onboardingSuccess && (
+              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700" role="alert">
+                המרפאה נוצרה בהצלחה! התחברו כדי להתחיל להשתמש במערכת.
+              </div>
+            )}
 
             {serverError && (
               <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700" role="alert">{serverError}</div>

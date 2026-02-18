@@ -26,17 +26,16 @@ export async function POST() {
     const orgId = (profile as unknown as { organization_id: string }).organization_id
     const admin = createServiceRole()
 
-    // Get org's Stripe customer ID
+    // Get org's Stripe customer ID from top-level column
     const { data: org } = await admin.from('organizations')
-      .select('settings')
+      .select('stripe_customer_id')
       .eq('id', orgId)
       .single()
 
-    const settings = (org as unknown as { settings: Record<string, unknown> })?.settings || {}
-    const customerId = settings.stripe_customer_id as string | undefined
+    const customerId = (org as unknown as { stripe_customer_id: string | null })?.stripe_customer_id
 
     if (!customerId) {
-      return NextResponse.json({ error: 'No Stripe customer found. Please complete a payment first.' }, { status: 400 })
+      return NextResponse.json({ error: 'לא נמצא חשבון Stripe. יש להשלים תשלום תחילה.' }, { status: 400 })
     }
 
     const Stripe = (await import('stripe')).default
@@ -51,6 +50,6 @@ export async function POST() {
     return NextResponse.json({ url: session.url })
   } catch (err) {
     console.error('[stripe/portal]', err instanceof Error ? err.message : 'error')
-    return NextResponse.json({ error: 'Failed to create portal session' }, { status: 500 })
+    return NextResponse.json({ error: 'שגיאה ביצירת פורטל תשלומים' }, { status: 500 })
   }
 }

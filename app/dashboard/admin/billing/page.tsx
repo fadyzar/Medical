@@ -34,6 +34,8 @@ export default function BillingPage() {
   const [org, setOrg] = useState<Organization | null>(null)
   const [portalLoading, setPortalLoading] = useState(false)
 
+  const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null)
+
   // Invite form state
   const [inviteName, setInviteName] = useState('')
   const [inviteEmail, setInviteEmail] = useState('')
@@ -82,6 +84,27 @@ export default function BillingPage() {
       alert('שגיאה בחיבור לשרת')
     } finally {
       setPortalLoading(false)
+    }
+  }
+
+  const handleUpgrade = async (planId: string) => {
+    setUpgradeLoading(planId)
+    try {
+      const res = await fetch('/api/stripe/create-checkout', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ plan: planId }),
+      })
+      const data = await res.json()
+      if (data.url) {
+        window.location.href = data.url
+      } else {
+        alert(data.error || 'שגיאה ביצירת דף תשלום')
+      }
+    } catch {
+      alert('שגיאה בחיבור לשרת')
+    } finally {
+      setUpgradeLoading(null)
     }
   }
 
@@ -192,7 +215,7 @@ export default function BillingPage() {
                 </p>
               )}
 
-              {Boolean(org.settings?.stripe_customer_id) && (
+              {Boolean(org.stripe_customer_id) && (
                 <Button
                   onClick={openStripePortal}
                   loading={portalLoading}
@@ -319,6 +342,27 @@ export default function BillingPage() {
                       ))}
                     </tr>
                   ))}
+                  {/* Upgrade buttons row */}
+                  <tr>
+                    <td className="p-3"></td>
+                    {PLANS.map(p => (
+                      <td key={p.id} className={cn('p-3 text-center', p.id === org.plan && 'bg-blue-50/50')}>
+                        {p.id === org.plan ? (
+                          <span className="text-xs text-gray-400">התוכנית הנוכחית</span>
+                        ) : p.id === 'free' ? null : (
+                          <Button
+                            size="sm"
+                            variant={p.price_monthly > (currentPlan?.price_monthly || 0) ? 'primary' : 'outline'}
+                            onClick={() => handleUpgrade(p.id)}
+                            loading={upgradeLoading === p.id}
+                            disabled={upgradeLoading !== null}
+                          >
+                            {p.price_monthly > (currentPlan?.price_monthly || 0) ? 'שדרג' : 'שנה תוכנית'}
+                          </Button>
+                        )}
+                      </td>
+                    ))}
+                  </tr>
                 </tbody>
               </table>
             </div>

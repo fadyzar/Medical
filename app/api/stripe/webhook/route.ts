@@ -31,15 +31,18 @@ export async function POST(req: Request) {
 
     switch (event.type) {
       case 'checkout.session.completed': {
-        const session = event.data.object as unknown as { metadata?: { organization_id?: string }; customer?: string; subscription?: string }
+        const session = event.data.object as unknown as {
+          metadata?: { organization_id?: string }
+          customer?: string
+          subscription?: string
+        }
         const orgId = session.metadata?.organization_id
         if (orgId) {
+          // Store Stripe IDs as top-level columns (not inside settings JSONB)
           await admin.from('organizations').update({
             subscription_status: 'active',
-            settings: {
-              stripe_customer_id: session.customer || null,
-              stripe_subscription_id: session.subscription || null,
-            },
+            stripe_customer_id: session.customer || null,
+            stripe_subscription_id: session.subscription || null,
           }).eq('id', orgId)
 
           await admin.from('audit_logs').insert({
@@ -59,15 +62,24 @@ export async function POST(req: Request) {
       case 'invoice.payment_failed': {
         const invoice = event.data.object as unknown as { customer?: string }
         if (invoice.customer) {
-          // Find org by customer ID stored in settings
+          // Look up org by top-level stripe_customer_id column
           const { data: orgs } = await admin.from('organizations')
-            .select('id, settings')
-            .textSearch('settings', String(invoice.customer))
+            .select('id')
+            .eq('stripe_customer_id', String(invoice.customer))
 
           if (orgs && orgs.length > 0) {
             await admin.from('organizations').update({
               subscription_status: 'suspended',
             }).eq('id', orgs[0].id)
+
+            await admin.from('audit_logs').insert({
+              organization_id: orgs[0].id,
+              action: 'SUBSCRIPTION_SUSPENDED',
+              resource_type: 'organization',
+              resource_id: orgs[0].id,
+              description: 'תשלום נכשל — המנוי הושעה',
+              metadata: { stripe_customer_id: invoice.customer },
+            })
           }
         }
         break
@@ -76,14 +88,24 @@ export async function POST(req: Request) {
       case 'customer.subscription.deleted': {
         const subscription = event.data.object as unknown as { customer?: string }
         if (subscription.customer) {
+          // Look up org by top-level stripe_customer_id column
           const { data: orgs } = await admin.from('organizations')
-            .select('id, settings')
-            .textSearch('settings', String(subscription.customer))
+            .select('id')
+            .eq('stripe_customer_id', String(subscription.customer))
 
           if (orgs && orgs.length > 0) {
             await admin.from('organizations').update({
               subscription_status: 'cancelled',
             }).eq('id', orgs[0].id)
+
+            await admin.from('audit_logs').insert({
+              organization_id: orgs[0].id,
+              action: 'SUBSCRIPTION_CANCELLED',
+              resource_type: 'organization',
+              resource_id: orgs[0].id,
+              description: 'המנוי בוטל',
+              metadata: { stripe_customer_id: subscription.customer },
+            })
           }
         }
         break
