@@ -3,10 +3,9 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
-import { DashboardLayout } from '@/components/layout/DashboardLayout'
-import { Button, Input, Card, CardContent, Badge, PageLoading, Spinner } from '@/components/ui'
+import { Button, Input, Card, CardContent, Badge, PageLoading } from '@/components/ui'
 import { formatPrice, cn } from '@/lib/utils'
-import { PLANS, FEATURE_LABELS, type PlanId } from '@/lib/config/plans'
+import { PLANS, FEATURE_LABELS } from '@/lib/config/plans'
 import type { Organization } from '@/types/database'
 
 // ── Status Labels ────────────────────────────────────
@@ -132,7 +131,7 @@ export default function BillingPage() {
   // ── Render ─────────────────────────────────────────
 
   if (loading || !org) {
-    return <DashboardLayout role="admin"><PageLoading /></DashboardLayout>
+    return <PageLoading />
   }
 
   const doctorsPercent = getUsagePercent(org.current_doctors, org.max_doctors)
@@ -140,7 +139,6 @@ export default function BillingPage() {
   const storagePercent = getUsagePercent(org.current_storage_gb, org.max_storage_gb)
 
   return (
-    <DashboardLayout role="admin">
       <div className="space-y-6">
         {/* Header */}
         <div>
@@ -402,6 +400,5 @@ export default function BillingPage() {
           </CardContent>
         </Card>
       </div>
-    </DashboardLayout>
   )
 }
