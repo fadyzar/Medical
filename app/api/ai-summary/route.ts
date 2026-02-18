@@ -38,12 +38,12 @@ export async function POST(req: Request) {
         duration: apt.video_duration_seconds ? Math.round(apt.video_duration_seconds / 60) : undefined,
       })
       if (result.success) {
-        const p = result.parsed as Record<string, unknown> | undefined
+        const p = result.parsed as { soap?: { subjective?: string; assessment?: string; plan?: string } } | undefined
         await admin.from('appointments').update({
           ai_summary: result.content, ai_summary_generated_at: new Date().toISOString(), ai_used: true,
-          ...(!apt.subjective_notes && (p as any)?.soap?.subjective ? { subjective_notes: (p as any).soap.subjective } : {}),
-          ...(!apt.assessment && (p as any)?.soap?.assessment ? { assessment: (p as any).soap.assessment } : {}),
-          ...(!apt.plan && (p as any)?.soap?.plan ? { plan: (p as any).soap.plan } : {}),
+          ...(!apt.subjective_notes && p?.soap?.subjective ? { subjective_notes: p.soap.subjective } : {}),
+          ...(!apt.assessment && p?.soap?.assessment ? { assessment: p.soap.assessment } : {}),
+          ...(!apt.plan && p?.soap?.plan ? { plan: p.soap.plan } : {}),
         }).eq('id', appointmentId)
       }
     }

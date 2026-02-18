@@ -58,20 +58,25 @@ export default function AdminUsersPage() {
   }, [])
 
   async function loadUsers() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    const { data: profile } = await supabase.from('users').select('organization_id').eq('id', user.id).single()
-    if (!profile) return
-    setOrgId(profile.organization_id)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: profile } = await supabase.from('users').select('organization_id').eq('id', user.id).single()
+      if (!profile) return
+      setOrgId(profile.organization_id)
 
-    const { data } = await supabase.from('users')
-      .select('*')
-      .eq('organization_id', profile.organization_id)
-      .neq('role', 'patient')
-      .order('created_at', { ascending: false })
+      const { data } = await supabase.from('users')
+        .select('*')
+        .eq('organization_id', profile.organization_id)
+        .neq('role', 'patient')
+        .order('created_at', { ascending: false })
 
-    setUsers((data || []) as unknown as User[])
-    setLoading(false)
+      setUsers((data || []) as unknown as User[])
+    } catch {
+      // Prevents infinite loading on network error
+    } finally {
+      setLoading(false)
+    }
   }
 
   function openEdit(user: User) {

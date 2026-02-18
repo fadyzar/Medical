@@ -67,27 +67,32 @@ export default function StaffDashboard() {
   useEffect(() => { loadData() }, [])
 
   const loadData = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    const { data: profile } = await supabase.from('users')
-      .select('organization_id')
-      .eq('id', user.id)
-      .single()
+      const { data: profile } = await supabase.from('users')
+        .select('organization_id')
+        .eq('id', user.id)
+        .single()
 
-    if (!profile) return
+      if (!profile) return
 
-    const orgId = (profile as unknown as { organization_id: string }).organization_id
+      const orgId = (profile as unknown as { organization_id: string }).organization_id
 
-    const { data } = await supabase.from('appointments')
-      .select('*, patient:patient_id(first_name, last_name, phone, email), doctor:doctor_id(first_name, last_name)')
-      .eq('organization_id', orgId)
-      .order('scheduled_at', { ascending: true, nullsFirst: false })
-      .order('created_at', { ascending: false })
-      .limit(200)
+      const { data } = await supabase.from('appointments')
+        .select('*, patient:patient_id(first_name, last_name, phone, email), doctor:doctor_id(first_name, last_name)')
+        .eq('organization_id', orgId)
+        .order('scheduled_at', { ascending: true, nullsFirst: false })
+        .order('created_at', { ascending: false })
+        .limit(200)
 
-    setAppointments((data || []) as unknown as StaffAppointment[])
-    setLoading(false)
+      setAppointments((data || []) as unknown as StaffAppointment[])
+    } catch {
+      // Prevents infinite loading on network error
+    } finally {
+      setLoading(false)
+    }
   }
 
   const updateStatus = async (id: string, status: AppointmentStatus) => {
@@ -206,6 +211,7 @@ export default function StaffDashboard() {
             <button
               key={tab.key}
               onClick={() => setFilter(tab.key)}
+              aria-pressed={filter === tab.key}
               className={cn(
                 'px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
                 filter === tab.key

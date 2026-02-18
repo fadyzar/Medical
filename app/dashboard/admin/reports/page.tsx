@@ -45,11 +45,15 @@ export default function AdminReportsPage() {
   }, [period, orgId])
 
   async function init() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    const { data: profile } = await supabase.from('users').select('organization_id').eq('id', user.id).single()
-    if (!profile) return
-    setOrgId(profile.organization_id)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: profile } = await supabase.from('users').select('organization_id').eq('id', user.id).single()
+      if (!profile) return
+      setOrgId(profile.organization_id)
+    } catch {
+      setLoading(false)
+    }
   }
 
   function getStartDate(): string {
@@ -65,6 +69,7 @@ export default function AdminReportsPage() {
 
   async function loadData(oid: string) {
     setLoading(true)
+    try {
     const startDate = getStartDate()
 
     const [aptsRes, aiRes] = await Promise.all([
@@ -153,8 +158,11 @@ export default function AdminReportsPage() {
       tokensByDate.set(d, (tokensByDate.get(d) || 0) + c.input_tokens + c.output_tokens)
     })
     setAiTokensData(Array.from(tokensByDate.entries()).map(([date, tokens]) => ({ date, tokens })))
-
-    setLoading(false)
+    } catch {
+      // Prevents infinite loading on network error
+    } finally {
+      setLoading(false)
+    }
   }
 
   function formatGroupDate(dateStr: string): string {

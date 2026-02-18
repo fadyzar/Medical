@@ -59,98 +59,102 @@ export default function AdminDashboard() {
   }, [])
 
   const loadDashboard = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/auth/login'); return }
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/auth/login'); return }
 
-    const { data: profile } = await supabase.from('users')
-      .select('organization_id, role')
-      .eq('id', user.id)
-      .single()
+      const { data: profile } = await supabase.from('users')
+        .select('organization_id, role')
+        .eq('id', user.id)
+        .single()
 
-    if (!profile) return
-    const typedProfile = profile as unknown as { organization_id: string; role: string }
-    if (typedProfile.role !== 'admin') { router.push('/dashboard'); return }
+      if (!profile) return
+      const typedProfile = profile as unknown as { organization_id: string; role: string }
+      if (typedProfile.role !== 'admin') { router.push('/dashboard'); return }
 
-    const orgId = typedProfile.organization_id
+      const orgId = typedProfile.organization_id
 
-    // Parallel queries
-    const [
-      orgRes,
-      usersCount, doctorsCount, patientsCount, staffCount,
-      totalAptsCount, completedApts, pendingAptsCount,
-      aiCount,
-      recentRes, doctorsRes, auditRes,
-    ] = await Promise.all([
-      // Organization
-      supabase.from('organizations').select('*').eq('id', orgId).single(),
+      // Parallel queries
+      const [
+        orgRes,
+        usersCount, doctorsCount, patientsCount, staffCount,
+        totalAptsCount, completedApts, pendingAptsCount,
+        aiCount,
+        recentRes, doctorsRes, auditRes,
+      ] = await Promise.all([
+        // Organization
+        supabase.from('organizations').select('*').eq('id', orgId).single(),
 
-      // Counts
-      supabase.from('users').select('id', { count: 'exact', head: true }).eq('organization_id', orgId),
-      supabase.from('users').select('id', { count: 'exact', head: true }).eq('organization_id', orgId).eq('role', 'doctor'),
-      supabase.from('users').select('id', { count: 'exact', head: true }).eq('organization_id', orgId).eq('role', 'patient'),
-      supabase.from('users').select('id', { count: 'exact', head: true }).eq('organization_id', orgId).eq('role', 'staff'),
+        // Counts
+        supabase.from('users').select('id', { count: 'exact', head: true }).eq('organization_id', orgId),
+        supabase.from('users').select('id', { count: 'exact', head: true }).eq('organization_id', orgId).eq('role', 'doctor'),
+        supabase.from('users').select('id', { count: 'exact', head: true }).eq('organization_id', orgId).eq('role', 'patient'),
+        supabase.from('users').select('id', { count: 'exact', head: true }).eq('organization_id', orgId).eq('role', 'staff'),
 
-      // Appointments
-      supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('organization_id', orgId),
-      supabase.from('appointments').select('payment_amount').eq('organization_id', orgId).eq('status', 'completed'),
-      supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('organization_id', orgId).eq('status', 'pending'),
+        // Appointments
+        supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('organization_id', orgId),
+        supabase.from('appointments').select('payment_amount').eq('organization_id', orgId).eq('status', 'completed'),
+        supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('organization_id', orgId).eq('status', 'pending'),
 
-      // AI
-      supabase.from('ai_conversations').select('id', { count: 'exact', head: true }).eq('organization_id', orgId),
+        // AI
+        supabase.from('ai_conversations').select('id', { count: 'exact', head: true }).eq('organization_id', orgId),
 
-      // Lists
-      supabase.from('appointments')
-        .select('id, status, chief_complaint, scheduled_at, created_at, payment_amount, payment_status, ai_triage_score, patient:patient_id(first_name, last_name), doctor:doctor_id(first_name, last_name)')
-        .eq('organization_id', orgId)
-        .order('created_at', { ascending: false })
-        .limit(15),
-      supabase.from('users')
-        .select('id, first_name, last_name, specialties, avatar_url, average_rating, total_ratings, is_active')
-        .eq('organization_id', orgId)
-        .eq('role', 'doctor')
-        .order('average_rating', { ascending: false, nullsFirst: false }),
-      supabase.from('audit_logs')
-        .select('id, action, description, created_at, user_id')
-        .eq('organization_id', orgId)
-        .order('created_at', { ascending: false })
-        .limit(8),
-    ])
+        // Lists
+        supabase.from('appointments')
+          .select('id, status, chief_complaint, scheduled_at, created_at, payment_amount, payment_status, ai_triage_score, patient:patient_id(first_name, last_name), doctor:doctor_id(first_name, last_name)')
+          .eq('organization_id', orgId)
+          .order('created_at', { ascending: false })
+          .limit(15),
+        supabase.from('users')
+          .select('id, first_name, last_name, specialties, avatar_url, average_rating, total_ratings, is_active')
+          .eq('organization_id', orgId)
+          .eq('role', 'doctor')
+          .order('average_rating', { ascending: false, nullsFirst: false }),
+        supabase.from('audit_logs')
+          .select('id, action, description, created_at, user_id')
+          .eq('organization_id', orgId)
+          .order('created_at', { ascending: false })
+          .limit(8),
+      ])
 
-    if (orgRes.data) setOrg(orgRes.data as unknown as Organization)
+      if (orgRes.data) setOrg(orgRes.data as unknown as Organization)
 
-    const completedData = completedApts.data || []
-    const revenue = completedData.reduce((sum: number, a: Record<string, unknown>) => sum + ((a.payment_amount as number) || 0), 0)
+      const completedData = completedApts.data || []
+      const revenue = completedData.reduce((sum: number, a: Record<string, unknown>) => sum + ((a.payment_amount as number) || 0), 0)
 
-    // Active = everything that's not completed, cancelled, or no-show
-    const activeStatuses = ['doctor_confirmed', 'time_selected', 'paid', 'scheduled', 'ready', 'in_progress']
-    const allApts = (recentRes.data || []) as unknown as DashAppointment[]
-    const activeCount = allApts.filter(a => activeStatuses.includes(a.status)).length
+      // Active = everything that's not completed, cancelled, or no-show
+      const activeStatuses = ['doctor_confirmed', 'time_selected', 'paid', 'scheduled', 'ready', 'in_progress']
+      const allApts = (recentRes.data || []) as unknown as DashAppointment[]
+      const activeCount = allApts.filter(a => activeStatuses.includes(a.status)).length
 
-    setStats({
-      users: usersCount.count || 0,
-      doctors: doctorsCount.count || 0,
-      patients: patientsCount.count || 0,
-      staff: staffCount.count || 0,
-      totalAppointments: totalAptsCount.count || 0,
-      completedAppointments: completedData.length,
-      pendingAppointments: pendingAptsCount.count || 0,
-      activeAppointments: activeCount,
-      revenue,
-      aiUsage: aiCount.count || 0,
-    })
+      setStats({
+        users: usersCount.count || 0,
+        doctors: doctorsCount.count || 0,
+        patients: patientsCount.count || 0,
+        staff: staffCount.count || 0,
+        totalAppointments: totalAptsCount.count || 0,
+        completedAppointments: completedData.length,
+        pendingAppointments: pendingAptsCount.count || 0,
+        activeAppointments: activeCount,
+        revenue,
+        aiUsage: aiCount.count || 0,
+      })
 
-    setRecentApts(allApts)
-    setDoctors((doctorsRes.data || []) as unknown as DashDoctor[])
-    setAuditLog((auditRes.data || []) as unknown as AuditEntry[])
+      setRecentApts(allApts)
+      setDoctors((doctorsRes.data || []) as unknown as DashDoctor[])
+      setAuditLog((auditRes.data || []) as unknown as AuditEntry[])
 
-    // Filter today's appointments
-    const today = new Date().toDateString()
-    setTodayApts(allApts.filter(a => {
-      const d = a.scheduled_at || a.created_at
-      return new Date(d).toDateString() === today
-    }))
-
-    setLoading(false)
+      // Filter today's appointments
+      const today = new Date().toDateString()
+      setTodayApts(allApts.filter(a => {
+        const d = a.scheduled_at || a.created_at
+        return new Date(d).toDateString() === today
+      }))
+    } catch {
+      // Prevents infinite loading on network error
+    } finally {
+      setLoading(false)
+    }
   }
 
   if (loading) return <PageLoading />
@@ -469,7 +473,7 @@ export default function AdminDashboard() {
             onClick={() => router.push(item.href)}
             className="p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all text-center"
           >
-            <span className="text-2xl block mb-1">{item.icon}</span>
+            <span className="text-2xl block mb-1" aria-hidden="true">{item.icon}</span>
             <span className="text-sm font-medium text-gray-700">{item.label}</span>
           </button>
         ))}

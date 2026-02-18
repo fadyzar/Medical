@@ -90,15 +90,19 @@ export default function AuditLogPage() {
   }, [])
 
   const loadOrg = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/auth/login'); return }
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/auth/login'); return }
 
-    const { data: profile } = await supabase.from('users').select('organization_id, role').eq('id', user.id).single()
-    if (!profile || (profile as unknown as { role: string }).role !== 'admin') {
-      router.push('/dashboard/admin/dashboard'); return
+      const { data: profile } = await supabase.from('users').select('organization_id, role').eq('id', user.id).single()
+      if (!profile || (profile as unknown as { role: string }).role !== 'admin') {
+        router.push('/dashboard/admin/dashboard'); return
+      }
+
+      setOrgId((profile as unknown as { organization_id: string }).organization_id)
+    } catch {
+      setLoading(false)
     }
-
-    setOrgId((profile as unknown as { organization_id: string }).organization_id)
   }
 
   // ── Load logs when org or filters change ────────────
@@ -109,44 +113,47 @@ export default function AuditLogPage() {
 
   const loadLogs = async () => {
     setLoading(true)
+    try {
+      let query = supabase
+        .from('audit_logs')
+        .select('*', { count: 'exact' })
+        .eq('organization_id', orgId)
+        .order('created_at', { ascending: false })
+        .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
 
-    let query = supabase
-      .from('audit_logs')
-      .select('*', { count: 'exact' })
-      .eq('organization_id', orgId)
-      .order('created_at', { ascending: false })
-      .range(page * PAGE_SIZE, (page + 1) * PAGE_SIZE - 1)
+      if (actionFilter) query = query.eq('action', actionFilter)
+      if (resourceFilter) query = query.eq('resource_type', resourceFilter)
+      if (dateFrom) query = query.gte('created_at', `${dateFrom}T00:00:00`)
+      if (dateTo) query = query.lte('created_at', `${dateTo}T23:59:59`)
+      if (search) query = query.or(`description.ilike.%${search}%,action.ilike.%${search}%`)
 
-    if (actionFilter) query = query.eq('action', actionFilter)
-    if (resourceFilter) query = query.eq('resource_type', resourceFilter)
-    if (dateFrom) query = query.gte('created_at', `${dateFrom}T00:00:00`)
-    if (dateTo) query = query.lte('created_at', `${dateTo}T23:59:59`)
-    if (search) query = query.or(`description.ilike.%${search}%,action.ilike.%${search}%`)
+      const { data, count } = await query
 
-    const { data, count } = await query
+      const typedLogs = (data || []) as unknown as AuditLog[]
+      setLogs(typedLogs)
+      setTotalCount(count || 0)
 
-    const typedLogs = (data || []) as unknown as AuditLog[]
-    setLogs(typedLogs)
-    setTotalCount(count || 0)
+      // Fetch user names for this page
+      const userIds = [...new Set(typedLogs.map(l => l.user_id).filter(Boolean))] as string[]
+      if (userIds.length > 0) {
+        const { data: users } = await supabase
+          .from('users')
+          .select('id, first_name, last_name')
+          .in('id', userIds)
 
-    // Fetch user names for this page
-    const userIds = [...new Set(typedLogs.map(l => l.user_id).filter(Boolean))] as string[]
-    if (userIds.length > 0) {
-      const { data: users } = await supabase
-        .from('users')
-        .select('id, first_name, last_name')
-        .in('id', userIds)
-
-      if (users) {
-        const names: Record<string, string> = {}
-        for (const u of users as unknown as Array<{ id: string; first_name: string; last_name: string }>) {
-          names[u.id] = `${u.first_name} ${u.last_name}`
+        if (users) {
+          const names: Record<string, string> = {}
+          for (const u of users as unknown as Array<{ id: string; first_name: string; last_name: string }>) {
+            names[u.id] = `${u.first_name} ${u.last_name}`
+          }
+          setUserNames(prev => ({ ...prev, ...names }))
         }
-        setUserNames(prev => ({ ...prev, ...names }))
       }
+    } catch {
+      // Prevents infinite loading on network error
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   // ── Helpers ─────────────────────────────────────────

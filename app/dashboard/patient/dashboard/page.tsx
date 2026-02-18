@@ -63,27 +63,32 @@ export default function PatientDashboard() {
 
   useEffect(() => {
     const load = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/auth/login'); return }
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { router.push('/auth/login'); return }
 
-      const [{ data: prof }, { data: apts }, { data: docs }] = await Promise.all([
-        supabase.from('users').select('*').eq('id', user.id).single(),
-        supabase.from('appointments')
-          .select('*, doctor:doctor_id(id, first_name, last_name, specialties, avatar_url, average_rating, total_ratings)')
-          .eq('patient_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(50),
-        supabase.from('documents')
-          .select('*')
-          .eq('patient_id', user.id)
-          .order('created_at', { ascending: false })
-          .limit(5),
-      ])
+        const [{ data: prof }, { data: apts }, { data: docs }] = await Promise.all([
+          supabase.from('users').select('*').eq('id', user.id).single(),
+          supabase.from('appointments')
+            .select('*, doctor:doctor_id(id, first_name, last_name, specialties, avatar_url, average_rating, total_ratings)')
+            .eq('patient_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(50),
+          supabase.from('documents')
+            .select('*')
+            .eq('patient_id', user.id)
+            .order('created_at', { ascending: false })
+            .limit(5),
+        ])
 
-      if (prof) setProfile(prof as unknown as User)
-      if (apts) setAppointments(apts as unknown as PatientAppointment[])
-      if (docs) setRecentDocs(docs as unknown as Document[])
-      setLoading(false)
+        if (prof) setProfile(prof as unknown as User)
+        if (apts) setAppointments(apts as unknown as PatientAppointment[])
+        if (docs) setRecentDocs(docs as unknown as Document[])
+      } catch {
+        // Error boundary will handle rendering errors; this prevents infinite loading
+      } finally {
+        setLoading(false)
+      }
     }
     load()
   }, [router, supabase])
@@ -478,28 +483,28 @@ export default function PatientDashboard() {
           onClick={() => router.push('/dashboard/patient/new-appointment')}
           className="p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all text-center"
         >
-          <span className="text-2xl block mb-1">🩺</span>
+          <span className="text-2xl block mb-1" aria-hidden="true">🩺</span>
           <span className="text-sm font-medium text-gray-700">תור חדש</span>
         </button>
         <button
           onClick={() => router.push('/dashboard/patient/my-documents')}
           className="p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all text-center"
         >
-          <span className="text-2xl block mb-1">📄</span>
+          <span className="text-2xl block mb-1" aria-hidden="true">📄</span>
           <span className="text-sm font-medium text-gray-700">המסמכים שלי</span>
         </button>
         <button
           onClick={() => router.push('/dashboard/patient/profile')}
           className="p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all text-center"
         >
-          <span className="text-2xl block mb-1">👤</span>
+          <span className="text-2xl block mb-1" aria-hidden="true">👤</span>
           <span className="text-sm font-medium text-gray-700">הפרופיל שלי</span>
         </button>
         <button
           onClick={() => router.push('/doctors')}
           className="p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all text-center"
         >
-          <span className="text-2xl block mb-1">👨‍⚕️</span>
+          <span className="text-2xl block mb-1" aria-hidden="true">👨‍⚕️</span>
           <span className="text-sm font-medium text-gray-700">הרופאים שלנו</span>
         </button>
       </div>

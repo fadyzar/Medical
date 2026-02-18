@@ -76,18 +76,23 @@ export default function DoctorCalendarPage() {
   }, [currentDate, viewMode, profile?.id])
 
   const loadProfile = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/auth/login'); return }
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/auth/login'); return }
 
-    const { data: prof } = await supabase.from('users').select('*').eq('id', user.id).single()
-    if (!prof) return
+      const { data: prof } = await supabase.from('users').select('*').eq('id', user.id).single()
+      if (!prof) return
 
-    const typedProf = prof as unknown as User
-    setProfile(typedProf)
-    setAvailability(typedProf.availability || [])
-    const vacs = (typedProf.metadata?.vacations as Array<{ start: string; end: string; note?: string }>) || []
-    setVacations(vacs)
-    setLoading(false)
+      const typedProf = prof as unknown as User
+      setProfile(typedProf)
+      setAvailability(typedProf.availability || [])
+      const vacs = (typedProf.metadata?.vacations as Array<{ start: string; end: string; note?: string }>) || []
+      setVacations(vacs)
+    } catch {
+      // Prevents infinite loading on network error
+    } finally {
+      setLoading(false)
+    }
   }
 
   const loadAppointments = async (doctorId: string) => {
@@ -222,6 +227,7 @@ export default function DoctorCalendarPage() {
             <button
               key={t}
               onClick={() => setTab(t)}
+              aria-pressed={tab === t}
               className={cn(
                 'px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
                 tab === t ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'

@@ -286,14 +286,14 @@ export default function DoctorQuestionnairesPage() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-2 border-b">
-        <button onClick={() => setTab('my')} className={cn(
+      <div className="flex gap-2 border-b" role="tablist">
+        <button onClick={() => setTab('my')} role="tab" aria-selected={tab === 'my'} className={cn(
           'px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px',
           tab === 'my' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
         )}>
           שאלונים ({myQuestionnaires.length})
         </button>
-        <button onClick={() => setTab('responses')} className={cn(
+        <button onClick={() => setTab('responses')} role="tab" aria-selected={tab === 'responses'} className={cn(
           'px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px',
           tab === 'responses' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
         )}>

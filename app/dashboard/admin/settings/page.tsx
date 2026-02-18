@@ -53,41 +53,45 @@ export default function AdminSettingsPage() {
   }, [])
 
   async function loadSettings() {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    const { data: profile } = await supabase.from('users').select('organization_id').eq('id', user.id).single()
-    if (!profile) return
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data: profile } = await supabase.from('users').select('organization_id').eq('id', user.id).single()
+      if (!profile) return
 
-    const { data } = await supabase.from('organizations').select('*').eq('id', profile.organization_id).single()
-    if (!data) return
+      const { data } = await supabase.from('organizations').select('*').eq('id', profile.organization_id).single()
+      if (!data) return
 
-    const organization = data as unknown as Organization
-    setOrg(organization)
+      const organization = data as unknown as Organization
+      setOrg(organization)
 
-    // Populate form
-    setName(organization.name)
-    setContactEmail(organization.contact_email || '')
-    setContactPhone(organization.contact_phone || '')
-    setLogoUrl(organization.logo_url || '')
-    setPrimaryColor(organization.primary_color || '#2563EB')
-    setSecondaryColor(organization.secondary_color || '#7C3AED')
+      // Populate form
+      setName(organization.name)
+      setContactEmail(organization.contact_email || '')
+      setContactPhone(organization.contact_phone || '')
+      setLogoUrl(organization.logo_url || '')
+      setPrimaryColor(organization.primary_color || '#2563EB')
+      setSecondaryColor(organization.secondary_color || '#7C3AED')
 
-    // Settings from JSON
-    const settings = organization.settings || {}
-    if (settings.working_hours && Array.isArray(settings.working_hours)) {
-      setWorkingHours(settings.working_hours as WorkingHours[])
+      // Settings from JSON
+      const settings = organization.settings || {}
+      if (settings.working_hours && Array.isArray(settings.working_hours)) {
+        setWorkingHours(settings.working_hours as WorkingHours[])
+      }
+      setCancellationHours(String(settings.cancellation_hours || '24'))
+      setCancellationFeePercent(String(settings.cancellation_fee_percent || '0'))
+      setDefaultPrice(String(settings.default_consultation_price || ''))
+      setAutoReminder24h(settings.auto_reminder_24h !== false)
+      setAutoReminder1h(settings.auto_reminder_1h !== false)
+
+      // Features
+      const features = organization.features || {}
+      setEmailNotifications(features.email_notifications !== false)
+    } catch {
+      // Prevents infinite loading on network error
+    } finally {
+      setLoading(false)
     }
-    setCancellationHours(String(settings.cancellation_hours || '24'))
-    setCancellationFeePercent(String(settings.cancellation_fee_percent || '0'))
-    setDefaultPrice(String(settings.default_consultation_price || ''))
-    setAutoReminder24h(settings.auto_reminder_24h !== false)
-    setAutoReminder1h(settings.auto_reminder_1h !== false)
-
-    // Features
-    const features = organization.features || {}
-    setEmailNotifications(features.email_notifications !== false)
-
-    setLoading(false)
   }
 
   async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
@@ -237,27 +241,31 @@ export default function AdminSettingsPage() {
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">צבע ראשי</label>
+              <label htmlFor="primary-color" className="block text-sm font-medium text-gray-700">צבע ראשי</label>
               <div className="flex items-center gap-3">
                 <input
+                  id="primary-color"
                   type="color"
                   value={primaryColor}
                   onChange={e => setPrimaryColor(e.target.value)}
                   className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
+                  aria-label="צבע ראשי"
                 />
-                <Input value={primaryColor} onChange={e => setPrimaryColor(e.target.value)} className="flex-1" />
+                <Input value={primaryColor} onChange={e => setPrimaryColor(e.target.value)} className="flex-1" aria-label="קוד צבע ראשי" />
               </div>
             </div>
             <div className="space-y-1.5">
-              <label className="block text-sm font-medium text-gray-700">צבע משני</label>
+              <label htmlFor="secondary-color" className="block text-sm font-medium text-gray-700">צבע משני</label>
               <div className="flex items-center gap-3">
                 <input
+                  id="secondary-color"
                   type="color"
                   value={secondaryColor}
                   onChange={e => setSecondaryColor(e.target.value)}
                   className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
+                  aria-label="צבע משני"
                 />
-                <Input value={secondaryColor} onChange={e => setSecondaryColor(e.target.value)} className="flex-1" />
+                <Input value={secondaryColor} onChange={e => setSecondaryColor(e.target.value)} className="flex-1" aria-label="קוד צבע משני" />
               </div>
             </div>
           </div>
@@ -420,8 +428,8 @@ export default function AdminSettingsPage() {
       )}
 
       {/* Save */}
-      {error && <p className="text-sm text-red-600 bg-red-50 px-4 py-2 rounded-lg">{error}</p>}
-      {success && <p className="text-sm text-green-600 bg-green-50 px-4 py-2 rounded-lg">{success}</p>}
+      {error && <p className="text-sm text-red-600 bg-red-50 px-4 py-2 rounded-lg" role="alert">{error}</p>}
+      {success && <p className="text-sm text-green-600 bg-green-50 px-4 py-2 rounded-lg" role="status">{success}</p>}
 
       <div className="flex justify-end pb-6">
         <Button onClick={handleSave} loading={saving} size="lg">שמור הגדרות</Button>

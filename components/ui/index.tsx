@@ -75,8 +75,8 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
           'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none',
           error ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white',
           className
-        )} aria-invalid={!!error} {...props} />
-        {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
+        )} aria-invalid={!!error} aria-describedby={error ? `${inputId}-error` : undefined} {...props} />
+        {error && <p id={`${inputId}-error`} className="text-sm text-red-600" role="alert">{error}</p>}
       </div>
     )
   }
@@ -101,11 +101,11 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
           'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none',
           error ? 'border-red-300' : 'border-gray-300',
           className
-        )} aria-invalid={!!error} {...props}>
+        )} aria-invalid={!!error} aria-describedby={error ? `${inputId}-error` : undefined} {...props}>
           {placeholder && <option value="">{placeholder}</option>}
           {options.map(o => <option key={o.value} value={o.value}>{o.label}</option>)}
         </select>
-        {error && <p className="text-sm text-red-600" role="alert">{error}</p>}
+        {error && <p id={`${inputId}-error`} className="text-sm text-red-600" role="alert">{error}</p>}
       </div>
     )
   }

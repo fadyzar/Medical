@@ -28,20 +28,25 @@ export default function DoctorAppointmentsPage() {
   useEffect(() => { loadData() }, [])
 
   const loadData = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
-    const { data } = await supabase.from('appointments')
-      .select('*, patient:patient_id(id, first_name, last_name, date_of_birth, phone, email, medical_history, insurance_info)')
-      .eq('doctor_id', user.id).order('created_at', { ascending: false })
-    if (data) {
-      const apts = data as unknown as Appointment[]
-      setAppointments(apts)
-      if (selectedId) {
-        const apt = apts.find(a => a.id === selectedId)
-        if (apt) selectAppointment(apt)
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
+      const { data } = await supabase.from('appointments')
+        .select('*, patient:patient_id(id, first_name, last_name, date_of_birth, phone, email, medical_history, insurance_info)')
+        .eq('doctor_id', user.id).order('created_at', { ascending: false })
+      if (data) {
+        const apts = data as unknown as Appointment[]
+        setAppointments(apts)
+        if (selectedId) {
+          const apt = apts.find(a => a.id === selectedId)
+          if (apt) selectAppointment(apt)
+        }
       }
+    } catch {
+      // Prevents infinite loading on network error
+    } finally {
+      setLoading(false)
     }
-    setLoading(false)
   }
 
   const selectAppointment = async (apt: Appointment) => {
@@ -104,7 +109,7 @@ export default function DoctorAppointmentsPage() {
       {/* Filters */}
       <div className="flex gap-2 flex-wrap">
         {['all', 'pending', 'doctor_confirmed', 'scheduled', 'in_progress', 'completed'].map(f => (
-          <button key={f} onClick={() => setFilter(f)} className={cn(
+          <button key={f} onClick={() => setFilter(f)} aria-pressed={filter === f} className={cn(
             'px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
             filter === f ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
           )}>{f === 'all' ? 'הכל' : STATUS_LABELS[f]} ({f === 'all' ? appointments.length : appointments.filter(a => a.status === f).length})</button>

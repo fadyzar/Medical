@@ -18,21 +18,26 @@ export default function DoctorDashboard() {
   useEffect(() => { loadData() }, [])
 
   const loadData = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/auth/login'); return }
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/auth/login'); return }
 
-    const [{ data: prof }, { data: apts }] = await Promise.all([
-      supabase.from('users').select('*').eq('id', user.id).single(),
-      supabase.from('appointments')
-        .select('*, patient:patient_id(id, first_name, last_name, date_of_birth, phone, medical_history)')
-        .eq('doctor_id', user.id)
-        .order('created_at', { ascending: false })
-        .limit(50),
-    ])
+      const [{ data: prof }, { data: apts }] = await Promise.all([
+        supabase.from('users').select('*').eq('id', user.id).single(),
+        supabase.from('appointments')
+          .select('*, patient:patient_id(id, first_name, last_name, date_of_birth, phone, medical_history)')
+          .eq('doctor_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(50),
+      ])
 
-    if (prof) setProfile(prof as unknown as User)
-    if (apts) setAppointments(apts as unknown as Appointment[])
-    setLoading(false)
+      if (prof) setProfile(prof as unknown as User)
+      if (apts) setAppointments(apts as unknown as Appointment[])
+    } catch {
+      // Prevents infinite loading on network error
+    } finally {
+      setLoading(false)
+    }
   }
 
   const confirmAppointment = async (id: string) => {

@@ -47,27 +47,32 @@ export default function BillingPage() {
   }, [])
 
   const loadOrg = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/auth/login'); return }
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/auth/login'); return }
 
-    const { data: profile } = await supabase.from('users')
-      .select('organization_id, role')
-      .eq('id', user.id)
-      .single()
+      const { data: profile } = await supabase.from('users')
+        .select('organization_id, role')
+        .eq('id', user.id)
+        .single()
 
-    if (!profile || (profile as unknown as { role: string }).role !== 'admin') {
-      router.push('/dashboard/admin/dashboard')
-      return
+      if (!profile || (profile as unknown as { role: string }).role !== 'admin') {
+        router.push('/dashboard/admin/dashboard')
+        return
+      }
+
+      const orgId = (profile as unknown as { organization_id: string }).organization_id
+      const { data: orgData } = await supabase.from('organizations')
+        .select('*')
+        .eq('id', orgId)
+        .single()
+
+      if (orgData) setOrg(orgData as unknown as Organization)
+    } catch {
+      // Prevents infinite loading on network error
+    } finally {
+      setLoading(false)
     }
-
-    const orgId = (profile as unknown as { organization_id: string }).organization_id
-    const { data: orgData } = await supabase.from('organizations')
-      .select('*')
-      .eq('id', orgId)
-      .single()
-
-    if (orgData) setOrg(orgData as unknown as Organization)
-    setLoading(false)
   }
 
   const openStripePortal = async () => {
