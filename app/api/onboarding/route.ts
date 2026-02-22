@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServiceRole } from '@/lib/supabase/server'
 import { onboardingFullSchema } from '@/lib/validation/onboarding-schema'
 import { PLANS, RESERVED_SUBDOMAINS } from '@/lib/config/plans'
-import { sendDoctorInvite } from '@/lib/email'
+import { sendDoctorInvite, sendWelcomeEmail } from '@/lib/email'
 
 export async function POST(req: Request) {
   try {
@@ -108,6 +108,20 @@ export async function POST(req: Request) {
       resource_id: org.id,
       description: `מרפאה חדשה נוצרה: ${data.name}`,
       metadata: { plan: data.plan, subdomain: data.subdomain },
+    })
+
+    // Send welcome email to admin (fire-and-forget)
+    sendWelcomeEmail({
+      userId: authUser.user.id,
+      email: data.email,
+      firstName: data.first_name,
+      lastName: data.last_name,
+      role: 'admin',
+      organizationId: org.id,
+      organizationName: data.name,
+      admin,
+    }).catch(err => {
+      console.error('[Onboarding] Welcome email failed:', err instanceof Error ? err.message : 'Unknown')
     })
 
     // Send doctor invite emails (fire-and-forget)

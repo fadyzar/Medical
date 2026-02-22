@@ -696,3 +696,147 @@ export async function sendDoctorInvite(params: {
     variables: { doctor_name: data.doctorName, doctor_email: data.doctorEmail },
   }, admin)
 }
+
+// ── Welcome Email ───────────────────────────────────
+
+type WelcomeData = {
+  userName: string
+  userRole: string
+  organizationName: string
+  dashboardUrl: string
+}
+
+const ROLE_LABELS_WELCOME: Record<string, string> = {
+  patient: 'מטופל',
+  doctor: 'רופא',
+  admin: 'מנהל מרפאה',
+  staff: 'איש צוות',
+}
+
+function buildWelcomeHtml(data: WelcomeData): string {
+  const roleLabel = ROLE_LABELS_WELCOME[data.userRole] || data.userRole
+
+  return wrapEmailHtml({
+    organizationName: data.organizationName,
+    ctaUrl: data.dashboardUrl,
+    ctaText: 'היכנס למערכת',
+    content: `
+      <h2 style="margin:0 0 16px;color:#1f2937;font-size:20px;">ברוך הבא, ${data.userName}!</h2>
+      <p style="margin:0 0 20px;">ההרשמה שלך ל<strong>${data.organizationName}</strong> הושלמה בהצלחה.</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f9ff;border-radius:8px;margin:0 0 20px;">
+        <tr><td style="padding:16px;">
+          <p style="margin:0 0 8px;">🏥 <strong>מרפאה:</strong> ${data.organizationName}</p>
+          <p style="margin:0;">👤 <strong>תפקיד:</strong> ${roleLabel}</p>
+        </td></tr>
+      </table>
+      <p style="margin:0 0 12px;color:#1f2937;font-size:14px;"><strong>מה תוכל לעשות במערכת:</strong></p>
+      <ul style="margin:0 0 16px;padding:0 20px 0 0;color:#4b5563;font-size:14px;">
+        <li style="margin:0 0 4px;">📅 קביעת תורים לייעוץ רפואי מקוון</li>
+        <li style="margin:0 0 4px;">📹 שיחות וידאו מאובטחות עם רופאים</li>
+        <li style="margin:0 0 4px;">📄 העלאת מסמכים רפואיים</li>
+        <li style="margin:0;">💬 סיכום ייעוץ מפורט לאחר כל פגישה</li>
+      </ul>
+      <p style="margin:0;color:#6b7280;font-size:14px;">לחץ על הכפתור למטה כדי להיכנס לדשבורד שלך ולהתחיל.</p>
+    `,
+  })
+}
+
+export async function sendWelcomeEmail(params: {
+  userId: string
+  email: string
+  firstName: string
+  lastName: string
+  role: string
+  organizationId: string
+  organizationName: string
+  admin: SupabaseClient
+}): Promise<void> {
+  const { admin, ...data } = params
+  const templateName = 'welcome'
+  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+
+  const roleHome: Record<string, string> = {
+    doctor: '/dashboard/doctor/dashboard',
+    admin: '/dashboard/admin/dashboard',
+    staff: '/dashboard/staff/dashboard',
+    patient: '/dashboard/patient/dashboard',
+  }
+
+  const html = buildWelcomeHtml({
+    userName: `${data.firstName} ${data.lastName}`,
+    userRole: data.role,
+    organizationName: data.organizationName,
+    dashboardUrl: `${appUrl}${roleHome[data.role] || '/dashboard/patient/dashboard'}`,
+  })
+
+  await sendEmail({
+    to: data.email,
+    subject: `ברוך הבא ל${data.organizationName}!`,
+    html,
+    organizationId: data.organizationId,
+    userId: data.userId,
+    appointmentId: null,
+    templateName,
+    organizationName: data.organizationName,
+    variables: { role: data.role },
+  }, admin)
+}
+
+// ── Password Reset Email ────────────────────────────
+
+type PasswordResetData = {
+  userName: string
+  resetUrl: string
+  organizationName: string
+}
+
+function buildPasswordResetHtml(data: PasswordResetData): string {
+  return wrapEmailHtml({
+    organizationName: data.organizationName,
+    ctaUrl: data.resetUrl,
+    ctaText: 'איפוס סיסמה',
+    primaryColor: '#dc2626',
+    content: `
+      <h2 style="margin:0 0 16px;color:#1f2937;font-size:20px;">שלום ${data.userName},</h2>
+      <p style="margin:0 0 20px;">קיבלנו בקשה לאיפוס הסיסמה שלך ב<strong>${data.organizationName}</strong>.</p>
+      <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#fef2f2;border-radius:8px;margin:0 0 20px;">
+        <tr><td style="padding:16px;">
+          <p style="margin:0 0 8px;">🔒 <strong>לחץ על הכפתור למטה כדי לבחור סיסמה חדשה.</strong></p>
+          <p style="margin:0;color:#6b7280;font-size:13px;">הקישור תקף ל-60 דקות בלבד.</p>
+        </td></tr>
+      </table>
+      <p style="margin:0 0 8px;color:#6b7280;font-size:14px;">אם לא ביקשת לאפס את הסיסמה, ניתן להתעלם מהודעה זו.</p>
+      <p style="margin:0;color:#9ca3af;font-size:13px;">הסיסמה הנוכחית שלך לא תשתנה עד שתבחר סיסמה חדשה.</p>
+    `,
+  })
+}
+
+export async function sendPasswordResetEmail(params: {
+  userId: string
+  email: string
+  firstName: string
+  lastName: string
+  resetUrl: string
+  organizationId: string
+  organizationName: string
+  admin: SupabaseClient
+}): Promise<void> {
+  const { admin, ...data } = params
+
+  const html = buildPasswordResetHtml({
+    userName: `${data.firstName} ${data.lastName}`,
+    resetUrl: data.resetUrl,
+    organizationName: data.organizationName,
+  })
+
+  await sendEmail({
+    to: data.email,
+    subject: `איפוס סיסמה — ${data.organizationName}`,
+    html,
+    organizationId: data.organizationId,
+    userId: data.userId,
+    appointmentId: null,
+    templateName: 'password_reset',
+    organizationName: data.organizationName,
+  }, admin)
+}
