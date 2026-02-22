@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Input } from '@/components/ui'
@@ -10,7 +10,7 @@ import Link from 'next/link'
 
 export default function ResetPasswordPage() {
   const router = useRouter()
-  const supabase = getClient()
+  const supabase = useMemo(() => getClient(), [])
 
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
