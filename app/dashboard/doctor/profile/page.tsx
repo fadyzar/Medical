@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Input, Card, CardContent, CardHeader, Badge, PageLoading, Textarea } from '@/components/ui'
 import { cn, getInitials, SPECIALTIES, formatPrice } from '@/lib/utils'
+import { uploadAvatar } from '@/lib/supabase/storage'
 import type { User } from '@/types/database'
 
 // ── Tag input for languages ──────────────────────────
@@ -154,55 +155,35 @@ export default function DoctorProfilePage() {
     const file = e.target.files?.[0]
     if (!file || !profile) return
 
-    if (!file.type.startsWith('image/')) {
-      setErrors(prev => ({ ...prev, avatar: 'יש לבחור קובץ תמונה' }))
-      return
-    }
-    if (file.size > 2 * 1024 * 1024) {
-      setErrors(prev => ({ ...prev, avatar: 'גודל הקובץ מקסימלי 2MB' }))
-      return
-    }
-
     setUploadingAvatar(true)
     setErrors(prev => { const n = { ...prev }; delete n.avatar; return n })
 
-    try {
-      const ext = file.name.split('.').pop()?.toLowerCase() || 'jpg'
-      const path = `avatars/${profile.organization_id}/${profile.id}.${ext}`
+    const { publicUrl, error: uploadErr } = await uploadAvatar(supabase, file, {
+      orgId: profile.organization_id,
+      userId: profile.id,
+      oldAvatarUrl: profile.avatar_url,
+    })
 
-      if (profile.avatar_url) {
-        const oldPath = profile.avatar_url.split('/storage/v1/object/public/avatars/')[1]?.split('?')[0]
-        if (oldPath) {
-          await supabase.storage.from('avatars').remove([oldPath])
-        }
-      }
-
-      const { error: uploadError } = await supabase.storage
-        .from('avatars')
-        .upload(path, file, { upsert: true })
-
-      if (uploadError) throw uploadError
-
-      const { data: { publicUrl } } = supabase.storage
-        .from('avatars')
-        .getPublicUrl(path)
-
-      const avatarWithBuster = `${publicUrl}?t=${Date.now()}`
-
-      const { error: updateError } = await supabase.from('users')
-        .update({ avatar_url: avatarWithBuster })
-        .eq('id', profile.id)
-
-      if (updateError) throw updateError
-
-      setAvatarUrl(avatarWithBuster)
-      setProfile(prev => prev ? { ...prev, avatar_url: avatarWithBuster } : null)
-    } catch {
-      setErrors(prev => ({ ...prev, avatar: 'שגיאה בהעלאת התמונה' }))
-    } finally {
+    if (uploadErr || !publicUrl) {
+      setErrors(prev => ({ ...prev, avatar: uploadErr || 'שגיאה בהעלאת התמונה' }))
       setUploadingAvatar(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
+      return
     }
+
+    const { error: updateError } = await supabase.from('users')
+      .update({ avatar_url: publicUrl })
+      .eq('id', profile.id)
+
+    if (updateError) {
+      setErrors(prev => ({ ...prev, avatar: 'שגיאה בהעלאת התמונה' }))
+    } else {
+      setAvatarUrl(publicUrl)
+      setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : null)
+    }
+
+    setUploadingAvatar(false)
+    if (fileInputRef.current) fileInputRef.current.value = ''
   }
 
   // ── Save ─────────────────────────────────────────────

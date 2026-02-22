@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Input, Card, CardHeader, CardContent, PageLoading, Spinner } from '@/components/ui'
+import { uploadLogo } from '@/lib/supabase/storage'
 import type { Organization } from '@/types/database'
 
 type WorkingHours = {
@@ -98,36 +99,18 @@ export default function AdminSettingsPage() {
     const file = e.target.files?.[0]
     if (!file || !org) return
 
-    const maxSize = 2 * 1024 * 1024 // 2MB
-    if (file.size > maxSize) {
-      setError('הקובץ גדול מדי — מקסימום 2MB')
-      return
-    }
-
-    const allowedTypes = ['image/png', 'image/jpeg', 'image/svg+xml', 'image/webp']
-    if (!allowedTypes.includes(file.type)) {
-      setError('סוג קובץ לא נתמך — PNG, JPG, SVG או WebP בלבד')
-      return
-    }
-
     setUploadingLogo(true)
     setError('')
 
-    const ext = file.name.split('.').pop() || 'png'
-    const path = `branding/${org.id}/logo.${ext}`
+    const { publicUrl, error: uploadErr } = await uploadLogo(supabase, file, { orgId: org.id })
 
-    const { error: uploadErr } = await supabase.storage
-      .from('avatars')
-      .upload(path, file, { upsert: true, contentType: file.type })
-
-    if (uploadErr) {
-      setError('שגיאה בהעלאת הלוגו: ' + uploadErr.message)
+    if (uploadErr || !publicUrl) {
+      setError(uploadErr || 'שגיאה בהעלאת הלוגו')
       setUploadingLogo(false)
       return
     }
 
-    const { data: urlData } = supabase.storage.from('avatars').getPublicUrl(path)
-    setLogoUrl(`${urlData.publicUrl}?t=${Date.now()}`)
+    setLogoUrl(publicUrl)
     setUploadingLogo(false)
   }
 

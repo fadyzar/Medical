@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Card, CardContent, CardHeader, Badge, EmptyState, PageLoading } from '@/components/ui'
 import { formatDate } from '@/lib/utils'
+import { validateFile, uploadDocument, getSignedUrl, deleteFile, ALLOWED_DOCUMENT_TYPES, MAX_FILE_SIZE } from '@/lib/supabase/storage'
 import type { Document } from '@/types/database'
 
 function IconUpload({ className }: { className?: string }) {
@@ -38,6 +39,14 @@ function IconEye({ className }: { className?: string }) {
   )
 }
 
+function IconTrash({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="3 6 5 6 21 6" /><path d="M19 6v14a2 2 0 01-2 2H7a2 2 0 01-2-2V6m3 0V4a2 2 0 012-2h4a2 2 0 012 2v2" />
+    </svg>
+  )
+}
+
 function getFileIcon(fileType: string) {
   if (fileType.startsWith('image/')) return 'bg-purple-50 text-purple-600'
   if (fileType === 'application/pdf') return 'bg-red-50 text-red-600'
@@ -48,6 +57,7 @@ export default function MyDocumentsPage() {
   const [docs, setDocs] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
   const [uploading, setUploading] = useState(false)
+  const [deletingId, setDeletingId] = useState<string | null>(null)
   const [error, setError] = useState('')
   const supabase = getClient()
 
@@ -68,9 +78,9 @@ export default function MyDocumentsPage() {
   }
 
   const uploadFile = async (file: File) => {
-    // Client-side file size validation (10MB limit)
-    if (file.size > 10 * 1024 * 1024) {
-      setError('גודל הקובץ מקסימלי 10MB')
+    const validation = validateFile(file, { maxSize: MAX_FILE_SIZE, allowedTypes: ALLOWED_DOCUMENT_TYPES })
+    if (!validation.valid) {
+      setError(validation.error!)
       return
     }
 
@@ -82,9 +92,14 @@ export default function MyDocumentsPage() {
       const { data: profile } = await supabase.from('users').select('organization_id').eq('id', user.id).single()
       if (!profile) return
 
-      const path = `${profile.organization_id}/${user.id}/general/${Date.now()}-${file.name}`
-      const { error: uploadErr } = await supabase.storage.from('medical-documents').upload(path, file)
-      if (uploadErr) throw uploadErr
+      const { path, error: uploadErr } = await uploadDocument(supabase, file, {
+        orgId: profile.organization_id,
+        userId: user.id,
+      })
+      if (uploadErr || !path) {
+        setError(uploadErr || 'שגיאה בהעלאת הקובץ. נסה שוב.')
+        return
+      }
 
       await supabase.from('documents').insert({
         organization_id: profile.organization_id,
@@ -104,17 +119,34 @@ export default function MyDocumentsPage() {
     }
   }
 
-  const getDownloadUrl = async (path: string) => {
-    try {
-      const { data, error: signError } = await supabase.storage.from('medical-documents').createSignedUrl(path, 60)
-      if (signError || !data?.signedUrl) {
-        setError('שגיאה בפתיחת המסמך. נסה שוב.')
-        return
-      }
-      window.open(data.signedUrl, '_blank')
-    } catch {
-      setError('שגיאה בפתיחת המסמך. נסה שוב.')
+  const handleView = async (path: string) => {
+    const { url, error: signError } = await getSignedUrl(supabase, path, 'medical-documents')
+    if (signError || !url) {
+      setError(signError || 'שגיאה בפתיחת המסמך. נסה שוב.')
+      return
     }
+    window.open(url, '_blank')
+  }
+
+  const handleDelete = async (doc: Document) => {
+    if (!confirm('למחוק את המסמך?')) return
+    setDeletingId(doc.id)
+    setError('')
+
+    const { error: storageErr } = await deleteFile(supabase, doc.storage_path, 'medical-documents')
+    if (storageErr) {
+      setError(storageErr)
+      setDeletingId(null)
+      return
+    }
+
+    const { error: dbErr } = await supabase.from('documents').delete().eq('id', doc.id)
+    if (dbErr) {
+      setError('שגיאה במחיקת המסמך')
+    } else {
+      setDocs(prev => prev.filter(d => d.id !== doc.id))
+    }
+    setDeletingId(null)
   }
 
   if (loading) return <PageLoading />
@@ -175,9 +207,17 @@ export default function MyDocumentsPage() {
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
                   {doc.is_verified && <Badge variant="success">מאומת</Badge>}
-                  <Button size="sm" variant="outline" onClick={() => getDownloadUrl(doc.storage_path)}>
+                  <Button size="sm" variant="outline" onClick={() => handleView(doc.storage_path)}>
                     <IconEye className="w-3.5 h-3.5" />
                     צפה
+                  </Button>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    loading={deletingId === doc.id}
+                    onClick={() => handleDelete(doc)}
+                  >
+                    <IconTrash className="w-3.5 h-3.5 text-red-500" />
                   </Button>
                 </div>
               </div>
