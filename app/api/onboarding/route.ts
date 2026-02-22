@@ -3,9 +3,20 @@ import { createServiceRole } from '@/lib/supabase/server'
 import { onboardingFullSchema } from '@/lib/validation/onboarding-schema'
 import { PLANS, RESERVED_SUBDOMAINS } from '@/lib/config/plans'
 import { sendDoctorInvite, sendWelcomeEmail } from '@/lib/email'
+import { onboardingLimiter } from '@/lib/security/rate-limit'
 
 export async function POST(req: Request) {
   try {
+    // Rate limit by IP
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+    const limit = onboardingLimiter(ip)
+    if (!limit.allowed) {
+      return NextResponse.json(
+        { error: 'יותר מדי בקשות. נסה שוב מאוחר יותר.' },
+        { status: 429, headers: { 'Retry-After': String(Math.ceil((limit.retryAfterMs || 60000) / 1000)) } }
+      )
+    }
+
     const body = await req.json()
     const parsed = onboardingFullSchema.safeParse(body)
 

@@ -3,6 +3,7 @@ import { createServiceRole } from '@/lib/supabase/server'
 import { sendPaymentConfirmationWhatsApp } from '@/lib/whatsapp'
 import { generateInvoice } from '@/lib/invoice'
 import { sendPaymentReceipt } from '@/lib/email'
+import { rateLimit } from '@/lib/security/rate-limit'
 import crypto from 'crypto'
 
 // ── Tranzila signature validation ─────────────────────
@@ -34,6 +35,13 @@ function validateTranzilaSignature(params: URLSearchParams): boolean {
 
 export async function POST(req: Request) {
   try {
+    // Rate limit: 30 per minute per IP (webhook can get bursts)
+    const ip = req.headers.get('x-forwarded-for')?.split(',')[0]?.trim() || 'unknown'
+    const limit = rateLimit(`webhook:${ip}`, { maxRequests: 30, windowMs: 60_000 })
+    if (!limit.allowed) {
+      return NextResponse.json({ error: 'Too many requests' }, { status: 429 })
+    }
+
     const body = await req.text()
     const params = new URLSearchParams(body)
 

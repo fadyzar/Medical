@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
 import { summaryAgent, prescriptionAgent } from '@/lib/ai/agents'
+import { aiSummarySchema } from '@/lib/validation/schemas'
 
 export async function POST(req: Request) {
   try {
@@ -11,8 +12,12 @@ export async function POST(req: Request) {
     const { data: profile } = await supabase.from('users').select('role, organization_id').eq('id', user.id).single()
     if (!profile || profile.role !== 'doctor') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-    const { appointmentId, action = 'summary' } = await req.json()
-    if (!appointmentId) return NextResponse.json({ error: 'Missing appointmentId' }, { status: 400 })
+    const body = await req.json()
+    const parsed = aiSummarySchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'נתונים לא תקינים', details: parsed.error.flatten().fieldErrors }, { status: 400 })
+    }
+    const { appointmentId, action } = parsed.data
 
     const admin = createServiceRole()
     const { data: apt } = await admin.from('appointments')

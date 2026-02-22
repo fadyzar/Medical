@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AccessToken } from 'livekit-server-sdk'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { appointmentIdSchema } from '@/lib/validation/schemas'
 
 export async function POST(req: NextRequest) {
   try {
@@ -10,10 +11,12 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
     }
 
-    const { appointmentId } = await req.json()
-    if (!appointmentId) {
-      return NextResponse.json({ error: 'Missing appointmentId' }, { status: 400 })
+    const body = await req.json()
+    const parsed = appointmentIdSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'נתונים לא תקינים', details: parsed.error.flatten().fieldErrors }, { status: 400 })
     }
+    const { appointmentId } = parsed.data
 
     // Verify user is patient or doctor of this appointment
     const { data: apt } = await supabase.from('appointments')

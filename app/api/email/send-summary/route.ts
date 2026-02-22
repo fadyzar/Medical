@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
 import { sendConsultationSummary } from '@/lib/email'
+import { appointmentIdSchema } from '@/lib/validation/schemas'
 
 export async function POST(req: Request) {
   try {
@@ -13,8 +14,12 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
-    const { appointmentId } = await req.json()
-    if (!appointmentId) return NextResponse.json({ error: 'Missing appointmentId' }, { status: 400 })
+    const body = await req.json()
+    const parsed = appointmentIdSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'נתונים לא תקינים', details: parsed.error.flatten().fieldErrors }, { status: 400 })
+    }
+    const { appointmentId } = parsed.data
 
     const admin = createServiceRole()
     await sendConsultationSummary({ appointmentId, admin })
