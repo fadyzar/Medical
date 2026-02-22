@@ -24,8 +24,38 @@ const ROLE_DASHBOARDS: Record<string, string> = {
   staff: '/dashboard/staff',
 }
 
+// External webhook endpoints that receive cross-origin POST requests
+const WEBHOOK_PATHS = [
+  '/api/payments/webhook',
+  '/api/stripe/webhook',
+  '/api/auth/callback',
+  '/api/cron/',
+]
+
 export async function middleware(req: NextRequest) {
   let res = NextResponse.next({ request: req })
+
+  // ── CSRF protection for mutation requests to API routes ──
+  const method = req.method
+  const path = req.nextUrl.pathname
+  if (
+    path.startsWith('/api/') &&
+    ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method) &&
+    !WEBHOOK_PATHS.some(wp => path.startsWith(wp))
+  ) {
+    const origin = req.headers.get('origin')
+    const host = req.headers.get('host')
+    if (origin && host) {
+      try {
+        const originHost = new URL(origin).host
+        if (originHost !== host) {
+          return NextResponse.json({ error: 'CSRF validation failed' }, { status: 403 })
+        }
+      } catch {
+        return NextResponse.json({ error: 'Invalid origin' }, { status: 403 })
+      }
+    }
+  }
 
   const supabase = createServerClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -43,7 +73,6 @@ export async function middleware(req: NextRequest) {
   )
 
   const { data: { user } } = await supabase.auth.getUser()
-  const path = req.nextUrl.pathname
 
   // ── Public routes: no auth needed ──────────────────────
   if (path === '/' || PUBLIC_PREFIXES.some(r => path.startsWith(r))) {

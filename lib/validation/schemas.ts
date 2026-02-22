@@ -51,6 +51,16 @@ export const soapSchema = z.object({
   follow_up_date: z.string().optional(),
 })
 
+// ── API request body schemas ──────────────────────────
+export const appointmentIdSchema = z.object({
+  appointmentId: z.string().uuid('מזהה תור לא תקין'),
+})
+
+export const aiSummarySchema = z.object({
+  appointmentId: z.string().uuid('מזהה תור לא תקין'),
+  action: z.enum(['summary', 'prescription_draft']).default('summary'),
+})
+
 export type LoginInput = z.infer<typeof loginSchema>
 export type RegisterInput = z.infer<typeof registerSchema>
 export type AppointmentInput = z.infer<typeof appointmentSchema>

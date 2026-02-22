@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
 import { triageAgent } from '@/lib/ai/agents'
+import { appointmentIdSchema } from '@/lib/validation/schemas'
 
 export async function POST(req: Request) {
   try {
@@ -8,8 +9,12 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { appointmentId } = await req.json()
-    if (!appointmentId) return NextResponse.json({ error: 'Missing appointmentId' }, { status: 400 })
+    const body = await req.json()
+    const parsed = appointmentIdSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'נתונים לא תקינים', details: parsed.error.flatten().fieldErrors }, { status: 400 })
+    }
+    const { appointmentId } = parsed.data
 
     // Use service role to read appointment regardless of RLS
     const admin = createServiceRole()
@@ -32,11 +37,11 @@ export async function POST(req: Request) {
     if (!result.success) return NextResponse.json({ error: 'AI failed' }, { status: 500 })
 
     // Update appointment
-    const parsed = result.parsed as Record<string, unknown> | undefined
+    const triageResult = result.parsed as Record<string, unknown> | undefined
     await admin.from('appointments').update({
-      ai_triage_score: parsed?.urgency_score as number || null,
-      ai_triage_category: parsed?.category as string || null,
-      ai_triage_reasoning: parsed?.reasoning as string || null,
+      ai_triage_score: triageResult?.urgency_score as number || null,
+      ai_triage_category: triageResult?.category as string || null,
+      ai_triage_reasoning: triageResult?.reasoning as string || null,
       ai_triage_at: new Date().toISOString(),
     }).eq('id', appointmentId)
 

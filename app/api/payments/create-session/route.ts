@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabase } from '@/lib/supabase/server'
+import { appointmentIdSchema } from '@/lib/validation/schemas'
 import crypto from 'crypto'
 
 export async function POST(req: Request) {
@@ -8,8 +9,12 @@ export async function POST(req: Request) {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-    const { appointmentId } = await req.json()
-    if (!appointmentId) return NextResponse.json({ error: 'Missing appointmentId' }, { status: 400 })
+    const body = await req.json()
+    const parsed = appointmentIdSchema.safeParse(body)
+    if (!parsed.success) {
+      return NextResponse.json({ error: 'נתונים לא תקינים', details: parsed.error.flatten().fieldErrors }, { status: 400 })
+    }
+    const { appointmentId } = parsed.data
 
     // Load appointment — RLS ensures patient can only see their own
     const { data: apt } = await supabase.from('appointments')
