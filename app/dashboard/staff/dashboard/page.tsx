@@ -3,7 +3,7 @@
 import { useEffect, useState } from 'react'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Card, CardContent, CardHeader, Input, Badge, PageLoading, EmptyState, StatCard } from '@/components/ui'
-import { STATUS_LABELS, STATUS_COLORS, formatDateTime, formatTime, cn } from '@/lib/utils'
+import { STATUS_LABELS, formatDateTime, formatTime, cn } from '@/lib/utils'
 import type { Appointment, User, AppointmentStatus } from '@/types/database'
 
 // ── Types ──────────────────────────────────────────────
@@ -95,20 +95,34 @@ export default function StaffDashboard() {
     }
   }
 
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
   const updateStatus = async (id: string, status: AppointmentStatus) => {
     setActionLoading(id)
-    const updates: Record<string, unknown> = { status }
+    setMessage(null)
+    try {
+      const updates: Record<string, unknown> = { status }
 
-    if (status === 'cancelled_patient') {
-      updates.cancelled_at = new Date().toISOString()
-    }
-    if (status === 'no_show_patient') {
-      updates.no_show_recorded_at = new Date().toISOString()
-    }
+      if (status === 'cancelled_patient') {
+        updates.cancelled_at = new Date().toISOString()
+      }
+      if (status === 'no_show_patient') {
+        updates.no_show_recorded_at = new Date().toISOString()
+      }
 
-    await supabase.from('appointments').update(updates).eq('id', id)
-    setActionLoading(null)
-    loadData()
+      const { error } = await supabase.from('appointments').update(updates).eq('id', id)
+      if (error) {
+        setMessage({ type: 'error', text: 'שגיאה בעדכון הסטטוס' })
+      } else {
+        setMessage({ type: 'success', text: `סטטוס עודכן ל-${STATUS_LABELS[status]}` })
+        setTimeout(() => setMessage(null), 3000)
+      }
+      loadData()
+    } catch {
+      setMessage({ type: 'error', text: 'שגיאת רשת בעדכון הסטטוס' })
+    } finally {
+      setActionLoading(null)
+    }
   }
 
   // ── Filtering ────────────────────────────────────────
@@ -176,16 +190,26 @@ export default function StaffDashboard() {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-2xl font-bold">פאנל שירות</h2>
+        <h2 className="text-xl font-bold text-gray-900">פאנל שירות</h2>
         <p className="text-sm text-gray-500">ניהול תורים, מטופלים ותפעול יומיומי</p>
       </div>
 
+      {/* Messages */}
+      {message && (
+        <div className={cn(
+          'flex items-center gap-3 p-3 rounded-lg text-sm',
+          message.type === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'
+        )} role="status">
+          {message.text}
+        </div>
+      )}
+
       {/* KPI Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="תורים היום" value={todayApts.length} icon="📅" color="blue" />
-        <StatCard label="ממתינים לאישור" value={pendingCount} icon="⏳" color="orange" />
-        <StatCard label="תורים פעילים" value={activeCount} icon="🩺" color="green" />
-        <StatCard label="הושלמו היום" value={todayCompleted} icon="✅" color="purple" />
+        <StatCard label="תורים היום" value={todayApts.length} icon={<svg className="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>} color="blue" />
+        <StatCard label="ממתינים לאישור" value={pendingCount} icon={<svg className="w-6 h-6 text-orange-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>} color="orange" />
+        <StatCard label="תורים פעילים" value={activeCount} icon={<svg className="w-6 h-6 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>} color="green" />
+        <StatCard label="הושלמו היום" value={todayCompleted} icon={<svg className="w-6 h-6 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>} color="purple" />
       </div>
 
       {/* Search */}
@@ -234,7 +258,7 @@ export default function StaffDashboard() {
           </div>
         </CardHeader>
         {filtered.length === 0 ? (
-          <EmptyState icon="📋" title="אין תורים" description="לא נמצאו תורים לפי הסינון הנוכחי" />
+          <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></svg>} title="אין תורים" description="לא נמצאו תורים לפי הסינון הנוכחי" />
         ) : (
           <div className="divide-y">
             {filtered.map(apt => {
@@ -308,8 +332,8 @@ export default function StaffDashboard() {
                         <div className="bg-gray-50 rounded-lg p-3 space-y-1">
                           <p className="text-xs text-gray-400 font-medium">פרטי מטופל</p>
                           <p className="font-medium">{apt.patient?.first_name} {apt.patient?.last_name}</p>
-                          {apt.patient?.phone && <p className="text-gray-500">📱 {apt.patient.phone}</p>}
-                          {apt.patient?.email && <p className="text-gray-500 truncate">📧 {apt.patient.email}</p>}
+                          {apt.patient?.phone && <p className="text-gray-500">טל׳: {apt.patient.phone}</p>}
+                          {apt.patient?.email && <p className="text-gray-500 truncate">{apt.patient.email}</p>}
                         </div>
 
                         {/* Appointment info */}

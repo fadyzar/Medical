@@ -4,6 +4,7 @@ import ReactMarkdown from 'react-markdown'
 import { notFound } from 'next/navigation'
 import { getAllPosts, getPostBySlug, getRelatedPosts } from '@/lib/blog/posts'
 import type { Components } from 'react-markdown'
+import { Breadcrumb } from '@/components/ui'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://your-domain.co.il'
 
@@ -95,6 +96,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="text-2xl font-black text-blue-600">טלמדיסן</Link>
           <div className="flex items-center gap-4">
+            <Link href="/specialties" className="text-sm text-gray-600 hover:text-gray-900">התמחויות</Link>
             <Link href="/doctors" className="text-sm text-gray-600 hover:text-gray-900">הרופאים שלנו</Link>
             <Link href="/blog" className="text-sm text-gray-600 hover:text-gray-900">בלוג</Link>
             <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900">התחברות</Link>
@@ -106,9 +108,16 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       {/* Article */}
       <article className="py-12 px-4">
         <div className="max-w-3xl mx-auto">
+          {/* Breadcrumb */}
+          <Breadcrumb items={[
+            { label: 'דף הבית', href: '/' },
+            { label: 'בלוג', href: '/blog' },
+            { label: post.title },
+          ]} />
           {/* Back link */}
-          <Link href="/blog" className="text-sm text-blue-600 hover:underline mb-8 inline-block">
-            &#8592; חזרה לבלוג
+          <Link href="/blog" className="text-sm text-blue-600 hover:underline mb-8 inline-flex items-center gap-1">
+            <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
+            חזרה לבלוג
           </Link>
 
           {/* Meta */}

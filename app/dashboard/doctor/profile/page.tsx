@@ -96,49 +96,54 @@ export default function DoctorProfilePage() {
 
   useEffect(() => {
     const load = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/auth/login'); return }
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { router.push('/auth/login'); return }
 
-      const { data: prof } = await supabase.from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single()
+        const { data: prof } = await supabase.from('users')
+          .select('*')
+          .eq('id', user.id)
+          .single()
 
-      if (prof) {
-        const p = prof as unknown as User
-        if (p.role !== 'doctor') { router.push('/dashboard'); return }
-        setProfile(p)
+        if (prof) {
+          const p = prof as unknown as User
+          if (p.role !== 'doctor') { router.push('/dashboard'); return }
+          setProfile(p)
 
-        setBio(p.bio || '')
-        setConsultationPrice(p.consultation_price?.toString() || '')
-        setSelectedSpecialties(p.specialties || [])
-        setLanguages(p.languages || [])
-        setLicenseNumber(p.license_number || '')
-        setPhone(p.phone || '')
-        setAvatarUrl(p.avatar_url)
+          setBio(p.bio || '')
+          setConsultationPrice(p.consultation_price?.toString() || '')
+          setSelectedSpecialties(p.specialties || [])
+          setLanguages(p.languages || [])
+          setLicenseNumber(p.license_number || '')
+          setPhone(p.phone || '')
+          setAvatarUrl(p.avatar_url)
 
-        // Load recent reviews
-        const { data: appointments } = await supabase.from('appointments')
-          .select('patient_rating, patient_feedback, completed_at, patient:patient_id(first_name, last_name)')
-          .eq('doctor_id', user.id)
-          .not('patient_rating', 'is', null)
-          .order('completed_at', { ascending: false })
-          .limit(10)
+          // Load recent reviews
+          const { data: appointments } = await supabase.from('appointments')
+            .select('patient_rating, patient_feedback, completed_at, patient:patient_id(first_name, last_name)')
+            .eq('doctor_id', user.id)
+            .not('patient_rating', 'is', null)
+            .order('completed_at', { ascending: false })
+            .limit(10)
 
-        if (appointments) {
-          const mapped = appointments.map((a: Record<string, unknown>) => {
-            const patient = a.patient as { first_name: string; last_name: string } | null
-            return {
-              patient_name: patient ? `${patient.first_name} ${patient.last_name?.charAt(0)}.` : 'מטופל',
-              rating: a.patient_rating as number,
-              feedback: (a.patient_feedback as string) || '',
-              date: a.completed_at as string,
-            }
-          })
-          setReviews(mapped)
+          if (appointments) {
+            const mapped = appointments.map((a: Record<string, unknown>) => {
+              const patient = a.patient as { first_name: string; last_name: string } | null
+              return {
+                patient_name: patient ? `${patient.first_name} ${patient.last_name?.charAt(0)}.` : 'מטופל',
+                rating: a.patient_rating as number,
+                feedback: (a.patient_feedback as string) || '',
+                date: a.completed_at as string,
+              }
+            })
+            setReviews(mapped)
+          }
         }
+      } catch {
+        // Prevents infinite loading on network error
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
     load()
   }, [router, supabase])
@@ -222,29 +227,33 @@ export default function DoctorProfilePage() {
     setErrors({})
     setSaved(false)
 
-    const { error } = await supabase.from('users').update({
-      bio: bio.trim() || null,
-      consultation_price: consultationPrice ? Number(consultationPrice) : null,
-      specialties: selectedSpecialties.length > 0 ? selectedSpecialties : null,
-      languages,
-      license_number: licenseNumber.trim() || null,
-      phone: phone.trim() || null,
-    }).eq('id', profile.id)
-
-    if (error) {
-      setErrors({ submit: 'שגיאה בשמירת הפרופיל' })
-    } else {
-      setProfile(prev => prev ? {
-        ...prev,
+    try {
+      const { error } = await supabase.from('users').update({
         bio: bio.trim() || null,
         consultation_price: consultationPrice ? Number(consultationPrice) : null,
         specialties: selectedSpecialties.length > 0 ? selectedSpecialties : null,
         languages,
         license_number: licenseNumber.trim() || null,
         phone: phone.trim() || null,
-      } : null)
-      setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
+      }).eq('id', profile.id)
+
+      if (error) {
+        setErrors({ submit: 'שגיאה בשמירת הפרופיל' })
+      } else {
+        setProfile(prev => prev ? {
+          ...prev,
+          bio: bio.trim() || null,
+          consultation_price: consultationPrice ? Number(consultationPrice) : null,
+          specialties: selectedSpecialties.length > 0 ? selectedSpecialties : null,
+          languages,
+          license_number: licenseNumber.trim() || null,
+          phone: phone.trim() || null,
+        } : null)
+        setSaved(true)
+        setTimeout(() => setSaved(false), 3000)
+      }
+    } catch {
+      setErrors({ submit: 'שגיאה בשמירת הפרופיל' })
     }
 
     setSaving(false)

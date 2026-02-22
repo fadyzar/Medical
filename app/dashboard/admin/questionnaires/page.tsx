@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback, useRef } from 'react'
+import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Input, Textarea, Select, Card, CardContent, CardHeader, Badge, PageLoading, EmptyState, Spinner } from '@/components/ui'
@@ -22,7 +22,7 @@ const QUESTION_TYPE_LABELS: Record<QuestionType, string> = {
 }
 
 const QUESTION_TYPE_ICONS: Record<QuestionType, string> = {
-  text: '📝', choice: '🔘', multi_choice: '☑️', scale: '📊', yes_no: '✅', image: '📷',
+  text: 'Aa', choice: 'O', multi_choice: '☑', scale: '#', yes_no: '±', image: 'img',
 }
 
 function createEmptyQuestion(): QuestionItem {
@@ -65,23 +65,28 @@ export default function AdminQuestionnairesPage() {
   useEffect(() => { loadData() }, [])
 
   const loadData = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/auth/login'); return }
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/auth/login'); return }
 
-    const { data: profile } = await supabase.from('users').select('organization_id, role').eq('id', user.id).single()
-    if (!profile || (profile as unknown as { role: string }).role !== 'admin') {
-      router.push('/dashboard/admin/dashboard'); return
+      const { data: profile } = await supabase.from('users').select('organization_id, role').eq('id', user.id).single()
+      if (!profile || (profile as unknown as { role: string }).role !== 'admin') {
+        router.push('/dashboard/admin/dashboard'); return
+      }
+
+      setOrgId((profile as unknown as { organization_id: string }).organization_id)
+
+      const { data } = await supabase.from('questionnaires')
+        .select('*')
+        .eq('organization_id', (profile as unknown as { organization_id: string }).organization_id)
+        .order('created_at', { ascending: false })
+
+      if (data) setQuestionnaires(data as unknown as Questionnaire[])
+    } catch {
+      // Prevents infinite loading on network error
+    } finally {
+      setLoading(false)
     }
-
-    setOrgId((profile as unknown as { organization_id: string }).organization_id)
-
-    const { data } = await supabase.from('questionnaires')
-      .select('*')
-      .eq('organization_id', (profile as unknown as { organization_id: string }).organization_id)
-      .order('created_at', { ascending: false })
-
-    if (data) setQuestionnaires(data as unknown as Questionnaire[])
-    setLoading(false)
   }
 
   // ── Editor actions ─────────────────────────────────
@@ -147,23 +152,36 @@ export default function AdminQuestionnairesPage() {
     loadData()
   }
 
+  const [deleteConfirm, setDeleteConfirm] = useState<string | null>(null)
+
   const deleteQuestionnaire = async (id: string) => {
-    await supabase.from('questionnaires').delete().eq('id', id)
+    const { error } = await supabase.from('questionnaires').delete().eq('id', id)
+    setDeleteConfirm(null)
+    if (error) {
+      setErrors({ save: 'שגיאה במחיקת השאלון' })
+    }
     loadData()
   }
 
   const duplicateQuestionnaire = async (q: Questionnaire) => {
-    const { data: { user } } = await supabase.auth.getUser()
-    await supabase.from('questionnaires').insert({
-      organization_id: orgId,
-      title: `${q.title} (עותק)`,
-      description: q.description,
-      questions: q.questions,
-      specialties: q.specialties,
-      is_published: false,
-      is_active: true,
-      created_by: user?.id,
-    })
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      const { error } = await supabase.from('questionnaires').insert({
+        organization_id: orgId,
+        title: `${q.title} (עותק)`,
+        description: q.description,
+        questions: q.questions,
+        specialties: q.specialties,
+        is_published: false,
+        is_active: true,
+        created_by: user?.id,
+      })
+      if (error) {
+        setErrors({ save: 'שגיאה בשכפול השאלון' })
+      }
+    } catch {
+      setErrors({ save: 'שגיאה בשכפול השאלון' })
+    }
     loadData()
   }
 
@@ -243,12 +261,12 @@ export default function AdminQuestionnairesPage() {
             <h2 className="text-2xl font-bold">שאלונים</h2>
             <p className="text-gray-500 text-sm">צור ונהל שאלונים למטופלים</p>
           </div>
-          <Button onClick={startNew} size="lg">📝 שאלון חדש</Button>
+          <Button onClick={startNew} size="lg">שאלון חדש</Button>
         </div>
 
         {questionnaires.length === 0 ? (
           <EmptyState
-            icon="📝"
+            icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>}
             title="אין שאלונים עדיין"
             description="צור שאלון ראשון כדי להתחיל לאסוף מידע ממטופלים"
             action={<Button onClick={startNew}>צור שאלון</Button>}
@@ -271,8 +289,8 @@ export default function AdminQuestionnairesPage() {
                   </div>
 
                   <div className="flex items-center gap-4 text-xs text-gray-400 mb-4">
-                    <span>📋 {q.questions.length} שאלות</span>
-                    <span>📊 {q.times_used} מילויים</span>
+                    <span>{q.questions.length} שאלות</span>
+                    <span>{q.times_used} מילויים</span>
                     <span>{formatDateTime(q.created_at)}</span>
                   </div>
 
@@ -287,10 +305,17 @@ export default function AdminQuestionnairesPage() {
                   )}
 
                   <div className="flex gap-2 pt-3 border-t border-gray-100">
-                    <Button size="sm" variant="outline" onClick={() => startEdit(q)}>✏️ ערוך</Button>
-                    <Button size="sm" variant="ghost" onClick={() => { setEditId(null); setTitle(q.title); setDescription(q.description || ''); setQuestions(q.questions); setSpecialties(q.specialties || []); setIsPublished(q.is_published); setView('preview') }}>👁️ תצוגה</Button>
-                    <Button size="sm" variant="ghost" onClick={() => duplicateQuestionnaire(q)}>📋 שכפל</Button>
-                    <Button size="sm" variant="danger" onClick={() => deleteQuestionnaire(q.id)}>🗑️</Button>
+                    <Button size="sm" variant="outline" onClick={() => startEdit(q)}>ערוך</Button>
+                    <Button size="sm" variant="ghost" onClick={() => { setEditId(null); setTitle(q.title); setDescription(q.description || ''); setQuestions(q.questions); setSpecialties(q.specialties || []); setIsPublished(q.is_published); setView('preview') }}>תצוגה מקדימה</Button>
+                    <Button size="sm" variant="ghost" onClick={() => duplicateQuestionnaire(q)}>שכפל</Button>
+                    {deleteConfirm === q.id ? (
+                      <div className="flex gap-1">
+                        <Button size="sm" variant="danger" onClick={() => deleteQuestionnaire(q.id)}>אישור מחיקה</Button>
+                        <Button size="sm" variant="ghost" onClick={() => setDeleteConfirm(null)}>ביטול</Button>
+                      </div>
+                    ) : (
+                      <Button size="sm" variant="danger" onClick={() => setDeleteConfirm(q.id)}>מחק</Button>
+                    )}
                   </div>
                 </CardContent>
               </Card>
@@ -320,8 +345,8 @@ export default function AdminQuestionnairesPage() {
         <h2 className="text-2xl font-bold">{editId ? 'עריכת שאלון' : 'שאלון חדש'}</h2>
         <div className="flex gap-2">
           <Button variant="ghost" onClick={() => setView('list')}>ביטול</Button>
-          <Button variant="outline" onClick={() => setView('preview')}>👁️ תצוגה מקדימה</Button>
-          <Button onClick={saveQuestionnaire} loading={saving}>💾 שמור</Button>
+          <Button variant="outline" onClick={() => setView('preview')}>תצוגה מקדימה</Button>
+          <Button onClick={saveQuestionnaire} loading={saving}>שמור</Button>
         </div>
       </div>
 
@@ -362,7 +387,7 @@ export default function AdminQuestionnairesPage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <h3 className="font-bold">שאלות ({questions.length})</h3>
-            <Button size="sm" onClick={addQuestion}>➕ הוסף שאלה</Button>
+            <Button size="sm" onClick={addQuestion}>+ הוסף שאלה</Button>
           </div>
           {errors.questions && <p className="text-sm text-red-600 mt-1">{errors.questions}</p>}
         </CardHeader>
@@ -429,7 +454,7 @@ export default function AdminQuestionnairesPage() {
                     </div>
                   ))}
                   <Button size="sm" variant="ghost" onClick={() => addOption(q.id)}>
-                    ➕ הוסף אפשרות
+                    + הוסף אפשרות
                   </Button>
                   {errors[`q_${q.id}`] && <p className="text-xs text-red-600">{errors[`q_${q.id}`]}</p>}
                 </div>
@@ -465,7 +490,7 @@ export default function AdminQuestionnairesPage() {
           ))}
 
           <Button variant="outline" onClick={addQuestion} className="w-full border-dashed">
-            ➕ הוסף שאלה חדשה
+            + הוסף שאלה חדשה
           </Button>
         </CardContent>
       </Card>
@@ -474,8 +499,8 @@ export default function AdminQuestionnairesPage() {
       <div className="flex justify-between">
         <Button variant="ghost" onClick={() => setView('list')}>ביטול</Button>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setView('preview')}>👁️ תצוגה מקדימה</Button>
-          <Button onClick={saveQuestionnaire} loading={saving} size="lg">💾 שמור שאלון</Button>
+          <Button variant="outline" onClick={() => setView('preview')}>תצוגה מקדימה</Button>
+          <Button onClick={saveQuestionnaire} loading={saving} size="lg">שמור שאלון</Button>
         </div>
       </div>
     </div>
@@ -519,7 +544,7 @@ function ConditionalLogicEditor({ question, allQuestions, currentIdx, onUpdate }
             if (!e.target.checked) onUpdate(undefined)
           }}
           className="w-3.5 h-3.5 rounded border-gray-300 text-purple-600" />
-        🔗 הצג בתנאי (תלוי בתשובה לשאלה קודמת)
+        הצג בתנאי (תלוי בתשובה לשאלה קודמת)
       </label>
 
       {showCondition && (
@@ -575,7 +600,7 @@ function PreviewMode({ title, description, questions, onBack }: {
       </div>
 
       <div className="bg-yellow-50 border border-yellow-200 rounded-lg p-3 text-sm text-yellow-800">
-        👁️ זוהי תצוגה מקדימה — ניתן לענות על השאלות לבדיקת לוגיקה מותנית
+        זוהי תצוגה מקדימה — ניתן לענות על השאלות לבדיקת לוגיקה מותנית
       </div>
 
       <Card>
@@ -705,7 +730,7 @@ function QuestionRenderer({ question, index, value, onChange }: {
 
       {q.type === 'image' && (
         <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors">
-          <div className="text-3xl mb-2">📷</div>
+          <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" /><circle cx="12" cy="13" r="4" /></svg>
           <p className="text-sm text-gray-500">לחץ להעלאת תמונה</p>
         </div>
       )}

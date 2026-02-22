@@ -50,44 +50,49 @@ export default function VideoCallPage() {
   }, [id])
 
   const init = async (appointmentId: string) => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/auth/login'); return }
-
-    const [{ data: prof }, { data: apt }] = await Promise.all([
-      supabase.from('users').select('*').eq('id', user.id).single(),
-      supabase.from('appointments')
-        .select('*, patient:patient_id(first_name, last_name), doctor:doctor_id(first_name, last_name)')
-        .eq('id', appointmentId).single(),
-    ])
-
-    if (!apt) { setError('תור לא נמצא'); setState('error'); return }
-    const typedApt = apt as unknown as Appointment
-    setProfile(prof as unknown as User)
-    setAppointment(typedApt)
-
-    // Payment wall
-    if (typedApt.payment_amount && typedApt.payment_amount > 0 && typedApt.payment_status !== 'completed') {
-      setState('payment_required')
-      return
-    }
-
-    // Hardware check
     try {
-      const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-      setHasCamera(true)
-      setHasMic(true)
-      setPreviewStream(stream)
-      setState('waiting')
-    } catch {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/auth/login'); return }
+
+      const [{ data: prof }, { data: apt }] = await Promise.all([
+        supabase.from('users').select('*').eq('id', user.id).single(),
+        supabase.from('appointments')
+          .select('*, patient:patient_id(first_name, last_name), doctor:doctor_id(first_name, last_name)')
+          .eq('id', appointmentId).single(),
+      ])
+
+      if (!apt) { setError('תור לא נמצא'); setState('error'); return }
+      const typedApt = apt as unknown as Appointment
+      setProfile(prof as unknown as User)
+      setAppointment(typedApt)
+
+      // Payment wall
+      if (typedApt.payment_amount && typedApt.payment_amount > 0 && typedApt.payment_status !== 'completed') {
+        setState('payment_required')
+        return
+      }
+
+      // Hardware check
       try {
-        const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        setHasCamera(true)
         setHasMic(true)
         setPreviewStream(stream)
         setState('waiting')
       } catch {
-        setError('לא ניתן לגשת למצלמה/מיקרופון')
-        setState('error')
+        try {
+          const stream = await navigator.mediaDevices.getUserMedia({ audio: true })
+          setHasMic(true)
+          setPreviewStream(stream)
+          setState('waiting')
+        } catch {
+          setError('לא ניתן לגשת למצלמה/מיקרופון')
+          setState('error')
+        }
       }
+    } catch {
+      setError('שגיאה בטעינת פרטי השיחה')
+      setState('error')
     }
   }
 
@@ -123,18 +128,26 @@ export default function VideoCallPage() {
 
   const handleDisconnected = useCallback(async () => {
     if (!id) return
-    await supabase.from('appointments').update({
-      video_ended_at: new Date().toISOString(),
-    }).eq('id', id)
+    try {
+      await supabase.from('appointments').update({
+        video_ended_at: new Date().toISOString(),
+      }).eq('id', id)
+    } catch {
+      // Non-critical — video already ended
+    }
     setState('disconnected')
   }, [id, supabase])
 
   const handleConnected = useCallback(async () => {
     if (!id) return
-    await supabase.from('appointments').update({
-      status: 'in_progress',
-      video_started_at: new Date().toISOString(),
-    }).eq('id', id)
+    try {
+      await supabase.from('appointments').update({
+        status: 'in_progress',
+        video_started_at: new Date().toISOString(),
+      }).eq('id', id)
+    } catch {
+      // Non-critical — video session continues regardless
+    }
   }, [id, supabase])
 
   const otherParty = appointment
@@ -193,7 +206,9 @@ export default function VideoCallPage() {
         {state === 'payment_required' && (
           <Card className="max-w-md w-full bg-gray-800 border-gray-700">
             <CardContent className="p-6 text-center space-y-4">
-              <div className="text-4xl">💳</div>
+              <div className="flex justify-center">
+                <svg className="w-10 h-10 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>
+              </div>
               <h2 className="text-xl font-bold">נדרש תשלום</h2>
               <p className="text-gray-400">יש לבצע תשלום לפני הצטרפות לשיחת הווידאו</p>
               <Button onClick={() => router.push(`/dashboard/patient/payment?id=${id}`)} size="lg" className="w-full">
@@ -225,7 +240,7 @@ export default function VideoCallPage() {
                 ) : (
                   <div className="absolute inset-0 flex items-center justify-center text-gray-500">
                     <div className="text-center">
-                      <div className="text-4xl mb-2">📷</div>
+                      <svg className="w-10 h-10 text-gray-500 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="1" y1="1" x2="23" y2="23" /><path d="M21 21H3a2 2 0 01-2-2V8a2 2 0 012-2h3l2-3h6l2 3h3a2 2 0 012 2v9.34" /><path d="M14.12 14.12A3 3 0 009.88 9.88" /></svg>
                       <p>אין מצלמה זמינה</p>
                     </div>
                   </div>
@@ -268,7 +283,9 @@ export default function VideoCallPage() {
         {state === 'disconnected' && (
           <Card className="max-w-md w-full bg-gray-800 border-gray-700">
             <CardContent className="p-6 text-center space-y-4">
-              <div className="text-4xl">✅</div>
+              <div className="flex justify-center">
+                <svg className="w-10 h-10 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
+              </div>
               <h2 className="text-xl font-bold">השיחה הסתיימה</h2>
               <p className="text-gray-400">תודה שהשתמשת בשירות הטלמדיסן שלנו</p>
               <Button
@@ -286,7 +303,9 @@ export default function VideoCallPage() {
         {state === 'error' && (
           <Card className="max-w-md w-full bg-gray-800 border-gray-700">
             <CardContent className="p-6 text-center space-y-4">
-              <div className="text-4xl">❌</div>
+              <div className="flex justify-center">
+                <svg className="w-10 h-10 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
+              </div>
               <h2 className="text-xl font-bold">שגיאה</h2>
               <p className="text-gray-400">{error}</p>
               <Button onClick={() => router.back()} variant="outline" className="border-gray-600 text-white">
@@ -385,20 +404,29 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
   const loadDocuments = async () => {
     if (!patientId) return
     setDocsLoading(true)
-    const { data } = await supabase
-      .from('documents')
-      .select('*')
-      .eq('patient_id', patientId)
-      .order('created_at', { ascending: false })
-    setDocuments((data || []) as unknown as Document[])
-    setDocsLoading(false)
+    try {
+      const { data } = await supabase
+        .from('documents')
+        .select('*')
+        .eq('patient_id', patientId)
+        .order('created_at', { ascending: false })
+      setDocuments((data || []) as unknown as Document[])
+    } catch {
+      // Silently fail — documents panel will show empty
+    } finally {
+      setDocsLoading(false)
+    }
   }
 
   const openDocument = async (storagePath: string) => {
-    const { data } = await supabase.storage
-      .from('medical-documents')
-      .createSignedUrl(storagePath, 300)
-    if (data?.signedUrl) window.open(data.signedUrl, '_blank')
+    try {
+      const { data } = await supabase.storage
+        .from('medical-documents')
+        .createSignedUrl(storagePath, 300)
+      if (data?.signedUrl) window.open(data.signedUrl, '_blank')
+    } catch {
+      // Silently fail — user can retry
+    }
   }
 
   const formatTime = (s: number) =>
@@ -448,18 +476,23 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
     if (recording) await handleStopRecording()
     const duration = elapsed
     room.disconnect()
-    await supabase.from('appointments').update({
-      video_ended_at: new Date().toISOString(),
-      video_duration_seconds: duration,
-    }).eq('id', appointmentId)
+    try {
+      await supabase.from('appointments').update({
+        video_ended_at: new Date().toISOString(),
+        video_duration_seconds: duration,
+      }).eq('id', appointmentId)
+    } catch {
+      // Non-critical — video already ended
+    }
     onLeave()
   }
 
   const getFileIcon = (fileType: string) => {
-    if (fileType.startsWith('image/')) return '🖼️'
-    if (fileType === 'application/pdf') return '📄'
-    if (fileType.includes('word') || fileType.includes('document')) return '📝'
-    return '📎'
+    const cls = 'w-5 h-5'
+    if (fileType.startsWith('image/')) return <svg className={`${cls} text-purple-400`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
+    if (fileType === 'application/pdf') return <svg className={`${cls} text-red-400`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
+    if (fileType.includes('word') || fileType.includes('document')) return <svg className={`${cls} text-blue-400`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
+    return <svg className={`${cls} text-gray-400`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
   }
 
   return (
@@ -534,7 +567,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
                 </div>
               ) : documents.length === 0 ? (
                 <div className="text-center py-8 text-gray-400">
-                  <div className="text-3xl mb-2">📋</div>
+                  <svg className="w-8 h-8 text-gray-500 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></svg>
                   <p className="text-sm">אין מסמכים למטופל זה</p>
                 </div>
               ) : (
@@ -545,7 +578,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
                     className="w-full text-right bg-gray-700/50 hover:bg-gray-700 rounded-lg p-3 transition-colors"
                   >
                     <div className="flex items-start gap-3">
-                      <span className="text-xl shrink-0">{getFileIcon(doc.file_type)}</span>
+                      <span className="shrink-0">{getFileIcon(doc.file_type)}</span>
                       <div className="min-w-0 flex-1">
                         <p className="text-sm font-medium text-white truncate">{doc.file_name}</p>
                         <div className="flex items-center gap-2 mt-1">
@@ -570,7 +603,9 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
       {showConsentDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
           <div className="bg-gray-800 rounded-2xl p-6 max-w-sm w-full mx-4 border border-gray-700 text-center space-y-4">
-            <div className="text-4xl">⏺</div>
+            <div className="flex justify-center">
+              <svg className="w-10 h-10 text-red-400" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8" /></svg>
+            </div>
             <h3 className="text-lg font-bold">הקלטת שיחה</h3>
             <p className="text-gray-300 text-sm">
               השיחה תוקלט לצורכי תיעוד רפואי. יש לוודא שכל המשתתפים מסכימים להקלטה.
@@ -619,7 +654,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
             }`}
             title={screenSharing ? 'הפסק שיתוף מסך' : 'שתף מסך'}
           >
-            <span className="text-lg">{screenSharing ? '🖥️' : '💻'}</span>
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2" /><line x1="8" y1="21" x2="16" y2="21" /><line x1="12" y1="17" x2="12" y2="21" /></svg>
             <span className="hidden sm:inline">{screenSharing ? 'הפסק שיתוף' : 'שתף מסך'}</span>
           </button>
 
@@ -633,7 +668,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
             }`}
             title="צ'אט"
           >
-            <span className="text-lg">💬</span>
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" /></svg>
             <span className="hidden sm:inline">צ&apos;אט</span>
             {unreadCount > 0 && (
               <span className="absolute -top-1 -left-1 bg-red-500 text-white text-xs w-5 h-5 rounded-full flex items-center justify-center font-bold">
@@ -653,7 +688,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
               }`}
               title="מסמכי מטופל"
             >
-              <span className="text-lg">📋</span>
+              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
               <span className="hidden sm:inline">מסמכים</span>
             </button>
           )}
@@ -669,7 +704,10 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
               }`}
               title={recording ? 'הפסק הקלטה' : 'הקלט שיחה'}
             >
-              <span className="text-lg">{recording ? '⏹' : '⏺'}</span>
+              {recording
+                ? <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2" /></svg>
+                : <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="6" /></svg>
+              }
               <span className="hidden sm:inline">{recording ? 'הפסק הקלטה' : 'הקלטה'}</span>
             </button>
           )}
@@ -679,7 +717,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
             onClick={handleDisconnect}
             className="flex items-center gap-2 px-6 py-2.5 rounded-xl text-sm font-medium bg-red-600 hover:bg-red-700 text-white transition-all"
           >
-            <span className="text-lg">📞</span>
+            <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.42 19.42 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72 12.84 12.84 0 00.7 2.81 2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45 12.84 12.84 0 002.81.7A2 2 0 0122 16.92z" /><line x1="1" y1="1" x2="23" y2="23" /></svg>
             <span className="hidden sm:inline">סיים שיחה</span>
           </button>
         </div>

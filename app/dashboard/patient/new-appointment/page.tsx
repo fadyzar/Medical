@@ -25,6 +25,7 @@ export default function NewAppointmentPage() {
   })
   const [files, setFiles] = useState<File[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
+  const [success, setSuccess] = useState(false)
 
   const supabase = getClient()
 
@@ -32,14 +33,23 @@ export default function NewAppointmentPage() {
   useEffect(() => {
     if (!form.specialty) return
     setLoadingDoctors(true)
-    supabase.from('users')
-      .select('id, first_name, last_name, specialties, bio, consultation_price, average_rating, total_ratings, avatar_url, languages')
-      .eq('role', 'doctor').eq('is_active', true)
-      .contains('specialties', [form.specialty])
-      .then(({ data }) => {
+    // Clear previously selected doctor when specialty changes
+    setForm(p => ({ ...p, doctor_id: '' }))
+    setDoctors([])
+    const loadDoctors = async () => {
+      try {
+        const { data } = await supabase.from('users')
+          .select('id, first_name, last_name, specialties, bio, consultation_price, average_rating, total_ratings, avatar_url, languages')
+          .eq('role', 'doctor').eq('is_active', true)
+          .contains('specialties', [form.specialty])
         setDoctors((data || []) as unknown as User[])
+      } catch {
+        // Prevents infinite spinner on network error
+      } finally {
         setLoadingDoctors(false)
-      })
+      }
+    }
+    loadDoctors()
   }, [form.specialty])
 
   const selectedDoctor = doctors.find(d => d.id === form.doctor_id)
@@ -50,12 +60,17 @@ export default function NewAppointmentPage() {
     }
 
     setLoading(true)
+    setErrors({})
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/auth/login'); return }
 
       const { data: profile } = await supabase.from('users').select('organization_id').eq('id', user.id).single()
-      if (!profile) return
+      if (!profile) {
+        setErrors({ submit: 'לא ניתן לזהות את הפרופיל שלך. נסה לרענן את הדף.' })
+        setLoading(false)
+        return
+      }
 
       // Create appointment
       const { data: apt, error } = await supabase.from('appointments').insert({
@@ -111,12 +126,17 @@ export default function NewAppointmentPage() {
         })
       } catch { /* non-critical */ }
 
+      // Show success, then redirect
+      setSuccess(true)
+
       // Redirect to payment if appointment has a cost, otherwise to dashboard
-      if (selectedDoctor?.consultation_price) {
-        router.push(`/dashboard/patient/payment?id=${apt.id}`)
-      } else {
-        router.push('/dashboard/patient/dashboard')
-      }
+      setTimeout(() => {
+        if (selectedDoctor?.consultation_price) {
+          router.push(`/dashboard/patient/payment?id=${apt.id}`)
+        } else {
+          router.push('/dashboard/patient/dashboard')
+        }
+      }, 1500)
     } catch {
       setErrors({ submit: 'שגיאה ביצירת התור' })
     } finally {
@@ -133,6 +153,31 @@ export default function NewAppointmentPage() {
   ]
 
   const currentIdx = steps.findIndex(s => s.key === step)
+
+  // Success state
+  if (success) {
+    return (
+      <div className="max-w-lg mx-auto mt-8">
+        <Card>
+          <CardContent className="py-12 text-center space-y-4">
+            <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
+              <svg className="w-8 h-8 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
+            </div>
+            <h2 className="text-xl font-bold text-green-800">הבקשה נשלחה בהצלחה!</h2>
+            <p className="text-gray-500">
+              {selectedDoctor?.consultation_price
+                ? 'מעביר אותך לדף התשלום...'
+                : 'התור שלך נוצר. נעדכן אותך כשהרופא יאשר.'
+              }
+            </p>
+            <Spinner className="mx-auto" />
+          </CardContent>
+        </Card>
+      </div>
+    )
+  }
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
@@ -197,7 +242,7 @@ export default function NewAppointmentPage() {
                           <p className="font-bold">ד"ר {doc.first_name} {doc.last_name}</p>
                           {doc.bio && <p className="text-sm text-gray-500 truncate">{doc.bio}</p>}
                           <div className="flex items-center gap-3 mt-1">
-                            {doc.average_rating && <span className="text-sm">⭐ {doc.average_rating.toFixed(1)} ({doc.total_ratings})</span>}
+                            {doc.average_rating && <span className="text-sm">{doc.average_rating.toFixed(1)} ({doc.total_ratings})</span>}
                             {doc.consultation_price && <span className="text-sm font-medium text-green-700">{formatPrice(doc.consultation_price)}</span>}
                           </div>
                         </div>
@@ -237,10 +282,23 @@ export default function NewAppointmentPage() {
 
               <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors">
                 <input type="file" multiple accept="image/*,.pdf,.doc,.docx" id="file-upload"
-                  onChange={e => { if (e.target.files) setFiles(prev => [...prev, ...Array.from(e.target.files!)]) }}
+                  onChange={e => {
+                    if (e.target.files) {
+                      const newFiles = Array.from(e.target.files).filter(f => {
+                        if (f.size > 10 * 1024 * 1024) {
+                          setErrors(prev => ({ ...prev, files: `הקובץ ${f.name} גדול מ-10MB` }))
+                          return false
+                        }
+                        return true
+                      })
+                      setFiles(prev => [...prev, ...newFiles])
+                    }
+                  }}
                   className="hidden" />
                 <label htmlFor="file-upload" className="cursor-pointer">
-                  <div className="text-4xl mb-2">📁</div>
+                  <svg className="w-10 h-10 text-gray-400 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
                   <p className="font-medium text-gray-700">לחץ להעלאת קבצים</p>
                   <p className="text-xs text-gray-400 mt-1">PDF, תמונות, Word — עד 10MB לקובץ</p>
                 </label>
@@ -257,9 +315,13 @@ export default function NewAppointmentPage() {
                 </div>
               )}
 
+              {errors.files && (
+                <p className="text-sm text-red-600" role="alert">{errors.files}</p>
+              )}
+
               <div className="flex gap-3">
                 <Button variant="outline" onClick={() => setStep('details')}>חזור</Button>
-                <Button onClick={() => setStep('confirm')} className="flex-1">המשך</Button>
+                <Button onClick={() => { setErrors({}); setStep('confirm') }} className="flex-1">המשך</Button>
               </div>
             </div>
           )}
@@ -285,8 +347,15 @@ export default function NewAppointmentPage() {
                   <span className="font-medium">{form.chief_complaint}</span>
                 </div>
                 <div className="flex justify-between">
+                  <span className="text-gray-500">דחיפות</span>
+                  <span className="font-medium">{
+                    form.urgency_level === 'urgent' ? 'דחוף' :
+                    form.urgency_level === 'soon' ? 'בהקדם' : 'רגיל'
+                  }</span>
+                </div>
+                <div className="flex justify-between">
                   <span className="text-gray-500">מסמכים</span>
-                  <span className="font-medium">{files.length} קבצים</span>
+                  <span className="font-medium">{files.length > 0 ? `${files.length} קבצים` : 'ללא'}</span>
                 </div>
                 {selectedDoctor?.consultation_price && (
                   <div className="flex justify-between border-t pt-2 mt-2">

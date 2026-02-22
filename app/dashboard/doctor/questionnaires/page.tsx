@@ -26,53 +26,58 @@ export default function DoctorQuestionnairesPage() {
   const [selectedQuestionnaire, setSelectedQuestionnaire] = useState<Questionnaire | null>(null)
   const [doctorSpecialties, setDoctorSpecialties] = useState<string[]>([])
   const [tab, setTab] = useState<'my' | 'responses'>('my')
+  const [copyMessage, setCopyMessage] = useState<string | null>(null)
 
   useEffect(() => { loadData() }, [])
 
   const loadData = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/auth/login'); return }
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/auth/login'); return }
 
-    const { data: profile } = await supabase.from('users')
-      .select('organization_id, specialties, role')
-      .eq('id', user.id)
-      .single()
+      const { data: profile } = await supabase.from('users')
+        .select('organization_id, specialties, role')
+        .eq('id', user.id)
+        .single()
 
-    if (!profile || (profile as unknown as { role: string }).role !== 'doctor') {
-      router.push('/dashboard/doctor/dashboard')
-      return
-    }
+      if (!profile || (profile as unknown as { role: string }).role !== 'doctor') {
+        router.push('/dashboard/doctor/dashboard')
+        return
+      }
 
-    const specs = (profile as unknown as { specialties: string[] | null }).specialties || []
-    setDoctorSpecialties(specs)
-    const orgId = (profile as unknown as { organization_id: string }).organization_id
+      const specs = (profile as unknown as { specialties: string[] | null }).specialties || []
+      setDoctorSpecialties(specs)
+      const orgId = (profile as unknown as { organization_id: string }).organization_id
 
-    // Load questionnaires for doctor's org
-    const { data: quests } = await supabase.from('questionnaires')
-      .select('*')
-      .eq('organization_id', orgId)
-      .eq('is_active', true)
-      .order('created_at', { ascending: false })
-
-    if (quests) setQuestionnaires(quests as unknown as Questionnaire[])
-
-    // Load questionnaire responses for doctor's appointments
-    const { data: apts } = await supabase.from('appointments')
-      .select('id')
-      .eq('doctor_id', user.id)
-
-    if (apts && apts.length > 0) {
-      const aptIds = apts.map(a => (a as unknown as { id: string }).id)
-      const { data: resps } = await supabase.from('questionnaire_responses')
-        .select('*, patient:patient_id(id, first_name, last_name), questionnaire:questionnaire_id(id, title, questions)')
-        .in('appointment_id', aptIds)
+      // Load questionnaires for doctor's org
+      const { data: quests } = await supabase.from('questionnaires')
+        .select('*')
+        .eq('organization_id', orgId)
+        .eq('is_active', true)
         .order('created_at', { ascending: false })
-        .limit(50)
 
-      if (resps) setResponses(resps as unknown as ResponseWithPatient[])
+      if (quests) setQuestionnaires(quests as unknown as Questionnaire[])
+
+      // Load questionnaire responses for doctor's appointments
+      const { data: apts } = await supabase.from('appointments')
+        .select('id')
+        .eq('doctor_id', user.id)
+
+      if (apts && apts.length > 0) {
+        const aptIds = apts.map(a => (a as unknown as { id: string }).id)
+        const { data: resps } = await supabase.from('questionnaire_responses')
+          .select('*, patient:patient_id(id, first_name, last_name), questionnaire:questionnaire_id(id, title, questions)')
+          .in('appointment_id', aptIds)
+          .order('created_at', { ascending: false })
+          .limit(50)
+
+        if (resps) setResponses(resps as unknown as ResponseWithPatient[])
+      }
+    } catch {
+      // Prevents infinite loading on network error
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   const viewResponses = (q: Questionnaire) => {
@@ -92,10 +97,17 @@ export default function DoctorQuestionnairesPage() {
     setView('response-detail')
   }
 
-  const copyQuestionnaireLink = (q: Questionnaire) => {
+  const copyQuestionnaireLink = async (q: Questionnaire) => {
     const baseUrl = window.location.origin
     const url = `${baseUrl}/dashboard/patient/questionnaire?id=${q.id}`
-    navigator.clipboard.writeText(url)
+    try {
+      await navigator.clipboard.writeText(url)
+      setCopyMessage('הקישור הועתק ללוח')
+      setTimeout(() => setCopyMessage(null), 2000)
+    } catch {
+      setCopyMessage('שגיאה בהעתקת הקישור')
+      setTimeout(() => setCopyMessage(null), 2000)
+    }
   }
 
   // ── Filter questionnaires by doctor's specialties ───
@@ -200,7 +212,7 @@ export default function DoctorQuestionnairesPage() {
                         <Badge variant={answer === 'כן' ? 'success' : 'danger'}>{answer as string}</Badge>
                       )}
                       {q.type === 'image' && (
-                        <p className="text-gray-600">📷 {answer as string}</p>
+                        <p className="text-gray-600">תמונה: {answer as string}</p>
                       )}
                     </div>
                   ) : (
@@ -215,7 +227,7 @@ export default function DoctorQuestionnairesPage() {
         {/* AI Analysis */}
         {selectedResponse.ai_analysis && (
           <Card className="border-purple-200">
-            <CardHeader><h3 className="font-bold text-purple-700">🤖 ניתוח AI</h3></CardHeader>
+            <CardHeader><h3 className="font-bold text-purple-700">ניתוח AI</h3></CardHeader>
             <CardContent>
               <p className="text-sm whitespace-pre-wrap">{selectedResponse.ai_analysis}</p>
             </CardContent>
@@ -238,7 +250,7 @@ export default function DoctorQuestionnairesPage() {
         </div>
 
         {questResponses.length === 0 ? (
-          <EmptyState icon="📋" title="אין תשובות עדיין" description="עדיין לא נשלחו תשובות לשאלון זה" />
+          <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></svg>} title="אין תשובות עדיין" description="עדיין לא נשלחו תשובות לשאלון זה" />
         ) : (
           <div className="space-y-3">
             {questResponses.map(r => {
@@ -285,6 +297,13 @@ export default function DoctorQuestionnairesPage() {
         </div>
       </div>
 
+      {/* Copy message */}
+      {copyMessage && (
+        <div className="bg-blue-50 border border-blue-200 text-blue-700 p-3 rounded-lg text-sm" role="status">
+          {copyMessage}
+        </div>
+      )}
+
       {/* Tabs */}
       <div className="flex gap-2 border-b" role="tablist">
         <button onClick={() => setTab('my')} role="tab" aria-selected={tab === 'my'} className={cn(
@@ -306,7 +325,7 @@ export default function DoctorQuestionnairesPage() {
         <>
           {myQuestionnaires.length === 0 ? (
             <EmptyState
-              icon="📝"
+              icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>}
               title="אין שאלונים זמינים"
               description="שאלונים מנוהלים על ידי מנהל המערכת. פנה למנהל להוספת שאלונים להתמחויות שלך."
             />
@@ -328,9 +347,9 @@ export default function DoctorQuestionnairesPage() {
                       </div>
 
                       <div className="flex items-center gap-4 text-xs text-gray-400 mb-3">
-                        <span>📋 {q.questions.length} שאלות</span>
-                        <span>📊 {q.times_used} מילויים</span>
-                        <span>💬 {responseCount} תשובות</span>
+                        <span>{q.questions.length} שאלות</span>
+                        <span>{q.times_used} מילויים</span>
+                        <span>{responseCount} תשובות</span>
                       </div>
 
                       {q.specialties && q.specialties.length > 0 && (
@@ -346,11 +365,11 @@ export default function DoctorQuestionnairesPage() {
                       <div className="flex gap-2 pt-3 border-t border-gray-100">
                         {responseCount > 0 && (
                           <Button size="sm" variant="outline" onClick={() => viewResponses(q)}>
-                            📊 תשובות ({responseCount})
+                            תשובות ({responseCount})
                           </Button>
                         )}
                         <Button size="sm" variant="ghost" onClick={() => copyQuestionnaireLink(q)}>
-                          🔗 העתק קישור
+                          העתק קישור
                         </Button>
                       </div>
                     </CardContent>
@@ -367,7 +386,7 @@ export default function DoctorQuestionnairesPage() {
         <>
           {responses.length === 0 ? (
             <EmptyState
-              icon="📋"
+              icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></svg>}
               title="אין תשובות עדיין"
               description="כשמטופלים ימלאו שאלונים עבור תורים שלך, התשובות יופיעו כאן."
             />

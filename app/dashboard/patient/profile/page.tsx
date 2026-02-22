@@ -158,54 +158,59 @@ export default function PatientProfilePage() {
 
   useEffect(() => {
     const load = async () => {
-      const { data: { user } } = await supabase.auth.getUser()
-      if (!user) { router.push('/auth/login'); return }
+      try {
+        const { data: { user } } = await supabase.auth.getUser()
+        if (!user) { router.push('/auth/login'); return }
 
-      const { data: prof } = await supabase.from('users')
-        .select('*')
-        .eq('id', user.id)
-        .single()
+        const { data: prof } = await supabase.from('users')
+          .select('*')
+          .eq('id', user.id)
+          .single()
 
-      if (prof) {
-        const p = prof as unknown as User
-        setProfile(p)
+        if (prof) {
+          const p = prof as unknown as User
+          setProfile(p)
 
-        setForm({
-          first_name: p.first_name || '',
-          last_name: p.last_name || '',
-          phone: p.phone || '',
-          date_of_birth: p.date_of_birth || '',
-          gender: p.gender || '',
-          id_number: p.id_number || '',
-        })
+          setForm({
+            first_name: p.first_name || '',
+            last_name: p.last_name || '',
+            phone: p.phone || '',
+            date_of_birth: p.date_of_birth || '',
+            gender: p.gender || '',
+            id_number: p.id_number || '',
+          })
 
-        setMedicalHistory({
-          allergies: p.medical_history?.allergies || [],
-          chronic_conditions: p.medical_history?.chronic_conditions || [],
-          current_medications: p.medical_history?.current_medications || [],
-          past_surgeries: p.medical_history?.past_surgeries || [],
-        })
+          setMedicalHistory({
+            allergies: p.medical_history?.allergies || [],
+            chronic_conditions: p.medical_history?.chronic_conditions || [],
+            current_medications: p.medical_history?.current_medications || [],
+            past_surgeries: p.medical_history?.past_surgeries || [],
+          })
 
-        const ec = p.emergency_contact || {}
-        setEmergency({
-          name: ec.name || '',
-          phone: ec.phone || '',
-          relationship: ec.relationship || '',
-        })
+          const ec = p.emergency_contact || {}
+          setEmergency({
+            name: ec.name || '',
+            phone: ec.phone || '',
+            relationship: ec.relationship || '',
+          })
 
-        const ins = p.insurance_info || {}
-        setInsurance({
-          provider: ins.provider || '',
-          policy_number: ins.policy_number || '',
-          group_number: ins.group_number || '',
-          expiry_date: ins.expiry_date || '',
-        })
+          const ins = p.insurance_info || {}
+          setInsurance({
+            provider: ins.provider || '',
+            policy_number: ins.policy_number || '',
+            group_number: ins.group_number || '',
+            expiry_date: ins.expiry_date || '',
+          })
 
-        const metadata = (p.metadata || {}) as Record<string, unknown>
-        setWhatsappOptIn(metadata.whatsapp_opt_in === true)
-        setAvatarUrl(p.avatar_url)
+          const metadata = (p.metadata || {}) as Record<string, unknown>
+          setWhatsappOptIn(metadata.whatsapp_opt_in === true)
+          setAvatarUrl(p.avatar_url)
+        }
+      } catch {
+        // Prevents infinite loading on network error
+      } finally {
+        setLoading(false)
       }
-      setLoading(false)
     }
     load()
   }, [router, supabase])
@@ -296,26 +301,10 @@ export default function PatientProfilePage() {
       whatsapp_opt_in: whatsappOptIn,
     }
 
-    const { error } = await supabase.from('users').update({
-      first_name: form.first_name,
-      last_name: form.last_name,
-      phone: form.phone || null,
-      date_of_birth: form.date_of_birth || null,
-      gender: form.gender || null,
-      id_number: form.id_number || null,
-      medical_history: medicalHistory,
-      emergency_contact: emergency,
-      insurance_info: insurance,
-      metadata: updatedMetadata,
-    }).eq('id', profile.id)
-
-    if (error) {
-      setErrors({ submit: 'שגיאה בשמירת הפרופיל' })
-    } else {
-      // Update local profile state for completion calc
-      setProfile(prev => prev ? {
-        ...prev,
-        ...form,
+    try {
+      const { error } = await supabase.from('users').update({
+        first_name: form.first_name,
+        last_name: form.last_name,
         phone: form.phone || null,
         date_of_birth: form.date_of_birth || null,
         gender: form.gender || null,
@@ -324,12 +313,32 @@ export default function PatientProfilePage() {
         emergency_contact: emergency,
         insurance_info: insurance,
         metadata: updatedMetadata,
-      } : null)
-      setSaved(true)
-      setTimeout(() => setSaved(false), 3000)
-    }
+      }).eq('id', profile.id)
 
-    setSaving(false)
+      if (error) {
+        setErrors({ submit: 'שגיאה בשמירת הפרופיל' })
+      } else {
+        // Update local profile state for completion calc
+        setProfile(prev => prev ? {
+          ...prev,
+          ...form,
+          phone: form.phone || null,
+          date_of_birth: form.date_of_birth || null,
+          gender: form.gender || null,
+          id_number: form.id_number || null,
+          medical_history: medicalHistory,
+          emergency_contact: emergency,
+          insurance_info: insurance,
+          metadata: updatedMetadata,
+        } : null)
+        setSaved(true)
+        setTimeout(() => setSaved(false), 3000)
+      }
+    } catch {
+      setErrors({ submit: 'שגיאת רשת בשמירת הפרופיל' })
+    } finally {
+      setSaving(false)
+    }
   }
 
   const clearError = (field: string) => {
@@ -496,6 +505,7 @@ export default function PatientProfilePage() {
                 { value: 'male', label: 'זכר' },
                 { value: 'female', label: 'נקבה' },
                 { value: 'other', label: 'אחר' },
+                { value: 'prefer_not_to_say', label: 'לא לציין' },
               ].map(option => (
                 <button
                   key={option.value}

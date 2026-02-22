@@ -44,40 +44,45 @@ export default function PaymentPage() {
   }, [urlStatus])
 
   const loadAppointment = async (id: string) => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/auth/login'); return }
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/auth/login'); return }
 
-    const { data: apt } = await supabase.from('appointments')
-      .select('*, doctor:doctor_id(id, first_name, last_name, specialties, avatar_url, consultation_price)')
-      .eq('id', id)
-      .single()
+      const { data: apt } = await supabase.from('appointments')
+        .select('*, doctor:doctor_id(id, first_name, last_name, specialties, avatar_url, consultation_price)')
+        .eq('id', id)
+        .single()
 
-    if (!apt) {
-      setError('תור לא נמצא')
+      if (!apt) {
+        setError('תור לא נמצא')
+        setState('error')
+        return
+      }
+
+      const typedApt = apt as unknown as Appointment
+      setAppointment(typedApt)
+
+      if (typedApt.doctor) {
+        setDoctor(typedApt.doctor as unknown as User)
+      }
+      if (typedApt.invoice_url) {
+        setInvoiceUrl(typedApt.invoice_url)
+      }
+
+      // Determine state based on payment status
+      if (typedApt.payment_status === 'completed') {
+        setState('already_paid')
+      } else if (urlStatus === 'success') {
+        // Tranzila redirected with success but webhook hasn't processed yet
+        setState('success')
+      } else if (urlStatus === 'failed') {
+        setState('failed')
+      } else {
+        setState('summary')
+      }
+    } catch {
+      setError('שגיאה בטעינת פרטי התור')
       setState('error')
-      return
-    }
-
-    const typedApt = apt as unknown as Appointment
-    setAppointment(typedApt)
-
-    if (typedApt.doctor) {
-      setDoctor(typedApt.doctor as unknown as User)
-    }
-    if (typedApt.invoice_url) {
-      setInvoiceUrl(typedApt.invoice_url)
-    }
-
-    // Determine state based on payment status
-    if (typedApt.payment_status === 'completed') {
-      setState('already_paid')
-    } else if (urlStatus === 'success') {
-      // Tranzila redirected with success but webhook hasn't processed yet
-      setState('success')
-    } else if (urlStatus === 'failed') {
-      setState('failed')
-    } else {
-      setState('summary')
     }
   }
 
@@ -119,21 +124,25 @@ export default function PaymentPage() {
     pollRef.current = setInterval(async () => {
       if (!appointmentId) return
 
-      const { data } = await supabase.from('appointments')
-        .select('payment_status')
-        .eq('id', appointmentId)
-        .single()
+      try {
+        const { data } = await supabase.from('appointments')
+          .select('payment_status')
+          .eq('id', appointmentId)
+          .single()
 
-      if (data?.payment_status === 'completed') {
-        if (pollRef.current) clearInterval(pollRef.current)
-        setState('success')
-        refreshInvoiceUrl(appointmentId)
-      } else if (data?.payment_status === 'failed') {
-        if (pollRef.current) clearInterval(pollRef.current)
-        setState('failed')
+        if (data?.payment_status === 'completed') {
+          if (pollRef.current) clearInterval(pollRef.current)
+          setState('success')
+          refreshInvoiceUrl(appointmentId)
+        } else if (data?.payment_status === 'failed') {
+          if (pollRef.current) clearInterval(pollRef.current)
+          setState('failed')
+        }
+      } catch {
+        // Silently ignore polling errors — will retry on next interval
       }
     }, 3000) // Poll every 3 seconds
-  }, [appointmentId])
+  }, [appointmentId, supabase])
 
   const retryPayment = () => {
     setIframeUrl(null)
@@ -164,7 +173,11 @@ export default function PaymentPage() {
       <div className="max-w-lg mx-auto mt-8">
         <Card>
           <CardContent className="py-12 text-center">
-            <div className="text-4xl mb-4">&#x274C;</div>
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
+              </svg>
+            </div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">שגיאה</h2>
             <p className="text-gray-500 mb-6">{error}</p>
             <Button onClick={() => router.push('/dashboard/patient/dashboard')}>
@@ -273,7 +286,9 @@ export default function PaymentPage() {
         <Card className="border-green-200">
           <CardContent className="py-12 text-center space-y-4">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <span className="text-3xl">&#x2705;</span>
+              <svg className="w-8 h-8 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
             </div>
             <h2 className="text-xl font-bold text-green-800">התשלום בוצע בהצלחה!</h2>
             <p className="text-gray-500">
@@ -291,7 +306,9 @@ export default function PaymentPage() {
                 rel="noopener noreferrer"
                 className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline font-medium"
               >
-                <span>📄</span>
+                <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
+                </svg>
                 הורד קבלה
               </a>
             )}
@@ -309,7 +326,9 @@ export default function PaymentPage() {
         <Card className="border-blue-200">
           <CardContent className="py-12 text-center space-y-4">
             <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-              <span className="text-3xl">&#x2705;</span>
+              <svg className="w-8 h-8 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
             </div>
             <h2 className="text-xl font-bold text-blue-800">תור זה כבר שולם</h2>
             <p className="text-gray-500">התשלום עבור תור זה כבר בוצע.</p>
@@ -325,7 +344,9 @@ export default function PaymentPage() {
         <Card className="border-red-200">
           <CardContent className="py-12 text-center space-y-4">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto">
-              <span className="text-3xl">&#x274C;</span>
+              <svg className="w-8 h-8 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
+              </svg>
             </div>
             <h2 className="text-xl font-bold text-red-800">התשלום נכשל</h2>
             <p className="text-gray-500">

@@ -33,6 +33,7 @@ export default function BillingPage() {
   const [loading, setLoading] = useState(true)
   const [org, setOrg] = useState<Organization | null>(null)
   const [portalLoading, setPortalLoading] = useState(false)
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   const [upgradeLoading, setUpgradeLoading] = useState<string | null>(null)
 
@@ -83,10 +84,10 @@ export default function BillingPage() {
       if (data.url) {
         window.location.href = data.url
       } else {
-        alert(data.error || 'שגיאה בפתיחת פורטל התשלומים')
+        setMessage({ type: 'error', text: data.error || 'שגיאה בפתיחת פורטל התשלומים' })
       }
     } catch {
-      alert('שגיאה בחיבור לשרת')
+      setMessage({ type: 'error', text: 'שגיאה בחיבור לשרת' })
     } finally {
       setPortalLoading(false)
     }
@@ -104,10 +105,10 @@ export default function BillingPage() {
       if (data.url) {
         window.location.href = data.url
       } else {
-        alert(data.error || 'שגיאה ביצירת דף תשלום')
+        setMessage({ type: 'error', text: data.error || 'שגיאה ביצירת דף תשלום' })
       }
     } catch {
-      alert('שגיאה בחיבור לשרת')
+      setMessage({ type: 'error', text: 'שגיאה בחיבור לשרת' })
     } finally {
       setUpgradeLoading(null)
     }
@@ -173,6 +174,16 @@ export default function BillingPage() {
           <h2 className="text-2xl font-bold">חיוב ומנוי</h2>
           <p className="text-gray-500 text-sm">ניהול התוכנית, תשלומים והזמנת רופאים</p>
         </div>
+
+        {/* Messages */}
+        {message && (
+          <div className={cn(
+            'flex items-center gap-3 p-3 rounded-lg text-sm',
+            message.type === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'
+          )} role="status">
+            {message.text}
+          </div>
+        )}
 
         {/* Subscription Status Alert */}
         {(org.subscription_status === 'suspended' || org.subscription_status === 'cancelled') && (
@@ -339,7 +350,7 @@ export default function BillingPage() {
                       {PLANS.map(p => (
                         <td key={p.id} className={cn('p-3 text-center', p.id === org.plan && 'bg-blue-50/50')}>
                           {p.features[key] ? (
-                            <span className="text-green-600 font-bold">V</span>
+                            <svg className="w-5 h-5 text-green-600 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                           ) : (
                             <span className="text-gray-300">—</span>
                           )}

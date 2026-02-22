@@ -60,6 +60,7 @@ export default function PatientDashboard() {
   const [appointments, setAppointments] = useState<PatientAppointment[]>([])
   const [recentDocs, setRecentDocs] = useState<Document[]>([])
   const [loading, setLoading] = useState(true)
+  const [ratedMap, setRatedMap] = useState<Record<string, number>>({})
 
   useEffect(() => {
     const load = async () => {
@@ -120,17 +121,18 @@ export default function PatientDashboard() {
   // Profile completion
   const { percent: profilePercent, missing: profileMissing } = getProfileCompletion(profile)
 
-  // Recent completed with rating opportunity
-  const unrated = completed.filter(a => a.patient_rating == null).slice(0, 3)
+  // Recent completed with rating opportunity (exclude already rated in this session)
+  const unrated = completed.filter(a => a.patient_rating == null && !ratedMap[a.id]).slice(0, 3)
+
+  const handleRated = (appointmentId: string, rating: number) => {
+    setRatedMap(prev => ({ ...prev, [appointmentId]: rating }))
+  }
 
   return (
     <div className="space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-2xl font-bold">שלום, {profile.first_name} 👋</h2>
-          <p className="text-gray-500 text-sm">מה נוכל לעזור לך היום?</p>
-        </div>
+        <h2 className="text-xl font-bold text-gray-900">סקירה כללית</h2>
         <Button onClick={() => router.push('/dashboard/patient/new-appointment')} size="lg">
           קבע תור חדש
         </Button>
@@ -168,13 +170,13 @@ export default function PatientDashboard() {
 
       {/* Stats */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="תורים פעילים" value={active.length} icon="📋" color="blue" />
-        <StatCard label="הושלמו" value={completed.length} icon="✅" color="green" />
-        <StatCard label="מסמכים" value={recentDocs.length > 0 ? `${recentDocs.length}+` : '0'} icon="📄" color="purple" />
+        <StatCard label="תורים פעילים" value={active.length} icon={<svg className="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>} color="blue" />
+        <StatCard label="הושלמו" value={completed.length} icon={<svg className="w-6 h-6 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>} color="green" />
+        <StatCard label="מסמכים" value={recentDocs.length > 0 ? `${recentDocs.length}+` : '0'} icon={<svg className="w-6 h-6 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>} color="purple" />
         <StatCard
           label="התור הבא"
           value={nextApt ? getTimeUntil(nextApt.scheduled_at!) : 'אין'}
-          icon="📅"
+          icon={<svg className="w-6 h-6 text-orange-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>}
           color="orange"
         />
       </div>
@@ -245,7 +247,7 @@ export default function PatientDashboard() {
                     <p className="font-medium">ד&quot;ר {(nextApt.doctor as unknown as DoctorInfo).first_name} {(nextApt.doctor as unknown as DoctorInfo).last_name}</p>
                     {(nextApt.doctor as unknown as DoctorInfo).average_rating && (
                       <p className="text-xs text-gray-400">
-                        ⭐ {(nextApt.doctor as unknown as DoctorInfo).average_rating!.toFixed(1)}
+                        {(nextApt.doctor as unknown as DoctorInfo).average_rating!.toFixed(1)}
                       </p>
                     )}
                   </div>
@@ -370,7 +372,7 @@ export default function PatientDashboard() {
                   </div>
                   <div className="flex gap-1 shrink-0">
                     {[1, 2, 3, 4, 5].map(star => (
-                      <RateButton key={star} appointmentId={apt.id} rating={star} />
+                      <RateButton key={star} appointmentId={apt.id} rating={star} onRated={handleRated} />
                     ))}
                   </div>
                 </div>
@@ -444,8 +446,8 @@ export default function PatientDashboard() {
             {recentDocs.map(doc => (
               <div key={doc.id} className="px-6 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors">
                 <div className="flex items-center gap-3 min-w-0">
-                  <span className="text-xl shrink-0">
-                    {doc.file_type?.includes('pdf') ? '📕' : doc.file_type?.includes('image') ? '🖼️' : '📄'}
+                  <span className="shrink-0">
+                    <svg className="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
                   </span>
                   <div className="min-w-0">
                     <p className="text-sm font-medium truncate">{doc.file_name}</p>
@@ -465,7 +467,7 @@ export default function PatientDashboard() {
       {appointments.length === 0 && (
         <Card>
           <EmptyState
-            icon="🩺"
+            icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4.8 2.3A.3.3 0 105 2H4a2 2 0 00-2 2v5a6 6 0 006 6 6 6 0 006-6V4a2 2 0 00-2-2h-1a.2.2 0 10.3.3" /><path d="M8 15v1a6 6 0 006 6 6 6 0 006-6v-4" /><circle cx="20" cy="10" r="2" /></svg>}
             title="ברוך הבא לטלמדיסן!"
             description="קבע תור ראשון לייעוץ רפואי אונליין עם רופא מומחה"
             action={
@@ -483,28 +485,28 @@ export default function PatientDashboard() {
           onClick={() => router.push('/dashboard/patient/new-appointment')}
           className="p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all text-center"
         >
-          <span className="text-2xl block mb-1" aria-hidden="true">🩺</span>
+          <span className="block mb-1 flex justify-center" aria-hidden="true"><svg className="w-7 h-7 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4.8 2.3A.3.3 0 105 2H4a2 2 0 00-2 2v5a6 6 0 006 6 6 6 0 006-6V4a2 2 0 00-2-2h-1a.2.2 0 10.3.3" /><path d="M8 15v1a6 6 0 006 6 6 6 0 006-6v-4" /><circle cx="20" cy="10" r="2" /></svg></span>
           <span className="text-sm font-medium text-gray-700">תור חדש</span>
         </button>
         <button
           onClick={() => router.push('/dashboard/patient/my-documents')}
           className="p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all text-center"
         >
-          <span className="text-2xl block mb-1" aria-hidden="true">📄</span>
+          <span className="block mb-1 flex justify-center" aria-hidden="true"><svg className="w-7 h-7 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
           <span className="text-sm font-medium text-gray-700">המסמכים שלי</span>
         </button>
         <button
           onClick={() => router.push('/dashboard/patient/profile')}
           className="p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all text-center"
         >
-          <span className="text-2xl block mb-1" aria-hidden="true">👤</span>
+          <span className="block mb-1 flex justify-center" aria-hidden="true"><svg className="w-7 h-7 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg></span>
           <span className="text-sm font-medium text-gray-700">הפרופיל שלי</span>
         </button>
         <button
           onClick={() => router.push('/doctors')}
           className="p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all text-center"
         >
-          <span className="text-2xl block mb-1" aria-hidden="true">👨‍⚕️</span>
+          <span className="block mb-1 flex justify-center" aria-hidden="true"><svg className="w-7 h-7 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4.8 2.3A.3.3 0 105 2H4a2 2 0 00-2 2v5a6 6 0 006 6 6 6 0 006-6V4a2 2 0 00-2-2h-1a.2.2 0 10.3.3" /><path d="M8 15v1a6 6 0 006 6 6 6 0 006-6v-4" /><circle cx="20" cy="10" r="2" /></svg></span>
           <span className="text-sm font-medium text-gray-700">הרופאים שלנו</span>
         </button>
       </div>
@@ -514,28 +516,40 @@ export default function PatientDashboard() {
 
 // ── Rate Button ────────────────────────────────────────
 
-function RateButton({ appointmentId, rating }: { appointmentId: string; rating: number }) {
+function RateButton({ appointmentId, rating, onRated }: { appointmentId: string; rating: number; onRated: (id: string, rating: number) => void }) {
   const [submitting, setSubmitting] = useState(false)
-  const [done, setDone] = useState(false)
+  const [failed, setFailed] = useState(false)
   const supabase = getClient()
 
   const handleRate = async () => {
     setSubmitting(true)
-    await supabase.from('appointments')
-      .update({ patient_rating: rating })
-      .eq('id', appointmentId)
-    setSubmitting(false)
-    setDone(true)
+    setFailed(false)
+    try {
+      const { error } = await supabase.from('appointments')
+        .update({ patient_rating: rating })
+        .eq('id', appointmentId)
+      if (error) {
+        setFailed(true)
+      } else {
+        onRated(appointmentId, rating)
+      }
+    } catch {
+      setFailed(true)
+    } finally {
+      setSubmitting(false)
+    }
   }
-
-  if (done) return <span className="text-yellow-400 text-lg">★</span>
 
   return (
     <button
       onClick={handleRate}
       disabled={submitting}
-      className="text-gray-300 hover:text-yellow-400 text-lg transition-colors disabled:opacity-50"
+      className={cn(
+        'text-lg transition-colors disabled:opacity-50',
+        failed ? 'text-red-400' : 'text-gray-300 hover:text-yellow-400'
+      )}
       aria-label={`דרג ${rating} כוכבים`}
+      title={failed ? 'שגיאה בשמירת הדירוג — נסה שוב' : `דרג ${rating} כוכבים`}
     >
       ★
     </button>

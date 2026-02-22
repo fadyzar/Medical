@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createServiceRole } from '@/lib/supabase/server'
 import { SPECIALTIES, formatPrice } from '@/lib/utils'
+import { Breadcrumb } from '@/components/ui'
 
 // ── Specialty SEO Content ────────────────────────────
 
@@ -294,6 +295,7 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="text-2xl font-black text-blue-600">טלמדיסן</Link>
           <div className="flex items-center gap-4">
+            <Link href="/specialties" className="text-sm text-gray-600 hover:text-gray-900">התמחויות</Link>
             <Link href="/doctors" className="text-sm text-gray-600 hover:text-gray-900">הרופאים שלנו</Link>
             <Link href="/blog" className="text-sm text-gray-600 hover:text-gray-900">בלוג</Link>
             <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900">התחברות</Link>
@@ -301,6 +303,15 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
           </div>
         </div>
       </nav>
+
+      {/* Breadcrumb */}
+      <div className="max-w-6xl mx-auto px-4 pt-6">
+        <Breadcrumb items={[
+          { label: 'דף הבית', href: '/' },
+          { label: 'התמחויות', href: '/specialties' },
+          { label: content.title },
+        ]} />
+      </div>
 
       {/* Hero */}
       <section className="py-16 px-4 bg-gradient-to-b from-blue-50 to-white">
@@ -367,7 +378,7 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
             <h2 className="text-3xl font-black mb-8 text-center">הרופאים שלנו ב{content.title}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {typedDoctors.map(doc => (
-                <div key={doc.id} className="bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-md transition-shadow">
+                <Link key={doc.id} href={`/doctors/${doc.id}`} className="block bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-md transition-shadow">
                   <div className="flex items-center gap-4 mb-4">
                     <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-xl font-bold text-blue-700 shrink-0">
                       {doc.first_name.charAt(0)}{doc.last_name.charAt(0)}
@@ -390,7 +401,7 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
                       <span className="text-sm font-bold text-green-700">{formatPrice(doc.consultation_price)}</span>
                     )}
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
             <div className="text-center mt-8">

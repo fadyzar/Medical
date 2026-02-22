@@ -78,44 +78,48 @@ export default function StaffAppointmentsPage() {
   useEffect(() => { loadData() }, [])
 
   const loadData = async () => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    const { data: profile } = await supabase.from('users')
-      .select('organization_id')
-      .eq('id', user.id)
-      .single()
+      const { data: profile } = await supabase.from('users')
+        .select('organization_id')
+        .eq('id', user.id)
+        .single()
 
-    if (!profile) return
+      if (!profile) return
 
-    const oid = (profile as unknown as { organization_id: string }).organization_id
-    setOrgId(oid)
+      const oid = (profile as unknown as { organization_id: string }).organization_id
+      setOrgId(oid)
 
-    const [aptsRes, docsRes] = await Promise.all([
-      supabase.from('appointments')
-        .select('*, patient:patient_id(id, first_name, last_name, phone, email, date_of_birth, gender, medical_history, insurance_info, avatar_url), doctor:doctor_id(id, first_name, last_name, specialties)')
-        .eq('organization_id', oid)
-        .order('created_at', { ascending: false })
-        .limit(500),
-      supabase.from('users')
-        .select('id, first_name, last_name, specialties')
-        .eq('organization_id', oid)
-        .eq('role', 'doctor')
-        .eq('is_active', true)
-        .order('first_name'),
-    ])
+      const [aptsRes, docsRes] = await Promise.all([
+        supabase.from('appointments')
+          .select('*, patient:patient_id(id, first_name, last_name, phone, email, date_of_birth, gender, medical_history, insurance_info, avatar_url), doctor:doctor_id(id, first_name, last_name, specialties)')
+          .eq('organization_id', oid)
+          .order('created_at', { ascending: false })
+          .limit(500),
+        supabase.from('users')
+          .select('id, first_name, last_name, specialties')
+          .eq('organization_id', oid)
+          .eq('role', 'doctor')
+          .eq('is_active', true)
+          .order('first_name'),
+      ])
 
-    const apts = (aptsRes.data || []) as unknown as StaffAppointment[]
-    setAppointments(apts)
-    setDoctors((docsRes.data || []) as unknown as DoctorOption[])
+      const apts = (aptsRes.data || []) as unknown as StaffAppointment[]
+      setAppointments(apts)
+      setDoctors((docsRes.data || []) as unknown as DoctorOption[])
 
-    // Auto-select from URL
-    if (initialId && !selected) {
-      const found = apts.find(a => a.id === initialId)
-      if (found) selectAppointment(found)
+      // Auto-select from URL
+      if (initialId && !selected) {
+        const found = apts.find(a => a.id === initialId)
+        if (found) selectAppointment(found)
+      }
+    } catch {
+      // Prevents infinite loading on network error
+    } finally {
+      setLoading(false)
     }
-
-    setLoading(false)
   }
 
   const selectAppointment = (apt: StaffAppointment) => {
@@ -139,80 +143,97 @@ export default function StaffAppointmentsPage() {
   const updateStatus = async (status: AppointmentStatus) => {
     if (!selected) return
     setActionLoading(true)
-    const updates: Record<string, unknown> = { status }
+    try {
+      const updates: Record<string, unknown> = { status }
 
-    if (status === 'cancelled_patient') updates.cancelled_at = new Date().toISOString()
-    if (status === 'no_show_patient') updates.no_show_recorded_at = new Date().toISOString()
+      if (status === 'cancelled_patient') updates.cancelled_at = new Date().toISOString()
+      if (status === 'no_show_patient') updates.no_show_recorded_at = new Date().toISOString()
 
-    const { error } = await supabase.from('appointments').update(updates).eq('id', selected.id)
-    setActionLoading(false)
+      const { error } = await supabase.from('appointments').update(updates).eq('id', selected.id)
 
-    if (error) {
-      setMessage({ type: 'error', text: 'שגיאה בעדכון הסטטוס' })
-    } else {
-      setMessage({ type: 'success', text: `סטטוס עודכן ל-${STATUS_LABELS[status]}` })
-      loadData()
+      if (error) {
+        setMessage({ type: 'error', text: 'שגיאה בעדכון הסטטוס' })
+      } else {
+        setMessage({ type: 'success', text: `סטטוס עודכן ל-${STATUS_LABELS[status]}` })
+        loadData()
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'שגיאת רשת בעדכון הסטטוס' })
+    } finally {
+      setActionLoading(false)
     }
   }
 
   const handleAssignDoctor = async () => {
     if (!selected || !assignDoctor) return
     setActionLoading(true)
+    try {
+      const { error } = await supabase.from('appointments')
+        .update({ doctor_id: assignDoctor, status: selected.status === 'pending' ? 'doctor_confirmed' : selected.status })
+        .eq('id', selected.id)
 
-    const { error } = await supabase.from('appointments')
-      .update({ doctor_id: assignDoctor, status: selected.status === 'pending' ? 'doctor_confirmed' : selected.status })
-      .eq('id', selected.id)
-
-    setActionLoading(false)
-    if (error) {
-      setMessage({ type: 'error', text: 'שגיאה בשיוך הרופא' })
-    } else {
-      setMessage({ type: 'success', text: 'רופא שויך בהצלחה' })
-      loadData()
+      if (error) {
+        setMessage({ type: 'error', text: 'שגיאה בשיוך הרופא' })
+      } else {
+        setMessage({ type: 'success', text: 'רופא שויך בהצלחה' })
+        loadData()
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'שגיאת רשת בשיוך הרופא' })
+    } finally {
+      setActionLoading(false)
     }
   }
 
   const handleSchedule = async () => {
     if (!selected || !scheduleDate || !scheduleTime) return
     setActionLoading(true)
+    try {
+      const scheduled_at = new Date(`${scheduleDate}T${scheduleTime}:00`).toISOString()
+      const newStatus: AppointmentStatus = ['pending', 'doctor_confirmed', 'time_selected', 'paid'].includes(selected.status) ? 'scheduled' : selected.status
 
-    const scheduled_at = new Date(`${scheduleDate}T${scheduleTime}:00`).toISOString()
-    const newStatus: AppointmentStatus = ['pending', 'doctor_confirmed', 'time_selected', 'paid'].includes(selected.status) ? 'scheduled' : selected.status
+      const { error } = await supabase.from('appointments')
+        .update({ scheduled_at, status: newStatus })
+        .eq('id', selected.id)
 
-    const { error } = await supabase.from('appointments')
-      .update({ scheduled_at, status: newStatus })
-      .eq('id', selected.id)
-
-    setActionLoading(false)
-    if (error) {
-      setMessage({ type: 'error', text: 'שגיאה בתזמון התור' })
-    } else {
-      setMessage({ type: 'success', text: 'התור תוזמן בהצלחה' })
-      loadData()
+      if (error) {
+        setMessage({ type: 'error', text: 'שגיאה בתזמון התור' })
+      } else {
+        setMessage({ type: 'success', text: 'התור תוזמן בהצלחה' })
+        loadData()
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'שגיאת רשת בתזמון התור' })
+    } finally {
+      setActionLoading(false)
     }
   }
 
   const handleAddNote = async () => {
     if (!selected || !staffNote.trim()) return
     setActionLoading(true)
+    try {
+      const existing = (selected.doctor_notes || '')
+      const timestamp = new Date().toLocaleString('he-IL')
+      const updated = existing
+        ? `${existing}\n\n[${timestamp} — צוות שירות]\n${staffNote.trim()}`
+        : `[${timestamp} — צוות שירות]\n${staffNote.trim()}`
 
-    const existing = (selected.doctor_notes || '')
-    const timestamp = new Date().toLocaleString('he-IL')
-    const updated = existing
-      ? `${existing}\n\n[${timestamp} — צוות שירות]\n${staffNote.trim()}`
-      : `[${timestamp} — צוות שירות]\n${staffNote.trim()}`
+      const { error } = await supabase.from('appointments')
+        .update({ doctor_notes: updated })
+        .eq('id', selected.id)
 
-    const { error } = await supabase.from('appointments')
-      .update({ doctor_notes: updated })
-      .eq('id', selected.id)
-
-    setActionLoading(false)
-    if (error) {
-      setMessage({ type: 'error', text: 'שגיאה בשמירת ההערה' })
-    } else {
-      setStaffNote('')
-      setMessage({ type: 'success', text: 'הערה נוספה' })
-      loadData()
+      if (error) {
+        setMessage({ type: 'error', text: 'שגיאה בשמירת ההערה' })
+      } else {
+        setStaffNote('')
+        setMessage({ type: 'success', text: 'הערה נוספה' })
+        loadData()
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'שגיאת רשת בשמירת ההערה' })
+    } finally {
+      setActionLoading(false)
     }
   }
 
@@ -304,7 +325,7 @@ export default function StaffAppointmentsPage() {
         <div className="lg:col-span-2">
           <Card className="max-h-[75vh] overflow-y-auto">
             {filtered.length === 0 ? (
-              <EmptyState icon="📋" title="אין תורים" description="לא נמצאו תורים לפי הסינון" />
+              <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></svg>} title="אין תורים" description="לא נמצאו תורים לפי הסינון" />
             ) : (
               <div className="divide-y">
                 {filtered.map(apt => {
@@ -388,7 +409,7 @@ export default function StaffAppointmentsPage() {
                 onAddNote={handleAddNote}
               />
             ) : (
-              <EmptyState icon="👈" title="בחר תור מהרשימה" description="לחץ על תור כדי לראות פרטים ולבצע פעולות" />
+              <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>} title="בחר תור מהרשימה" description="לחץ על תור כדי לראות פרטים ולבצע פעולות" />
             )}
           </Card>
         </div>
@@ -443,8 +464,8 @@ function DetailPanel({
           <div>
             <h3 className="font-bold text-lg">{patient?.first_name} {patient?.last_name}</h3>
             <div className="flex items-center gap-2 text-sm text-gray-500">
-              {patient?.phone && <span>📱 {patient.phone}</span>}
-              {patient?.email && <span>📧 {patient.email}</span>}
+              {patient?.phone && <span>טל׳: {patient.phone}</span>}
+              {patient?.email && <span>{patient.email}</span>}
             </div>
           </div>
         </div>

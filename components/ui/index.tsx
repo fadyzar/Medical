@@ -149,7 +149,44 @@ export function Spinner({ size = 'md', className }: { size?: 'sm' | 'md' | 'lg';
 
 // ==================== PAGE LOADING ====================
 export function PageLoading() {
-  return <div className="min-h-screen flex items-center justify-center"><Spinner size="lg" /></div>
+  return (
+    <div className="space-y-6 animate-pulse">
+      {/* Header skeleton */}
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <div className="h-6 bg-gray-200 rounded-lg w-40" />
+          <div className="h-4 bg-gray-100 rounded-lg w-24" />
+        </div>
+        <div className="h-10 bg-gray-200 rounded-lg w-32" />
+      </div>
+      {/* Stat cards skeleton */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+        {[1, 2, 3, 4].map(i => (
+          <div key={i} className="bg-white rounded-xl border border-gray-200 p-5">
+            <div className="h-4 bg-gray-100 rounded w-20 mb-3" />
+            <div className="h-7 bg-gray-200 rounded w-16" />
+          </div>
+        ))}
+      </div>
+      {/* Card skeleton */}
+      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
+        <div className="px-6 py-4 border-b border-gray-100">
+          <div className="h-5 bg-gray-200 rounded w-32" />
+        </div>
+        <div className="divide-y">
+          {[1, 2, 3].map(i => (
+            <div key={i} className="px-6 py-4 flex items-center justify-between">
+              <div className="space-y-2 flex-1">
+                <div className="h-4 bg-gray-200 rounded w-48" />
+                <div className="h-3 bg-gray-100 rounded w-32" />
+              </div>
+              <div className="h-6 bg-gray-100 rounded-full w-16" />
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  )
 }
 
 // ==================== EMPTY STATE ====================
@@ -165,16 +202,23 @@ export function EmptyState({ icon, title, description, action }: { icon?: ReactN
 }
 
 // ==================== STAT CARD ====================
+export { Breadcrumb } from './Breadcrumb'
+
 export function StatCard({ label, value, icon, color = 'blue' }: { label: string; value: string | number; icon?: ReactNode; color?: 'blue' | 'green' | 'orange' | 'red' | 'purple' }) {
-  const colors = { blue: 'text-blue-600', green: 'text-green-600', orange: 'text-orange-600', red: 'text-red-600', purple: 'text-purple-600' }
+  const textColors = { blue: 'text-blue-600', green: 'text-green-600', orange: 'text-orange-600', red: 'text-red-600', purple: 'text-purple-600' }
+  const bgColors = { blue: 'bg-blue-50', green: 'bg-green-50', orange: 'bg-orange-50', red: 'bg-red-50', purple: 'bg-purple-50' }
   return (
-    <Card className="p-5">
+    <Card className="p-5 hover:shadow-md transition-shadow">
       <div className="flex items-center justify-between">
         <div>
-          <p className="text-sm text-gray-500">{label}</p>
-          <p className={cn('text-2xl font-bold mt-1', colors[color])}>{value}</p>
+          <p className="text-sm text-gray-500 font-medium">{label}</p>
+          <p className={cn('text-2xl font-bold mt-1', textColors[color])}>{value}</p>
         </div>
-        {icon && <div className="text-3xl">{icon}</div>}
+        {icon && (
+          <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center text-xl', bgColors[color])}>
+            {icon}
+          </div>
+        )}
       </div>
     </Card>
   )

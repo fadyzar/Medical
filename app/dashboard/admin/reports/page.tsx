@@ -190,11 +190,11 @@ export default function AdminReportsPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
-        <StatCard label="הכנסות" value={formatPrice(totals.revenue)} icon="💰" color="green" />
-        <StatCard label="תורים" value={totals.appointments} icon="📋" color="blue" />
-        <StatCard label="הושלמו" value={totals.completed} icon="✅" color="green" />
-        <StatCard label="שימושי AI" value={totals.aiCalls} icon="🤖" color="purple" />
-        <StatCard label="דירוג ממוצע" value={totals.avgRating || '-'} icon="⭐" color="orange" />
+        <StatCard label="הכנסות" value={formatPrice(totals.revenue)} icon={<svg className="w-6 h-6 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="12" y1="1" x2="12" y2="23" /><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6" /></svg>} color="green" />
+        <StatCard label="תורים" value={totals.appointments} icon={<svg className="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>} color="blue" />
+        <StatCard label="הושלמו" value={totals.completed} icon={<svg className="w-6 h-6 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>} color="green" />
+        <StatCard label="שימושי AI" value={totals.aiCalls} icon={<svg className="w-6 h-6 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M12 2a4 4 0 014 4v1h2a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2h2V6a4 4 0 014-4z" /><circle cx="9" cy="13" r="1" /><circle cx="15" cy="13" r="1" /></svg>} color="purple" />
+        <StatCard label="דירוג ממוצע" value={totals.avgRating || '-'} icon={<svg className="w-6 h-6 text-orange-600" viewBox="0 0 24 24" fill="currentColor" stroke="none"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>} color="orange" />
       </div>
 
       {loading ? (

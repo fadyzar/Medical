@@ -34,25 +34,30 @@ export default function PatientQuestionnairePage() {
   }, [questionnaireId])
 
   const loadQuestionnaire = async (id: string) => {
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) { router.push('/auth/login'); return }
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) { router.push('/auth/login'); return }
 
-    const { data } = await supabase.from('questionnaires')
-      .select('*')
-      .eq('id', id)
-      .eq('is_published', true)
-      .eq('is_active', true)
-      .single()
+      const { data } = await supabase.from('questionnaires')
+        .select('*')
+        .eq('id', id)
+        .eq('is_published', true)
+        .eq('is_active', true)
+        .single()
 
-    if (!data) {
-      setError('שאלון לא נמצא או שאינו פעיל')
+      if (!data) {
+        setError('שאלון לא נמצא או שאינו פעיל')
+        setState('error')
+        return
+      }
+
+      setQuestionnaire(data as unknown as Questionnaire)
+      startedAt.current = new Date()
+      setState('form')
+    } catch {
+      setError('שגיאה בטעינת השאלון')
       setState('error')
-      return
     }
-
-    setQuestionnaire(data as unknown as Questionnaire)
-    startedAt.current = new Date()
-    setState('form')
   }
 
   // ── Conditional visibility ─────────────────────────
@@ -98,19 +103,6 @@ export default function PatientQuestionnairePage() {
     return Object.keys(newErrors).length === 0
   }
 
-  const validateAll = (): boolean => {
-    const newErrors: Record<string, string> = {}
-    for (const q of visibleQuestions) {
-      if (!q.required) continue
-      const answer = answers[q.id]
-      if (!answer || (Array.isArray(answer) && answer.length === 0) || (typeof answer === 'string' && !answer.trim())) {
-        newErrors[q.id] = 'שדה חובה'
-      }
-    }
-    setErrors(newErrors)
-    return Object.keys(newErrors).length === 0
-  }
-
   // ── Navigation ─────────────────────────────────────
 
   const goNext = () => {
@@ -131,9 +123,20 @@ export default function PatientQuestionnairePage() {
   // ── Submit ─────────────────────────────────────────
 
   const handleSubmit = async () => {
-    if (!validateAll()) {
-      // Find the step with the first error
-      const firstErrorId = Object.keys(errors)[0]
+    // Validate and get the error map directly (don't rely on async state)
+    const newErrors: Record<string, string> = {}
+    for (const q of visibleQuestions) {
+      if (!q.required) continue
+      const answer = answers[q.id]
+      if (!answer || (Array.isArray(answer) && answer.length === 0) || (typeof answer === 'string' && !answer.trim())) {
+        newErrors[q.id] = 'שדה חובה'
+      }
+    }
+    setErrors(newErrors)
+
+    if (Object.keys(newErrors).length > 0) {
+      // Navigate to the step with the first error
+      const firstErrorId = Object.keys(newErrors)[0]
       if (firstErrorId) {
         const errIdx = visibleQuestions.findIndex(q => q.id === firstErrorId)
         if (errIdx >= 0) setCurrentStep(Math.floor(errIdx / QUESTIONS_PER_STEP))
@@ -188,7 +191,11 @@ export default function PatientQuestionnairePage() {
       <div className="max-w-lg mx-auto mt-8">
         <Card>
           <CardContent className="py-12 text-center">
-            <div className="text-4xl mb-4">❌</div>
+            <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-4">
+              <svg className="w-8 h-8 text-red-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
+              </svg>
+            </div>
             <h2 className="text-xl font-bold text-gray-900 mb-2">שגיאה</h2>
             <p className="text-gray-500 mb-6">{error}</p>
             <Button onClick={() => router.push('/dashboard/patient/dashboard')}>חזור לדשבורד</Button>
@@ -215,7 +222,9 @@ export default function PatientQuestionnairePage() {
         <Card className="border-green-200">
           <CardContent className="py-12 text-center space-y-4">
             <div className="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto">
-              <span className="text-3xl">✅</span>
+              <svg className="w-8 h-8 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+              </svg>
             </div>
             <h2 className="text-xl font-bold text-green-800">השאלון נשלח בהצלחה!</h2>
             <p className="text-gray-500">תודה על מילוי השאלון. המידע ישמש את הרופא לייעוץ מיטבי.</p>
@@ -286,12 +295,13 @@ export default function PatientQuestionnairePage() {
                 {q.type === 'choice' && (
                   <div className="space-y-2">
                     {(q.options || []).filter(o => o.trim()).map((opt, i) => (
-                      <label key={i} className={cn(
-                        'flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all',
-                        answers[q.id] === opt
-                          ? 'border-blue-500 bg-blue-50 shadow-sm'
-                          : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
-                      )}>
+                      <button key={i} type="button" onClick={() => setAnswer(q.id, opt)}
+                        className={cn(
+                          'flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all w-full text-right',
+                          answers[q.id] === opt
+                            ? 'border-blue-500 bg-blue-50 shadow-sm'
+                            : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                        )}>
                         <div className={cn(
                           'w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0',
                           answers[q.id] === opt ? 'border-blue-600' : 'border-gray-300'
@@ -299,7 +309,7 @@ export default function PatientQuestionnairePage() {
                           {answers[q.id] === opt && <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />}
                         </div>
                         <span className="text-sm">{opt}</span>
-                      </label>
+                      </button>
                     ))}
                   </div>
                 )}
@@ -308,22 +318,35 @@ export default function PatientQuestionnairePage() {
                 {q.type === 'multi_choice' && (
                   <div className="space-y-2">
                     {(q.options || []).filter(o => o.trim()).map((opt, i) => {
-                      const selected = Array.isArray(answers[q.id]) && (answers[q.id] as string[]).includes(opt)
+                      const current = Array.isArray(answers[q.id]) ? (answers[q.id] as string[]) : []
+                      const selected = current.includes(opt)
                       return (
-                        <label key={i} className={cn(
-                          'flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all',
-                          selected
-                            ? 'border-blue-500 bg-blue-50 shadow-sm'
-                            : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
-                        )}>
+                        <button key={i} type="button"
+                          onClick={() => {
+                            if (selected) {
+                              setAnswer(q.id, current.filter(v => v !== opt))
+                            } else {
+                              setAnswer(q.id, [...current, opt])
+                            }
+                          }}
+                          className={cn(
+                            'flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all w-full text-right',
+                            selected
+                              ? 'border-blue-500 bg-blue-50 shadow-sm'
+                              : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                          )}>
                           <div className={cn(
                             'w-5 h-5 rounded border-2 flex items-center justify-center shrink-0',
                             selected ? 'border-blue-600 bg-blue-600' : 'border-gray-300'
                           )}>
-                            {selected && <span className="text-white text-xs font-bold">✓</span>}
+                            {selected && (
+                              <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                                <polyline points="20 6 9 17 4 12" />
+                              </svg>
+                            )}
                           </div>
                           <span className="text-sm">{opt}</span>
-                        </label>
+                        </button>
                       )
                     })}
                   </div>
@@ -364,14 +387,14 @@ export default function PatientQuestionnairePage() {
                         answers[q.id] === 'כן'
                           ? 'border-green-500 bg-green-50 text-green-700 shadow-sm'
                           : 'border-gray-200 text-gray-500 hover:border-green-300')}>
-                      👍 כן
+                      כן
                     </button>
                     <button type="button" onClick={() => setAnswer(q.id, 'לא')}
                       className={cn('flex-1 py-4 rounded-xl border-2 font-bold text-lg transition-all',
                         answers[q.id] === 'לא'
                           ? 'border-red-500 bg-red-50 text-red-700 shadow-sm'
                           : 'border-gray-200 text-gray-500 hover:border-red-300')}>
-                      👎 לא
+                      לא
                     </button>
                   </div>
                 )}
@@ -386,13 +409,17 @@ export default function PatientQuestionnairePage() {
                     <label htmlFor={`img_${q.id}`} className="cursor-pointer">
                       {answers[q.id] ? (
                         <div>
-                          <div className="text-3xl mb-2">✅</div>
+                          <svg className="w-8 h-8 text-green-600 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+                          </svg>
                           <p className="text-sm text-green-700 font-medium">{answers[q.id] as string}</p>
                           <p className="text-xs text-gray-400 mt-1">לחץ להחלפה</p>
                         </div>
                       ) : (
                         <div>
-                          <div className="text-4xl mb-2">📷</div>
+                          <svg className="w-10 h-10 text-gray-400 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" /><circle cx="12" cy="13" r="4" />
+                          </svg>
                           <p className="font-medium text-gray-700">לחץ להעלאת תמונה</p>
                           <p className="text-xs text-gray-400 mt-1">JPG, PNG — עד 10MB</p>
                         </div>
@@ -421,7 +448,7 @@ export default function PatientQuestionnairePage() {
           {currentStep < totalSteps - 1 ? (
             <Button onClick={goNext} size="lg">הבא ←</Button>
           ) : (
-            <Button onClick={handleSubmit} size="lg">📨 שלח שאלון</Button>
+            <Button onClick={handleSubmit} size="lg">שלח שאלון</Button>
           )}
         </div>
       </div>

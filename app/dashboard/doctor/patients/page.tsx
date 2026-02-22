@@ -39,6 +39,7 @@ export default function DoctorPatientsPage() {
   useEffect(() => { loadPatients() }, [])
 
   const loadPatients = async () => {
+    try {
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) { router.push('/auth/login'); return }
 
@@ -95,7 +96,11 @@ export default function DoctorPatientsPage() {
     })
 
     setPatients(sorted)
-    setLoading(false)
+    } catch {
+      // Prevents infinite loading on network error
+    } finally {
+      setLoading(false)
+    }
   }
 
   const selectPatient = async (patient: PatientWithStats) => {
@@ -103,26 +108,32 @@ export default function DoctorPatientsPage() {
     setDetailTab('info')
     setDetailLoading(true)
 
-    const { data: { user } } = await supabase.auth.getUser()
-    if (!user) return
+    try {
+      const { data: { user } } = await supabase.auth.getUser()
+      if (!user) return
 
-    // Load visits and documents in parallel
-    const [visitsRes, docsRes] = await Promise.all([
-      supabase.from('appointments')
-        .select('*')
-        .eq('doctor_id', user.id)
-        .eq('patient_id', patient.id)
-        .order('created_at', { ascending: false }),
-      supabase.from('documents')
-        .select('*')
-        .eq('patient_id', patient.id)
-        .order('created_at', { ascending: false })
-        .limit(20),
-    ])
+      // Load visits and documents in parallel
+      const [visitsRes, docsRes] = await Promise.all([
+        supabase.from('appointments')
+          .select('*')
+          .eq('doctor_id', user.id)
+          .eq('patient_id', patient.id)
+          .order('created_at', { ascending: false }),
+        supabase.from('documents')
+          .select('*')
+          .eq('patient_id', patient.id)
+          .order('created_at', { ascending: false })
+          .limit(20),
+      ])
 
-    setVisits((visitsRes.data || []) as unknown as PatientAppointment[])
-    setDocuments((docsRes.data || []) as unknown as Document[])
-    setDetailLoading(false)
+      setVisits((visitsRes.data || []) as unknown as PatientAppointment[])
+      setDocuments((docsRes.data || []) as unknown as Document[])
+    } catch {
+      setVisits([])
+      setDocuments([])
+    } finally {
+      setDetailLoading(false)
+    }
   }
 
   // Filter patients by search
@@ -158,7 +169,7 @@ export default function DoctorPatientsPage() {
 
       {patients.length === 0 ? (
         <EmptyState
-          icon="👥"
+          icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></svg>}
           title="אין מטופלים עדיין"
           description="כשמטופלים יקבעו תורים, הם יופיעו כאן."
         />
@@ -168,7 +179,7 @@ export default function DoctorPatientsPage() {
           <div className="lg:col-span-2">
             <Card className="max-h-[75vh] overflow-y-auto">
               {filtered.length === 0 ? (
-                <EmptyState icon="🔍" title="לא נמצאו תוצאות" description="נסה לחפש מחדש" />
+                <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>} title="לא נמצאו תוצאות" description="נסה לחפש מחדש" />
               ) : (
                 <div className="divide-y">
                   {filtered.map(patient => {
@@ -236,7 +247,7 @@ export default function DoctorPatientsPage() {
                         <h3 className="font-bold text-lg">{selected.first_name} {selected.last_name}</h3>
                         <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
                           {selected.email && <span>{selected.email}</span>}
-                          {selected.phone && <span>📱 {selected.phone}</span>}
+                          {selected.phone && <span>טל׳: {selected.phone}</span>}
                         </div>
                       </div>
                       <Button
@@ -289,7 +300,7 @@ export default function DoctorPatientsPage() {
                   </div>
                 </div>
               ) : (
-                <EmptyState icon="👈" title="בחר מטופל מהרשימה" description="לחץ על מטופל כדי לראות את הפרטים שלו" />
+                <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>} title="בחר מטופל מהרשימה" description="לחץ על מטופל כדי לראות את הפרטים שלו" />
               )}
             </Card>
           </div>
@@ -388,7 +399,7 @@ function PatientInfo({ patient }: { patient: PatientWithStats }) {
 
 function PatientVisits({ visits }: { visits: PatientAppointment[] }) {
   if (visits.length === 0) {
-    return <EmptyState icon="📋" title="אין ביקורים" description="טרם נקבעו תורים עם מטופל זה" />
+    return <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></svg>} title="אין ביקורים" description="טרם נקבעו תורים עם מטופל זה" />
   }
 
   return (
@@ -463,22 +474,30 @@ function PatientVisits({ visits }: { visits: PatientAppointment[] }) {
 function PatientDocuments({ documents, supabase }: { documents: Document[]; supabase: ReturnType<typeof getClient> }) {
   const [downloading, setDownloading] = useState<string | null>(null)
 
+  const [downloadError, setDownloadError] = useState<string | null>(null)
+
   const handleDownload = async (doc: Document) => {
     setDownloading(doc.id)
+    setDownloadError(null)
     try {
       const { data, error } = await supabase.storage
         .from('medical-documents')
         .createSignedUrl(doc.storage_path, 60)
 
-      if (error || !data?.signedUrl) return
+      if (error || !data?.signedUrl) {
+        setDownloadError('שגיאה בפתיחת המסמך')
+        return
+      }
       window.open(data.signedUrl, '_blank')
+    } catch {
+      setDownloadError('שגיאה בפתיחת המסמך')
     } finally {
       setDownloading(null)
     }
   }
 
   if (documents.length === 0) {
-    return <EmptyState icon="📄" title="אין מסמכים" description="למטופל זה אין מסמכים" />
+    return <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>} title="אין מסמכים" description="למטופל זה אין מסמכים" />
   }
 
   const formatFileSize = (bytes: number) => {
@@ -489,11 +508,14 @@ function PatientDocuments({ documents, supabase }: { documents: Document[]; supa
 
   return (
     <div className="space-y-2">
+      {downloadError && (
+        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700" role="alert">{downloadError}</div>
+      )}
       {documents.map(doc => (
         <div key={doc.id} className="flex items-center justify-between border border-gray-100 rounded-lg px-4 py-3 hover:bg-gray-50 transition-colors">
           <div className="flex items-center gap-3 min-w-0">
-            <span className="text-2xl shrink-0">
-              {doc.file_type?.includes('pdf') ? '📕' : doc.file_type?.includes('image') ? '🖼️' : '📄'}
+            <span className="shrink-0">
+              <svg className="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
             </span>
             <div className="min-w-0">
               <p className="text-sm font-medium truncate">{doc.file_name}</p>

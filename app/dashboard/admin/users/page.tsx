@@ -2,8 +2,8 @@
 
 import { useEffect, useState } from 'react'
 import { getClient } from '@/lib/supabase/client'
-import { Button, Input, Select, Card, CardHeader, CardContent, Badge, PageLoading, EmptyState, Spinner } from '@/components/ui'
-import { formatDateTime, SPECIALTIES } from '@/lib/utils'
+import { Button, Input, Select, Card, CardHeader, CardContent, Badge, PageLoading, EmptyState } from '@/components/ui'
+import { formatDateTime, SPECIALTIES, cn } from '@/lib/utils'
 import type { User, UserRole } from '@/types/database'
 
 type UserForm = {
@@ -45,6 +45,7 @@ export default function AdminUsersPage() {
   const [form, setForm] = useState<UserForm>(emptyForm)
   const [saving, setSaving] = useState(false)
   const [error, setError] = useState('')
+  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const [inviteEmail, setInviteEmail] = useState('')
   const [inviteName, setInviteName] = useState('')
   const [inviteRole, setInviteRole] = useState<UserRole>('doctor')
@@ -133,9 +134,16 @@ export default function AdminUsersPage() {
   }
 
   async function toggleActive(user: User) {
-    await supabase.from('users')
+    setMessage(null)
+    const { error: err } = await supabase.from('users')
       .update({ is_active: !user.is_active })
       .eq('id', user.id)
+    if (err) {
+      setMessage({ type: 'error', text: 'שגיאה בעדכון סטטוס המשתמש' })
+    } else {
+      setMessage({ type: 'success', text: `${user.first_name} ${user.last_name} ${user.is_active ? 'הושבת' : 'הופעל'} בהצלחה` })
+      setTimeout(() => setMessage(null), 3000)
+    }
     loadUsers()
   }
 
@@ -181,6 +189,16 @@ export default function AdminUsersPage() {
           {showInvite ? 'סגור הזמנה' : '+ הזמן משתמש'}
         </Button>
       </div>
+
+      {/* Messages */}
+      {message && (
+        <div className={cn(
+          'flex items-center gap-3 p-3 rounded-lg text-sm',
+          message.type === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'
+        )} role="status">
+          {message.text}
+        </div>
+      )}
 
       {/* Invite panel */}
       {showInvite && (
@@ -235,7 +253,7 @@ export default function AdminUsersPage() {
 
       {/* Users table */}
       {filtered.length === 0 ? (
-        <EmptyState icon="👥" title="לא נמצאו משתמשים" description="הוסף רופאים וצוות למערכת" />
+        <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></svg>} title="לא נמצאו משתמשים" description="הוסף רופאים וצוות למערכת" />
       ) : (
         <Card>
           <div className="overflow-x-auto">

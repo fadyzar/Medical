@@ -201,13 +201,15 @@ export default function AdminSettingsPage() {
                     <img src={logoUrl} alt="לוגו" className="h-16 w-auto rounded-lg border border-gray-200" onError={e => (e.currentTarget.style.display = 'none')} />
                   </div>
                 ) : (
-                  <div className="h-16 w-16 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400 text-2xl">
-                    🏥
+                  <div className="h-16 w-16 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400">
+                    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M3 21h18" /><path d="M5 21V7l8-4v18" /><path d="M19 21V11l-6-4" /><path d="M9 9h1" /><path d="M9 13h1" /><path d="M9 17h1" />
+                    </svg>
                   </div>
                 )}
                 <div className="flex flex-col gap-2">
                   <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
-                    {uploadingLogo ? <Spinner size="sm" /> : '📁'}
+                    {uploadingLogo ? <Spinner size="sm" /> : <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>}
                     {uploadingLogo ? 'מעלה...' : 'העלה לוגו'}
                     <input
                       type="file"

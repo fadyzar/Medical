@@ -96,27 +96,31 @@ export default function DoctorCalendarPage() {
   }
 
   const loadAppointments = async (doctorId: string) => {
-    let rangeStart: string
-    let rangeEnd: string
+    try {
+      let rangeStart: string
+      let rangeEnd: string
 
-    if (viewMode === 'week') {
-      const ws = startOfWeek(currentDate, { weekStartsOn: 0 })
-      rangeStart = format(subWeeks(ws, 2), 'yyyy-MM-dd')
-      rangeEnd = format(addWeeks(endOfWeek(currentDate, { weekStartsOn: 0 }), 2), 'yyyy-MM-dd')
-    } else {
-      rangeStart = format(subDays(currentDate, 7), 'yyyy-MM-dd')
-      rangeEnd = format(addDays(currentDate, 7), 'yyyy-MM-dd')
+      if (viewMode === 'week') {
+        const ws = startOfWeek(currentDate, { weekStartsOn: 0 })
+        rangeStart = format(subWeeks(ws, 2), 'yyyy-MM-dd')
+        rangeEnd = format(addWeeks(endOfWeek(currentDate, { weekStartsOn: 0 }), 2), 'yyyy-MM-dd')
+      } else {
+        rangeStart = format(subDays(currentDate, 7), 'yyyy-MM-dd')
+        rangeEnd = format(addDays(currentDate, 7), 'yyyy-MM-dd')
+      }
+
+      const { data: apts } = await supabase.from('appointments')
+        .select('*, patient:patient_id(first_name, last_name, phone)')
+        .eq('doctor_id', doctorId)
+        .gte('scheduled_at', rangeStart)
+        .lte('scheduled_at', rangeEnd)
+        .not('status', 'in', '("cancelled_patient","cancelled_doctor")')
+        .order('scheduled_at', { ascending: true })
+
+      if (apts) setAppointments(apts as unknown as Appointment[])
+    } catch {
+      // Calendar appointments fail silently — data will refresh on next navigation
     }
-
-    const { data: apts } = await supabase.from('appointments')
-      .select('*, patient:patient_id(first_name, last_name, phone)')
-      .eq('doctor_id', doctorId)
-      .gte('scheduled_at', rangeStart)
-      .lte('scheduled_at', rangeEnd)
-      .not('status', 'in', '("cancelled_patient","cancelled_doctor")')
-      .order('scheduled_at', { ascending: true })
-
-    if (apts) setAppointments(apts as unknown as Appointment[])
   }
 
   // Week view dates
@@ -150,12 +154,22 @@ export default function DoctorCalendarPage() {
     setCurrentDate(prev => addDays(prev, dir))
   }
 
+  // Save feedback
+  const [saveMessage, setSaveMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+
   // Save availability
   const saveAvailability = async () => {
     if (!profile) return
     setSavingAvailability(true)
-    await supabase.from('users').update({ availability }).eq('id', profile.id)
+    setSaveMessage(null)
+    const { error } = await supabase.from('users').update({ availability }).eq('id', profile.id)
     setSavingAvailability(false)
+    if (error) {
+      setSaveMessage({ type: 'error', text: 'שגיאה בשמירת שעות הפעילות' })
+    } else {
+      setSaveMessage({ type: 'success', text: 'שעות הפעילות נשמרו בהצלחה' })
+      setTimeout(() => setSaveMessage(null), 3000)
+    }
   }
 
   const toggleDayAvailability = (dayIndex: number) => {
@@ -173,25 +187,43 @@ export default function DoctorCalendarPage() {
   // Add vacation
   const addVacation = async () => {
     if (!profile || !newVacStart || !newVacEnd) return
+    if (newVacEnd < newVacStart) {
+      setSaveMessage({ type: 'error', text: 'תאריך סיום חייב להיות אחרי תאריך התחלה' })
+      return
+    }
     setSavingVacation(true)
+    setSaveMessage(null)
     const updatedVacs = [...vacations, { start: newVacStart, end: newVacEnd, note: newVacNote || undefined }]
-    await supabase.from('users').update({
+    const { error } = await supabase.from('users').update({
       metadata: { ...profile.metadata, vacations: updatedVacs }
     }).eq('id', profile.id)
-    setVacations(updatedVacs)
-    setNewVacStart('')
-    setNewVacEnd('')
-    setNewVacNote('')
+    if (error) {
+      setSaveMessage({ type: 'error', text: 'שגיאה בהוספת החופשה' })
+    } else {
+      setVacations(updatedVacs)
+      setNewVacStart('')
+      setNewVacEnd('')
+      setNewVacNote('')
+      setSaveMessage({ type: 'success', text: 'החופשה נוספה בהצלחה' })
+      setTimeout(() => setSaveMessage(null), 3000)
+    }
     setSavingVacation(false)
   }
 
   const removeVacation = async (index: number) => {
     if (!profile) return
+    setSaveMessage(null)
     const updatedVacs = vacations.filter((_, i) => i !== index)
-    await supabase.from('users').update({
+    const { error } = await supabase.from('users').update({
       metadata: { ...profile.metadata, vacations: updatedVacs }
     }).eq('id', profile.id)
-    setVacations(updatedVacs)
+    if (error) {
+      setSaveMessage({ type: 'error', text: 'שגיאה במחיקת החופשה' })
+    } else {
+      setVacations(updatedVacs)
+      setSaveMessage({ type: 'success', text: 'החופשה נמחקה' })
+      setTimeout(() => setSaveMessage(null), 3000)
+    }
   }
 
   // Stats
@@ -324,6 +356,16 @@ export default function DoctorCalendarPage() {
             />
           )}
         </>
+      )}
+
+      {/* Save message */}
+      {saveMessage && (
+        <div className={cn(
+          'flex items-center gap-3 p-3 rounded-lg text-sm',
+          saveMessage.type === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'
+        )} role="status">
+          {saveMessage.text}
+        </div>
       )}
 
       {tab === 'availability' && (
@@ -633,7 +675,7 @@ function DayTimeGrid({
         </div>
 
         {appointments.length === 0 && (
-          <EmptyState icon="📅" title="אין תורים ליום זה" />
+          <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>} title="אין תורים ליום זה" />
         )}
       </div>
     </Card>
@@ -780,7 +822,7 @@ function VacationManager({
           <h3 className="font-bold text-lg">ימי חופשה מתוכננים ({vacations.length})</h3>
         </CardHeader>
         {vacations.length === 0 ? (
-          <EmptyState icon="🏖️" title="אין ימי חופשה מתוכננים" />
+          <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>} title="אין ימי חופשה מתוכננים" />
         ) : (
           <div className="divide-y">
             {vacations.map((vac, i) => {

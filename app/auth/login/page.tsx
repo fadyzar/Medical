@@ -4,7 +4,8 @@ import { useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { loginSchema } from '@/lib/validation/schemas'
-import { Button, Input, Card, CardContent } from '@/components/ui'
+import { Button, Input } from '@/components/ui'
+import { AuthLayout } from '@/components/layout/AuthLayout'
 import Link from 'next/link'
 
 export default function LoginPage() {
@@ -17,14 +18,16 @@ export default function LoginPage() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
-  const [serverError, setServerError] = useState(errorParam === 'suspended' ? 'החשבון שלך הושעה. פנה למנהל.' : '')
+  const [serverError, setServerError] = useState(
+    errorParam === 'suspended' ? 'החשבון שלך הושעה. פנה למנהל.' :
+    errorParam === 'auth_failed' ? 'שגיאה באימות. נסה להתחבר שוב.' : ''
+  )
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrors({})
     setServerError('')
 
-    // Client validation
     const result = loginSchema.safeParse(form)
     if (!result.success) {
       const fieldErrors: Record<string, string> = {}
@@ -44,7 +47,6 @@ export default function LoginPage() {
         return
       }
 
-      // Check is_active
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         const { data: profile } = await supabase.from('users').select('role, is_active').eq('id', user.id).single()
@@ -55,13 +57,11 @@ export default function LoginPage() {
           return
         }
 
-        // Update last login
         await supabase.from('users').update({ last_login_at: new Date().toISOString() }).eq('id', user.id)
 
-        // Redirect
         if (redirect) { router.push(redirect); return }
         const roleHome: Record<string, string> = { doctor: '/dashboard/doctor/dashboard', admin: '/dashboard/admin/dashboard', staff: '/dashboard/staff/dashboard' }
-        router.push(roleHome[profile?.role || ''] || '/patient/dashboard')
+        router.push(roleHome[profile?.role || ''] || '/dashboard/patient/dashboard')
       }
     } catch {
       setServerError('שגיאה לא צפויה')
@@ -71,64 +71,100 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 flex items-center justify-center p-4" dir="rtl">
-      <div className="w-full max-w-md">
-        <div className="text-center mb-8">
-          <h1 className="text-3xl font-bold text-gray-900">טלמדיסן</h1>
-          <p className="text-gray-500 mt-2">ייעוץ רפואי אונליין</p>
+    <AuthLayout title="התחברות" subtitle="הזן את פרטי ההתחברות כדי להיכנס לחשבון">
+      {/* Success banners */}
+      {onboardingSuccess && (
+        <div className="mb-5 flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700" role="alert">
+          <svg className="w-5 h-5 text-green-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+          </svg>
+          <span>המרפאה נוצרה בהצלחה! התחברו כדי להתחיל להשתמש במערכת.</span>
+        </div>
+      )}
+
+      {/* Server error */}
+      {serverError && (
+        <div className="mb-5 flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700" role="alert">
+          <svg className="w-5 h-5 text-red-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
+          </svg>
+          <span>{serverError}</span>
+        </div>
+      )}
+
+      {/* Form */}
+      <form onSubmit={handleSubmit} className="space-y-5" noValidate>
+        <Input
+          label="אימייל"
+          type="email"
+          placeholder="doctor@clinic.co.il"
+          value={form.email}
+          onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+          error={errors.email}
+          autoComplete="email"
+          required
+        />
+
+        <div>
+          <Input
+            label="סיסמה"
+            type="password"
+            placeholder="••••••••"
+            value={form.password}
+            onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
+            error={errors.password}
+            autoComplete="current-password"
+            required
+          />
+          <div className="flex justify-end mt-1.5">
+            <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors">
+              שכחת סיסמה?
+            </Link>
+          </div>
         </div>
 
-        <Card>
-          <CardContent className="p-6">
-            <h2 className="text-xl font-bold mb-6">התחברות</h2>
+        <Button type="submit" loading={loading} className="w-full" size="lg">
+          התחבר
+        </Button>
+      </form>
 
-            {onboardingSuccess && (
-              <div className="mb-4 p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700" role="alert">
-                המרפאה נוצרה בהצלחה! התחברו כדי להתחיל להשתמש במערכת.
-              </div>
-            )}
-
-            {serverError && (
-              <div className="mb-4 p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700" role="alert">{serverError}</div>
-            )}
-
-            <form onSubmit={handleSubmit} className="space-y-4" noValidate>
-              <Input
-                label="אימייל"
-                type="email"
-                placeholder="doctor@clinic.co.il"
-                value={form.email}
-                onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-                error={errors.email}
-                autoComplete="email"
-                required
-              />
-
-              <Input
-                label="סיסמה"
-                type="password"
-                placeholder="••••••••"
-                value={form.password}
-                onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
-                error={errors.password}
-                autoComplete="current-password"
-                required
-              />
-
-              <div className="flex justify-between items-center text-sm">
-                <Link href="/forgot-password" className="text-blue-600 hover:underline">שכחת סיסמה?</Link>
-              </div>
-
-              <Button type="submit" loading={loading} className="w-full" size="lg">התחבר</Button>
-            </form>
-
-            <div className="mt-6 text-center text-sm text-gray-500">
-              אין לך חשבון?{' '}
-              <Link href="/register" className="text-blue-600 hover:underline font-medium">הירשם עכשיו</Link>
-            </div>
-          </CardContent>
-        </Card>
+      {/* Divider */}
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200" /></div>
+        <div className="relative flex justify-center"><span className="bg-gray-50/50 px-3 text-xs text-gray-400">או</span></div>
       </div>
-    </div>
+
+      {/* Register link */}
+      <div className="text-center">
+        <p className="text-sm text-gray-500">
+          אין לך חשבון?{' '}
+          <Link href="/auth/register" className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors">
+            הירשם עכשיו — חינם
+          </Link>
+        </p>
+      </div>
+
+      {/* Trust badges */}
+      <div className="flex items-center justify-center gap-6 mt-8 pt-6 border-t border-gray-100">
+        <div className="flex items-center gap-1.5 text-gray-400">
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" />
+          </svg>
+          <span className="text-xs">SSL מאובטח</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-gray-400">
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
+          </svg>
+          <span className="text-xs">תקן HIPAA</span>
+        </div>
+        <div className="flex items-center gap-1.5 text-gray-400">
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="M9 12l2 2 4-4" />
+          </svg>
+          <span className="text-xs">מידע מוצפן</span>
+        </div>
+      </div>
+    </AuthLayout>
   )
 }

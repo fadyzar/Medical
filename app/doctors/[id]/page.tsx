@@ -3,6 +3,7 @@ import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createServiceRole } from '@/lib/supabase/server'
 import { SPECIALTIES, formatPrice } from '@/lib/utils'
+import { Breadcrumb } from '@/components/ui'
 
 // ── Types ──────────────────────────────────────────────
 
@@ -146,6 +147,7 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="text-2xl font-black text-blue-600">טלמדיסן</Link>
           <div className="flex items-center gap-4">
+            <Link href="/specialties" className="text-sm text-gray-600 hover:text-gray-900">התמחויות</Link>
             <Link href="/doctors" className="text-sm text-gray-600 hover:text-gray-900">הרופאים שלנו</Link>
             <Link href="/blog" className="text-sm text-gray-600 hover:text-gray-900">בלוג</Link>
             <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900">התחברות</Link>
@@ -156,6 +158,12 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
 
       {/* Doctor Profile */}
       <div className="max-w-4xl mx-auto px-4 py-12">
+        {/* Breadcrumb */}
+        <Breadcrumb items={[
+          { label: 'דף הבית', href: '/' },
+          { label: 'הרופאים שלנו', href: '/doctors' },
+          { label: `ד"ר ${doc.first_name} ${doc.last_name}` },
+        ]} />
         {/* Header Card */}
         <div className="bg-gradient-to-l from-blue-50 to-white rounded-2xl border border-gray-100 p-8 mb-8">
           <div className="flex flex-col sm:flex-row items-start gap-6">

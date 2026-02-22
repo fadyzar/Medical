@@ -92,6 +92,7 @@ export default async function DoctorsPage() {
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="text-2xl font-black text-blue-600">טלמדיסן</Link>
           <div className="flex items-center gap-4">
+            <Link href="/specialties" className="text-sm text-gray-600 hover:text-gray-900">התמחויות</Link>
             <Link href="/doctors" className="text-sm text-blue-600 font-medium">הרופאים שלנו</Link>
             <Link href="/blog" className="text-sm text-gray-600 hover:text-gray-900">בלוג</Link>
             <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900">התחברות</Link>
