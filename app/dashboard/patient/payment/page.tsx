@@ -4,7 +4,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Card, CardContent, CardHeader, Badge, Spinner, EmptyState } from '@/components/ui'
-import { formatPrice, cn } from '@/lib/utils'
+import { formatPrice, formatDateTime, cn } from '@/lib/utils'
 import type { Appointment, User } from '@/types/database'
 
 type PaymentState = 'loading' | 'summary' | 'paying' | 'success' | 'failed' | 'error' | 'already_paid'
@@ -227,6 +227,12 @@ export default function PaymentPage() {
                 <div className="flex justify-between">
                   <span className="text-gray-500">התמחות</span>
                   <span>{appointment.requested_specialty}</span>
+                </div>
+              )}
+              {appointment.scheduled_at && (
+                <div className="flex justify-between">
+                  <span className="text-gray-500">מועד התור</span>
+                  <span>{formatDateTime(appointment.scheduled_at)}</span>
                 </div>
               )}
               <div className="flex justify-between">

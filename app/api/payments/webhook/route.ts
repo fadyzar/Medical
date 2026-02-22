@@ -3,11 +3,45 @@ import { createServiceRole } from '@/lib/supabase/server'
 import { sendPaymentConfirmationWhatsApp } from '@/lib/whatsapp'
 import { generateInvoice } from '@/lib/invoice'
 import { sendPaymentReceipt } from '@/lib/email'
+import crypto from 'crypto'
+
+// ── Tranzila signature validation ─────────────────────
+function validateTranzilaSignature(params: URLSearchParams): boolean {
+  const apiKey = process.env.TRANZILA_API_KEY
+  if (!apiKey) {
+    console.warn('[Payment Webhook] TRANZILA_API_KEY not set — skipping signature validation')
+    return true
+  }
+
+  const receivedToken = params.get('TranzilaToken') || params.get('notify_url_token')
+  if (!receivedToken) {
+    console.error('[Payment Webhook] Missing TranzilaToken in webhook payload')
+    return false
+  }
+
+  const terminalName = process.env.TRANZILA_TERMINAL_NAME || ''
+  const sum = params.get('sum') || ''
+  const orderId = params.get('order_id') || params.get('orderid') || ''
+  const response = params.get('Response') || ''
+
+  const expected = crypto
+    .createHash('md5')
+    .update(`${terminalName}${apiKey}${sum}${orderId}${response}`)
+    .digest('hex')
+
+  return receivedToken === expected
+}
 
 export async function POST(req: Request) {
   try {
     const body = await req.text()
     const params = new URLSearchParams(body)
+
+    // ── Validate Tranzila signature ─────────────────────
+    if (!validateTranzilaSignature(params)) {
+      console.error('[Payment Webhook] Invalid signature')
+      return NextResponse.json({ error: 'Invalid signature' }, { status: 403 })
+    }
 
     // ── Parse Tranzila parameters ─────────────────────
     // Field names are case-sensitive per Tranzila docs
@@ -38,6 +72,17 @@ export async function POST(req: Request) {
 
     // ── Double-payment protection ─────────────────────────
     if (apt.payment_status === 'completed') {
+      return NextResponse.json({ status: 'already_processed' })
+    }
+
+    // ── Check idempotency: prevent duplicate payment records ──
+    const { data: existingPayment } = await admin.from('payments')
+      .select('id')
+      .eq('idempotency_key', idempotencyKey)
+      .eq('status', 'completed')
+      .maybeSingle()
+
+    if (existingPayment) {
       return NextResponse.json({ status: 'already_processed' })
     }
 
@@ -79,6 +124,26 @@ export async function POST(req: Request) {
         console.error('[Payment Webhook] Update failed:', updateError.message)
         return NextResponse.json({ error: 'Update failed' }, { status: 500 })
       }
+
+      // ── Create payment record ───────────────────────────
+      await admin.from('payments').insert({
+        organization_id: apt.organization_id,
+        appointment_id: apt.id,
+        patient_id: apt.patient_id,
+        amount: apt.payment_amount ?? (amount ? parseFloat(amount) : 0),
+        currency: 'ILS',
+        status: 'completed' as const,
+        provider: 'tranzila',
+        transaction_id: transactionId,
+        confirmation_code: confirmationCode,
+        idempotency_key: idempotencyKey,
+        masked_card: maskedCard,
+        response_code: responseCode,
+        metadata: {
+          index: transactionIndex,
+          raw_response: responseCode,
+        },
+      })
 
       // Audit log
       await admin.from('audit_logs').insert({
@@ -145,11 +210,29 @@ export async function POST(req: Request) {
         await sendPaymentReceipt({ appointmentId: apt.id, invoiceUrl, admin })
       } catch { /* non-critical */ }
     } else {
-      // Failed
+      // Failed — update appointment
       await admin.from('appointments').update({
         payment_status: 'failed',
         payment_transaction_id: transactionId,
       }).eq('id', apt.id)
+
+      // Create failed payment record
+      await admin.from('payments').insert({
+        organization_id: apt.organization_id,
+        appointment_id: apt.id,
+        patient_id: apt.patient_id,
+        amount: apt.payment_amount ?? (amount ? parseFloat(amount) : 0),
+        currency: 'ILS',
+        status: 'failed' as const,
+        provider: 'tranzila',
+        transaction_id: transactionId,
+        idempotency_key: idempotencyKey,
+        response_code: responseCode,
+        metadata: {
+          index: transactionIndex,
+          raw_response: responseCode,
+        },
+      })
 
       await admin.from('audit_logs').insert({
         organization_id: apt.organization_id,

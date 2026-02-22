@@ -12,6 +12,7 @@ export type Database = {
       notifications: { Row: Notification; Insert: Partial<Notification>; Update: Partial<Notification>; Relationships: [] }
       ai_conversations: { Row: AIConversation; Insert: Partial<AIConversation>; Update: Partial<AIConversation>; Relationships: [] }
       audit_logs: { Row: AuditLog; Insert: Partial<AuditLog>; Update: Partial<AuditLog>; Relationships: [] }
+      payments: { Row: Payment; Insert: Partial<Payment>; Update: Partial<Payment>; Relationships: [] }
     }
     Views: Record<string, never>
     Functions: {
@@ -142,4 +143,12 @@ export type AuditLog = {
   id: string; organization_id: string; user_id: string | null; action: string
   resource_type: string; resource_id: string | null; description: string | null
   metadata: Record<string, unknown>; created_at: string
+}
+
+export type Payment = {
+  id: string; organization_id: string; appointment_id: string; patient_id: string
+  amount: number; currency: string; status: 'pending' | 'completed' | 'failed' | 'refunded'
+  provider: string; transaction_id: string | null; confirmation_code: string | null
+  idempotency_key: string; masked_card: string | null; response_code: string | null
+  metadata: Record<string, unknown>; created_at: string; updated_at: string
 }
