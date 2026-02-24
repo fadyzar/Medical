@@ -1,9 +1,10 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { loginSchema } from '@/lib/validation/schemas'
+import { toast } from 'sonner'
 import { Button, Input } from '@/components/ui'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import Link from 'next/link'
@@ -22,6 +23,10 @@ export default function LoginPage() {
     errorParam === 'suspended' ? 'החשבון שלך הושעה. פנה למנהל.' :
     errorParam === 'auth_failed' ? 'שגיאה באימות. נסה להתחבר שוב.' : ''
   )
+
+  useEffect(() => {
+    if (onboardingSuccess) toast.success('המרפאה נוצרה בהצלחה! התחברו כדי להתחיל.')
+  }, [onboardingSuccess])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -42,7 +47,9 @@ export default function LoginPage() {
       const { error } = await supabase.auth.signInWithPassword({ email: form.email, password: form.password })
 
       if (error) {
-        setServerError(error.message === 'Invalid login credentials' ? 'אימייל או סיסמה שגויים' : 'שגיאה בהתחברות')
+        const msg = error.message === 'Invalid login credentials' ? 'אימייל או סיסמה שגויים' : 'שגיאה בהתחברות'
+        setServerError(msg)
+        toast.error(msg)
         setLoading(false)
         return
       }
@@ -53,6 +60,7 @@ export default function LoginPage() {
         if (profile && !profile.is_active) {
           await supabase.auth.signOut()
           setServerError('החשבון שלך הושעה. פנה למנהל.')
+          toast.error('החשבון שלך הושעה')
           setLoading(false)
           return
         }
@@ -65,6 +73,7 @@ export default function LoginPage() {
       }
     } catch {
       setServerError('שגיאה לא צפויה')
+      toast.error('שגיאה לא צפויה')
     } finally {
       setLoading(false)
     }
@@ -72,16 +81,6 @@ export default function LoginPage() {
 
   return (
     <AuthLayout title="התחברות" subtitle="הזן את פרטי ההתחברות כדי להיכנס לחשבון">
-      {/* Success banners */}
-      {onboardingSuccess && (
-        <div className="mb-5 flex items-start gap-3 p-4 bg-green-50 border border-green-200 rounded-xl text-sm text-green-700" role="alert">
-          <svg className="w-5 h-5 text-green-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
-          </svg>
-          <span>המרפאה נוצרה בהצלחה! התחברו כדי להתחיל להשתמש במערכת.</span>
-        </div>
-      )}
-
       {/* Server error */}
       {serverError && (
         <div className="mb-5 flex items-start gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700" role="alert">

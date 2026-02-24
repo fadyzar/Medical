@@ -6,6 +6,8 @@ import { getClient } from '@/lib/supabase/client'
 import { Button, Input, Card, CardContent, CardHeader, Badge, PageLoading, Textarea } from '@/components/ui'
 import { cn, getInitials, SPECIALTIES, formatPrice } from '@/lib/utils'
 import { uploadAvatar } from '@/lib/supabase/storage'
+import { doctorProfileSchema } from '@/lib/validation/schemas'
+import { toast } from 'sonner'
 import type { User } from '@/types/database'
 
 // ── Tag input for languages ──────────────────────────
@@ -72,7 +74,6 @@ export default function DoctorProfilePage() {
   const [profile, setProfile] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -166,6 +167,7 @@ export default function DoctorProfilePage() {
 
     if (uploadErr || !publicUrl) {
       setErrors(prev => ({ ...prev, avatar: uploadErr || 'שגיאה בהעלאת התמונה' }))
+      toast.error('שגיאה בהעלאת התמונה')
       setUploadingAvatar(false)
       if (fileInputRef.current) fileInputRef.current.value = ''
       return
@@ -177,6 +179,7 @@ export default function DoctorProfilePage() {
 
     if (updateError) {
       setErrors(prev => ({ ...prev, avatar: 'שגיאה בהעלאת התמונה' }))
+      toast.error('שגיאה בהעלאת התמונה')
     } else {
       setAvatarUrl(publicUrl)
       setProfile(prev => prev ? { ...prev, avatar_url: publicUrl } : null)
@@ -191,22 +194,24 @@ export default function DoctorProfilePage() {
   const handleSave = async () => {
     if (!profile) return
 
-    const newErrors: Record<string, string> = {}
-    if (consultationPrice && (isNaN(Number(consultationPrice)) || Number(consultationPrice) < 0)) {
-      newErrors.price = 'מחיר לא תקין'
-    }
-    if (phone && !/^0[2-9]\d{7,8}$/.test(phone)) {
-      newErrors.phone = 'מספר טלפון לא תקין'
-    }
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
+    const result = doctorProfileSchema.safeParse({
+      bio: bio || undefined,
+      consultation_price: consultationPrice || undefined,
+      license_number: licenseNumber || undefined,
+      phone: phone || undefined,
+    })
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {}
+      result.error.errors.forEach(e => {
+        const key = e.path[0] as string
+        fieldErrors[key === 'consultation_price' ? 'price' : key] = e.message
+      })
+      setErrors(fieldErrors)
       return
     }
 
     setSaving(true)
     setErrors({})
-    setSaved(false)
 
     try {
       const { error } = await supabase.from('users').update({
@@ -219,7 +224,7 @@ export default function DoctorProfilePage() {
       }).eq('id', profile.id)
 
       if (error) {
-        setErrors({ submit: 'שגיאה בשמירת הפרופיל' })
+        toast.error('שגיאה בשמירת הפרופיל')
       } else {
         setProfile(prev => prev ? {
           ...prev,
@@ -230,11 +235,10 @@ export default function DoctorProfilePage() {
           license_number: licenseNumber.trim() || null,
           phone: phone.trim() || null,
         } : null)
-        setSaved(true)
-        setTimeout(() => setSaved(false), 3000)
+        toast.success('הפרופיל נשמר בהצלחה')
       }
     } catch {
-      setErrors({ submit: 'שגיאה בשמירת הפרופיל' })
+      toast.error('שגיאה בשמירת הפרופיל')
     }
 
     setSaving(false)
@@ -461,19 +465,6 @@ export default function DoctorProfilePage() {
           )}
         </CardContent>
       </Card>
-
-      {/* ── Save / Errors ───────────────────────────────── */}
-      {errors.submit && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700" role="alert">
-          {errors.submit}
-        </div>
-      )}
-
-      {saved && (
-        <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700" role="status">
-          הפרופיל נשמר בהצלחה
-        </div>
-      )}
 
       <div className="flex justify-end">
         <Button onClick={handleSave} loading={saving} size="lg">

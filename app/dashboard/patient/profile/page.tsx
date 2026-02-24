@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Input, Card, CardContent, CardHeader, Badge, PageLoading } from '@/components/ui'
 import { cn, getInitials } from '@/lib/utils'
+import { patientProfileSchema } from '@/lib/validation/schemas'
+import { toast } from 'sonner'
 import type { User, MedicalHistory } from '@/types/database'
 
 // ── Tag input for medical lists ──────────────────────
@@ -113,7 +115,6 @@ export default function PatientProfilePage() {
   const [profile, setProfile] = useState<User | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
-  const [saved, setSaved] = useState(false)
   const [uploadingAvatar, setUploadingAvatar] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
 
@@ -269,6 +270,7 @@ export default function PatientProfilePage() {
       setProfile(prev => prev ? { ...prev, avatar_url: avatarWithBuster } : null)
     } catch {
       setErrors(prev => ({ ...prev, avatar: 'שגיאה בהעלאת התמונה' }))
+      toast.error('שגיאה בהעלאת התמונה')
     } finally {
       setUploadingAvatar(false)
       // Reset the input so the same file can be selected again
@@ -281,20 +283,27 @@ export default function PatientProfilePage() {
   const handleSave = async () => {
     if (!profile) return
 
-    const newErrors: Record<string, string> = {}
-    if (form.first_name.length < 2) newErrors.first_name = 'שם פרטי חייב להכיל לפחות 2 תווים'
-    if (form.last_name.length < 2) newErrors.last_name = 'שם משפחה חייב להכיל לפחות 2 תווים'
-    if (form.phone && !/^0[2-9]\d{7,8}$/.test(form.phone)) newErrors.phone = 'מספר טלפון לא תקין'
-    if (emergency.phone && !/^0[2-9]\d{7,8}$/.test(emergency.phone)) newErrors.emergency_phone = 'מספר טלפון לא תקין'
-
-    if (Object.keys(newErrors).length > 0) {
-      setErrors(newErrors)
+    const result = patientProfileSchema.safeParse({
+      first_name: form.first_name,
+      last_name: form.last_name,
+      phone: form.phone || undefined,
+      date_of_birth: form.date_of_birth || undefined,
+      gender: form.gender || undefined,
+      id_number: form.id_number || undefined,
+      emergency_phone: emergency.phone || undefined,
+    })
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {}
+      result.error.errors.forEach(e => {
+        const key = e.path[0] as string
+        fieldErrors[key] = e.message
+      })
+      setErrors(fieldErrors)
       return
     }
 
     setSaving(true)
     setErrors({})
-    setSaved(false)
 
     const updatedMetadata = {
       ...(profile.metadata || {}),
@@ -316,7 +325,7 @@ export default function PatientProfilePage() {
       }).eq('id', profile.id)
 
       if (error) {
-        setErrors({ submit: 'שגיאה בשמירת הפרופיל' })
+        toast.error('שגיאה בשמירת הפרופיל')
       } else {
         // Update local profile state for completion calc
         setProfile(prev => prev ? {
@@ -331,11 +340,10 @@ export default function PatientProfilePage() {
           insurance_info: insurance,
           metadata: updatedMetadata,
         } : null)
-        setSaved(true)
-        setTimeout(() => setSaved(false), 3000)
+        toast.success('הפרופיל נשמר בהצלחה')
       }
     } catch {
-      setErrors({ submit: 'שגיאת רשת בשמירת הפרופיל' })
+      toast.error('שגיאת רשת בשמירת הפרופיל')
     } finally {
       setSaving(false)
     }
@@ -683,19 +691,6 @@ export default function PatientProfilePage() {
           </div>
         </CardContent>
       </Card>
-
-      {/* ── Save / Errors ───────────────────────────────── */}
-      {errors.submit && (
-        <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700" role="alert">
-          {errors.submit}
-        </div>
-      )}
-
-      {saved && (
-        <div className="p-3 bg-green-50 border border-green-200 rounded-lg text-sm text-green-700" role="status">
-          הפרופיל נשמר בהצלחה
-        </div>
-      )}
 
       <div className="flex justify-end">
         <Button onClick={handleSave} loading={saving} size="lg">

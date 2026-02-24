@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Input } from '@/components/ui'
 import { AuthLayout } from '@/components/layout/AuthLayout'
+import { resetPasswordSchema } from '@/lib/validation/schemas'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
@@ -54,24 +56,9 @@ export default function ResetPasswordPage() {
     e.preventDefault()
     setError('')
 
-    if (password.length < 8) {
-      setError('הסיסמה חייבת להכיל לפחות 8 תווים')
-      return
-    }
-    if (!/[a-z]/.test(password)) {
-      setError('הסיסמה חייבת להכיל אות קטנה')
-      return
-    }
-    if (!/[A-Z]/.test(password)) {
-      setError('הסיסמה חייבת להכיל אות גדולה')
-      return
-    }
-    if (!/\d/.test(password)) {
-      setError('הסיסמה חייבת להכיל מספר')
-      return
-    }
-    if (password !== confirmPassword) {
-      setError('הסיסמאות לא תואמות')
+    const result = resetPasswordSchema.safeParse({ password, confirmPassword })
+    if (!result.success) {
+      setError(result.error.errors[0].message)
       return
     }
 
@@ -85,10 +72,12 @@ export default function ResetPasswordPage() {
         } else {
           setError('שגיאה בעדכון הסיסמה. נסה שוב.')
         }
+        toast.error('שגיאה בעדכון הסיסמה')
         return
       }
 
       setSuccess(true)
+      toast.success('הסיסמה עודכנה בהצלחה!')
 
       // Redirect to dashboard after 2 seconds
       setTimeout(() => {
@@ -96,6 +85,7 @@ export default function ResetPasswordPage() {
       }, 2000)
     } catch {
       setError('שגיאה לא צפויה')
+      toast.error('שגיאה לא צפויה')
     } finally {
       setLoading(false)
     }
