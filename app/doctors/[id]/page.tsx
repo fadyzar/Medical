@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { createServiceRole } from '@/lib/supabase/server'
 import { SPECIALTIES, formatPrice } from '@/lib/utils'
@@ -65,6 +66,11 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
       type: 'profile',
       locale: 'he_IL',
       url: `${BASE_URL}/doctors/${id}`,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title: `${name} — טלמדיסן`,
+      description,
     },
     alternates: { canonical: `${BASE_URL}/doctors/${id}` },
   }
@@ -170,10 +176,11 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
             {/* Avatar */}
             <div className="shrink-0">
               {doc.avatar_url ? (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img
+                <Image
                   src={doc.avatar_url}
-                  alt={`ד"ר ${doc.first_name} ${doc.last_name}`}
+                  alt={`תמונת פרופיל של ד"ר ${doc.first_name} ${doc.last_name}`}
+                  width={112}
+                  height={112}
                   className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-lg"
                 />
               ) : (

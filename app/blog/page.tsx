@@ -16,6 +16,11 @@ export const metadata: Metadata = {
     locale: 'he_IL',
     url: `${BASE_URL}/blog`,
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'בלוג רפואי | טלמדיסן',
+    description: 'מאמרים רפואיים, מדריכים וטיפים בנושאי בריאות וטלרפואה.',
+  },
   alternates: { canonical: `${BASE_URL}/blog` },
 }
 

@@ -15,6 +15,11 @@ export const metadata: Metadata = {
     locale: 'he_IL',
     url: `${BASE_URL}/specialties`,
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'התמחויות רפואיות — ייעוץ אונליין | טלמדיסן',
+    description: 'ייעוץ רפואי אונליין בכל ההתמחויות. רופאים מומחים בשיחת וידאו.',
+  },
   alternates: { canonical: `${BASE_URL}/specialties` },
 }
 
@@ -38,8 +43,23 @@ const SPECIALTY_DETAILS: Record<string, { icon: string; description: string }> =
 }
 
 export default function SpecialtiesPage() {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'MedicalBusiness',
+    name: 'טלמדיסן — התמחויות רפואיות',
+    url: `${BASE_URL}/specialties`,
+    description: 'ייעוץ רפואי אונליין בכל ההתמחויות',
+    areaServed: { '@type': 'Country', name: 'Israel' },
+    availableService: SPECIALTIES.map(s => ({
+      '@type': 'MedicalProcedure',
+      name: `ייעוץ ${s.label} אונליין`,
+      procedureType: 'http://schema.org/NoninvasiveProcedure',
+    })),
+  }
+
   return (
     <div className="min-h-screen bg-white" dir="rtl">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">

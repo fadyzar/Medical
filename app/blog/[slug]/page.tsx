@@ -34,6 +34,11 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
       ...(post.updatedAt && { modifiedTime: post.updatedAt }),
       authors: [post.author.name],
     },
+    twitter: {
+      card: 'summary_large_image',
+      title: post.seoTitle,
+      description: post.seoDescription,
+    },
     alternates: { canonical: `${BASE_URL}/blog/${post.slug}` },
   }
 }
