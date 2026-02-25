@@ -4,6 +4,8 @@ import { useEffect, useState } from 'react'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Input, Card, CardHeader, CardContent, PageLoading, Spinner } from '@/components/ui'
 import { uploadLogo } from '@/lib/supabase/storage'
+import { adminSettingsSchema } from '@/lib/validation/schemas'
+import { toast } from 'sonner'
 import type { Organization } from '@/types/database'
 
 type WorkingHours = {
@@ -28,8 +30,7 @@ export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [org, setOrg] = useState<Organization | null>(null)
-  const [success, setSuccess] = useState('')
-  const [error, setError] = useState('')
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({})
 
   // Form state
   const [name, setName] = useState('')
@@ -100,12 +101,11 @@ export default function AdminSettingsPage() {
     if (!file || !org) return
 
     setUploadingLogo(true)
-    setError('')
 
     const { publicUrl, error: uploadErr } = await uploadLogo(supabase, file, { orgId: org.id })
 
     if (uploadErr || !publicUrl) {
-      setError(uploadErr || 'שגיאה בהעלאת הלוגו')
+      toast.error(uploadErr || 'שגיאה בהעלאת הלוגו')
       setUploadingLogo(false)
       return
     }
@@ -116,9 +116,27 @@ export default function AdminSettingsPage() {
 
   async function handleSave() {
     if (!org) return
+
+    const result = adminSettingsSchema.safeParse({
+      name,
+      contact_email: contactEmail || undefined,
+      contact_phone: contactPhone || undefined,
+      primary_color: primaryColor,
+      secondary_color: secondaryColor,
+      default_price: defaultPrice || undefined,
+    })
+    if (!result.success) {
+      const errors: Record<string, string> = {}
+      result.error.errors.forEach(e => {
+        const key = e.path[0] as string
+        errors[key] = e.message
+      })
+      setFieldErrors(errors)
+      return
+    }
+
     setSaving(true)
-    setError('')
-    setSuccess('')
+    setFieldErrors({})
 
     const settings: Record<string, unknown> = {
       ...(org.settings || {}),
@@ -135,22 +153,25 @@ export default function AdminSettingsPage() {
       email_notifications: emailNotifications,
     }
 
-    const { error: err } = await supabase.from('organizations').update({
-      name,
-      contact_email: contactEmail || null,
-      contact_phone: contactPhone || null,
-      logo_url: logoUrl || null,
-      primary_color: primaryColor,
-      secondary_color: secondaryColor,
-      settings,
-      features,
-    }).eq('id', org.id)
+    try {
+      const { error: err } = await supabase.from('organizations').update({
+        name,
+        contact_email: contactEmail || null,
+        contact_phone: contactPhone || null,
+        logo_url: logoUrl || null,
+        primary_color: primaryColor,
+        secondary_color: secondaryColor,
+        settings,
+        features,
+      }).eq('id', org.id)
 
-    if (err) {
-      setError('שגיאה בשמירה: ' + err.message)
-    } else {
-      setSuccess('ההגדרות נשמרו בהצלחה')
-      setTimeout(() => setSuccess(''), 3000)
+      if (err) {
+        toast.error('שגיאה בשמירה: ' + err.message)
+      } else {
+        toast.success('ההגדרות נשמרו בהצלחה')
+      }
+    } catch {
+      toast.error('שגיאת רשת בשמירת ההגדרות')
     }
     setSaving(false)
   }
@@ -170,10 +191,10 @@ export default function AdminSettingsPage() {
         <CardHeader><h3 className="font-bold">פרטי המרפאה</h3></CardHeader>
         <CardContent>
           <div className="space-y-4">
-            <Input label="שם המרפאה" value={name} onChange={e => setName(e.target.value)} />
+            <Input label="שם המרפאה" value={name} onChange={e => { setName(e.target.value); setFieldErrors(p => { const n = { ...p }; delete n.name; return n }) }} error={fieldErrors.name} />
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <Input label="אימייל ליצירת קשר" type="email" value={contactEmail} onChange={e => setContactEmail(e.target.value)} />
-              <Input label="טלפון" type="tel" value={contactPhone} onChange={e => setContactPhone(e.target.value)} placeholder="03-1234567" />
+              <Input label="אימייל ליצירת קשר" type="email" value={contactEmail} onChange={e => { setContactEmail(e.target.value); setFieldErrors(p => { const n = { ...p }; delete n.contact_email; return n }) }} error={fieldErrors.contact_email} />
+              <Input label="טלפון" type="tel" value={contactPhone} onChange={e => { setContactPhone(e.target.value); setFieldErrors(p => { const n = { ...p }; delete n.contact_phone; return n }) }} error={fieldErrors.contact_phone} placeholder="03-1234567" />
             </div>
             <div className="space-y-3">
               <label className="block text-sm font-medium text-gray-700">לוגו המרפאה</label>
@@ -236,7 +257,7 @@ export default function AdminSettingsPage() {
                   className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
                   aria-label="צבע ראשי"
                 />
-                <Input value={primaryColor} onChange={e => setPrimaryColor(e.target.value)} className="flex-1" aria-label="קוד צבע ראשי" />
+                <Input value={primaryColor} onChange={e => { setPrimaryColor(e.target.value); setFieldErrors(p => { const n = { ...p }; delete n.primary_color; return n }) }} error={fieldErrors.primary_color} className="flex-1" aria-label="קוד צבע ראשי" />
               </div>
             </div>
             <div className="space-y-1.5">
@@ -250,7 +271,7 @@ export default function AdminSettingsPage() {
                   className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
                   aria-label="צבע משני"
                 />
-                <Input value={secondaryColor} onChange={e => setSecondaryColor(e.target.value)} className="flex-1" aria-label="קוד צבע משני" />
+                <Input value={secondaryColor} onChange={e => { setSecondaryColor(e.target.value); setFieldErrors(p => { const n = { ...p }; delete n.secondary_color; return n }) }} error={fieldErrors.secondary_color} className="flex-1" aria-label="קוד צבע משני" />
               </div>
             </div>
           </div>
@@ -314,7 +335,8 @@ export default function AdminSettingsPage() {
               label="מחיר ייעוץ ברירת מחדל (₪)"
               type="number"
               value={defaultPrice}
-              onChange={e => setDefaultPrice(e.target.value)}
+              onChange={e => { setDefaultPrice(e.target.value); setFieldErrors(p => { const n = { ...p }; delete n.default_price; return n }) }}
+              error={fieldErrors.default_price}
               placeholder="300"
               hint="ניתן לעדכן מחיר בנפרד לכל רופא"
             />
@@ -411,10 +433,6 @@ export default function AdminSettingsPage() {
           </CardContent>
         </Card>
       )}
-
-      {/* Save */}
-      {error && <p className="text-sm text-red-600 bg-red-50 px-4 py-2 rounded-lg" role="alert">{error}</p>}
-      {success && <p className="text-sm text-green-600 bg-green-50 px-4 py-2 rounded-lg" role="status">{success}</p>}
 
       <div className="flex justify-end pb-6">
         <Button onClick={handleSave} loading={saving} size="lg">שמור הגדרות</Button>

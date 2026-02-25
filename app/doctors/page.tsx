@@ -18,6 +18,11 @@ export const metadata: Metadata = {
     locale: 'he_IL',
     url: `${BASE_URL}/doctors`,
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'הרופאים שלנו — טלמדיסן',
+    description: 'מצא רופא מומחה לייעוץ אונליין בוידאו. כל ההתמחויות. קבע תור היום.',
+  },
   alternates: { canonical: `${BASE_URL}/doctors` },
 }
 

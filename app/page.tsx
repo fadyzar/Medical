@@ -15,6 +15,11 @@ export const metadata: Metadata = {
     locale: 'he_IL',
     url: BASE_URL,
   },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'טלמדיסן — ייעוץ רפואי אונליין',
+    description: 'ייעוץ רפואי בוידאו עם רופאים מומחים. AI, שאלונים, תשלומים מאובטחים.',
+  },
   alternates: { canonical: BASE_URL },
 }
 
@@ -43,8 +48,29 @@ const FAQS = [
 ]
 
 export default function LandingPage() {
+  const faqJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: FAQS.map(faq => ({
+      '@type': 'Question',
+      name: faq.q,
+      acceptedAnswer: { '@type': 'Answer', text: faq.a },
+    })),
+  }
+
+  const orgJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'טלמדיסן',
+    url: BASE_URL,
+    description: 'פלטפורמת ייעוץ רפואי אונליין מתקדמת — רופאים מומחים, סיכומי AI, שאלונים דינמיים, תשלומים מאובטחים.',
+    areaServed: { '@type': 'Country', name: 'Israel' },
+  }
+
   return (
     <div className="min-h-screen bg-white" dir="rtl">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
       {/* ═══════════════════════ NAV ═══════════════════════ */}
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-lg border-b border-gray-100">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 h-16 flex items-center justify-between">

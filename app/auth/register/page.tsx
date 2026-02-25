@@ -4,6 +4,7 @@ import { useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { registerSchema } from '@/lib/validation/schemas'
+import { toast } from 'sonner'
 import { Button, Input, Select } from '@/components/ui'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { cn } from '@/lib/utils'
@@ -142,8 +143,9 @@ export default function RegisterPage() {
       })
 
       if (error) {
-        if (error.message.includes('already registered')) setServerError('משתמש עם אימייל זה כבר קיים. נסה להתחבר.')
-        else setServerError('שגיאה בהרשמה: ' + error.message)
+        const msg = error.message.includes('already registered') ? 'משתמש עם אימייל זה כבר קיים. נסה להתחבר.' : 'שגיאה בהרשמה: ' + error.message
+        setServerError(msg)
+        toast.error(msg)
         setLoading(false)
         return
       }
@@ -151,6 +153,7 @@ export default function RegisterPage() {
       // Supabase returns user with empty identities array for duplicate emails
       if (data.user && data.user.identities && data.user.identities.length === 0) {
         setServerError('משתמש עם אימייל זה כבר קיים. נסה להתחבר.')
+        toast.error('משתמש עם אימייל זה כבר קיים')
         setLoading(false)
         return
       }
@@ -173,13 +176,16 @@ export default function RegisterPage() {
           // Non-critical — user can complete profile later
         }
 
+        toast.success('נרשמת בהצלחה!')
         router.push('/dashboard/patient/dashboard')
       } else {
         // Email confirmation is required — show success message
         setEmailSent(true)
+        toast.success('נרשמת בהצלחה! בדוק את האימייל לאימות.')
       }
     } catch {
       setServerError('שגיאה לא צפויה')
+      toast.error('שגיאה לא צפויה')
     } finally {
       setLoading(false)
     }

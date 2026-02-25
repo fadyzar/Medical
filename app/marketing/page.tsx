@@ -1,9 +1,25 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://your-domain.co.il'
+
 export const metadata: Metadata = {
   title: 'טלמדיסן — ייעוץ רפואי אונליין | הפלטפורמה המובילה',
   description: 'ייעוץ רפואי אונליין בוידאו עם רופאים מומחים. סיכומי AI חכמים, שאלונים דינמיים, תשלומים מאובטחים. הפלטפורמה הרפואית המתקדמת בישראל.',
+  keywords: ['טלמדיסן', 'ייעוץ רפואי אונליין', 'telemedicine', 'רופא אונליין', 'SaaS רפואי', 'פלטפורמה רפואית'],
+  openGraph: {
+    title: 'טלמדיסן — ייעוץ רפואי אונליין | הפלטפורמה המובילה',
+    description: 'ייעוץ רפואי בוידאו עם רופאים מומחים. AI, שאלונים, תשלומים מאובטחים.',
+    type: 'website',
+    locale: 'he_IL',
+    url: `${BASE_URL}/marketing`,
+  },
+  twitter: {
+    card: 'summary_large_image',
+    title: 'טלמדיסן — ייעוץ רפואי אונליין',
+    description: 'ייעוץ רפואי בוידאו עם רופאים מומחים. AI, שאלונים, תשלומים מאובטחים.',
+  },
+  alternates: { canonical: `${BASE_URL}/marketing` },
 }
 
 // ── SVG Icons ────────────────────────────────────────
@@ -90,8 +106,26 @@ const stats = [
 ]
 
 export default function MarketingPage() {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'SoftwareApplication',
+    name: 'טלמדיסן',
+    url: `${BASE_URL}/marketing`,
+    applicationCategory: 'HealthApplication',
+    operatingSystem: 'Web',
+    description: 'פלטפורמת ייעוץ רפואי אונליין — וידאו HD, סוכני AI, שאלונים דינמיים, תשלומים מאובטחים, מרשם דיגיטלי.',
+    featureList: 'ייעוץ וידאו HD, סוכני AI חכמים, שאלונים דינמיים, תשלום מאובטח, מרשם דיגיטלי, פרטיות HIPAA',
+    offers: {
+      '@type': 'Offer',
+      price: '0',
+      priceCurrency: 'ILS',
+      description: 'הרשמה חינם',
+    },
+  }
+
   return (
     <div className="min-h-screen bg-white" dir="rtl">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">

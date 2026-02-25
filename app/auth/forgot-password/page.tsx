@@ -4,6 +4,8 @@ import { useState } from 'react'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Input } from '@/components/ui'
 import { AuthLayout } from '@/components/layout/AuthLayout'
+import { forgotPasswordSchema } from '@/lib/validation/schemas'
+import { toast } from 'sonner'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
@@ -15,8 +17,8 @@ export default function ForgotPasswordPage() {
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (!email) { setError('הזן כתובת אימייל'); return }
-    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) { setError('כתובת אימייל לא תקינה'); return }
+    const result = forgotPasswordSchema.safeParse({ email })
+    if (!result.success) { setError(result.error.errors[0].message); return }
 
     setLoading(true)
     setError('')
@@ -24,10 +26,16 @@ export default function ForgotPasswordPage() {
       const { error: err } = await getClient().auth.resetPasswordForEmail(email, {
         redirectTo: `${window.location.origin}/auth/reset-password`,
       })
-      if (err) setError('שגיאה בשליחת האימייל. נסה שוב.')
-      else setSent(true)
+      if (err) {
+        setError('שגיאה בשליחת האימייל. נסה שוב.')
+        toast.error('שגיאה בשליחת האימייל')
+      } else {
+        setSent(true)
+        toast.success('קישור לאיפוס סיסמה נשלח לאימייל שלך')
+      }
     } catch {
       setError('שגיאה לא צפויה')
+      toast.error('שגיאה לא צפויה')
     } finally {
       setLoading(false)
     }

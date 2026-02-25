@@ -6,6 +6,7 @@ import { Button, Input, Card, CardContent, Badge, Spinner } from '@/components/u
 import { cn, formatPrice } from '@/lib/utils'
 import { PLANS, FEATURE_LABELS, type PlanId } from '@/lib/config/plans'
 import { onboardingClinicSchema, onboardingAdminSchema, onboardingBrandingSchema } from '@/lib/validation/onboarding-schema'
+import { toast } from 'sonner'
 import { getClient } from '@/lib/supabase/client'
 
 type Step = 'clinic' | 'plan' | 'branding' | 'doctor' | 'complete'
@@ -257,11 +258,13 @@ export default function OnboardingPage() {
 
       if (!res.ok) {
         setSubmitError(data.error || 'שגיאה ביצירת המרפאה')
+        toast.error(data.error || 'שגיאה ביצירת המרפאה')
         setLoading(false)
         return
       }
 
       setStep('complete')
+      toast.success('המרפאה נוצרה בהצלחה!')
 
       if (data.stripeCheckoutUrl) {
         setTimeout(() => {
@@ -274,6 +277,7 @@ export default function OnboardingPage() {
       }
     } catch {
       setSubmitError('שגיאה בחיבור לשרת')
+      toast.error('שגיאה בחיבור לשרת')
     } finally {
       setLoading(false)
     }

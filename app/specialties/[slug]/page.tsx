@@ -224,6 +224,11 @@ export function generateMetadata({ params }: { params: Promise<{ slug: string }>
         locale: 'he_IL',
         url: `${BASE_URL}/specialties/${slug}`,
       },
+      twitter: {
+        card: 'summary_large_image',
+        title: `${content.title} — ייעוץ רפואי אונליין | טלמדיסן`,
+        description: content.metaDescription,
+      },
       alternates: { canonical: `${BASE_URL}/specialties/${slug}` },
     }
   })

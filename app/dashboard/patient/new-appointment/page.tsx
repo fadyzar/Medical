@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Input, Textarea, Select, Card, CardContent, Spinner, Badge } from '@/components/ui'
 import { SPECIALTIES, formatPrice, cn } from '@/lib/utils'
+import { newAppointmentSchema } from '@/lib/validation/schemas'
+import { toast } from 'sonner'
 import type { User } from '@/types/database'
 
 type Step = 'specialty' | 'doctor' | 'details' | 'documents' | 'confirm'
@@ -55,8 +57,15 @@ export default function NewAppointmentPage() {
   const selectedDoctor = doctors.find(d => d.id === form.doctor_id)
 
   const handleSubmit = async () => {
-    if (!form.chief_complaint || form.chief_complaint.length < 5) {
-      setErrors({ chief_complaint: 'תאר את הבעיה בלפחות 5 תווים' }); return
+    const result = newAppointmentSchema.safeParse(form)
+    if (!result.success) {
+      const fieldErrors: Record<string, string> = {}
+      result.error.errors.forEach(e => {
+        const key = e.path[0] as string
+        fieldErrors[key] = e.message
+      })
+      setErrors(fieldErrors)
+      return
     }
 
     setLoading(true)
@@ -68,6 +77,7 @@ export default function NewAppointmentPage() {
       const { data: profile } = await supabase.from('users').select('organization_id').eq('id', user.id).single()
       if (!profile) {
         setErrors({ submit: 'לא ניתן לזהות את הפרופיל שלך. נסה לרענן את הדף.' })
+        toast.error('לא ניתן לזהות את הפרופיל שלך')
         setLoading(false)
         return
       }
@@ -128,6 +138,7 @@ export default function NewAppointmentPage() {
 
       // Show success, then redirect
       setSuccess(true)
+      toast.success('הבקשה נשלחה בהצלחה!')
 
       // Redirect to payment if appointment has a cost, otherwise to dashboard
       setTimeout(() => {
@@ -139,6 +150,7 @@ export default function NewAppointmentPage() {
       }, 1500)
     } catch {
       setErrors({ submit: 'שגיאה ביצירת התור' })
+      toast.error('שגיאה ביצירת התור')
     } finally {
       setLoading(false)
     }
