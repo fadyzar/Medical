@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 import { Button, Input, Select, Card, CardContent, Badge, PageLoading, EmptyState } from '@/components/ui'
 import { formatDateTime, cn } from '@/lib/utils'
 import type { AuditLog } from '@/types/database'
@@ -101,6 +102,7 @@ export default function AuditLogPage() {
 
       setOrgId((profile as unknown as { organization_id: string }).organization_id)
     } catch {
+      toast.error('שגיאה בטעינת יומן הביקורת')
       setLoading(false)
     }
   }
@@ -125,7 +127,10 @@ export default function AuditLogPage() {
       if (resourceFilter) query = query.eq('resource_type', resourceFilter)
       if (dateFrom) query = query.gte('created_at', `${dateFrom}T00:00:00`)
       if (dateTo) query = query.lte('created_at', `${dateTo}T23:59:59`)
-      if (search) query = query.or(`description.ilike.%${search}%,action.ilike.%${search}%`)
+      if (search) {
+        const s = search.replace(/[%_]/g, '')
+        query = query.or(`description.ilike.%${s}%,action.ilike.%${s}%`)
+      }
 
       const { data, count } = await query
 
@@ -150,7 +155,7 @@ export default function AuditLogPage() {
         }
       }
     } catch {
-      // Prevents infinite loading on network error
+      toast.error('שגיאה בטעינת יומן הביקורת')
     } finally {
       setLoading(false)
     }

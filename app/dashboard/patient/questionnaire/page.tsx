@@ -403,8 +403,21 @@ export default function PatientQuestionnairePage() {
                 {q.type === 'image' && (
                   <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer">
                     <input type="file" accept="image/*" className="hidden" id={`img_${q.id}`}
-                      onChange={e => {
-                        if (e.target.files?.[0]) setAnswer(q.id, e.target.files[0].name)
+                      onChange={async e => {
+                        const file = e.target.files?.[0]
+                        if (!file) return
+                        try {
+                          const supabase = (await import('@/lib/supabase/client')).getClient()
+                          const { data: { user } } = await supabase.auth.getUser()
+                          if (!user) return
+                          const path = `questionnaires/${user.id}/${Date.now()}-${file.name}`
+                          const { error: uploadErr } = await supabase.storage.from('medical-documents').upload(path, file)
+                          if (uploadErr) { setErrors(prev => ({ ...prev, [q.id]: 'שגיאה בהעלאת התמונה' })); return }
+                          const { data: urlData } = supabase.storage.from('medical-documents').getPublicUrl(path)
+                          setAnswer(q.id, urlData.publicUrl)
+                        } catch {
+                          setErrors(prev => ({ ...prev, [q.id]: 'שגיאה בהעלאת התמונה' }))
+                        }
                       }} />
                     <label htmlFor={`img_${q.id}`} className="cursor-pointer">
                       {answers[q.id] ? (

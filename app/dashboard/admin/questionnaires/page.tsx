@@ -3,6 +3,7 @@
 import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 import { Button, Input, Textarea, Select, Card, CardContent, CardHeader, Badge, PageLoading, EmptyState, Spinner } from '@/components/ui'
 import { SPECIALTIES, cn, formatDateTime } from '@/lib/utils'
 import type { Questionnaire, QuestionItem } from '@/types/database'
@@ -83,7 +84,7 @@ export default function AdminQuestionnairesPage() {
 
       if (data) setQuestionnaires(data as unknown as Questionnaire[])
     } catch {
-      // Prevents infinite loading on network error
+      toast.error('שגיאה בטעינת השאלונים')
     } finally {
       setLoading(false)
     }

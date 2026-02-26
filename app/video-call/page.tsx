@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Card, CardContent, Spinner } from '@/components/ui'
@@ -41,11 +41,14 @@ export default function VideoCallPage() {
 
   const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL
 
+  const previewStreamRef = React.useRef<MediaStream | null>(null)
+  previewStreamRef.current = previewStream
+
   useEffect(() => {
     if (!id) { setError('חסר מזהה תור'); setState('error'); return }
     init(id)
     return () => {
-      previewStream?.getTracks().forEach(t => t.stop())
+      previewStreamRef.current?.getTracks().forEach(t => t.stop())
     }
   }, [id])
 

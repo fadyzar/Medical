@@ -90,7 +90,7 @@ export default function AdminSettingsPage() {
       const features = organization.features || {}
       setEmailNotifications(features.email_notifications !== false)
     } catch {
-      // Prevents infinite loading on network error
+      toast.error('שגיאה בטעינת ההגדרות')
     } finally {
       setLoading(false)
     }

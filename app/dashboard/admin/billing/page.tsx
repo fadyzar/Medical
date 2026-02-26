@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 import { Button, Input, Card, CardContent, Badge, PageLoading } from '@/components/ui'
 import { formatPrice, cn } from '@/lib/utils'
 import { PLANS, FEATURE_LABELS } from '@/lib/config/plans'
@@ -70,7 +71,7 @@ export default function BillingPage() {
 
       if (orgData) setOrg(orgData as unknown as Organization)
     } catch {
-      // Prevents infinite loading on network error
+      toast.error('שגיאה בטעינת נתוני החיוב')
     } finally {
       setLoading(false)
     }

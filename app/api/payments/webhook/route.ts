@@ -10,8 +10,8 @@ import crypto from 'crypto'
 function validateTranzilaSignature(params: URLSearchParams): boolean {
   const apiKey = process.env.TRANZILA_API_KEY
   if (!apiKey) {
-    console.warn('[Payment Webhook] TRANZILA_API_KEY not set — skipping signature validation')
-    return true
+    console.error('[Payment Webhook] TRANZILA_API_KEY not set — rejecting webhook')
+    return false
   }
 
   const receivedToken = params.get('TranzilaToken') || params.get('notify_url_token')

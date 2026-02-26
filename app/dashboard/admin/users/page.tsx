@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { getClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 import { Button, Input, Select, Card, CardHeader, CardContent, Badge, PageLoading, EmptyState } from '@/components/ui'
 import { formatDateTime, SPECIALTIES, cn } from '@/lib/utils'
 import type { User, UserRole } from '@/types/database'
@@ -74,7 +75,7 @@ export default function AdminUsersPage() {
 
       setUsers((data || []) as unknown as User[])
     } catch {
-      // Prevents infinite loading on network error
+      toast.error('שגיאה בטעינת רשימת המשתמשים')
     } finally {
       setLoading(false)
     }

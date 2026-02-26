@@ -240,7 +240,7 @@ export default function PatientProfilePage() {
       const path = `avatars/${profile.organization_id}/${profile.id}.${ext}`
 
       // Delete old avatar if exists
-      if (profile.avatar_url) {
+      if (profile.avatar_url && profile.avatar_url.includes('/storage/v1/object/public/avatars/')) {
         const oldPath = profile.avatar_url.split('/storage/v1/object/public/avatars/')[1]
         if (oldPath) {
           await supabase.storage.from('avatars').remove([oldPath])

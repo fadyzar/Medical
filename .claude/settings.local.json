@@ -1,0 +1,43 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(npx tsc:*)",
+      "Bash(npm ls:*)",
+      "Bash(npm view:*)",
+      "Bash(npm install:*)",
+      "Bash(npm run build:*)",
+      "Bash(git add:*)",
+      "Bash(git config:*)",
+      "Bash(git commit:*)",
+      "Bash(gh auth:*)",
+      "Bash(where:*)",
+      "Bash(winget install:*)",
+      "Bash(/tmp/gh/bin/gh.exe auth status:*)",
+      "Bash(/tmp/gh/bin/gh.exe auth login:*)",
+      "WebSearch",
+      "WebFetch(domain:docs.tranzila.com)",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:gist.github.com)",
+      "WebFetch(domain:docplayer.net)",
+      "WebFetch(domain:docs.bill.run)",
+      "Bash(grep:*)",
+      "Bash(gh repo create:*)",
+      "Bash(ls:*)",
+      "Bash(cmd //c \"where gh\")",
+      "Bash(cmd //c \"echo %PATH%\")",
+      "Bash(tr:*)",
+      "Bash(\"/c/Users/manah/AppData/Local/Temp/gh/bin/gh.exe\" --version)",
+      "Bash(\"/c/Users/manah/AppData/Local/Temp/gh/bin/gh.exe\" auth status)",
+      "Bash(git remote:*)",
+      "Bash(git branch:*)",
+      "Bash(git push:*)",
+      "Bash(git status:*)",
+      "Bash(npx next dev:*)",
+      "Bash(start http://localhost:3000)",
+      "WebFetch(domain:localhost)",
+      "Bash(start:*)",
+      "Bash(netstat:*)",
+      "Bash(taskkill:*)"
+    ]
+  }
+}

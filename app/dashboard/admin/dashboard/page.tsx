@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 import { Button, Card, CardContent, CardHeader, StatCard, Badge, PageLoading, EmptyState } from '@/components/ui'
 import { STATUS_LABELS, formatDateTime, formatDate, formatPrice, cn, getInitials } from '@/lib/utils'
 import type { Appointment, User, Organization } from '@/types/database'
@@ -153,7 +154,7 @@ export default function AdminDashboard() {
         return new Date(d).toDateString() === today
       }))
     } catch {
-      // Prevents infinite loading on network error
+      toast.error('שגיאה בטעינת נתוני הדשבורד')
     } finally {
       setLoading(false)
     }

@@ -17,9 +17,11 @@ export default function PrivacyPage() {
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="text-2xl font-black text-blue-600">טלמדיסן</Link>
           <div className="flex items-center gap-4">
+            <Link href="/specialties" className="text-sm text-gray-600 hover:text-gray-900">התמחויות</Link>
             <Link href="/doctors" className="text-sm text-gray-600 hover:text-gray-900">הרופאים שלנו</Link>
             <Link href="/blog" className="text-sm text-gray-600 hover:text-gray-900">בלוג</Link>
             <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900">התחברות</Link>
+            <Link href="/auth/register" className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">הרשמה חינם</Link>
           </div>
         </div>
       </nav>
@@ -117,7 +119,7 @@ export default function PrivacyPage() {
           <li><strong>ניוד</strong> — לקבל עותק של המידע שלך בפורמט דיגיטלי</li>
           <li><strong>הסרה</strong> — להסיר הסכמה לקבלת דיוור שיווקי</li>
         </ul>
-        <p>לממש את זכויותיך, פנה אלינו בכתובת: privacy@telemedsn.co.il</p>
+        <p>לממש את זכויותיך, פנה אלינו בכתובת: privacy@telemed.co.il</p>
 
         <h2>9. שימוש ב-AI</h2>
         <p>
@@ -143,7 +145,7 @@ export default function PrivacyPage() {
 
         <h2>12. יצירת קשר</h2>
         <p>
-          לשאלות בנושא פרטיות: privacy@telemedsn.co.il
+          לשאלות בנושא פרטיות: privacy@telemed.co.il
         </p>
       </article>
 

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { getClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 import { Card, CardHeader, CardContent, StatCard, PageLoading, Select } from '@/components/ui'
 import { formatPrice } from '@/lib/utils'
 import {
@@ -52,6 +53,7 @@ export default function AdminReportsPage() {
       if (!profile) return
       setOrgId(profile.organization_id)
     } catch {
+      toast.error('שגיאה בטעינת נתוני הדוחות')
       setLoading(false)
     }
   }
@@ -159,7 +161,7 @@ export default function AdminReportsPage() {
     })
     setAiTokensData(Array.from(tokensByDate.entries()).map(([date, tokens]) => ({ date, tokens })))
     } catch {
-      // Prevents infinite loading on network error
+      toast.error('שגיאה בטעינת נתוני הדוחות')
     } finally {
       setLoading(false)
     }

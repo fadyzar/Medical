@@ -101,7 +101,7 @@ export default function MyDocumentsPage() {
         return
       }
 
-      await supabase.from('documents').insert({
+      const { error: insertErr } = await supabase.from('documents').insert({
         organization_id: profile.organization_id,
         patient_id: user.id,
         uploaded_by: user.id,
@@ -111,6 +111,7 @@ export default function MyDocumentsPage() {
         storage_path: path,
         document_type: 'patient_upload',
       })
+      if (insertErr) { setError('הקובץ הועלה אך לא נשמר במערכת. נסה שוב.'); return }
       loadDocs()
     } catch {
       setError('שגיאה בהעלאת הקובץ. נסה שוב.')
