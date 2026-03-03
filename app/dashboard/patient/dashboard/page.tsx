@@ -261,7 +261,7 @@ export default function PatientDashboard() {
                     שלם עכשיו
                   </Button>
                 )}
-                {['ready', 'in_progress', 'scheduled'].includes(nextApt.status) && (
+                {['ready', 'in_progress', 'scheduled', 'paid'].includes(nextApt.status) && (
                   <Button
                     onClick={() => router.push(`/video-call?id=${nextApt.id}`)}
                     className="bg-green-600 hover:bg-green-700"
@@ -339,7 +339,7 @@ export default function PatientDashboard() {
                     <Badge variant={apt.status === 'pending' ? 'warning' : 'info'}>
                       {STATUS_LABELS[apt.status]}
                     </Badge>
-                    {['ready', 'in_progress'].includes(apt.status) && (
+                    {['ready', 'in_progress', 'scheduled', 'paid'].includes(apt.status) && (
                       <Button size="sm" onClick={() => router.push(`/video-call?id=${apt.id}`)} className="bg-green-600 hover:bg-green-700">
                         הצטרף
                       </Button>

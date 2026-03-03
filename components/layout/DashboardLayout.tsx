@@ -248,12 +248,21 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
   const supabase = getClient()
 
   useEffect(() => {
+    // Check "remember me" session expiry
+    const expiresAt = localStorage.getItem('sessionExpiresAt')
+    if (expiresAt && Date.now() > Number(expiresAt)) {
+      localStorage.removeItem('sessionExpiresAt')
+      localStorage.removeItem('rememberMe')
+      supabase.auth.signOut().then(() => router.push('/auth/login'))
+      return
+    }
+
     supabase.auth.getUser().then(({ data: { user: authUser } }) => {
       if (!authUser) return
       supabase.from('users').select('*').eq('id', authUser.id).single()
         .then(({ data }) => { if (data) setUser(data as unknown as User) })
     })
-  }, [supabase])
+  }, [supabase, router])
 
   // Close user menu on outside click
   useEffect(() => {

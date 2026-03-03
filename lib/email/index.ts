@@ -677,7 +677,7 @@ export async function sendDoctorInvite(params: {
 }): Promise<{ success: boolean; error?: string }> {
   const { admin, ...data } = params
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
-  const registrationUrl = `${appUrl}/auth/register?invite=true&org=${data.organizationId}&email=${encodeURIComponent(data.doctorEmail)}`
+  const registrationUrl = `${appUrl}/auth/register?invite=true&org=${data.organizationId}&email=${encodeURIComponent(data.doctorEmail)}&role=doctor`
 
   const html = buildDoctorInviteHtml({
     ...data,

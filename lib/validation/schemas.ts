@@ -119,8 +119,14 @@ export const newAppointmentSchema = z.object({
   urgency_level: z.enum(['routine', 'soon', 'urgent']).default('routine'),
 })
 
+export const doctorRegisterSchema = registerSchema.and(z.object({
+  license_number: z.string().min(4, 'מספר רישיון לא תקין'),
+  specialties: z.array(z.string()).min(1, 'בחר לפחות התמחות אחת'),
+}))
+
 export type LoginInput = z.infer<typeof loginSchema>
 export type RegisterInput = z.infer<typeof registerSchema>
+export type DoctorRegisterInput = z.infer<typeof doctorRegisterSchema>
 export type AppointmentInput = z.infer<typeof appointmentSchema>
 export type ProfileUpdateInput = z.infer<typeof profileUpdateSchema>
 export type SOAPInput = z.infer<typeof soapSchema>

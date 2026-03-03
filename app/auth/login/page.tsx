@@ -1,12 +1,13 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { loginSchema } from '@/lib/validation/schemas'
 import { toast } from 'sonner'
 import { Button, Input } from '@/components/ui'
 import { AuthLayout } from '@/components/layout/AuthLayout'
+import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
 export default function LoginPage() {
@@ -16,7 +17,12 @@ export default function LoginPage() {
   const errorParam = searchParams.get('error')
   const onboardingSuccess = searchParams.get('onboarding') === 'success'
 
+  // Login method toggle
+  const [loginMethod, setLoginMethod] = useState<'email' | 'otp'>('email')
+
+  // Email+password state
   const [form, setForm] = useState({ email: '', password: '' })
+  const [rememberMe, setRememberMe] = useState(true)
   const [errors, setErrors] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
   const [serverError, setServerError] = useState(
@@ -24,11 +30,56 @@ export default function LoginPage() {
     errorParam === 'auth_failed' ? 'שגיאה באימות. נסה להתחבר שוב.' : ''
   )
 
+  // OTP state
+  const [otpStep, setOtpStep] = useState<'phone' | 'code'>('phone')
+  const [otpPhone, setOtpPhone] = useState('')
+  const [otpCode, setOtpCode] = useState('')
+  const [otpLoading, setOtpLoading] = useState(false)
+  const [otpCooldown, setOtpCooldown] = useState(0)
+
   useEffect(() => {
     if (onboardingSuccess) toast.success('המרפאה נוצרה בהצלחה! התחברו כדי להתחיל.')
   }, [onboardingSuccess])
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  // OTP cooldown timer
+  useEffect(() => {
+    if (otpCooldown <= 0) return
+    const timer = setTimeout(() => setOtpCooldown(c => c - 1), 1000)
+    return () => clearTimeout(timer)
+  }, [otpCooldown])
+
+  // Post-login handler (shared by email + OTP)
+  const handlePostLogin = useCallback(async () => {
+    const supabase = getClient()
+    const { data: { user } } = await supabase.auth.getUser()
+    if (!user) return
+
+    const { data: profile } = await supabase.from('users').select('role, is_active').eq('id', user.id).single()
+    if (profile && !profile.is_active) {
+      await supabase.auth.signOut()
+      setServerError('החשבון שלך הושעה. פנה למנהל.')
+      toast.error('החשבון שלך הושעה')
+      return
+    }
+
+    await supabase.from('users').update({ last_login_at: new Date().toISOString() }).eq('id', user.id)
+
+    // Remember me logic
+    if (rememberMe) {
+      localStorage.setItem('rememberMe', 'true')
+      localStorage.removeItem('sessionExpiresAt')
+    } else {
+      localStorage.removeItem('rememberMe')
+      localStorage.setItem('sessionExpiresAt', String(Date.now() + 12 * 60 * 60 * 1000))
+    }
+
+    if (redirect) { router.push(redirect); return }
+    const roleHome: Record<string, string> = { doctor: '/dashboard/doctor/dashboard', admin: '/dashboard/admin/dashboard', staff: '/dashboard/staff/dashboard' }
+    router.push(roleHome[profile?.role || ''] || '/dashboard/patient/dashboard')
+  }, [redirect, rememberMe, router])
+
+  // ── Email+Password submit ──────────────────────────
+  const handleEmailSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setErrors({})
     setServerError('')
@@ -54,29 +105,93 @@ export default function LoginPage() {
         return
       }
 
-      const { data: { user } } = await supabase.auth.getUser()
-      if (user) {
-        const { data: profile } = await supabase.from('users').select('role, is_active').eq('id', user.id).single()
-        if (profile && !profile.is_active) {
-          await supabase.auth.signOut()
-          setServerError('החשבון שלך הושעה. פנה למנהל.')
-          toast.error('החשבון שלך הושעה')
-          setLoading(false)
-          return
-        }
-
-        await supabase.from('users').update({ last_login_at: new Date().toISOString() }).eq('id', user.id)
-
-        if (redirect) { router.push(redirect); return }
-        const roleHome: Record<string, string> = { doctor: '/dashboard/doctor/dashboard', admin: '/dashboard/admin/dashboard', staff: '/dashboard/staff/dashboard' }
-        router.push(roleHome[profile?.role || ''] || '/dashboard/patient/dashboard')
-      }
+      await handlePostLogin()
     } catch {
       setServerError('שגיאה לא צפויה')
       toast.error('שגיאה לא צפויה')
     } finally {
       setLoading(false)
     }
+  }
+
+  // ── OTP: Send code ─────────────────────────────────
+  const handleSendOtp = async () => {
+    setServerError('')
+
+    if (!/^0[2-9]\d{7,8}$/.test(otpPhone)) {
+      setServerError('מספר טלפון לא תקין (לדוגמה: 0501234567)')
+      return
+    }
+
+    setOtpLoading(true)
+    try {
+      const supabase = getClient()
+      const intlPhone = '+972' + otpPhone.replace(/^0/, '')
+      const { error } = await supabase.auth.signInWithOtp({ phone: intlPhone })
+
+      if (error) {
+        const msg = error.message.includes('not found') || error.message.includes('Phone')
+          ? 'מספר הטלפון לא נמצא במערכת'
+          : 'שגיאה בשליחת הקוד. נסה שוב.'
+        setServerError(msg)
+        toast.error(msg)
+        return
+      }
+
+      setOtpStep('code')
+      setOtpCooldown(60)
+      toast.success('קוד אימות נשלח לטלפון שלך')
+    } catch {
+      setServerError('שגיאה בשליחת הקוד')
+      toast.error('שגיאה בשליחת הקוד')
+    } finally {
+      setOtpLoading(false)
+    }
+  }
+
+  // ── OTP: Verify code ───────────────────────────────
+  const handleVerifyOtp = async () => {
+    setServerError('')
+
+    if (otpCode.length !== 6 || !/^\d{6}$/.test(otpCode)) {
+      setServerError('קוד אימות חייב להכיל 6 ספרות')
+      return
+    }
+
+    setOtpLoading(true)
+    try {
+      const supabase = getClient()
+      const intlPhone = '+972' + otpPhone.replace(/^0/, '')
+      const { error } = await supabase.auth.verifyOtp({
+        phone: intlPhone,
+        token: otpCode,
+        type: 'sms',
+      })
+
+      if (error) {
+        const msg = error.message.includes('expired')
+          ? 'הקוד פג תוקף. שלח קוד חדש.'
+          : error.message.includes('Invalid') || error.message.includes('invalid')
+            ? 'קוד שגוי. נסה שוב.'
+            : 'שגיאה באימות הקוד'
+        setServerError(msg)
+        toast.error(msg)
+        return
+      }
+
+      await handlePostLogin()
+    } catch {
+      setServerError('שגיאה באימות הקוד')
+      toast.error('שגיאה באימות הקוד')
+    } finally {
+      setOtpLoading(false)
+    }
+  }
+
+  // ── OTP: Resend code ───────────────────────────────
+  const handleResendOtp = async () => {
+    if (otpCooldown > 0) return
+    await handleSendOtp()
   }
 
   return (
@@ -91,41 +206,180 @@ export default function LoginPage() {
         </div>
       )}
 
-      {/* Form */}
-      <form onSubmit={handleSubmit} className="space-y-5" noValidate>
-        <Input
-          label="אימייל"
-          type="email"
-          placeholder="doctor@clinic.co.il"
-          value={form.email}
-          onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
-          error={errors.email}
-          autoComplete="email"
-          required
-        />
+      {/* Method toggle tabs */}
+      <div className="flex rounded-xl bg-gray-100 p-1 mb-6">
+        <button
+          type="button"
+          onClick={() => { setLoginMethod('email'); setServerError('') }}
+          className={cn(
+            'flex-1 py-2.5 text-sm font-medium rounded-lg transition-all duration-200',
+            loginMethod === 'email'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+          )}
+        >
+          אימייל וסיסמה
+        </button>
+        <button
+          type="button"
+          onClick={() => { setLoginMethod('otp'); setServerError('') }}
+          className={cn(
+            'flex-1 py-2.5 text-sm font-medium rounded-lg transition-all duration-200',
+            loginMethod === 'otp'
+              ? 'bg-white text-gray-900 shadow-sm'
+              : 'text-gray-500 hover:text-gray-700'
+          )}
+        >
+          קוד SMS
+        </button>
+      </div>
 
-        <div>
+      {/* ── Email + Password Form ──────────────────────── */}
+      {loginMethod === 'email' && (
+        <form onSubmit={handleEmailSubmit} className="space-y-5" noValidate>
           <Input
-            label="סיסמה"
-            type="password"
-            placeholder="••••••••"
-            value={form.password}
-            onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
-            error={errors.password}
-            autoComplete="current-password"
+            label="אימייל"
+            type="email"
+            placeholder="doctor@clinic.co.il"
+            value={form.email}
+            onChange={e => setForm(p => ({ ...p, email: e.target.value }))}
+            error={errors.email}
+            autoComplete="email"
             required
           />
-          <div className="flex justify-end mt-1.5">
-            <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors">
-              שכחת סיסמה?
-            </Link>
-          </div>
-        </div>
 
-        <Button type="submit" loading={loading} className="w-full" size="lg">
-          התחבר
-        </Button>
-      </form>
+          <div>
+            <Input
+              label="סיסמה"
+              type="password"
+              placeholder="••••••••"
+              value={form.password}
+              onChange={e => setForm(p => ({ ...p, password: e.target.value }))}
+              error={errors.password}
+              autoComplete="current-password"
+              required
+            />
+            <div className="flex items-center justify-between mt-2">
+              {/* Remember me */}
+              <label className="flex items-center gap-2 cursor-pointer group">
+                <div className="relative">
+                  <input
+                    type="checkbox"
+                    checked={rememberMe}
+                    onChange={e => setRememberMe(e.target.checked)}
+                    className="sr-only"
+                  />
+                  <div className={cn(
+                    'w-4 h-4 rounded border-2 transition-all flex items-center justify-center',
+                    rememberMe
+                      ? 'bg-blue-600 border-blue-600'
+                      : 'border-gray-300 group-hover:border-blue-400'
+                  )}>
+                    {rememberMe && (
+                      <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    )}
+                  </div>
+                </div>
+                <span className="text-sm text-gray-500">זכור אותי</span>
+              </label>
+
+              <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors">
+                שכחת סיסמה?
+              </Link>
+            </div>
+          </div>
+
+          <Button type="submit" loading={loading} className="w-full" size="lg">
+            התחבר
+          </Button>
+        </form>
+      )}
+
+      {/* ── OTP SMS Form ───────────────────────────────── */}
+      {loginMethod === 'otp' && (
+        <div className="space-y-5">
+          {otpStep === 'phone' ? (
+            <>
+              <Input
+                label="מספר טלפון"
+                type="tel"
+                placeholder="0501234567"
+                value={otpPhone}
+                onChange={e => { setOtpPhone(e.target.value); setServerError('') }}
+                autoComplete="tel"
+                required
+              />
+              <p className="text-xs text-gray-400 -mt-3">נשלח קוד אימות חד-פעמי ב-SMS למספר שלך</p>
+              <Button
+                type="button"
+                onClick={handleSendOtp}
+                loading={otpLoading}
+                className="w-full"
+                size="lg"
+              >
+                שלח קוד
+              </Button>
+            </>
+          ) : (
+            <>
+              <div className="text-center mb-2">
+                <p className="text-sm text-gray-600">
+                  קוד אימות נשלח למספר <span className="font-semibold text-gray-900 direction-ltr inline-block">{otpPhone}</span>
+                </p>
+                <button
+                  type="button"
+                  onClick={() => { setOtpStep('phone'); setOtpCode(''); setServerError('') }}
+                  className="text-xs text-blue-600 hover:underline mt-1"
+                >
+                  שנה מספר
+                </button>
+              </div>
+
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1.5">קוד אימות</label>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  maxLength={6}
+                  value={otpCode}
+                  onChange={e => { setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setServerError('') }}
+                  placeholder="000000"
+                  className="w-full text-center text-2xl tracking-[0.5em] font-mono py-3 px-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  autoComplete="one-time-code"
+                  dir="ltr"
+                />
+              </div>
+
+              <Button
+                type="button"
+                onClick={handleVerifyOtp}
+                loading={otpLoading}
+                className="w-full"
+                size="lg"
+                disabled={otpCode.length !== 6}
+              >
+                אמת קוד
+              </Button>
+
+              <div className="text-center">
+                {otpCooldown > 0 ? (
+                  <p className="text-xs text-gray-400">שלח שוב בעוד {otpCooldown} שניות</p>
+                ) : (
+                  <button
+                    type="button"
+                    onClick={handleResendOtp}
+                    className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                  >
+                    שלח קוד חדש
+                  </button>
+                )}
+              </div>
+            </>
+          )}
+        </div>
+      )}
 
       {/* Divider */}
       <div className="relative my-6">

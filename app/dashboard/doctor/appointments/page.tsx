@@ -105,7 +105,7 @@ export default function DoctorAppointmentsPage() {
 
     // Send consultation summary email to patient
     try {
-      fetch('/api/email/send-summary', {
+      await fetch('/api/email/send-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ appointmentId: selected.id }),
