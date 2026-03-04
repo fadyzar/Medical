@@ -79,9 +79,17 @@ export default function ResetPasswordPage() {
       setSuccess(true)
       toast.success('הסיסמה עודכנה בהצלחה!')
 
-      // Redirect to dashboard after 2 seconds
+      // Redirect to dashboard based on user role
+      const { data: profile } = await supabase.from('users')
+        .select('role')
+        .eq('id', (await supabase.auth.getUser()).data.user!.id)
+        .single()
+
+      const role = (profile as unknown as { role: string })?.role || 'patient'
+      const dashboardPath = `/dashboard/${role}/dashboard`
+
       setTimeout(() => {
-        router.push('/dashboard/patient/dashboard')
+        router.push(dashboardPath)
       }, 2000)
     } catch {
       setError('שגיאה לא צפויה')
@@ -136,7 +144,7 @@ export default function ResetPasswordPage() {
             הסיסמה שלך שונתה בהצלחה. מעביר אותך לדשבורד...
           </p>
           <Link
-            href="/dashboard/patient/dashboard"
+            href="/auth/login"
             className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
           >
             עבור לדשבורד

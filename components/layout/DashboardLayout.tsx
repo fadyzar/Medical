@@ -273,6 +273,8 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
   }, [userMenuOpen])
 
   const handleLogout = async () => {
+    localStorage.removeItem('rememberMe')
+    localStorage.removeItem('sessionExpiresAt')
     await supabase.auth.signOut()
     router.push('/auth/login')
   }

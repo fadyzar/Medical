@@ -19,7 +19,7 @@ import {
   useRoomContext,
 } from '@livekit/components-react'
 import '@livekit/components-styles'
-import { Track, RoomEvent, ConnectionQuality } from 'livekit-client'
+import { Track, RoomEvent, ConnectionQuality, ConnectionState } from 'livekit-client'
 
 type VideoState = 'checking' | 'payment_required' | 'waiting' | 'connecting' | 'connected' | 'disconnected' | 'error'
 
@@ -367,6 +367,12 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
   const [egressId, setEgressId] = useState<string | null>(null)
   const [showConsentDialog, setShowConsentDialog] = useState(false)
 
+  // Reconnection state
+  const [reconnecting, setReconnecting] = useState(false)
+
+  // Participant wait timeout
+  const [waitTimeout, setWaitTimeout] = useState(false)
+
   const isDoctor = profile?.role === 'doctor'
 
   // Timer
@@ -375,6 +381,32 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
     const timer = setInterval(() => setElapsed(Math.floor((Date.now() - start) / 1000)), 1000)
     return () => clearInterval(timer)
   }, [])
+
+  // Participant wait timeout: show message after 10 minutes
+  useEffect(() => {
+    if (remoteParticipants.length > 0) {
+      setWaitTimeout(false)
+      return
+    }
+    const timeout = setTimeout(() => {
+      if (remoteParticipants.length === 0) setWaitTimeout(true)
+    }, 10 * 60 * 1000) // 10 minutes
+    return () => clearTimeout(timeout)
+  }, [remoteParticipants.length])
+
+  // Auto-reconnect: listen for connection state changes
+  useEffect(() => {
+    const handleReconnecting = () => setReconnecting(true)
+    const handleReconnected = () => setReconnecting(false)
+
+    room.on(RoomEvent.Reconnecting, handleReconnecting)
+    room.on(RoomEvent.Reconnected, handleReconnected)
+
+    return () => {
+      room.off(RoomEvent.Reconnecting, handleReconnecting)
+      room.off(RoomEvent.Reconnected, handleReconnected)
+    }
+  }, [room])
 
   // Track screen share state
   useEffect(() => {
@@ -448,7 +480,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
       const res = await fetch('/api/livekit/recording', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ roomName, appointmentId }),
+        body: JSON.stringify({ roomName, appointmentId, consentGiven: true }),
       })
       if (!res.ok) return
       const { egressId: eid } = await res.json()
@@ -466,7 +498,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
       await fetch('/api/livekit/recording', {
         method: 'DELETE',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ egressId }),
+        body: JSON.stringify({ egressId, appointmentId }),
       })
     } catch {
       // Stop failed silently
@@ -478,6 +510,33 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
   const handleDisconnect = async () => {
     if (recording) await handleStopRecording()
     const duration = elapsed
+
+    // Save chat messages to audit_logs before disconnecting
+    if (chatMessages.length > 0) {
+      try {
+        const serialized = chatMessages.map(msg => ({
+          id: msg.id,
+          timestamp: msg.timestamp,
+          message: msg.message,
+          from: msg.from?.identity || 'unknown',
+          name: msg.from?.name || msg.from?.identity || 'unknown',
+        }))
+        await supabase.from('audit_logs').insert({
+          user_id: profile?.id || null,
+          action: 'VIDEO_CHAT_SAVED',
+          resource_type: 'appointment',
+          resource_id: appointmentId,
+          metadata: {
+            message_count: chatMessages.length,
+            messages: serialized,
+            saved_at: new Date().toISOString(),
+          },
+        })
+      } catch {
+        // Non-critical — chat save failure shouldn't block disconnect
+      }
+    }
+
     room.disconnect()
     try {
       await supabase.from('appointments').update({
@@ -532,12 +591,29 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
             <ParticipantTile />
           </GridLayout>
 
+          {/* Reconnecting overlay */}
+          {reconnecting && (
+            <div className="absolute inset-0 flex items-center justify-center pointer-events-none z-30">
+              <div className="bg-yellow-900/90 backdrop-blur-sm rounded-xl px-6 py-4 text-center border border-yellow-600/50">
+                <Spinner size="md" className="mx-auto mb-2" />
+                <p className="text-yellow-200 text-sm font-medium">מתחבר מחדש...</p>
+                <p className="text-yellow-300/70 text-xs mt-1">בודק את החיבור לרשת</p>
+              </div>
+            </div>
+          )}
+
           {/* Participant overlay info */}
-          {remoteParticipants.length === 0 && (
+          {remoteParticipants.length === 0 && !reconnecting && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="bg-gray-800/80 backdrop-blur-sm rounded-xl px-6 py-4 text-center">
+              <div className="bg-gray-800/80 backdrop-blur-sm rounded-xl px-6 py-4 text-center max-w-sm">
                 <Spinner size="md" className="mx-auto mb-2" />
                 <p className="text-gray-300 text-sm">ממתין ל{otherParty || 'משתתף נוסף'}...</p>
+                {waitTimeout && (
+                  <div className="mt-3 text-yellow-400 text-xs space-y-1">
+                    <p className="font-medium">ההמתנה ארכה יותר מ-10 דקות</p>
+                    <p className="text-yellow-400/70">ייתכן שהמשתתף האחר עדיין לא הצטרף. ניתן להמשיך להמתין או לסיים את השיחה.</p>
+                  </div>
+                )}
               </div>
             </div>
           )}

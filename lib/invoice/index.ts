@@ -1,5 +1,8 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 
+// Max retry attempts before giving up
+const MAX_RETRIES = 3
+
 // ── Types ────────────────────────────────────────────
 
 type InvoiceParams = {
@@ -133,6 +136,90 @@ export async function generateInvoice(params: InvoiceParams): Promise<InvoiceRes
     const error = err instanceof Error ? err.message : 'Invoice generation failed'
     // Do NOT log PHI — only the technical error
     console.error('[Invoice]', error)
+
+    // Queue for retry: store pending invoice in audit_logs so it can be retried later
+    try {
+      await admin.from('audit_logs').insert({
+        user_id: null,
+        action: 'INVOICE_QUEUED_FOR_RETRY',
+        resource_type: 'appointment',
+        resource_id: appointmentId,
+        metadata: {
+          amount,
+          patient_name: patientName,
+          patient_email: patientEmail,
+          patient_phone: patientPhone,
+          description,
+          organization_name: organizationName,
+          error,
+          queued_at: new Date().toISOString(),
+          retry_count: 0,
+        },
+      })
+    } catch {
+      // If even logging fails, nothing more we can do
+    }
+
     return { success: false, error }
   }
+}
+
+// ── Retry queued invoices ────────────────────────────
+
+export async function retryQueuedInvoices(admin: SupabaseClient): Promise<{ processed: number; succeeded: number; failed: number }> {
+  const { data: queued } = await admin.from('audit_logs')
+    .select('id, resource_id, metadata')
+    .eq('action', 'INVOICE_QUEUED_FOR_RETRY')
+    .order('created_at', { ascending: true })
+    .limit(10)
+
+  if (!queued || queued.length === 0) {
+    return { processed: 0, succeeded: 0, failed: 0 }
+  }
+
+  let succeeded = 0
+  let failed = 0
+
+  for (const entry of queued) {
+    const meta = entry.metadata as Record<string, unknown>
+    const retryCount = (meta.retry_count as number) || 0
+
+    if (retryCount >= MAX_RETRIES) {
+      // Mark as permanently failed
+      await admin.from('audit_logs').update({
+        action: 'INVOICE_RETRY_EXHAUSTED',
+        metadata: { ...meta, exhausted_at: new Date().toISOString() },
+      }).eq('id', entry.id)
+      failed++
+      continue
+    }
+
+    const result = await generateInvoice({
+      appointmentId: entry.resource_id as string,
+      amount: meta.amount as number,
+      patientName: meta.patient_name as string,
+      patientEmail: (meta.patient_email as string) || null,
+      patientPhone: (meta.patient_phone as string) || null,
+      description: meta.description as string,
+      organizationName: meta.organization_name as string,
+      admin,
+    })
+
+    if (result.success) {
+      // Remove from queue
+      await admin.from('audit_logs').update({
+        action: 'INVOICE_RETRY_SUCCEEDED',
+        metadata: { ...meta, succeeded_at: new Date().toISOString(), invoice_url: result.invoiceUrl },
+      }).eq('id', entry.id)
+      succeeded++
+    } else {
+      // Increment retry count
+      await admin.from('audit_logs').update({
+        metadata: { ...meta, retry_count: retryCount + 1, last_retry_at: new Date().toISOString(), last_error: result.error },
+      }).eq('id', entry.id)
+      failed++
+    }
+  }
+
+  return { processed: queued.length, succeeded, failed }
 }

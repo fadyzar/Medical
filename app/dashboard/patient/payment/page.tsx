@@ -23,6 +23,7 @@ export default function PaymentPage() {
   const [invoiceUrl, setInvoiceUrl] = useState<string | null>(null)
   const [error, setError] = useState('')
   const pollRef = useRef<ReturnType<typeof setInterval>>(undefined)
+  const pollStartRef = useRef<number>(0)
 
   useEffect(() => {
     if (!appointmentId) {
@@ -120,9 +121,19 @@ export default function PaymentPage() {
 
   const startPolling = useCallback(() => {
     if (pollRef.current) clearInterval(pollRef.current)
+    pollStartRef.current = Date.now()
+    const POLL_TIMEOUT_MS = 5 * 60 * 1000 // 5 minutes
 
     pollRef.current = setInterval(async () => {
       if (!appointmentId) return
+
+      // Check timeout
+      if (Date.now() - pollStartRef.current > POLL_TIMEOUT_MS) {
+        if (pollRef.current) clearInterval(pollRef.current)
+        setError('התשלום לא אושר תוך 5 דקות. אנא נסה שוב או פנה לתמיכה.')
+        setState('failed')
+        return
+      }
 
       try {
         const { data } = await supabase.from('appointments')
