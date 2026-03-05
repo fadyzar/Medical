@@ -159,8 +159,18 @@ export async function DELETE(req: NextRequest) {
     }
 
     const { egressId, appointmentId } = await req.json()
-    if (!egressId) {
-      return NextResponse.json({ error: 'Missing egressId' }, { status: 400 })
+    if (!egressId || !appointmentId) {
+      return NextResponse.json({ error: 'Missing egressId or appointmentId' }, { status: 400 })
+    }
+
+    // Verify doctor owns the appointment before allowing recording stop
+    const { data: apt } = await supabase.from('appointments')
+      .select('id, doctor_id, organization_id')
+      .eq('id', appointmentId)
+      .single()
+
+    if (!apt || (apt as unknown as { doctor_id: string }).doctor_id !== user.id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
     const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL
@@ -174,19 +184,18 @@ export async function DELETE(req: NextRequest) {
     const egressClient = new EgressClient(livekitUrl, apiKey, apiSecret)
     await egressClient.stopEgress(egressId)
 
-    // Log recording stop and store recording reference
-    if (appointmentId) {
-      await supabase.from('audit_logs').insert({
-        user_id: user.id,
-        action: 'RECORDING_STOPPED',
-        resource_type: 'appointment',
-        resource_id: appointmentId,
-        metadata: {
-          egress_id: egressId,
-          stopped_at: new Date().toISOString(),
-        },
-      })
-    }
+    // Log recording stop with organization context
+    await supabase.from('audit_logs').insert({
+      organization_id: (apt as unknown as { organization_id: string }).organization_id,
+      user_id: user.id,
+      action: 'RECORDING_STOPPED',
+      resource_type: 'appointment',
+      resource_id: appointmentId,
+      metadata: {
+        egress_id: egressId,
+        stopped_at: new Date().toISOString(),
+      },
+    })
 
     return NextResponse.json({ success: true })
   } catch (err) {

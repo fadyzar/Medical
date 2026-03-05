@@ -2,12 +2,19 @@ import { NextResponse } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
 import { summaryAgent, prescriptionAgent } from '@/lib/ai/agents'
 import { aiSummarySchema } from '@/lib/validation/schemas'
+import { rateLimit } from '@/lib/security/rate-limit'
 
 export async function POST(req: Request) {
   try {
     const supabase = await createServerSupabase()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    // Rate limit: 20 AI calls per hour per user
+    const limit = rateLimit(`ai-summary:${user.id}`, { maxRequests: 20, windowMs: 60 * 60 * 1000 })
+    if (!limit.allowed) {
+      return NextResponse.json({ error: 'חריגה ממגבלת בקשות AI. נסה שוב מאוחר יותר.' }, { status: 429 })
+    }
 
     const { data: profile } = await supabase.from('users').select('role, organization_id').eq('id', user.id).single()
     if (!profile || profile.role !== 'doctor') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -24,6 +31,11 @@ export async function POST(req: Request) {
       .select('id, chief_complaint, complaint_description, subjective_notes, objective_notes, assessment, plan, diagnosis, organization_id, patient_id, video_duration_seconds')
       .eq('id', appointmentId).single()
     if (!apt) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+    // Verify appointment belongs to doctor's organization
+    if (apt.organization_id !== (profile as unknown as { organization_id: string }).organization_id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
 
     let result
     const agentType = action === 'prescription_draft' ? 'prescription_draft' : 'summary'

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
 import { sendDoctorInvite, sendStaffInvite } from '@/lib/email'
+import { rateLimit } from '@/lib/security/rate-limit'
 import { z } from 'zod'
 
 const inviteSchema = z.object({
@@ -15,6 +16,12 @@ export async function POST(req: NextRequest) {
     const { data: { user }, error: authError } = await supabase.auth.getUser()
     if (authError || !user) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    // Rate limit: 10 invites per hour per user
+    const limit = rateLimit(`admin-invite:${user.id}`, { maxRequests: 10, windowMs: 60 * 60 * 1000 })
+    if (!limit.allowed) {
+      return NextResponse.json({ error: 'חריגה ממגבלת הזמנות. נסה שוב מאוחר יותר.' }, { status: 429 })
     }
 
     // Verify admin role

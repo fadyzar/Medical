@@ -2,12 +2,19 @@ import { NextResponse } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
 import { triageAgent } from '@/lib/ai/agents'
 import { appointmentIdSchema } from '@/lib/validation/schemas'
+import { rateLimit } from '@/lib/security/rate-limit'
 
 export async function POST(req: Request) {
   try {
     const supabase = await createServerSupabase()
     const { data: { user } } = await supabase.auth.getUser()
     if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
+    // Rate limit: 20 AI calls per hour per user
+    const limit = rateLimit(`ai-triage:${user.id}`, { maxRequests: 20, windowMs: 60 * 60 * 1000 })
+    if (!limit.allowed) {
+      return NextResponse.json({ error: 'חריגה ממגבלת בקשות AI. נסה שוב מאוחר יותר.' }, { status: 429 })
+    }
 
     const body = await req.json()
     const parsed = appointmentIdSchema.safeParse(body)
@@ -16,12 +23,21 @@ export async function POST(req: Request) {
     }
     const { appointmentId } = parsed.data
 
+    // Verify user's organization
+    const { data: userProfile } = await supabase.from('users').select('organization_id').eq('id', user.id).single()
+    if (!userProfile) return NextResponse.json({ error: 'User not found' }, { status: 404 })
+
     // Use service role to read appointment regardless of RLS
     const admin = createServiceRole()
     const { data: apt } = await admin.from('appointments').select('id, chief_complaint, complaint_description, organization_id, patient_id')
       .eq('id', appointmentId).single()
 
     if (!apt) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+
+    // Verify appointment belongs to user's organization
+    if (apt.organization_id !== (userProfile as unknown as { organization_id: string }).organization_id) {
+      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
 
     // Get patient age
     const { data: patient } = await admin.from('users').select('date_of_birth, gender').eq('id', apt.patient_id).single()
