@@ -58,7 +58,7 @@ export const appointmentIdSchema = z.object({
 
 export const aiSummarySchema = z.object({
   appointmentId: z.string().uuid('מזהה תור לא תקין'),
-  action: z.enum(['summary', 'prescription_draft']).default('summary'),
+  action: z.enum(['summary', 'prescription_draft', 'brief']).default('summary'),
 })
 
 // ── Form schemas ──────────────────────────────────────

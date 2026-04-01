@@ -13,6 +13,7 @@ export type Database = {
       ai_conversations: { Row: AIConversation; Insert: Partial<AIConversation>; Update: Partial<AIConversation>; Relationships: [] }
       audit_logs: { Row: AuditLog; Insert: Partial<AuditLog>; Update: Partial<AuditLog>; Relationships: [] }
       payments: { Row: Payment; Insert: Partial<Payment>; Update: Partial<Payment>; Relationships: [] }
+      leads: { Row: Lead; Insert: Partial<Lead>; Update: Partial<Lead>; Relationships: [] }
     }
     Views: Record<string, never>
     Functions: {
@@ -151,4 +152,34 @@ export type Payment = {
   provider: string; transaction_id: string | null; confirmation_code: string | null
   idempotency_key: string; masked_card: string | null; response_code: string | null
   metadata: Record<string, unknown>; created_at: string; updated_at: string
+}
+
+export type LeadStatus = 'new' | 'contacted' | 'qualified' | 'converted' | 'lost'
+export type LeadPriority = 'low' | 'normal' | 'high' | 'urgent'
+export type LeadSource = 'website' | 'whatsapp' | 'phone' | 'referral' | 'ad' | 'other'
+
+export type Lead = {
+  id: string
+  organization_id: string
+  first_name: string
+  last_name: string
+  phone: string | null
+  email: string | null
+  source: LeadSource
+  specialty_interest: string | null
+  message: string | null
+  status: LeadStatus
+  priority: LeadPriority
+  assigned_to: string | null
+  next_follow_up: string | null
+  notes: string | null
+  ai_score: number | null
+  ai_analysis: string | null
+  ai_recommendations: string | null
+  converted_patient_id: string | null
+  converted_appointment_id: string | null
+  created_at: string
+  updated_at: string
+  // Joined
+  assignee?: Pick<User, 'id' | 'first_name' | 'last_name'> | null
 }

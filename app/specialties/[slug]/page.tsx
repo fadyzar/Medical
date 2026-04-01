@@ -198,6 +198,8 @@ const SPECIALTY_CONTENT: Record<string, SpecialtyContent> = {
   },
 }
 
+export const dynamic = 'force-dynamic'
+
 // ── Static Params ────────────────────────────────────
 
 export function generateStaticParams() {

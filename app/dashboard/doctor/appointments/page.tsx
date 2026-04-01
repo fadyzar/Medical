@@ -1,4 +1,5 @@
 'use client'
+export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
@@ -24,7 +25,22 @@ export default function DoctorAppointmentsPage() {
   const [questResponses, setQuestResponses] = useState<ResponseWithQuest[]>([])
   const [showQuestionnaire, setShowQuestionnaire] = useState(false)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
+  const [briefLoading, setBriefLoading] = useState(false)
+  const [brief, setBrief] = useState<string | null>(null)
+  const [docLoading, setDocLoading] = useState(false)
+  const [generatedDoc, setGeneratedDoc] = useState<{ content: string; label: string } | null>(null)
+  const [docType, setDocType] = useState('medical_letter')
+  const [aiSummaryLoading, setAiSummaryLoading] = useState(false)
   const supabase = getClient()
+
+  const DOC_TYPES = [
+    { value: 'medical_letter',    label: 'מכתב רפואי' },
+    { value: 'referral',          label: 'הפניה למומחה' },
+    { value: 'sick_leave',        label: 'אישור מחלה' },
+    { value: 'prescription_summary', label: 'סיכום טיפול תרופתי' },
+    { value: 'discharge_summary', label: 'סיכום ביקור' },
+    { value: 'follow_up_plan',    label: 'תוכנית מעקב' },
+  ]
 
   useEffect(() => { loadData() }, [])
 
@@ -117,6 +133,78 @@ export default function DoctorAppointmentsPage() {
     setMessage({ type: 'success', text: 'הייעוץ הסתיים בהצלחה' })
     setTimeout(() => setMessage(null), 3000)
     loadData()
+  }
+
+  const generateBrief = async (apt: Appointment) => {
+    setBriefLoading(true)
+    setBrief(null)
+    setMessage(null)
+    try {
+      const res = await fetch('/api/ai-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId: apt.id, action: 'brief' }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setBrief(data.brief || data.summary || 'הבריף נוצר בהצלחה')
+      } else {
+        setMessage({ type: 'error', text: 'שגיאה ביצירת בריף AI' })
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'שגיאה ביצירת בריף AI' })
+    } finally {
+      setBriefLoading(false)
+    }
+  }
+
+  const generateAISummaryLocal = async (apt: Appointment) => {
+    setAiSummaryLoading(true)
+    setMessage(null)
+    try {
+      const res = await fetch('/api/ai-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId: apt.id, action: 'summary' }),
+      })
+      if (res.ok) {
+        setMessage({ type: 'success', text: 'סיכום AI נוצר בהצלחה' })
+        setTimeout(() => setMessage(null), 3000)
+        loadData()
+      } else {
+        setMessage({ type: 'error', text: 'שגיאה ביצירת סיכום AI' })
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'שגיאה ביצירת סיכום AI' })
+    } finally {
+      setAiSummaryLoading(false)
+    }
+  }
+
+  const generateDocument = async (apt: Appointment) => {
+    setDocLoading(true)
+    setGeneratedDoc(null)
+    setMessage(null)
+    try {
+      const res = await fetch('/api/ai-document', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId: apt.id, documentType: docType }),
+      })
+      if (res.ok) {
+        const data = await res.json()
+        setGeneratedDoc({ content: data.document, label: data.label })
+        setMessage({ type: 'success', text: `${data.label} נוצר ונשמר בתיק המטופל` })
+        setTimeout(() => setMessage(null), 4000)
+      } else {
+        const err = await res.json()
+        setMessage({ type: 'error', text: err.error || 'שגיאה ביצירת המסמך' })
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'שגיאה ביצירת המסמך' })
+    } finally {
+      setDocLoading(false)
+    }
   }
 
   if (loading) return <PageLoading />
@@ -256,6 +344,39 @@ export default function DoctorAppointmentsPage() {
                   </div>
                 )}
 
+                {/* AI Pre-visit Brief */}
+                {['doctor_confirmed', 'scheduled', 'ready', 'in_progress'].includes(selected.status) && (
+                  <div className="border border-purple-200 rounded-lg overflow-hidden">
+                    <div className="bg-purple-50 px-4 py-3 flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 2a4 4 0 014 4v1h2a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2h2V6a4 4 0 014-4z"/>
+                          <circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/>
+                        </svg>
+                        <span className="text-sm font-semibold text-purple-700">בריף AI לפני ביקור</span>
+                      </div>
+                      <Button
+                        size="sm"
+                        loading={briefLoading}
+                        onClick={() => generateBrief(selected)}
+                        className="bg-purple-600 hover:bg-purple-700 text-white text-xs px-3 py-1.5"
+                      >
+                        {brief ? 'רענן בריף' : 'צור בריף'}
+                      </Button>
+                    </div>
+                    {brief && (
+                      <div className="p-4 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed bg-white">
+                        {brief}
+                      </div>
+                    )}
+                    {!brief && !briefLoading && (
+                      <p className="px-4 py-3 text-xs text-gray-400 bg-white">
+                        לחץ "צור בריף" לקבלת סיכום AI של המטופל לפני הביקור — תלונה, היסטוריה, תשובות לשאלון ואזהרות דחיפות.
+                      </p>
+                    )}
+                  </div>
+                )}
+
                 {/* SOAP Notes */}
                 <div className="space-y-3">
                   <h4 className="font-bold">SOAP Notes</h4>
@@ -279,9 +400,70 @@ export default function DoctorAppointmentsPage() {
                   {['ready', 'in_progress', 'scheduled'].includes(selected.status) && (
                     <Button onClick={() => router.push(`/video-call?id=${selected.id}`)} className="bg-green-600 hover:bg-green-700">שיחת וידאו</Button>
                   )}
+                  {selected.status === 'completed' && !selected.ai_summary && (
+                    <Button onClick={() => generateAISummaryLocal(selected)} loading={aiSummaryLoading} variant="outline" className="border-purple-200 text-purple-700 hover:bg-purple-50">
+                      סיכום AI
+                    </Button>
+                  )}
                   {selected.status !== 'completed' && (
                     <Button onClick={completeAppointment} loading={saving}>סיים ייעוץ</Button>
                   )}
+                </div>
+
+                {/* Document generation */}
+                <div className="border border-gray-200 rounded-lg overflow-hidden">
+                  <div className="bg-gray-50 px-4 py-3">
+                    <p className="text-sm font-semibold text-gray-700">הפקת מסמך רפואי</p>
+                    <p className="text-xs text-gray-400 mt-0.5">AI יצור מסמך מותאם ויישמר אוטומטית בתיק המטופל</p>
+                  </div>
+                  <div className="p-4 space-y-3">
+                    <div className="flex gap-2">
+                      <select
+                        value={docType}
+                        onChange={e => setDocType(e.target.value)}
+                        className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                      >
+                        {DOC_TYPES.map(d => (
+                          <option key={d.value} value={d.value}>{d.label}</option>
+                        ))}
+                      </select>
+                      <Button
+                        size="sm"
+                        loading={docLoading}
+                        onClick={() => generateDocument(selected)}
+                        variant="outline"
+                        className="shrink-0"
+                      >
+                        צור מסמך
+                      </Button>
+                    </div>
+
+                    {/* Generated document preview */}
+                    {generatedDoc && (
+                      <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
+                        <div className="flex items-center justify-between">
+                          <p className="text-sm font-semibold text-gray-700">{generatedDoc.label}</p>
+                          <button
+                            onClick={() => {
+                              navigator.clipboard.writeText(generatedDoc.content)
+                              setMessage({ type: 'success', text: 'הועתק ללוח' })
+                              setTimeout(() => setMessage(null), 2000)
+                            }}
+                            className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                          >
+                            <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+                              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                            </svg>
+                            העתק
+                          </button>
+                        </div>
+                        <div className="max-h-60 overflow-y-auto text-sm text-gray-700 whitespace-pre-wrap leading-relaxed border-t border-gray-100 pt-3">
+                          {generatedDoc.content}
+                        </div>
+                      </div>
+                    )}
+                  </div>
                 </div>
               </CardContent>
             )

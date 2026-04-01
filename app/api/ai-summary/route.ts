@@ -3,6 +3,7 @@ import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
 import { summaryAgent, prescriptionAgent } from '@/lib/ai/agents'
 import { aiSummarySchema } from '@/lib/validation/schemas'
 import { rateLimit } from '@/lib/security/rate-limit'
+import { orchestrate } from '@/lib/ai/orchestrator'
 
 export async function POST(req: Request) {
   try {
@@ -35,6 +36,58 @@ export async function POST(req: Request) {
     // Verify appointment belongs to doctor's organization
     if (apt.organization_id !== (profile as unknown as { organization_id: string }).organization_id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    }
+
+    // Handle 'brief' action via orchestrator
+    if (action === 'brief') {
+      const { data: patient } = await admin.from('users')
+        .select('first_name, last_name, date_of_birth, medical_history')
+        .eq('id', apt.patient_id).single()
+
+      const { data: qrList } = await admin.from('questionnaire_responses')
+        .select('responses')
+        .eq('appointment_id', appointmentId)
+        .eq('is_complete', true)
+        .limit(1)
+
+      const mh = (patient?.medical_history || {}) as Record<string, string[]>
+      const briefResult = await orchestrate(
+        'brief',
+        {
+          userId: user.id,
+          organizationId: apt.organization_id,
+          role: 'doctor',
+          appointmentId,
+          patientProfile: {
+            name: patient ? `${patient.first_name} ${patient.last_name}` : 'לא ידוע',
+            dateOfBirth: patient?.date_of_birth || undefined,
+            allergies: mh.allergies || [],
+            chronicConditions: mh.chronic_conditions || [],
+            currentMedications: mh.current_medications || [],
+          },
+          payload: {
+            chiefComplaint: apt.chief_complaint,
+            questionnaireResponses: qrList?.[0]?.responses,
+            triageReasoning: (apt as Record<string, unknown>).ai_triage_reasoning as string | undefined,
+          },
+        },
+        `צור בריף לפני ביקור עבור מטופל עם תלונה: ${apt.chief_complaint}`,
+        { maxTokens: 900 }
+      )
+
+      await admin.from('ai_conversations').insert({
+        organization_id: apt.organization_id, user_id: user.id, appointment_id: appointmentId,
+        agent_type: 'brief', messages: [{ role: 'user', content: apt.chief_complaint }],
+        result: { brief: briefResult.output.substring(0, 100) }, is_complete: true,
+        input_tokens: briefResult.tokensUsed.input, output_tokens: briefResult.tokensUsed.output,
+        model_used: briefResult.modelUsed,
+      })
+
+      return NextResponse.json({
+        success: briefResult.success,
+        brief: briefResult.output,
+        redFlags: briefResult.redFlags,
+      })
     }
 
     let result

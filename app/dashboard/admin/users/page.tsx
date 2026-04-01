@@ -1,4 +1,5 @@
 'use client'
+export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { getClient } from '@/lib/supabase/client'
@@ -37,10 +38,12 @@ const ROLE_LABELS: Record<string, string> = {
 
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([])
+  const [patients, setPatients] = useState<User[]>([])
   const [loading, setLoading] = useState(true)
   const [orgId, setOrgId] = useState('')
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<string>('')
+  const [activeTab, setActiveTab] = useState<'staff' | 'patients'>('staff')
   const [showModal, setShowModal] = useState(false)
   const [editingUser, setEditingUser] = useState<User | null>(null)
   const [form, setForm] = useState<UserForm>(emptyForm)
@@ -67,13 +70,21 @@ export default function AdminUsersPage() {
       if (!profile) return
       setOrgId(profile.organization_id)
 
-      const { data } = await supabase.from('users')
-        .select('*')
-        .eq('organization_id', profile.organization_id)
-        .neq('role', 'patient')
-        .order('created_at', { ascending: false })
+      const [staffRes, patientsRes] = await Promise.all([
+        supabase.from('users')
+          .select('*')
+          .eq('organization_id', profile.organization_id)
+          .neq('role', 'patient')
+          .order('created_at', { ascending: false }),
+        supabase.from('users')
+          .select('*')
+          .eq('organization_id', profile.organization_id)
+          .eq('role', 'patient')
+          .order('created_at', { ascending: false }),
+      ])
 
-      setUsers((data || []) as unknown as User[])
+      setUsers((staffRes.data || []) as unknown as User[])
+      setPatients((patientsRes.data || []) as unknown as User[])
     } catch {
       toast.error('שגיאה בטעינת רשימת המשתמשים')
     } finally {
@@ -174,9 +185,9 @@ export default function AdminUsersPage() {
     setInviting(false)
   }
 
-  const filtered = users.filter(u => {
-    const matchSearch = !search || `${u.first_name} ${u.last_name} ${u.email}`.includes(search)
-    const matchRole = !roleFilter || u.role === roleFilter
+  const filtered = (activeTab === 'staff' ? users : patients).filter(u => {
+    const matchSearch = !search || `${u.first_name} ${u.last_name} ${u.email}`.toLowerCase().includes(search.toLowerCase())
+    const matchRole = activeTab === 'patients' || !roleFilter || u.role === roleFilter
     return matchSearch && matchRole
   })
 
@@ -186,9 +197,33 @@ export default function AdminUsersPage() {
     <div className="space-y-6">
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <h2 className="text-2xl font-bold">ניהול משתמשים</h2>
-        <Button onClick={() => setShowInvite(!showInvite)} size="sm">
-          {showInvite ? 'סגור הזמנה' : '+ הזמן משתמש'}
-        </Button>
+        {activeTab === 'staff' && (
+          <Button onClick={() => setShowInvite(!showInvite)} size="sm">
+            {showInvite ? 'סגור הזמנה' : '+ הזמן משתמש'}
+          </Button>
+        )}
+      </div>
+
+      {/* Tabs */}
+      <div className="flex gap-2 border-b border-gray-200">
+        <button
+          onClick={() => { setActiveTab('staff'); setSearch(''); setRoleFilter('') }}
+          className={cn(
+            'pb-3 px-1 text-sm font-medium border-b-2 transition-colors',
+            activeTab === 'staff' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+          )}
+        >
+          צוות ורופאים ({users.length})
+        </button>
+        <button
+          onClick={() => { setActiveTab('patients'); setSearch(''); setRoleFilter('') }}
+          className={cn(
+            'pb-3 px-1 text-sm font-medium border-b-2 transition-colors',
+            activeTab === 'patients' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+          )}
+        >
+          מטופלים ({patients.length})
+        </button>
       </div>
 
       {/* Messages */}

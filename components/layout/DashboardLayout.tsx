@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect, type ReactNode } from 'react'
+import { useState, useEffect, useRef, type ReactNode } from 'react'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { getClient } from '@/lib/supabase/client'
@@ -126,6 +126,36 @@ function IconSettings({ className }: { className?: string }) {
   )
 }
 
+function IconPlug({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M18 6v6a6 6 0 01-12 0V6"/>
+      <line x1="12" y1="18" x2="12" y2="22"/>
+      <line x1="8" y1="6" x2="8" y2="2"/>
+      <line x1="16" y1="6" x2="16" y2="2"/>
+    </svg>
+  )
+}
+
+function IconMessageSquare({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z"/>
+    </svg>
+  )
+}
+
+function IconUserPlus({ className }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/>
+      <circle cx="8.5" cy="7" r="4"/>
+      <line x1="20" y1="8" x2="20" y2="14"/>
+      <line x1="23" y1="11" x2="17" y2="11"/>
+    </svg>
+  )
+}
+
 function IconCreditCard({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -190,6 +220,9 @@ const ICON_MAP: Record<string, IconComponent> = {
   settings: IconSettings,
   'credit-card': IconCreditCard,
   stethoscope: IconStethoscope,
+  plug: IconPlug,
+  'message-square': IconMessageSquare,
+  'user-plus': IconUserPlus,
 }
 
 // ── Navigation ───────────────────────────────────────────
@@ -218,7 +251,10 @@ const NAV: Record<string, NavItem[]> = {
   admin: [
     { label: 'דשבורד', href: '/dashboard/admin/dashboard', icon: 'home' },
     { label: 'משתמשים', href: '/dashboard/admin/users', icon: 'users' },
+    { label: 'לידים', href: '/dashboard/admin/leads', icon: 'user-plus' },
     { label: 'שאלונים', href: '/dashboard/admin/questionnaires', icon: 'list-checks' },
+    { label: 'תבניות הודעות', href: '/dashboard/admin/templates', icon: 'message-square' },
+    { label: 'אינטגרציות', href: '/dashboard/admin/integrations', icon: 'plug' },
     { label: 'דוחות', href: '/dashboard/admin/reports', icon: 'bar-chart' },
     { label: 'יומן פעילות', href: '/dashboard/admin/audit-log', icon: 'scroll' },
     { label: 'הגדרות', href: '/dashboard/admin/settings', icon: 'settings' },
@@ -227,6 +263,7 @@ const NAV: Record<string, NavItem[]> = {
   staff: [
     { label: 'דשבורד', href: '/dashboard/staff/dashboard', icon: 'home' },
     { label: 'תורים', href: '/dashboard/staff/appointments', icon: 'clipboard' },
+    { label: 'לידים', href: '/dashboard/staff/leads', icon: 'user-plus' },
   ],
 }
 
@@ -245,9 +282,14 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
   const [user, setUser] = useState<User | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
-  const supabase = getClient()
+  const supabaseRef = useRef<ReturnType<typeof getClient> | null>(null)
+  function getSupabase() {
+    if (!supabaseRef.current) supabaseRef.current = getClient()
+    return supabaseRef.current
+  }
 
   useEffect(() => {
+    const supabase = getSupabase()
     // Check "remember me" session expiry
     const expiresAt = localStorage.getItem('sessionExpiresAt')
     if (expiresAt && Date.now() > Number(expiresAt)) {
@@ -262,7 +304,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
       supabase.from('users').select('*').eq('id', authUser.id).single()
         .then(({ data }) => { if (data) setUser(data as unknown as User) })
     })
-  }, [supabase, router])
+  }, [router])
 
   // Close user menu on outside click
   useEffect(() => {
@@ -275,7 +317,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
   const handleLogout = async () => {
     localStorage.removeItem('rememberMe')
     localStorage.removeItem('sessionExpiresAt')
-    await supabase.auth.signOut()
+    await getSupabase().auth.signOut()
     router.push('/auth/login')
   }
 
