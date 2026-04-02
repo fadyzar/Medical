@@ -15,7 +15,7 @@ interface AppointmentTimelineProps {
   scheduledAt?: string | null
   videoStartedAt?: string | null
   completedAt?: string | null
-  paymentStatus?: string
+  paymentStatus?: string | null
   className?: string
 }
 
