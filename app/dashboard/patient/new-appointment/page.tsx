@@ -193,33 +193,94 @@ export default function NewAppointmentPage() {
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">
-      <h2 className="text-2xl font-bold">קביעת תור חדש</h2>
-
-      {/* Progress steps */}
-      <div className="flex items-center gap-1">
-        {steps.map((s, i) => (
-          <div key={s.key} className="flex items-center flex-1">
-            <div className={cn(
-              'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0',
-              i <= currentIdx ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
-            )}>{s.num}</div>
-            <span className={cn('text-xs mr-1.5 hidden sm:block', i <= currentIdx ? 'text-blue-600 font-medium' : 'text-gray-400')}>{s.label}</span>
-            {i < steps.length - 1 && <div className={cn('h-0.5 flex-1 mx-2', i < currentIdx ? 'bg-blue-600' : 'bg-gray-200')} />}
-          </div>
-        ))}
+      <div>
+        <h1 className="text-2xl font-bold">קביעת תור חדש</h1>
+        <p className="text-sm text-gray-500 mt-1">
+          השלם את {steps.length} השלבים כדי לקבוע תור לייעוץ רפואי
+        </p>
       </div>
 
-      <Card>
+      {/* Progress steps */}
+      <nav aria-label="התקדמות קביעת תור" role="navigation">
+        <div className="flex items-center gap-1">
+          {steps.map((s, i) => {
+            const isCompleted = i < currentIdx
+            const isCurrent = i === currentIdx
+            const isPending = i > currentIdx
+
+            return (
+              <div key={s.key} className="flex items-center flex-1">
+                <div
+                  className={cn(
+                    'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-all duration-300',
+                    isCurrent && 'ring-4 ring-blue-100 scale-110',
+                    isCompleted && 'bg-green-600 text-white',
+                    isCurrent && 'bg-blue-600 text-white',
+                    isPending && 'bg-gray-200 text-gray-500'
+                  )}
+                  aria-label={`שלב ${s.num}: ${s.label}${isCompleted ? ' - הושלם' : isCurrent ? ' - שלב נוכחי' : ' - ממתין'}`}
+                  role="status"
+                >
+                  {isCompleted ? (
+                    <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                  ) : (
+                    s.num
+                  )}
+                </div>
+                <span
+                  className={cn(
+                    'text-xs mr-1.5 hidden sm:block transition-colors duration-200',
+                    (isCompleted || isCurrent) ? 'text-blue-600 font-medium' : 'text-gray-400'
+                  )}
+                >
+                  {s.label}
+                </span>
+                {i < steps.length - 1 && (
+                  <div
+                    className={cn(
+                      'h-0.5 flex-1 mx-2 transition-all duration-300',
+                      i < currentIdx ? 'bg-green-600' : 'bg-gray-200'
+                    )}
+                    aria-hidden="true"
+                  />
+                )}
+              </div>
+            )
+          })}
+        </div>
+        <div className="text-center mt-3">
+          <span className="text-sm text-gray-600">
+            שלב {currentIdx + 1} מתוך {steps.length}
+          </span>
+        </div>
+      </nav>
+
+      <Card className="overflow-hidden">
         <CardContent className="p-6">
           {/* Step 1: Specialty */}
           {step === 'specialty' && (
-            <div className="space-y-4">
-              <h3 className="font-bold text-lg">בחר התמחות</h3>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
+            <div className="space-y-4 animate-fadeIn">
+              <div>
+                <h2 className="font-bold text-lg">בחר התמחות רפואית</h2>
+                <p className="text-sm text-gray-500 mt-1">באיזה תחום רפואי תרצה לקבל ייעוץ?</p>
+              </div>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-3" role="radiogroup" aria-label="בחירת התמחות רפואית">
                 {SPECIALTIES.map(s => (
-                  <button key={s.id} onClick={() => { setForm(p => ({ ...p, specialty: s.id })); setStep('doctor') }}
-                    className={cn('p-4 rounded-xl border-2 text-sm font-medium transition-all text-center hover:border-blue-400 hover:bg-blue-50',
-                      form.specialty === s.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200')}>
+                  <button
+                    key={s.id}
+                    onClick={() => { setForm(p => ({ ...p, specialty: s.id })); setStep('doctor') }}
+                    className={cn(
+                      'p-4 rounded-xl border-2 text-sm font-medium transition-all text-center',
+                      'hover:border-blue-400 hover:bg-blue-50 hover:scale-105 active:scale-95',
+                      'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500',
+                      form.specialty === s.id ? 'border-blue-500 bg-blue-50' : 'border-gray-200'
+                    )}
+                    role="radio"
+                    aria-checked={form.specialty === s.id}
+                    aria-label={`התמחות: ${s.label}`}
+                  >
                     {s.label}
                   </button>
                 ))}

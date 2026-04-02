@@ -59,7 +59,16 @@ export default function MyDocumentsPage() {
   const [uploading, setUploading] = useState(false)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [error, setError] = useState('')
+  const [searchQuery, setSearchQuery] = useState('')
+  const [filterType, setFilterType] = useState<string>('all')
   const supabase = getClient()
+
+  // Filter and search documents
+  const filteredDocs = docs.filter(doc => {
+    const matchesSearch = doc.file_name.toLowerCase().includes(searchQuery.toLowerCase())
+    const matchesType = filterType === 'all' || doc.file_type.startsWith(filterType)
+    return matchesSearch && matchesType
+  })
 
   useEffect(() => { loadDocs() }, [])
 
@@ -156,18 +165,50 @@ export default function MyDocumentsPage() {
     <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">המסמכים שלי</h2>
-          <p className="text-sm text-gray-500 mt-0.5">{docs.length} מסמכים</p>
+          <h1 className="text-2xl font-bold text-gray-900">המסמכים שלי</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{filteredDocs.length} מתוך {docs.length} מסמכים</p>
         </div>
         <div>
-          <input type="file" id="doc-upload" className="hidden" accept="image/*,.pdf,.doc,.docx"
-            onChange={e => { if (e.target.files?.[0]) uploadFile(e.target.files[0]) }} />
-          <Button loading={uploading} onClick={() => document.getElementById('doc-upload')?.click()}>
-            <IconUpload className="w-4 h-4" />
+          <input
+            type="file"
+            id="doc-upload"
+            className="hidden"
+            accept="image/*,.pdf,.doc,.docx"
+            onChange={e => { if (e.target.files?.[0]) uploadFile(e.target.files[0]) }}
+            aria-label="בחר קובץ להעלאה"
+          />
+          <Button loading={uploading} onClick={() => document.getElementById('doc-upload')?.click()} aria-label="העלאת מסמך חדש">
+            <IconUpload className="w-4 h-4" aria-hidden="true" />
             העלאת מסמך
           </Button>
         </div>
       </div>
+
+      {/* Search and Filter */}
+      {docs.length > 0 && (
+        <div className="flex gap-3">
+          <div className="flex-1">
+            <input
+              type="search"
+              placeholder="חפש מסמך..."
+              value={searchQuery}
+              onChange={e => setSearchQuery(e.target.value)}
+              className="w-full px-4 py-2 border border-gray-300 rounded-lg text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+              aria-label="חיפוש מסמכים"
+            />
+          </div>
+          <select
+            value={filterType}
+            onChange={e => setFilterType(e.target.value)}
+            className="px-4 py-2 border border-gray-300 rounded-lg text-sm bg-white focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+            aria-label="סינון לפי סוג קובץ"
+          >
+            <option value="all">כל הסוגים</option>
+            <option value="image">תמונות</option>
+            <option value="application/pdf">PDF</option>
+          </select>
+        </div>
+      )}
 
       {/* Error */}
       {error && (
@@ -181,7 +222,7 @@ export default function MyDocumentsPage() {
       )}
 
       <Card>
-        {docs.length === 0 ? (
+        {filteredDocs.length === 0 && docs.length === 0 ? (
           <EmptyState
             icon={<IconFolder className="w-10 h-10 text-gray-400" />}
             title="אין מסמכים"
@@ -193,9 +234,17 @@ export default function MyDocumentsPage() {
               </Button>
             }
           />
+        ) : filteredDocs.length === 0 ? (
+          <div className="py-12 text-center">
+            <IconFolder className="w-12 h-12 text-gray-400 mx-auto mb-3" />
+            <p className="text-gray-500">לא נמצאו מסמכים התואמים את החיפוש</p>
+            <Button variant="ghost" size="sm" onClick={() => { setSearchQuery(''); setFilterType('all') }} className="mt-2">
+              נקה סינון
+            </Button>
+          </div>
         ) : (
           <div className="divide-y">
-            {docs.map(doc => (
+            {filteredDocs.map(doc => (
               <div key={doc.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
                 <div className="flex items-center gap-3 min-w-0">
                   <div className={`w-10 h-10 rounded-lg flex items-center justify-center shrink-0 ${getFileIcon(doc.file_type)}`}>
