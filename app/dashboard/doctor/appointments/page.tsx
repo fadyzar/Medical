@@ -4,14 +4,73 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
-import { Button, Card, CardContent, CardHeader, Badge, Textarea, Input, PageLoading, EmptyState } from '@/components/ui'
-import { STATUS_LABELS, formatDateTime, cn } from '@/lib/utils'
+import { Button, Card, CardContent, CardHeader, Badge, Textarea, Input, PageLoading, EmptyState, Spinner } from '@/components/ui'
+import { STATUS_LABELS, formatDateTime, formatDate, getInitials, cn } from '@/lib/utils'
 import type { Appointment, User, QuestionnaireResponse, QuestionItem } from '@/types/database'
 
 type ResponseWithQuest = QuestionnaireResponse & {
   questionnaire?: { id: string; title: string; questions: QuestionItem[] }
 }
 
+// ── helpers ────────────────────────────────────────────────────────
+function PatientAvatar({ first, last, size = 'md' }: { first: string; last: string; size?: 'sm' | 'md' | 'lg' }) {
+  const s = { sm: 'w-8 h-8 text-xs', md: 'w-10 h-10 text-sm', lg: 'w-14 h-14 text-lg' }
+  return (
+    <div className={cn('rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-white shrink-0', s[size])}>
+      {getInitials(first || '?', last || '?')}
+    </div>
+  )
+}
+
+function statusBadgeVariant(status: string): 'success' | 'danger' | 'warning' | 'info' | 'default' {
+  if (status === 'completed') return 'success'
+  if (status.startsWith('cancelled') || status.startsWith('no_show')) return 'danger'
+  if (status === 'pending') return 'warning'
+  if (status === 'in_progress') return 'success'
+  return 'info'
+}
+
+// ── SOAP field definitions ─────────────────────────────────────────
+const SOAP_FIELDS = [
+  {
+    key: 'subjective_notes' as const,
+    letter: 'ס',
+    letterEn: 'S',
+    label: 'סובייקטיבי',
+    sublabel: 'תלונת המטופל, תסמינים ותחושות סובייקטיביות',
+    color: 'bg-blue-600',
+    rows: 3,
+  },
+  {
+    key: 'objective_notes' as const,
+    letter: 'א',
+    letterEn: 'O',
+    label: 'אובייקטיבי',
+    sublabel: 'ממצאים, בדיקות ונתונים מדידים',
+    color: 'bg-indigo-600',
+    rows: 3,
+  },
+  {
+    key: 'assessment' as const,
+    letter: 'ה',
+    letterEn: 'A',
+    label: 'הערכה',
+    sublabel: 'אבחנה מבדלת והערכה קלינית',
+    color: 'bg-violet-600',
+    rows: 3,
+  },
+  {
+    key: 'plan' as const,
+    letter: 'ת',
+    letterEn: 'P',
+    label: 'תוכנית',
+    sublabel: 'תוכנית טיפול, תרופות ופעולות',
+    color: 'bg-purple-600',
+    rows: 3,
+  },
+]
+
+// ── main component ─────────────────────────────────────────────────
 export default function DoctorAppointmentsPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
@@ -21,6 +80,7 @@ export default function DoctorAppointmentsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [filter, setFilter] = useState<string>('all')
+  const [search, setSearch] = useState('')
   const [soapForm, setSoapForm] = useState({ subjective_notes: '', objective_notes: '', assessment: '', plan: '', diagnosis: '', follow_up_instructions: '' })
   const [questResponses, setQuestResponses] = useState<ResponseWithQuest[]>([])
   const [showQuestionnaire, setShowQuestionnaire] = useState(false)
@@ -34,12 +94,12 @@ export default function DoctorAppointmentsPage() {
   const supabase = getClient()
 
   const DOC_TYPES = [
-    { value: 'medical_letter',    label: 'מכתב רפואי' },
-    { value: 'referral',          label: 'הפניה למומחה' },
-    { value: 'sick_leave',        label: 'אישור מחלה' },
+    { value: 'medical_letter',       label: 'מכתב רפואי' },
+    { value: 'referral',             label: 'הפניה למומחה' },
+    { value: 'sick_leave',           label: 'אישור מחלה' },
     { value: 'prescription_summary', label: 'סיכום טיפול תרופתי' },
-    { value: 'discharge_summary', label: 'סיכום ביקור' },
-    { value: 'follow_up_plan',    label: 'תוכנית מעקב' },
+    { value: 'discharge_summary',    label: 'סיכום ביקור' },
+    { value: 'follow_up_plan',       label: 'תוכנית מעקב' },
   ]
 
   useEffect(() => { loadData() }, [])
@@ -69,6 +129,8 @@ export default function DoctorAppointmentsPage() {
   const selectAppointment = async (apt: Appointment) => {
     setSelected(apt)
     setShowQuestionnaire(false)
+    setBrief(null)
+    setGeneratedDoc(null)
     setSoapForm({
       subjective_notes: apt.subjective_notes || '',
       objective_notes: apt.objective_notes || '',
@@ -209,219 +271,524 @@ export default function DoctorAppointmentsPage() {
 
   if (loading) return <PageLoading />
 
-  const filtered = filter === 'all' ? appointments : appointments.filter(a => a.status === filter)
+  const FILTER_OPTIONS = [
+    { value: 'all',             label: 'הכל' },
+    { value: 'pending',         label: 'ממתינים' },
+    { value: 'doctor_confirmed',label: 'אושרו' },
+    { value: 'scheduled',       label: 'מתוזמנים' },
+    { value: 'in_progress',     label: 'בתהליך' },
+    { value: 'completed',       label: 'הושלמו' },
+  ]
+
+  const filtered = appointments
+    .filter(a => filter === 'all' || a.status === filter)
+    .filter(a => {
+      if (!search.trim()) return true
+      const patient = a.patient as unknown as User
+      const q = search.toLowerCase()
+      return (
+        patient?.first_name?.toLowerCase().includes(q) ||
+        patient?.last_name?.toLowerCase().includes(q) ||
+        a.chief_complaint?.toLowerCase().includes(q)
+      )
+    })
+
+  const selectedPatient = selected?.patient as unknown as User | undefined
 
   return (
-    <div className="space-y-4">
-      <h2 className="text-2xl font-bold">ניהול תורים</h2>
+    <div className="space-y-5">
 
-      {/* Messages */}
+      {/* ── page header ── */}
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">ניהול תורים</h1>
+          <p className="text-sm text-gray-500 mt-0.5">{appointments.length} תורים בסך הכל</p>
+        </div>
+      </div>
+
+      {/* ── toast ── */}
       {message && (
         <div className={cn(
-          'flex items-center gap-3 p-3 rounded-lg text-sm',
-          message.type === 'success' ? 'bg-green-50 border border-green-200 text-green-700' : 'bg-red-50 border border-red-200 text-red-700'
+          'flex items-center gap-3 p-3.5 rounded-xl text-sm font-medium border',
+          message.type === 'success'
+            ? 'bg-green-50 border-green-200 text-green-800'
+            : 'bg-red-50 border-red-200 text-red-800'
         )} role="status">
+          <div className={cn('w-2 h-2 rounded-full shrink-0', message.type === 'success' ? 'bg-green-500' : 'bg-red-500')} />
           {message.text}
         </div>
       )}
 
-      {/* Filters */}
-      <div className="flex gap-2 flex-wrap">
-        {['all', 'pending', 'doctor_confirmed', 'scheduled', 'in_progress', 'completed'].map(f => (
-          <button key={f} onClick={() => setFilter(f)} aria-pressed={filter === f} className={cn(
-            'px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
-            filter === f ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
-          )}>{f === 'all' ? 'הכל' : STATUS_LABELS[f]} ({f === 'all' ? appointments.length : appointments.filter(a => a.status === f).length})</button>
-        ))}
-      </div>
+      {/* ── two-column layout ── */}
+      <div className="grid grid-cols-1 lg:grid-cols-[360px_1fr] gap-5 items-start">
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
-        {/* List */}
-        <Card className="max-h-[75vh] overflow-y-auto">
-          {filtered.length === 0 ? <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></svg>} title="אין תורים" /> : (
-            <div className="divide-y">
-              {filtered.map(apt => {
-                const patient = apt.patient as unknown as User
-                const isSelected = selected?.id === apt.id
-                return (
-                  <button key={apt.id} onClick={() => selectAppointment(apt)}
-                    className={cn('w-full px-4 py-3 text-right hover:bg-gray-50 transition-colors', isSelected && 'bg-blue-50 border-r-4 border-blue-600')}>
-                    <div className="flex items-center justify-between">
-                      <div className="min-w-0">
-                        <p className="font-medium truncate">{patient?.first_name} {patient?.last_name}</p>
-                        <p className="text-sm text-gray-500 truncate">{apt.chief_complaint}</p>
-                        <p className="text-xs text-gray-400">{formatDateTime(apt.scheduled_at || apt.created_at)}</p>
-                      </div>
-                      <div className="flex flex-col items-end gap-1 shrink-0">
-                        <Badge variant={apt.status === 'completed' ? 'success' : apt.status.startsWith('cancelled') ? 'danger' : 'info'}>
-                          {STATUS_LABELS[apt.status]}
-                        </Badge>
-                        {apt.ai_triage_score != null && (
-                          <span className={cn('text-xs px-1.5 py-0.5 rounded font-medium',
-                            apt.ai_triage_score >= 7 ? 'bg-red-100 text-red-700' : apt.ai_triage_score >= 4 ? 'bg-yellow-100 text-yellow-700' : 'bg-green-100 text-green-700'
-                          )}>דחיפות {apt.ai_triage_score}</span>
-                        )}
-                      </div>
-                    </div>
-                  </button>
-                )
-              })}
-            </div>
-          )}
-        </Card>
+        {/* ════ LEFT: appointment list ════ */}
+        <div className="flex flex-col gap-3">
 
-        {/* Detail panel */}
-        <Card className="max-h-[75vh] overflow-y-auto">
-          {selected ? (() => {
-            const patient = selected.patient as unknown as User
-            return (
-              <CardContent className="p-5 space-y-5">
-                {/* Patient info */}
-                <div>
-                  <h3 className="font-bold text-lg">{patient?.first_name} {patient?.last_name}</h3>
-                  <div className="text-sm text-gray-500 space-y-0.5 mt-1">
-                    {patient?.phone && <p>טל׳: {patient.phone}</p>}
-                    {patient?.date_of_birth && <p>ת.לידה: {patient.date_of_birth}</p>}
-                    {patient?.medical_history?.allergies?.length > 0 && (
-                      <p className="text-red-600 font-medium">אלרגיות: {patient.medical_history.allergies.join(', ')}</p>
-                    )}
-                    {patient?.medical_history?.current_medications?.length > 0 && (
-                      <p>תרופות: {patient.medical_history.current_medications.join(', ')}</p>
-                    )}
-                  </div>
-                </div>
+          {/* search */}
+          <div className="relative">
+            <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
+            </svg>
+            <input
+              type="text"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+              placeholder="חיפוש לפי שם מטופל או תלונה..."
+              className="w-full rounded-xl border border-gray-300 bg-white py-2.5 pr-9 pl-4 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none placeholder:text-gray-400"
+            />
+          </div>
 
-                {/* Complaint */}
-                <div className="bg-gray-50 rounded-lg p-3">
-                  <p className="text-sm font-medium text-gray-700">תלונה: {selected.chief_complaint}</p>
-                  {selected.complaint_description && <p className="text-sm text-gray-500 mt-1">{selected.complaint_description}</p>}
-                  {selected.ai_triage_reasoning && (
-                    <div className="mt-2 p-2 bg-purple-50 rounded text-sm">
-                      <p className="font-medium text-purple-700">מיון AI</p>
-                      <p className="text-purple-600 text-xs mt-0.5">{selected.ai_triage_reasoning}</p>
-                    </div>
+          {/* filter pills */}
+          <div className="flex gap-1.5 flex-wrap">
+            {FILTER_OPTIONS.map(f => {
+              const count = f.value === 'all' ? appointments.length : appointments.filter(a => a.status === f.value).length
+              return (
+                <button
+                  key={f.value}
+                  onClick={() => setFilter(f.value)}
+                  aria-pressed={filter === f.value}
+                  className={cn(
+                    'px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5',
+                    filter === f.value
+                      ? 'bg-blue-600 text-white shadow-sm'
+                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
                   )}
-                </div>
+                >
+                  {f.label}
+                  <span className={cn(
+                    'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
+                    filter === f.value ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600'
+                  )}>
+                    {count}
+                  </span>
+                </button>
+              )
+            })}
+          </div>
 
-                {/* AI Summary if exists */}
-                {selected.ai_summary && (
-                  <div className="bg-blue-50 rounded-lg p-3">
-                    <p className="font-medium text-blue-700 text-sm">סיכום AI</p>
-                    <p className="text-sm text-blue-600 mt-1 whitespace-pre-wrap">{selected.ai_summary}</p>
-                  </div>
-                )}
+          {/* list card */}
+          <Card className="overflow-hidden">
+            {filtered.length === 0 ? (
+              <EmptyState
+                icon={
+                  <svg className="w-10 h-10 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+                  </svg>
+                }
+                title="לא נמצאו תורים"
+                description={search ? 'נסה לשנות את מונחי החיפוש' : 'אין תורים בסטטוס זה'}
+              />
+            ) : (
+              <div className="divide-y max-h-[70vh] overflow-y-auto">
+                {filtered.map(apt => {
+                  const patient = apt.patient as unknown as User
+                  const isSelected = selected?.id === apt.id
+                  const isActive = ['in_progress'].includes(apt.status)
 
-                {/* Questionnaire Responses */}
-                {questResponses.length > 0 && (
-                  <div className="bg-green-50 rounded-lg p-3">
-                    <button onClick={() => setShowQuestionnaire(!showQuestionnaire)}
-                      className="w-full flex items-center justify-between text-sm font-medium text-green-700">
-                      <span>שאלון מטופל ({questResponses.length})</span>
-                      <span className="text-xs">{showQuestionnaire ? '▲ הסתר' : '▼ הצג'}</span>
+                  return (
+                    <button
+                      key={apt.id}
+                      onClick={() => selectAppointment(apt)}
+                      className={cn(
+                        'w-full px-4 py-3.5 text-right flex gap-3 items-start transition-colors',
+                        isSelected
+                          ? 'bg-blue-50 border-r-4 border-blue-600'
+                          : 'hover:bg-gray-50 border-r-4 border-transparent'
+                      )}
+                    >
+                      <PatientAvatar first={patient?.first_name || ''} last={patient?.last_name || ''} size="sm" />
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between gap-1">
+                          <p className={cn('font-semibold text-sm truncate', isSelected ? 'text-blue-900' : 'text-gray-900')}>
+                            {patient?.first_name} {patient?.last_name}
+                          </p>
+                          <Badge variant={statusBadgeVariant(apt.status)} className="text-[10px] shrink-0">
+                            {STATUS_LABELS[apt.status]}
+                          </Badge>
+                        </div>
+                        <p className="text-xs text-gray-500 truncate mt-0.5">{apt.chief_complaint}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-[10px] text-gray-400">
+                            {formatDateTime(apt.scheduled_at || apt.created_at)}
+                          </p>
+                          {apt.ai_triage_score != null && (
+                            <span className={cn('text-[10px] px-1.5 py-0.5 rounded-full font-semibold',
+                              apt.ai_triage_score >= 7 ? 'bg-red-100 text-red-700' :
+                              apt.ai_triage_score >= 4 ? 'bg-yellow-100 text-yellow-700' :
+                                                         'bg-green-100 text-green-700'
+                            )}>
+                              דחיפות {apt.ai_triage_score}
+                            </span>
+                          )}
+                          {isActive && (
+                            <span className="flex items-center gap-1 text-[10px] text-green-700 font-medium">
+                              <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
+                              פעיל
+                            </span>
+                          )}
+                        </div>
+                      </div>
                     </button>
-                    {showQuestionnaire && questResponses.map(qr => {
-                      const quest = qr.questionnaire
-                      const answers = (qr.responses || {}) as Record<string, string | string[]>
+                  )
+                })}
+              </div>
+            )}
+          </Card>
+        </div>
+
+        {/* ════ RIGHT: detail panel ════ */}
+        <Card className="overflow-hidden">
+          {!selected ? (
+            <div className="min-h-[60vh] flex items-center justify-center">
+              <EmptyState
+                icon={
+                  <svg className="w-14 h-14 text-gray-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+                    <line x1="12" y1="11" x2="12" y2="17" /><line x1="9" y1="14" x2="15" y2="14" />
+                  </svg>
+                }
+                title="בחר תור מהרשימה"
+                description="לחץ על תור כדי לצפות בפרטים, לכתוב הערות SOAP וליצור מסמכים רפואיים"
+              />
+            </div>
+          ) : (
+            <div className="max-h-[85vh] overflow-y-auto">
+
+              {/* ── patient hero header ── */}
+              <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-l from-slate-50 to-white">
+                <div className="flex items-start gap-4">
+                  <PatientAvatar first={selectedPatient?.first_name || ''} last={selectedPatient?.last_name || ''} size="lg" />
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-start justify-between gap-2 flex-wrap">
+                      <div>
+                        <h2 className="text-xl font-bold text-gray-900">
+                          {selectedPatient?.first_name} {selectedPatient?.last_name}
+                        </h2>
+                        <div className="flex items-center gap-3 mt-1 flex-wrap text-sm text-gray-500">
+                          {selectedPatient?.phone && (
+                            <span className="flex items-center gap-1">
+                              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.13 19.79 19.79 0 01.13 4.5 2 2 0 012.09 2.32h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 9.41A16 16 0 0013.73 17l.47-.47a2 2 0 012.11-.45 12.84 12.84 0 002.81.7 2 2 0 011.72 2.02z" /></svg>
+                              {selectedPatient.phone}
+                            </span>
+                          )}
+                          {selectedPatient?.date_of_birth && (
+                            <span>ת.לידה: {selectedPatient.date_of_birth}</span>
+                          )}
+                          {selectedPatient?.email && (
+                            <span className="truncate max-w-[180px]">{selectedPatient.email}</span>
+                          )}
+                        </div>
+                      </div>
+                      <Badge variant={statusBadgeVariant(selected.status)} className="text-xs shrink-0">
+                        {STATUS_LABELS[selected.status]}
+                      </Badge>
+                    </div>
+
+                    {/* medical alerts */}
+                    {(() => {
+                      const allergies: string[] = selectedPatient?.medical_history?.allergies || []
+                      const meds: string[] = selectedPatient?.medical_history?.current_medications || []
+                      if (!allergies.length && !meds.length) return null
                       return (
-                        <div key={qr.id} className="mt-3 space-y-3">
-                          {quest && <p className="text-xs text-green-600 font-medium">{quest.title}</p>}
-                          {(quest?.questions || []).filter(q => q.text.trim()).map((q, idx) => {
-                            const answer = answers[q.id]
-                            const hasAnswer = answer && (Array.isArray(answer) ? answer.length > 0 : String(answer).trim().length > 0)
-                            if (!hasAnswer) return null
-                            return (
-                              <div key={q.id} className="text-xs">
-                                <p className="text-gray-600 font-medium">{idx + 1}. {q.text}</p>
-                                <p className="text-gray-800 mt-0.5 bg-white rounded px-2 py-1">
-                                  {Array.isArray(answer) ? answer.join(', ') : String(answer)}
-                                </p>
-                              </div>
-                            )
-                          })}
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          {allergies.length > 0 && (
+                            <div className="flex items-center gap-1.5 bg-red-50 border border-red-200 rounded-lg px-3 py-1.5 text-xs text-red-700">
+                              <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" /><line x1="12" y1="9" x2="12" y2="13" /><line x1="12" y1="17" x2="12.01" y2="17" />
+                              </svg>
+                              <span className="font-semibold">אלרגיות:</span> {allergies.join(', ')}
+                            </div>
+                          )}
+                          {meds.length > 0 && (
+                            <div className="flex items-center gap-1.5 bg-amber-50 border border-amber-200 rounded-lg px-3 py-1.5 text-xs text-amber-700">
+                              <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M18.5 2l-15 15" /><path d="M3.5 6.5l4 4 4-4-4-4-4 4z" /><path d="M12.5 15.5l4 4 4-4-4-4-4 4z" />
+                              </svg>
+                              <span className="font-semibold">תרופות:</span> {meds.join(', ')}
+                            </div>
+                          )}
                         </div>
                       )
-                    })}
+                    })()}
                   </div>
+                </div>
+              </div>
+
+              <div className="p-6 space-y-6">
+
+                {/* ── chief complaint card ── */}
+                <Card className="border-gray-200">
+                  <CardHeader className="py-3 px-4 bg-gray-50">
+                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">תלונה עיקרית</p>
+                  </CardHeader>
+                  <CardContent className="py-3 px-4">
+                    <p className="font-semibold text-gray-900">{selected.chief_complaint}</p>
+                    {selected.complaint_description && (
+                      <p className="text-sm text-gray-600 mt-1.5 leading-relaxed">{selected.complaint_description}</p>
+                    )}
+                    {selected.ai_triage_score != null && (
+                      <div className="mt-3 flex items-center gap-2 flex-wrap">
+                        <span className={cn(
+                          'text-xs font-semibold px-2.5 py-1 rounded-full',
+                          selected.ai_triage_score >= 7 ? 'bg-red-100 text-red-700' :
+                          selected.ai_triage_score >= 4 ? 'bg-yellow-100 text-yellow-700' :
+                                                           'bg-green-100 text-green-700'
+                        )}>
+                          דחיפות AI: {selected.ai_triage_score}/10
+                        </span>
+                        {selected.ai_triage_category && (
+                          <span className="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">{selected.ai_triage_category}</span>
+                        )}
+                      </div>
+                    )}
+                    {selected.ai_triage_reasoning && (
+                      <div className="mt-3 p-3 bg-purple-50 border border-purple-100 rounded-lg">
+                        <p className="text-xs font-semibold text-purple-700 mb-1">נימוק מיון AI</p>
+                        <p className="text-xs text-purple-600 leading-relaxed">{selected.ai_triage_reasoning}</p>
+                      </div>
+                    )}
+                  </CardContent>
+                </Card>
+
+                {/* ── AI summary (if exists) ── */}
+                {selected.ai_summary && (
+                  <Card className="border-blue-200 bg-blue-50">
+                    <CardHeader className="py-3 px-4 border-b border-blue-100 flex items-center gap-2">
+                      <svg className="w-4 h-4 text-blue-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 2a4 4 0 014 4v1h2a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2h2V6a4 4 0 014-4z" /><circle cx="9" cy="13" r="1" /><circle cx="15" cy="13" r="1" />
+                      </svg>
+                      <p className="text-sm font-semibold text-blue-800">סיכום ייעוץ — AI</p>
+                    </CardHeader>
+                    <CardContent className="py-3 px-4">
+                      <p className="text-sm text-blue-700 leading-relaxed whitespace-pre-wrap">{selected.ai_summary}</p>
+                    </CardContent>
+                  </Card>
                 )}
 
-                {/* AI Pre-visit Brief */}
-                {['doctor_confirmed', 'scheduled', 'ready', 'in_progress'].includes(selected.status) && (
-                  <div className="border border-purple-200 rounded-lg overflow-hidden">
-                    <div className="bg-purple-50 px-4 py-3 flex items-center justify-between">
+                {/* ── questionnaire responses ── */}
+                {questResponses.length > 0 && (
+                  <Card className="border-emerald-200">
+                    <button
+                      onClick={() => setShowQuestionnaire(!showQuestionnaire)}
+                      className="w-full px-4 py-3 flex items-center justify-between bg-emerald-50 hover:bg-emerald-100 transition-colors rounded-t-xl"
+                    >
                       <div className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                          <path d="M12 2a4 4 0 014 4v1h2a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2h2V6a4 4 0 014-4z"/>
-                          <circle cx="9" cy="13" r="1"/><circle cx="15" cy="13" r="1"/>
+                        <svg className="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M9 11l3 3L22 4" /><path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
                         </svg>
-                        <span className="text-sm font-semibold text-purple-700">בריף AI לפני ביקור</span>
+                        <span className="text-sm font-semibold text-emerald-800">תשובות לשאלון ({questResponses.length})</span>
                       </div>
-                      <Button
-                        size="sm"
-                        loading={briefLoading}
-                        onClick={() => generateBrief(selected)}
-                        className="bg-purple-600 hover:bg-purple-700 text-white text-xs px-3 py-1.5"
-                      >
-                        {brief ? 'רענן בריף' : 'צור בריף'}
-                      </Button>
-                    </div>
-                    {brief && (
-                      <div className="p-4 text-sm text-gray-700 whitespace-pre-wrap leading-relaxed bg-white">
-                        {brief}
-                      </div>
+                      <svg className={cn('w-4 h-4 text-emerald-600 transition-transform', showQuestionnaire && 'rotate-180')} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="6 9 12 15 18 9" />
+                      </svg>
+                    </button>
+
+                    {showQuestionnaire && (
+                      <CardContent className="py-4 px-4 space-y-5">
+                        {questResponses.map(qr => {
+                          const quest = qr.questionnaire
+                          const answers = (qr.responses || {}) as Record<string, string | string[]>
+                          return (
+                            <div key={qr.id}>
+                              {quest && (
+                                <p className="text-xs font-semibold text-emerald-700 mb-3 flex items-center gap-1.5">
+                                  <span className="w-1 h-4 rounded-full bg-emerald-500" />
+                                  {quest.title}
+                                </p>
+                              )}
+                              <div className="space-y-3">
+                                {(quest?.questions || []).filter(q => q.text.trim()).map((q, idx) => {
+                                  const answer = answers[q.id]
+                                  const hasAnswer = answer && (Array.isArray(answer) ? answer.length > 0 : String(answer).trim().length > 0)
+                                  if (!hasAnswer) return null
+                                  return (
+                                    <div key={q.id} className="rounded-lg border border-gray-100 overflow-hidden">
+                                      <div className="px-3 py-2 bg-gray-50">
+                                        <p className="text-xs text-gray-600 font-medium">{idx + 1}. {q.text}</p>
+                                      </div>
+                                      <div className="px-3 py-2">
+                                        <p className="text-sm text-gray-800 font-medium">
+                                          {Array.isArray(answer) ? answer.join(', ') : String(answer)}
+                                        </p>
+                                      </div>
+                                    </div>
+                                  )
+                                })}
+                              </div>
+                            </div>
+                          )
+                        })}
+                      </CardContent>
                     )}
-                    {!brief && !briefLoading && (
-                      <p className="px-4 py-3 text-xs text-gray-400 bg-white">
-                        לחץ "צור בריף" לקבלת סיכום AI של המטופל לפני הביקור — תלונה, היסטוריה, תשובות לשאלון ואזהרות דחיפות.
-                      </p>
-                    )}
-                  </div>
+                  </Card>
                 )}
 
-                {/* SOAP Notes */}
-                <div className="space-y-3">
-                  <h4 className="font-bold">SOAP Notes</h4>
-                  <Textarea label="S — Subjective (תלונת המטופל)" value={soapForm.subjective_notes}
-                    onChange={e => setSoapForm(p => ({ ...p, subjective_notes: e.target.value }))} />
-                  <Textarea label="O — Objective (ממצאים)" value={soapForm.objective_notes}
-                    onChange={e => setSoapForm(p => ({ ...p, objective_notes: e.target.value }))} />
-                  <Textarea label="A — Assessment (הערכה)" value={soapForm.assessment}
-                    onChange={e => setSoapForm(p => ({ ...p, assessment: e.target.value }))} />
-                  <Textarea label="P — Plan (תוכנית)" value={soapForm.plan}
-                    onChange={e => setSoapForm(p => ({ ...p, plan: e.target.value }))} />
-                  <Input label="אבחנה" value={soapForm.diagnosis}
-                    onChange={e => setSoapForm(p => ({ ...p, diagnosis: e.target.value }))} />
-                  <Textarea label="הוראות מעקב" value={soapForm.follow_up_instructions}
-                    onChange={e => setSoapForm(p => ({ ...p, follow_up_instructions: e.target.value }))} />
+                {/* ── AI pre-visit brief ── */}
+                {['doctor_confirmed', 'scheduled', 'ready', 'in_progress'].includes(selected.status) && (
+                  <Card className="border-purple-300 overflow-hidden">
+                    <CardHeader className="bg-gradient-to-l from-purple-600 to-violet-700 py-3 px-4 border-0">
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-2">
+                          <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                            <path d="M12 2a4 4 0 014 4v1h2a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2h2V6a4 4 0 014-4z" />
+                            <circle cx="9" cy="13" r="1" /><circle cx="15" cy="13" r="1" />
+                          </svg>
+                          <span className="text-sm font-semibold text-white">בריף AI לפני הביקור</span>
+                        </div>
+                        <Button
+                          size="sm"
+                          loading={briefLoading}
+                          onClick={() => generateBrief(selected)}
+                          className="bg-white/20 hover:bg-white/30 text-white border-0 text-xs h-7"
+                        >
+                          {brief ? 'רענן' : 'צור בריף'}
+                        </Button>
+                      </div>
+                    </CardHeader>
+                    {briefLoading ? (
+                      <div className="px-5 py-6 flex items-center justify-center gap-3 text-purple-600 text-sm">
+                        <Spinner size="sm" />
+                        <span>AI מכין בריף עבורך...</span>
+                      </div>
+                    ) : brief ? (
+                      <CardContent className="py-4 px-4">
+                        <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{brief}</p>
+                      </CardContent>
+                    ) : (
+                      <CardContent className="py-3 px-4">
+                        <p className="text-xs text-gray-400 leading-relaxed">
+                          לחץ "צור בריף" לקבלת סיכום AI של המטופל לפני הביקור — תלונה, היסטוריה, תשובות לשאלון ואזהרות דחיפות.
+                        </p>
+                      </CardContent>
+                    )}
+                  </Card>
+                )}
+
+                {/* ── SOAP notes ── */}
+                <div>
+                  <div className="flex items-center gap-2 mb-4">
+                    <div className="flex items-center gap-1">
+                      {['ס', 'א', 'ה', 'ת'].map((l, i) => (
+                        <span key={i} className={cn(
+                          'w-7 h-7 rounded-lg text-white text-xs font-bold flex items-center justify-center',
+                          ['bg-blue-600', 'bg-indigo-600', 'bg-violet-600', 'bg-purple-600'][i]
+                        )}>{l}</span>
+                      ))}
+                    </div>
+                    <h3 className="font-bold text-gray-900">הערות SOAP</h3>
+                    <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                      סובייקטיבי · אובייקטיבי · הערכה · תוכנית
+                    </span>
+                  </div>
+
+                  <div className="space-y-3">
+                    {SOAP_FIELDS.map(field => (
+                      <div key={field.key} className="rounded-xl border border-gray-200 overflow-hidden">
+                        <div className="flex items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200">
+                          <span className={cn('w-7 h-7 rounded-lg text-white text-xs font-bold flex items-center justify-center shrink-0', field.color)}>
+                            {field.letter}
+                          </span>
+                          <div>
+                            <p className="text-sm font-semibold text-gray-800">{field.label}</p>
+                            <p className="text-[10px] text-gray-400">{field.sublabel}</p>
+                          </div>
+                        </div>
+                        <textarea
+                          rows={field.rows}
+                          value={soapForm[field.key]}
+                          onChange={e => setSoapForm(p => ({ ...p, [field.key]: e.target.value }))}
+                          placeholder={`${field.label}...`}
+                          className="w-full px-4 py-3 text-sm text-gray-800 placeholder:text-gray-300 focus:outline-none resize-y bg-white leading-relaxed"
+                        />
+                      </div>
+                    ))}
+
+                    {/* diagnosis + follow-up */}
+                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                      <Input
+                        label="אבחנה סופית"
+                        value={soapForm.diagnosis}
+                        onChange={e => setSoapForm(p => ({ ...p, diagnosis: e.target.value }))}
+                        placeholder="למשל: יתר לחץ דם, URTI..."
+                      />
+                      <div className="space-y-1.5">
+                        <label className="block text-sm font-medium text-gray-700">הוראות מעקב</label>
+                        <textarea
+                          rows={2}
+                          value={soapForm.follow_up_instructions}
+                          onChange={e => setSoapForm(p => ({ ...p, follow_up_instructions: e.target.value }))}
+                          placeholder="הוראות מעקב למטופל..."
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none resize-none placeholder:text-gray-400"
+                        />
+                      </div>
+                    </div>
+                  </div>
                 </div>
 
-                {/* Actions */}
-                <div className="flex gap-2 flex-wrap">
-                  <Button onClick={saveSOAP} loading={saving} variant="outline">שמור</Button>
+                {/* ── action buttons ── */}
+                <div className="flex gap-2 flex-wrap pt-1 border-t border-gray-100">
+                  <Button onClick={saveSOAP} loading={saving} variant="outline" className="gap-2">
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" />
+                    </svg>
+                    שמור הערות
+                  </Button>
+
                   {['ready', 'in_progress', 'scheduled'].includes(selected.status) && (
-                    <Button onClick={() => router.push(`/video-call?id=${selected.id}`)} className="bg-green-600 hover:bg-green-700">שיחת וידאו</Button>
-                  )}
-                  {selected.status === 'completed' && !selected.ai_summary && (
-                    <Button onClick={() => generateAISummaryLocal(selected)} loading={aiSummaryLoading} variant="outline" className="border-purple-200 text-purple-700 hover:bg-purple-50">
-                      סיכום AI
+                    <Button
+                      onClick={() => router.push(`/video-call?id=${selected.id}`)}
+                      className="bg-green-600 hover:bg-green-700 gap-2"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                      </svg>
+                      שיחת וידאו
                     </Button>
                   )}
+
+                  {selected.status === 'completed' && !selected.ai_summary && (
+                    <Button
+                      onClick={() => generateAISummaryLocal(selected)}
+                      loading={aiSummaryLoading}
+                      className="bg-purple-600 hover:bg-purple-700 gap-2"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M12 2a4 4 0 014 4v1h2a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2h2V6a4 4 0 014-4z" /><circle cx="9" cy="13" r="1" /><circle cx="15" cy="13" r="1" />
+                      </svg>
+                      צור סיכום AI
+                    </Button>
+                  )}
+
                   {selected.status !== 'completed' && (
-                    <Button onClick={completeAppointment} loading={saving}>סיים ייעוץ</Button>
+                    <Button onClick={completeAppointment} loading={saving} variant="danger" className="gap-2 mr-auto">
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                      סיים ייעוץ
+                    </Button>
                   )}
                 </div>
 
-                {/* Document generation */}
-                <div className="border border-gray-200 rounded-lg overflow-hidden">
-                  <div className="bg-gray-50 px-4 py-3">
-                    <p className="text-sm font-semibold text-gray-700">הפקת מסמך רפואי</p>
-                    <p className="text-xs text-gray-400 mt-0.5">AI יצור מסמך מותאם ויישמר אוטומטית בתיק המטופל</p>
-                  </div>
-                  <div className="p-4 space-y-3">
+                {/* ── document generation ── */}
+                <Card className="border-gray-200 overflow-hidden">
+                  <CardHeader className="bg-gray-50 py-3 px-4 border-b border-gray-200">
+                    <div className="flex items-center gap-2">
+                      <svg className="w-4 h-4 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="12" y1="18" x2="12" y2="12" /><line x1="9" y1="15" x2="15" y2="15" />
+                      </svg>
+                      <div>
+                        <p className="text-sm font-semibold text-gray-800">הפקת מסמך רפואי</p>
+                        <p className="text-[10px] text-gray-400">AI יצור מסמך מותאם ויישמר בתיק המטופל</p>
+                      </div>
+                    </div>
+                  </CardHeader>
+                  <CardContent className="py-4 px-4 space-y-3">
                     <div className="flex gap-2">
                       <select
                         value={docType}
                         onChange={e => setDocType(e.target.value)}
-                        className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                        className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none bg-white"
                       >
                         {DOC_TYPES.map(d => (
                           <option key={d.value} value={d.value}>{d.label}</option>
@@ -432,43 +799,58 @@ export default function DoctorAppointmentsPage() {
                         loading={docLoading}
                         onClick={() => generateDocument(selected)}
                         variant="outline"
-                        className="shrink-0"
+                        className="shrink-0 gap-1.5"
                       >
+                        <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M12 2a4 4 0 014 4v1h2a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2h2V6a4 4 0 014-4z" /><circle cx="9" cy="13" r="1" /><circle cx="15" cy="13" r="1" />
+                        </svg>
                         צור מסמך
                       </Button>
                     </div>
 
-                    {/* Generated document preview */}
-                    {generatedDoc && (
-                      <div className="bg-white border border-gray-200 rounded-lg p-4 space-y-3">
-                        <div className="flex items-center justify-between">
-                          <p className="text-sm font-semibold text-gray-700">{generatedDoc.label}</p>
+                    {/* document preview */}
+                    {docLoading && (
+                      <div className="rounded-xl border border-gray-200 py-8 flex items-center justify-center gap-3 text-gray-500 text-sm bg-gray-50">
+                        <Spinner size="sm" />
+                        <span>AI מייצר את המסמך...</span>
+                      </div>
+                    )}
+
+                    {generatedDoc && !docLoading && (
+                      <div className="rounded-xl border border-gray-200 overflow-hidden">
+                        {/* doc header */}
+                        <div className="px-4 py-3 bg-slate-50 border-b border-gray-200 flex items-center justify-between">
+                          <div className="flex items-center gap-2">
+                            <svg className="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                              <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
+                            </svg>
+                            <p className="text-sm font-semibold text-slate-700">{generatedDoc.label}</p>
+                          </div>
                           <button
                             onClick={() => {
                               navigator.clipboard.writeText(generatedDoc.content)
                               setMessage({ type: 'success', text: 'הועתק ללוח' })
                               setTimeout(() => setMessage(null), 2000)
                             }}
-                            className="text-xs text-blue-600 hover:text-blue-700 flex items-center gap-1"
+                            className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 transition-colors font-medium"
                           >
                             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                              <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
-                              <path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/>
+                              <rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />
                             </svg>
                             העתק
                           </button>
                         </div>
-                        <div className="max-h-60 overflow-y-auto text-sm text-gray-700 whitespace-pre-wrap leading-relaxed border-t border-gray-100 pt-3">
-                          {generatedDoc.content}
+                        {/* doc body */}
+                        <div className="p-5 max-h-72 overflow-y-auto">
+                          <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed font-mono">{generatedDoc.content}</p>
                         </div>
                       </div>
                     )}
-                  </div>
-                </div>
-              </CardContent>
-            )
-          })() : (
-            <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>} title="בחר תור מהרשימה" />
+                  </CardContent>
+                </Card>
+
+              </div>
+            </div>
           )}
         </Card>
       </div>

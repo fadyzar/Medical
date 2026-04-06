@@ -237,6 +237,7 @@ const NAV: Record<string, NavItem[]> = {
   patient: [
     { label: 'דשבורד', href: '/dashboard/patient/dashboard', icon: 'home' },
     { label: 'תור חדש', href: '/dashboard/patient/new-appointment', icon: 'calendar-plus' },
+    { label: 'התורים שלי', href: '/dashboard/patient/appointments', icon: 'clipboard' },
     { label: 'המסמכים שלי', href: '/dashboard/patient/my-documents', icon: 'file-text' },
     { label: 'הפרופיל שלי', href: '/dashboard/patient/profile', icon: 'user' },
   ],
@@ -250,6 +251,7 @@ const NAV: Record<string, NavItem[]> = {
   ],
   admin: [
     { label: 'דשבורד', href: '/dashboard/admin/dashboard', icon: 'home' },
+    { label: 'ניהול תורים', href: '/dashboard/admin/appointments', icon: 'clipboard' },
     { label: 'משתמשים', href: '/dashboard/admin/users', icon: 'users' },
     { label: 'לידים', href: '/dashboard/admin/leads', icon: 'user-plus' },
     { label: 'שאלונים', href: '/dashboard/admin/questionnaires', icon: 'list-checks' },

@@ -4,93 +4,103 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
-import { Button, Card, CardContent, CardHeader, StatCard, Badge, EmptyState, PageLoading } from '@/components/ui'
+import { Button, Card, CardContent, CardHeader, Badge, EmptyState, PageLoading } from '@/components/ui'
 import { STATUS_LABELS, formatDateTime, formatDate, cn, getInitials } from '@/lib/utils'
 import type { Appointment, User, Document } from '@/types/database'
 
-// ── Types ──────────────────────────────────────────────
-
 type DoctorInfo = Pick<User, 'id' | 'first_name' | 'last_name' | 'specialties' | 'avatar_url' | 'average_rating' | 'total_ratings'>
+type PatientAppointment = Appointment & { doctor: DoctorInfo | null }
 
-type PatientAppointment = Appointment & {
-  doctor: DoctorInfo | null
-}
-
-// ── Helpers ────────────────────────────────────────────
+// ── Helpers ────────────────────────────────────────────────
 
 function getTimeUntil(dateStr: string): string {
-  const now = new Date()
-  const target = new Date(dateStr)
-  const diff = target.getTime() - now.getTime()
-
+  const diff = new Date(dateStr).getTime() - Date.now()
   if (diff <= 0) return 'עכשיו'
-
-  const minutes = Math.floor(diff / 60000)
-  const hours = Math.floor(minutes / 60)
-  const days = Math.floor(hours / 24)
-
-  if (days > 0) return `בעוד ${days} ${days === 1 ? 'יום' : 'ימים'}`
-  if (hours > 0) return `בעוד ${hours} ${hours === 1 ? 'שעה' : 'שעות'}`
-  return `בעוד ${minutes} דקות`
+  const m = Math.floor(diff / 60000)
+  const h = Math.floor(m / 60)
+  const d = Math.floor(h / 24)
+  if (d > 0) return `בעוד ${d} ${d === 1 ? 'יום' : 'ימים'}`
+  if (h > 0) return `בעוד ${h} ${h === 1 ? 'שעה' : 'שעות'}`
+  return `בעוד ${m} דקות`
 }
 
-function getProfileCompletion(profile: User): { percent: number; missing: string[] } {
+function getProfileCompletion(p: User): { percent: number; missing: string[] } {
   const checks: [boolean, string][] = [
-    [!!profile.first_name, 'שם פרטי'],
-    [!!profile.last_name, 'שם משפחה'],
-    [!!profile.phone, 'טלפון'],
-    [!!profile.date_of_birth, 'תאריך לידה'],
-    [!!profile.gender, 'מגדר'],
-    [!!profile.avatar_url, 'תמונת פרופיל'],
-    [(profile.medical_history?.allergies?.length ?? 0) > 0 || (profile.medical_history?.chronic_conditions?.length ?? 0) > 0, 'היסטוריה רפואית'],
-    [!!profile.emergency_contact?.name && !!profile.emergency_contact?.phone, 'איש קשר לחירום'],
-    [!!profile.insurance_info?.provider, 'פרטי ביטוח'],
+    [!!p.first_name, 'שם פרטי'], [!!p.last_name, 'שם משפחה'],
+    [!!p.phone, 'טלפון'], [!!p.date_of_birth, 'תאריך לידה'],
+    [!!p.gender, 'מגדר'], [!!p.avatar_url, 'תמונת פרופיל'],
+    [(p.medical_history?.allergies?.length ?? 0) > 0, 'אלרגיות'],
+    [!!p.emergency_contact?.name, 'איש קשר לחירום'],
+    [!!p.insurance_info?.provider, 'פרטי ביטוח'],
   ]
   const done = checks.filter(([ok]) => ok).length
-  const missing = checks.filter(([ok]) => !ok).map(([, label]) => label)
-  return { percent: Math.round((done / checks.length) * 100), missing }
+  return { percent: Math.round((done / checks.length) * 100), missing: checks.filter(([ok]) => !ok).map(([, l]) => l) }
 }
 
-// ── Component ──────────────────────────────────────────
+function DoctorAvatar({ doc }: { doc: DoctorInfo | null }) {
+  if (!doc) return <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xs text-gray-400 shrink-0">?</div>
+  if (doc.avatar_url) return (
+    // eslint-disable-next-line @next/next/no-img-element
+    <img src={doc.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0 ring-2 ring-white" />
+  )
+  return (
+    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-700 shrink-0 ring-2 ring-white">
+      {getInitials(doc.first_name, doc.last_name)}
+    </div>
+  )
+}
+
+// ── Quick action card ────────────────────────────────────
+
+function QuickActionCard({ icon, label, description, onClick, color }: {
+  icon: React.ReactNode; label: string; description: string; onClick: () => void
+  color: 'blue' | 'purple' | 'emerald' | 'gray'
+}) {
+  const colors = {
+    blue:    'bg-blue-50 border-blue-200 hover:border-blue-400 text-blue-700 hover:bg-blue-100',
+    purple:  'bg-purple-50 border-purple-200 hover:border-purple-400 text-purple-700 hover:bg-purple-100',
+    emerald: 'bg-emerald-50 border-emerald-200 hover:border-emerald-400 text-emerald-700 hover:bg-emerald-100',
+    gray:    'bg-gray-50 border-gray-200 hover:border-gray-400 text-gray-700 hover:bg-gray-100',
+  }
+  return (
+    <button onClick={onClick} className={cn('rounded-xl border p-4 text-right transition-all hover:shadow-sm active:scale-[0.98]', colors[color])}>
+      <div className="mb-2">{icon}</div>
+      <p className="font-semibold text-sm">{label}</p>
+      <p className="text-xs opacity-70 mt-0.5">{description}</p>
+    </button>
+  )
+}
+
+// ── Main ─────────────────────────────────────────────────
 
 export default function PatientDashboard() {
-  const router = useRouter()
+  const router   = useRouter()
   const supabase = getClient()
 
-  const [profile, setProfile] = useState<User | null>(null)
+  const [profile, setProfile]         = useState<User | null>(null)
   const [appointments, setAppointments] = useState<PatientAppointment[]>([])
-  const [recentDocs, setRecentDocs] = useState<Document[]>([])
-  const [loading, setLoading] = useState(true)
-  const [ratedMap, setRatedMap] = useState<Record<string, number>>({})
+  const [recentDocs, setRecentDocs]   = useState<Document[]>([])
+  const [loading, setLoading]         = useState(true)
+  const [ratedMap, setRatedMap]       = useState<Record<string, number>>({})
 
   useEffect(() => {
     const load = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) { router.push('/auth/login'); return }
-
         const [{ data: prof }, { data: apts }, { data: docs }] = await Promise.all([
           supabase.from('users').select('*').eq('id', user.id).single(),
           supabase.from('appointments')
             .select('*, doctor:doctor_id(id, first_name, last_name, specialties, avatar_url, average_rating, total_ratings)')
             .eq('patient_id', user.id)
-            .order('created_at', { ascending: false })
-            .limit(50),
-          supabase.from('documents')
-            .select('*')
-            .eq('patient_id', user.id)
-            .order('created_at', { ascending: false })
-            .limit(5),
+            .order('created_at', { ascending: false }).limit(50),
+          supabase.from('documents').select('*').eq('patient_id', user.id).order('created_at', { ascending: false }).limit(5),
         ])
-
         if (prof) setProfile(prof as unknown as User)
         if (apts) setAppointments(apts as unknown as PatientAppointment[])
         if (docs) setRecentDocs(docs as unknown as Document[])
-      } catch {
-        // Error boundary will handle rendering errors; this prevents infinite loading
-      } finally {
-        setLoading(false)
-      }
+      } catch { /* Error boundary will handle rendering errors */ }
+      finally { setLoading(false) }
     }
     load()
   }, [router, supabase])
@@ -99,380 +109,416 @@ export default function PatientDashboard() {
   if (!profile) return null
 
   const now = new Date()
-  const active = appointments.filter(a =>
-    !['completed', 'cancelled_patient', 'cancelled_doctor', 'no_show_patient', 'no_show_doctor'].includes(a.status)
-  )
+  const DONE = ['completed', 'cancelled_patient', 'cancelled_doctor', 'no_show_patient', 'no_show_doctor']
+  const active    = appointments.filter(a => !DONE.includes(a.status))
   const completed = appointments.filter(a => a.status === 'completed')
-  const cancelled = appointments.filter(a =>
-    a.status.startsWith('cancelled') || a.status.startsWith('no_show')
-  )
-
-  // Find the closest upcoming scheduled appointment
-  const upcoming = active
+  const upcoming  = active
     .filter(a => a.scheduled_at && new Date(a.scheduled_at) > now)
     .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime())
-
-  const nextApt = upcoming[0] || null
-
-  // Appointments needing action (payment, etc.)
-  const needsAction = active.filter(a =>
-    a.status === 'payment_pending' || a.payment_status === 'failed'
-  )
-
-  // Profile completion
+  const nextApt    = upcoming[0] || null
+  const needsAction = active.filter(a => a.status === 'payment_pending' || a.payment_status === 'failed')
+  const unrated     = completed.filter(a => a.patient_rating == null && !ratedMap[a.id]).slice(0, 2)
+  const inProgress  = active.find(a => a.status === 'in_progress')
   const { percent: profilePercent, missing: profileMissing } = getProfileCompletion(profile)
 
-  // Recent completed with rating opportunity (exclude already rated in this session)
-  const unrated = completed.filter(a => a.patient_rating == null && !ratedMap[a.id]).slice(0, 3)
-
-  const handleRated = (appointmentId: string, rating: number) => {
-    setRatedMap(prev => ({ ...prev, [appointmentId]: rating }))
-  }
+  const hour = now.getHours()
+  const greeting = hour < 12 ? 'בוקר טוב' : hour < 17 ? 'צהריים טובים' : 'ערב טוב'
+  const firstName = profile.first_name || ''
 
   return (
-    <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <h2 className="text-xl font-bold text-gray-900">סקירה כללית</h2>
-        <Button onClick={() => router.push('/dashboard/patient/new-appointment')} size="lg">
+    <div className="space-y-6" dir="rtl">
+
+      {/* ── Hero greeting ── */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div className="flex items-center gap-4">
+          {/* Avatar */}
+          <div className={cn(
+            'w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold text-white shrink-0',
+            'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-200'
+          )}>
+            {profile.avatar_url
+              ? <img src={profile.avatar_url} alt="" className="w-full h-full rounded-2xl object-cover" />
+              : getInitials(profile.first_name, profile.last_name)
+            }
+          </div>
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+              {greeting}{firstName ? `, ${firstName}` : ''}
+            </h1>
+            <p className="text-sm text-gray-500 mt-0.5">
+              {new Intl.DateTimeFormat('he-IL', { weekday: 'long', day: 'numeric', month: 'long' }).format(now)}
+            </p>
+          </div>
+        </div>
+        <Button
+          size="lg"
+          className="gap-2 shadow-sm shadow-blue-200"
+          onClick={() => router.push('/dashboard/patient/new-appointment')}
+        >
+          <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <line x1="12" y1="5" x2="12" y2="19" /><line x1="5" y1="12" x2="19" y2="12" />
+          </svg>
           קבע תור חדש
         </Button>
       </div>
 
-      {/* Profile completion banner */}
-      {profilePercent < 100 && (
-        <Card className="border-blue-200 bg-blue-50/50">
-          <CardContent className="py-4">
-            <div className="flex items-center gap-4">
-              <div className="relative w-12 h-12 shrink-0">
-                <svg className="w-12 h-12 -rotate-90" viewBox="0 0 36 36">
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#dbeafe" strokeWidth="3" />
-                  <circle cx="18" cy="18" r="15.9" fill="none" stroke="#2563eb" strokeWidth="3"
-                    strokeDasharray={`${profilePercent}, 100`} strokeLinecap="round" />
+      {/* ── Active video call banner ── */}
+      {inProgress && (
+        <div className="rounded-2xl bg-gradient-to-l from-green-600 to-emerald-700 p-4 text-white shadow-lg shadow-green-200">
+          <div className="flex items-center justify-between gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 rounded-full bg-white/20 flex items-center justify-center shrink-0">
+                <svg className="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
                 </svg>
-                <span className="absolute inset-0 flex items-center justify-center text-xs font-bold text-blue-600">
-                  {profilePercent}%
+              </div>
+              <div>
+                <p className="font-bold text-base">הייעוץ שלך מתקיים עכשיו!</p>
+                <p className="text-sm text-green-100">{inProgress.chief_complaint}</p>
+              </div>
+            </div>
+            <Button
+              onClick={() => router.push(`/video-call?id=${inProgress.id}`)}
+              className="bg-white text-green-700 hover:bg-green-50 font-bold shrink-0"
+              size="sm"
+            >
+              הצטרף עכשיו
+            </Button>
+          </div>
+        </div>
+      )}
+
+      {/* ── Payment needed ── */}
+      {needsAction.length > 0 && (
+        <div className="rounded-2xl border border-orange-200 bg-orange-50 p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <div className="w-8 h-8 rounded-full bg-orange-100 flex items-center justify-center">
+              <svg className="w-4 h-4 text-orange-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+              </svg>
+            </div>
+            <p className="font-bold text-orange-900">נדרשת פעולה — {needsAction.length} תור{needsAction.length > 1 ? 'ים' : ''} ממתינ{needsAction.length > 1 ? 'ים' : ''} לתשלום</p>
+          </div>
+          <div className="space-y-2">
+            {needsAction.map(apt => (
+              <div key={apt.id} className="flex items-center justify-between bg-white rounded-xl px-4 py-3 border border-orange-100">
+                <div>
+                  <p className="font-medium text-gray-900 text-sm">{apt.chief_complaint}</p>
+                  <p className="text-xs text-orange-600 mt-0.5">{apt.payment_status === 'failed' ? 'התשלום נכשל — יש לנסות שוב' : 'ממתין לתשלום'}</p>
+                </div>
+                <Button size="sm" className={apt.payment_status === 'failed' ? 'bg-red-600 hover:bg-red-700' : 'bg-orange-600 hover:bg-orange-700'}
+                  onClick={() => router.push(`/dashboard/patient/payment?id=${apt.id}`)}>
+                  {apt.payment_status === 'failed' ? 'נסה שוב' : 'שלם'}
+                </Button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* ── Stats row ── */}
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+        {[
+          { label: 'תורים פעילים',  value: active.length,    color: 'blue',   icon: 'M8 4h8M3 8h18M3 16h18M8 20h8' },
+          { label: 'ייעוצים הושלמו', value: completed.length, color: 'green',  icon: 'M22 11.08V12a10 10 0 11-5.93-9.14 M22 4 12 14.01 9 11.01' },
+          { label: 'מסמכים',        value: recentDocs.length,  color: 'purple', icon: 'M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z' },
+          { label: 'התור הבא',      value: nextApt ? getTimeUntil(nextApt.scheduled_at!) : 'אין', color: 'orange', icon: 'M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z' },
+        ].map(s => (
+          <div key={s.label} className={cn(
+            'rounded-2xl p-4 border',
+            s.color === 'blue'   && 'bg-blue-50 border-blue-100',
+            s.color === 'green'  && 'bg-emerald-50 border-emerald-100',
+            s.color === 'purple' && 'bg-purple-50 border-purple-100',
+            s.color === 'orange' && 'bg-orange-50 border-orange-100',
+          )}>
+            <p className={cn('text-xs font-medium mb-1',
+              s.color === 'blue'   && 'text-blue-600',
+              s.color === 'green'  && 'text-emerald-600',
+              s.color === 'purple' && 'text-purple-600',
+              s.color === 'orange' && 'text-orange-600',
+            )}>{s.label}</p>
+            <p className={cn('text-2xl font-bold',
+              s.color === 'blue'   && 'text-blue-800',
+              s.color === 'green'  && 'text-emerald-800',
+              s.color === 'purple' && 'text-purple-800',
+              s.color === 'orange' && 'text-orange-800',
+            )}>{s.value}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Profile completion ── */}
+      {profilePercent < 100 && (
+        <div className="rounded-2xl border border-blue-200 bg-gradient-to-l from-blue-50 to-indigo-50 p-4">
+          <div className="flex items-center gap-4">
+            {/* Donut */}
+            <div className="relative w-14 h-14 shrink-0">
+              <svg className="w-14 h-14 -rotate-90" viewBox="0 0 42 42">
+                <circle cx="21" cy="21" r="16" fill="none" stroke="#dbeafe" strokeWidth="4" />
+                <circle cx="21" cy="21" r="16" fill="none" stroke="#3b82f6" strokeWidth="4"
+                  strokeDasharray={`${profilePercent} 100`} strokeLinecap="round"
+                  style={{ strokeDasharray: `${profilePercent * 1.005} 100` }} />
+              </svg>
+              <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-blue-700">{profilePercent}%</span>
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="font-bold text-gray-900">השלם את הפרופיל הרפואי שלך</p>
+              <p className="text-sm text-gray-500 mt-0.5">
+                חסר: {profileMissing.slice(0, 3).join(', ')}{profileMissing.length > 3 ? ` ועוד ${profileMissing.length - 3}` : ''}
+              </p>
+            </div>
+            <Button size="sm" variant="outline" className="shrink-0 border-blue-300 text-blue-700" onClick={() => router.push('/dashboard/patient/profile')}>
+              השלם
+            </Button>
+          </div>
+          {/* Progress bar */}
+          <div className="mt-3 h-1.5 rounded-full bg-blue-100">
+            <div className="h-1.5 rounded-full bg-blue-500 transition-all" style={{ width: `${profilePercent}%` }} />
+          </div>
+        </div>
+      )}
+
+      {/* ── Next appointment hero ── */}
+      {nextApt && (
+        <Card className="overflow-hidden border-blue-200 shadow-sm shadow-blue-100">
+          <div className="bg-gradient-to-l from-blue-600 to-indigo-700 px-6 py-5 text-white">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <p className="text-xs font-semibold text-blue-200 uppercase tracking-wider mb-1">התור הבא שלך</p>
+                <p className="text-xl font-bold">{nextApt.chief_complaint}</p>
+                <p className="text-blue-200 text-sm mt-1">{formatDateTime(nextApt.scheduled_at!)}</p>
+              </div>
+              <div className="shrink-0">
+                <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-white/20 text-sm font-semibold text-white">
+                  {getTimeUntil(nextApt.scheduled_at!)}
                 </span>
               </div>
-              <div className="flex-1 min-w-0">
-                <p className="font-medium text-gray-900">השלם את הפרופיל שלך</p>
-                <p className="text-sm text-gray-500 mt-0.5">
-                  חסר: {profileMissing.slice(0, 3).join(', ')}
-                  {profileMissing.length > 3 && ` ועוד ${profileMissing.length - 3}`}
-                </p>
+            </div>
+          </div>
+          <CardContent className="py-4">
+            <div className="flex items-center justify-between gap-3">
+              <div className="flex items-center gap-3 min-w-0">
+                <DoctorAvatar doc={nextApt.doctor as DoctorInfo | null} />
+                <div className="min-w-0">
+                  {nextApt.doctor ? (
+                    <>
+                      <p className="font-semibold text-gray-900 text-sm">
+                        ד&quot;ר {(nextApt.doctor as DoctorInfo).first_name} {(nextApt.doctor as DoctorInfo).last_name}
+                      </p>
+                      {(nextApt.doctor as DoctorInfo).specialties?.length && (
+                        <p className="text-xs text-gray-500">{(nextApt.doctor as DoctorInfo).specialties!.slice(0,2).join(', ')}</p>
+                      )}
+                    </>
+                  ) : (
+                    <p className="text-sm text-gray-500">ממתין לשיוך רופא</p>
+                  )}
+                </div>
               </div>
-              <Button size="sm" variant="outline" onClick={() => router.push('/dashboard/patient/profile')}>
-                השלם פרופיל
-              </Button>
+              <div className="flex gap-2 shrink-0">
+                {nextApt.status === 'payment_pending' && (
+                  <Button size="sm" className="bg-orange-600 hover:bg-orange-700" onClick={() => router.push(`/dashboard/patient/payment?id=${nextApt.id}`)}>
+                    שלם עכשיו
+                  </Button>
+                )}
+                {['ready', 'in_progress', 'scheduled', 'paid'].includes(nextApt.status) && (
+                  <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1.5" onClick={() => router.push(`/video-call?id=${nextApt.id}`)}>
+                    <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
+                    </svg>
+                    הצטרף לשיחה
+                  </Button>
+                )}
+                <Badge variant={nextApt.status === 'pending' ? 'warning' : 'info'}>{STATUS_LABELS[nextApt.status]}</Badge>
+              </div>
             </div>
           </CardContent>
         </Card>
       )}
 
-      {/* Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
-        <StatCard label="תורים פעילים" value={active.length} icon={<svg className="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>} color="blue" />
-        <StatCard label="הושלמו" value={completed.length} icon={<svg className="w-6 h-6 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>} color="green" />
-        <StatCard label="מסמכים" value={recentDocs.length > 0 ? `${recentDocs.length}+` : '0'} icon={<svg className="w-6 h-6 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>} color="purple" />
-        <StatCard
-          label="התור הבא"
-          value={nextApt ? getTimeUntil(nextApt.scheduled_at!) : 'אין'}
-          icon={<svg className="w-6 h-6 text-orange-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>}
-          color="orange"
-        />
-      </div>
-
-      {/* Needs action */}
-      {needsAction.length > 0 && (
-        <Card className="border-orange-200">
-          <CardHeader className="bg-orange-50">
-            <h3 className="font-bold text-orange-800">דורש פעולה ({needsAction.length})</h3>
+      {/* ── More upcoming ── */}
+      {upcoming.length > 1 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <h3 className="font-bold text-base">תורים קרובים נוספים</h3>
+              <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/patient/appointments')}>
+                הכל ←
+              </Button>
+            </div>
           </CardHeader>
           <div className="divide-y">
-            {needsAction.map(apt => (
-              <div key={apt.id} className="px-6 py-4 flex items-center justify-between">
-                <div className="min-w-0">
-                  <p className="font-medium">{apt.chief_complaint}</p>
-                  <p className="text-sm text-gray-500">
-                    {apt.payment_status === 'failed' ? 'התשלום נכשל — יש לנסות שוב' : 'ממתין לתשלום'}
+            {upcoming.slice(1).map(apt => (
+              <div key={apt.id} className="px-5 py-3.5 flex items-center gap-3 hover:bg-gray-50 transition-colors">
+                <DoctorAvatar doc={apt.doctor as DoctorInfo | null} />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">{apt.chief_complaint}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {apt.doctor ? `ד"ר ${(apt.doctor as DoctorInfo).first_name} ${(apt.doctor as DoctorInfo).last_name}` : 'ממתין לרופא'}
+                    {' · '}{formatDateTime(apt.scheduled_at!)}
                   </p>
                 </div>
-                <Button
-                  size="sm"
-                  onClick={() => router.push(`/dashboard/patient/payment?id=${apt.id}`)}
-                  className={apt.payment_status === 'failed' ? 'bg-red-600 hover:bg-red-700' : ''}
-                >
-                  {apt.payment_status === 'failed' ? 'נסה שוב' : 'שלם עכשיו'}
-                </Button>
+                <Badge variant="info">{STATUS_LABELS[apt.status]}</Badge>
               </div>
             ))}
           </div>
         </Card>
       )}
 
-      {/* Next appointment hero */}
-      {nextApt && (
-        <Card className="border-blue-200 overflow-hidden">
-          <div className="bg-gradient-to-l from-blue-600 to-blue-700 px-6 py-5 text-white">
-            <p className="text-sm text-blue-100 font-medium">התור הבא שלך</p>
-            <p className="text-xl font-bold mt-1">{nextApt.chief_complaint}</p>
-            <div className="flex items-center gap-4 mt-3">
-              <span className="text-sm text-blue-100">
-                {formatDateTime(nextApt.scheduled_at!)}
-              </span>
-              <Badge variant="info" className="bg-white/20 text-white border-0">
-                {getTimeUntil(nextApt.scheduled_at!)}
-              </Badge>
-            </div>
-          </div>
-          <CardContent className="py-4">
-            <div className="flex items-center justify-between">
-              {nextApt.doctor ? (
-                <div className="flex items-center gap-3">
-                  {(nextApt.doctor as unknown as DoctorInfo).avatar_url ? (
-                    // eslint-disable-next-line @next/next/no-img-element
-                    <img
-                      src={(nextApt.doctor as unknown as DoctorInfo).avatar_url!}
-                      alt=""
-                      className="w-10 h-10 rounded-full object-cover"
-                    />
-                  ) : (
-                    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-700">
-                      {getInitials(
-                        (nextApt.doctor as unknown as DoctorInfo).first_name,
-                        (nextApt.doctor as unknown as DoctorInfo).last_name
-                      )}
-                    </div>
-                  )}
-                  <div>
-                    <p className="font-medium">ד&quot;ר {(nextApt.doctor as unknown as DoctorInfo).first_name} {(nextApt.doctor as unknown as DoctorInfo).last_name}</p>
-                    {(nextApt.doctor as unknown as DoctorInfo).average_rating && (
-                      <p className="text-xs text-gray-400">
-                        {(nextApt.doctor as unknown as DoctorInfo).average_rating!.toFixed(1)}
-                      </p>
-                    )}
-                  </div>
-                </div>
-              ) : (
-                <p className="text-sm text-gray-500">ממתין לשיוך רופא</p>
-              )}
-              <div className="flex gap-2">
-                {nextApt.status === 'payment_pending' && (
-                  <Button onClick={() => router.push(`/dashboard/patient/payment?id=${nextApt.id}`)}>
-                    שלם עכשיו
-                  </Button>
-                )}
-                {['ready', 'in_progress', 'scheduled', 'paid'].includes(nextApt.status) && (
-                  <Button
-                    onClick={() => router.push(`/video-call?id=${nextApt.id}`)}
-                    className="bg-green-600 hover:bg-green-700"
-                  >
-                    הצטרף לשיחה
-                  </Button>
-                )}
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      )}
-
-      {/* Upcoming appointments */}
-      {upcoming.length > 1 && (
-        <Card>
-          <CardHeader>
-            <h3 className="font-bold text-lg">תורים קרובים</h3>
-          </CardHeader>
-          <div className="divide-y">
-            {upcoming.slice(1).map(apt => {
-              const doc = apt.doctor as unknown as DoctorInfo | null
-              return (
-                <div key={apt.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center gap-3 min-w-0">
-                    {doc ? (
-                      doc.avatar_url ? (
-                        // eslint-disable-next-line @next/next/no-img-element
-                        <img src={doc.avatar_url} alt="" className="w-9 h-9 rounded-full object-cover shrink-0" />
-                      ) : (
-                        <div className="w-9 h-9 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700 shrink-0">
-                          {getInitials(doc.first_name, doc.last_name)}
-                        </div>
-                      )
-                    ) : (
-                      <div className="w-9 h-9 rounded-full bg-gray-100 flex items-center justify-center text-xs text-gray-400 shrink-0">?</div>
-                    )}
-                    <div className="min-w-0">
-                      <p className="font-medium truncate">{apt.chief_complaint}</p>
-                      <p className="text-xs text-gray-400">
-                        {doc ? `ד"ר ${doc.first_name} ${doc.last_name}` : 'ממתין לרופא'}
-                        {' · '}
-                        {formatDateTime(apt.scheduled_at!)}
-                      </p>
-                    </div>
-                  </div>
-                  <Badge variant="info">{STATUS_LABELS[apt.status]}</Badge>
-                </div>
-              )
-            })}
-          </div>
-        </Card>
-      )}
-
-      {/* Active (non-scheduled) appointments */}
+      {/* ── In-process appointments (not scheduled yet) ── */}
       {active.filter(a => !a.scheduled_at || new Date(a.scheduled_at) <= now).length > 0 && (
         <Card>
           <CardHeader>
-            <h3 className="font-bold text-lg">בתהליך</h3>
+            <div className="flex items-center gap-2">
+              <div className="w-2 h-2 rounded-full bg-amber-400" />
+              <h3 className="font-bold text-base">בטיפול</h3>
+            </div>
           </CardHeader>
           <div className="divide-y">
-            {active.filter(a => !a.scheduled_at || new Date(a.scheduled_at) <= now).map(apt => {
-              const doc = apt.doctor as unknown as DoctorInfo | null
-              return (
-                <div key={apt.id} className="px-6 py-4 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                  <div className="min-w-0">
-                    <p className="font-medium truncate">{apt.chief_complaint}</p>
-                    <p className="text-xs text-gray-400">
-                      {doc ? `ד"ר ${doc.first_name} ${doc.last_name}` : 'ממתין לרופא'}
-                      {' · '}
-                      {formatDateTime(apt.created_at)}
-                    </p>
-                  </div>
-                  <div className="flex items-center gap-2 shrink-0">
-                    <Badge variant={apt.status === 'pending' ? 'warning' : 'info'}>
-                      {STATUS_LABELS[apt.status]}
-                    </Badge>
-                    {['ready', 'in_progress', 'scheduled', 'paid'].includes(apt.status) && (
-                      <Button size="sm" onClick={() => router.push(`/video-call?id=${apt.id}`)} className="bg-green-600 hover:bg-green-700">
-                        הצטרף
-                      </Button>
-                    )}
-                  </div>
+            {active.filter(a => !a.scheduled_at || new Date(a.scheduled_at) <= now).map(apt => (
+              <div key={apt.id} className="px-5 py-3.5 flex items-center gap-3 hover:bg-gray-50 transition-colors">
+                <div className={cn('w-2 h-8 rounded-full shrink-0',
+                  apt.status === 'pending' ? 'bg-amber-400' :
+                  apt.status === 'doctor_confirmed' ? 'bg-blue-400' : 'bg-indigo-400'
+                )} />
+                <div className="flex-1 min-w-0">
+                  <p className="font-medium text-sm truncate">{apt.chief_complaint}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {apt.doctor ? `ד"ר ${(apt.doctor as DoctorInfo).first_name} ${(apt.doctor as DoctorInfo).last_name}` : 'ממתין לשיוך רופא'}
+                    {' · '}{formatDate(apt.created_at)}
+                  </p>
                 </div>
-              )
-            })}
+                <Badge variant={apt.status === 'pending' ? 'warning' : 'info'}>{STATUS_LABELS[apt.status]}</Badge>
+              </div>
+            ))}
           </div>
         </Card>
       )}
 
-      {/* Rate your visits */}
+      {/* ── Rate visits ── */}
       {unrated.length > 0 && (
         <Card className="border-yellow-200">
-          <CardHeader className="bg-yellow-50">
-            <h3 className="font-bold text-yellow-800">דרג את הביקור שלך</h3>
+          <CardHeader className="bg-gradient-to-l from-yellow-50 to-amber-50 border-b border-yellow-100">
+            <div className="flex items-center gap-2">
+              <svg className="w-5 h-5 text-yellow-500" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
+              <h3 className="font-bold text-yellow-800">איך היה הייעוץ?</h3>
+            </div>
           </CardHeader>
-          <div className="divide-y">
-            {unrated.map(apt => {
-              const doc = apt.doctor as unknown as DoctorInfo | null
-              return (
-                <div key={apt.id} className="px-6 py-4 flex items-center justify-between">
-                  <div className="min-w-0">
-                    <p className="font-medium">{apt.chief_complaint}</p>
-                    <p className="text-sm text-gray-500">
-                      {doc ? `ד"ר ${doc.first_name} ${doc.last_name}` : ''}
-                      {apt.completed_at && ` · ${formatDate(apt.completed_at)}`}
-                    </p>
-                  </div>
-                  <div className="flex gap-1 shrink-0">
-                    {[1, 2, 3, 4, 5].map(star => (
-                      <RateButton key={star} appointmentId={apt.id} rating={star} onRated={handleRated} />
-                    ))}
-                  </div>
+          <div className="divide-y divide-yellow-100">
+            {unrated.map(apt => (
+              <div key={apt.id} className="px-5 py-4 flex items-center justify-between gap-4">
+                <div className="min-w-0">
+                  <p className="font-medium text-sm">{apt.chief_complaint}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">
+                    {apt.doctor ? `ד"ר ${(apt.doctor as DoctorInfo).first_name} ${(apt.doctor as DoctorInfo).last_name}` : ''}
+                    {apt.completed_at ? ` · ${formatDate(apt.completed_at)}` : ''}
+                  </p>
                 </div>
-              )
-            })}
+                <RateButtons appointmentId={apt.id} onRated={(id, r) => setRatedMap(p => ({ ...p, [id]: r }))} />
+              </div>
+            ))}
           </div>
         </Card>
       )}
 
-      {/* Recent completed */}
+      {/* ── Recent completed ── */}
       {completed.length > 0 && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-lg">ביקורים אחרונים</h3>
-              <span className="text-sm text-gray-400">{completed.length} הושלמו</span>
+              <h3 className="font-bold text-base">ביקורים אחרונים</h3>
+              <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/patient/appointments')}>
+                הכל ←
+              </Button>
             </div>
           </CardHeader>
           <div className="divide-y">
-            {completed.slice(0, 5).map(apt => {
-              const doc = apt.doctor as unknown as DoctorInfo | null
-              return (
-                <div key={apt.id} className="px-6 py-4 hover:bg-gray-50 transition-colors">
-                  <div className="flex items-center justify-between">
-                    <div className="min-w-0">
-                      <p className="font-medium truncate">{apt.chief_complaint}</p>
-                      <p className="text-xs text-gray-400">
-                        {doc ? `ד"ר ${doc.first_name} ${doc.last_name}` : ''}
-                        {apt.completed_at && ` · ${formatDate(apt.completed_at)}`}
-                      </p>
+            {completed.slice(0, 4).map(apt => (
+              <div key={apt.id} className="px-5 py-4 hover:bg-gray-50 transition-colors">
+                <div className="flex items-start justify-between gap-3">
+                  <div className="flex items-start gap-3 min-w-0">
+                    <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0 mt-0.5">
+                      <svg className="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
+                      </svg>
                     </div>
-                    <div className="flex items-center gap-2 shrink-0">
-                      {apt.patient_rating && (
-                        <span className="text-sm text-yellow-600">
-                          {'★'.repeat(apt.patient_rating)}{'☆'.repeat(5 - apt.patient_rating)}
-                        </span>
+                    <div className="min-w-0">
+                      <p className="font-semibold text-sm text-gray-900 truncate">{apt.chief_complaint}</p>
+                      <p className="text-xs text-gray-400 mt-0.5">
+                        {apt.doctor ? `ד"ר ${(apt.doctor as DoctorInfo).first_name} ${(apt.doctor as DoctorInfo).last_name}` : ''}
+                        {apt.completed_at ? ` · ${formatDate(apt.completed_at)}` : ''}
+                      </p>
+                      {apt.diagnosis && (
+                        <p className="text-xs text-gray-600 mt-1 line-clamp-1">
+                          <span className="font-medium">אבחנה:</span> {apt.diagnosis}
+                        </p>
                       )}
-                      <Badge variant="success">הושלם</Badge>
                     </div>
                   </div>
-                  {/* Summary highlights */}
-                  {(apt.diagnosis || apt.follow_up_instructions) && (
-                    <div className="mt-2 text-sm space-y-0.5">
-                      {apt.diagnosis && (
-                        <p className="text-gray-600"><span className="font-medium text-gray-700">אבחנה:</span> {apt.diagnosis}</p>
-                      )}
-                      {apt.follow_up_instructions && (
-                        <p className="text-gray-600"><span className="font-medium text-gray-700">מעקב:</span> {apt.follow_up_instructions}</p>
-                      )}
-                    </div>
-                  )}
+                  <div className="flex flex-col items-end gap-1 shrink-0">
+                    <Badge variant="success">הושלם</Badge>
+                    {apt.patient_rating && (
+                      <div className="flex gap-0.5">
+                        {[1,2,3,4,5].map(s => (
+                          <span key={s} className={cn('text-sm', s <= apt.patient_rating! ? 'text-yellow-400' : 'text-gray-200')}>★</span>
+                        ))}
+                      </div>
+                    )}
+                  </div>
                 </div>
-              )
-            })}
+              </div>
+            ))}
           </div>
         </Card>
       )}
 
-      {/* Recent documents */}
+      {/* ── Recent documents ── */}
       {recentDocs.length > 0 && (
         <Card>
           <CardHeader>
             <div className="flex items-center justify-between">
-              <h3 className="font-bold text-lg">מסמכים אחרונים</h3>
+              <h3 className="font-bold text-base">מסמכים אחרונים</h3>
               <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/patient/my-documents')}>
-                כל המסמכים
+                כל המסמכים ←
               </Button>
             </div>
           </CardHeader>
           <div className="divide-y">
             {recentDocs.map(doc => (
-              <div key={doc.id} className="px-6 py-3 flex items-center justify-between hover:bg-gray-50 transition-colors">
-                <div className="flex items-center gap-3 min-w-0">
-                  <span className="shrink-0">
-                    <svg className="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
-                  </span>
-                  <div className="min-w-0">
-                    <p className="text-sm font-medium truncate">{doc.file_name}</p>
-                    <p className="text-xs text-gray-400">{formatDate(doc.created_at)}</p>
-                  </div>
+              <div key={doc.id} className="px-5 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
+                <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0',
+                  doc.file_type?.startsWith('image/') ? 'bg-purple-50' :
+                  doc.file_type === 'application/pdf' ? 'bg-red-50' : 'bg-blue-50'
+                )}>
+                  <svg className="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
+                  </svg>
                 </div>
-                {doc.category && (
-                  <Badge variant="default">{doc.category}</Badge>
-                )}
+                <div className="flex-1 min-w-0">
+                  <p className="text-sm font-medium truncate">{doc.file_name}</p>
+                  <p className="text-xs text-gray-400">{formatDate(doc.created_at)}</p>
+                </div>
               </div>
             ))}
           </div>
         </Card>
       )}
 
-      {/* Empty state when no appointments at all */}
+      {/* ── Empty state ── */}
       {appointments.length === 0 && (
         <Card>
           <EmptyState
-            icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4.8 2.3A.3.3 0 105 2H4a2 2 0 00-2 2v5a6 6 0 006 6 6 6 0 006-6V4a2 2 0 00-2-2h-1a.2.2 0 10.3.3" /><path d="M8 15v1a6 6 0 006 6 6 6 0 006-6v-4" /><circle cx="20" cy="10" r="2" /></svg>}
-            title="ברוך הבא לטלמדיסן!"
-            description="קבע תור ראשון לייעוץ רפואי אונליין עם רופא מומחה"
+            icon={
+              <div className="w-20 h-20 rounded-3xl bg-blue-50 flex items-center justify-center mx-auto mb-2">
+                <svg className="w-10 h-10 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4.8 2.3A.3.3 0 105 2H4a2 2 0 00-2 2v5a6 6 0 006 6 6 6 0 006-6V4a2 2 0 00-2-2h-1a.2.2 0 10.3.3" />
+                  <path d="M8 15v1a6 6 0 006 6 6 6 0 006-6v-4" /><circle cx="20" cy="10" r="2" />
+                </svg>
+              </div>
+            }
+            title={`ברוך הבא, ${firstName || 'לטלמדיסן'}!`}
+            description="קבע את הייעוץ הרפואי הראשון שלך עם מומחה — מהבית, ללא המתנה"
             action={
-              <Button onClick={() => router.push('/dashboard/patient/new-appointment')} size="lg">
+              <Button size="lg" onClick={() => router.push('/dashboard/patient/new-appointment')}>
                 קבע תור ראשון
               </Button>
             }
@@ -480,79 +526,69 @@ export default function PatientDashboard() {
         </Card>
       )}
 
-      {/* Quick actions */}
+      {/* ── Quick actions ── */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        <button
+        <QuickActionCard
+          color="blue"
+          label="תור חדש"
+          description="ייעוץ עם מומחה"
           onClick={() => router.push('/dashboard/patient/new-appointment')}
-          className="p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all text-center"
-        >
-          <span className="block mb-1 flex justify-center" aria-hidden="true"><svg className="w-7 h-7 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4.8 2.3A.3.3 0 105 2H4a2 2 0 00-2 2v5a6 6 0 006 6 6 6 0 006-6V4a2 2 0 00-2-2h-1a.2.2 0 10.3.3" /><path d="M8 15v1a6 6 0 006 6 6 6 0 006-6v-4" /><circle cx="20" cy="10" r="2" /></svg></span>
-          <span className="text-sm font-medium text-gray-700">תור חדש</span>
-        </button>
-        <button
+          icon={<svg className="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="12" y1="14" x2="12" y2="18" /><line x1="10" y1="16" x2="14" y2="16" /></svg>}
+        />
+        <QuickActionCard
+          color="emerald"
+          label="התורים שלי"
+          description="היסטוריה מלאה"
+          onClick={() => router.push('/dashboard/patient/appointments')}
+          icon={<svg className="w-6 h-6 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" /></svg>}
+        />
+        <QuickActionCard
+          color="purple"
+          label="המסמכים שלי"
+          description="בדיקות ומסמכים"
           onClick={() => router.push('/dashboard/patient/my-documents')}
-          className="p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all text-center"
-        >
-          <span className="block mb-1 flex justify-center" aria-hidden="true"><svg className="w-7 h-7 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg></span>
-          <span className="text-sm font-medium text-gray-700">המסמכים שלי</span>
-        </button>
-        <button
+          icon={<svg className="w-6 h-6 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>}
+        />
+        <QuickActionCard
+          color="gray"
+          label="הפרופיל שלי"
+          description="נתונים רפואיים"
           onClick={() => router.push('/dashboard/patient/profile')}
-          className="p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all text-center"
-        >
-          <span className="block mb-1 flex justify-center" aria-hidden="true"><svg className="w-7 h-7 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg></span>
-          <span className="text-sm font-medium text-gray-700">הפרופיל שלי</span>
-        </button>
-        <button
-          onClick={() => router.push('/doctors')}
-          className="p-4 bg-white rounded-xl border border-gray-200 hover:border-blue-300 hover:shadow-sm transition-all text-center"
-        >
-          <span className="block mb-1 flex justify-center" aria-hidden="true"><svg className="w-7 h-7 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M4.8 2.3A.3.3 0 105 2H4a2 2 0 00-2 2v5a6 6 0 006 6 6 6 0 006-6V4a2 2 0 00-2-2h-1a.2.2 0 10.3.3" /><path d="M8 15v1a6 6 0 006 6 6 6 0 006-6v-4" /><circle cx="20" cy="10" r="2" /></svg></span>
-          <span className="text-sm font-medium text-gray-700">הרופאים שלנו</span>
-        </button>
+          icon={<svg className="w-6 h-6 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>}
+        />
       </div>
     </div>
   )
 }
 
-// ── Rate Button ────────────────────────────────────────
+// ── Rate buttons ──────────────────────────────────────────
 
-function RateButton({ appointmentId, rating, onRated }: { appointmentId: string; rating: number; onRated: (id: string, rating: number) => void }) {
+function RateButtons({ appointmentId, onRated }: { appointmentId: string; onRated: (id: string, r: number) => void }) {
   const [submitting, setSubmitting] = useState(false)
-  const [failed, setFailed] = useState(false)
+  const [done, setDone] = useState(false)
   const supabase = getClient()
 
-  const handleRate = async () => {
+  const rate = async (r: number) => {
     setSubmitting(true)
-    setFailed(false)
-    try {
-      const { error } = await supabase.from('appointments')
-        .update({ patient_rating: rating })
-        .eq('id', appointmentId)
-      if (error) {
-        setFailed(true)
-      } else {
-        onRated(appointmentId, rating)
-      }
-    } catch {
-      setFailed(true)
-    } finally {
-      setSubmitting(false)
-    }
+    await supabase.from('appointments').update({ patient_rating: r }).eq('id', appointmentId)
+    onRated(appointmentId, r)
+    setDone(true)
+    setSubmitting(false)
   }
 
+  if (done) return <span className="text-xs text-green-600 font-medium">תודה!</span>
+
   return (
-    <button
-      onClick={handleRate}
-      disabled={submitting}
-      className={cn(
-        'text-lg transition-colors disabled:opacity-50',
-        failed ? 'text-red-400' : 'text-gray-300 hover:text-yellow-400'
-      )}
-      aria-label={`דרג ${rating} כוכבים`}
-      title={failed ? 'שגיאה בשמירת הדירוג — נסה שוב' : `דרג ${rating} כוכבים`}
-    >
-      ★
-    </button>
+    <div className="flex gap-1 shrink-0">
+      {[1, 2, 3, 4, 5].map(s => (
+        <button
+          key={s}
+          disabled={submitting}
+          onClick={() => rate(s)}
+          className="text-xl text-gray-300 hover:text-yellow-400 transition-colors disabled:opacity-50"
+          aria-label={`דרג ${s} כוכבים`}
+        >★</button>
+      ))}
+    </div>
   )
 }
