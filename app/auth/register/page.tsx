@@ -161,19 +161,29 @@ export default function RegisterPage() {
     e.preventDefault()
     setServerError('')
 
+    console.log('[Register] form submitted', { form, effectiveRole, isDoctor })
+
     // Validate using appropriate schema
     const schema = isDoctor ? doctorRegisterSchema : registerSchema
-    const dataToValidate = isDoctor
-      ? form
-      : { ...form, license_number: undefined, specialties: undefined }
+    const dataToValidate = {
+      ...form,
+      gender: form.gender || undefined,
+      id_number: form.id_number || undefined,
+      date_of_birth: form.date_of_birth || undefined,
+      ...(isDoctor ? {} : { license_number: undefined, specialties: undefined }),
+    }
     const result = schema.safeParse(dataToValidate)
     if (!result.success) {
       const fieldErrors: Record<string, string> = {}
       result.error.errors.forEach(e => { if (e.path[0]) fieldErrors[e.path[0].toString()] = e.message })
+      console.log('[Register] validation failed', fieldErrors, result.error.errors)
       setErrors(fieldErrors)
+      // Scroll to first error
+      toast.error('יש לתקן את השגיאות בטופס')
       return
     }
 
+    console.log('[Register] validation passed, calling signUp...')
     setLoading(true)
     try {
       const supabase = getClient()
@@ -185,13 +195,20 @@ export default function RegisterPage() {
             first_name: form.first_name,
             last_name: form.last_name,
             role: effectiveRole,
+            ...(isDoctor && {
+              license_number: form.license_number,
+              specialties: form.specialties,
+            }),
           },
           emailRedirectTo: `${window.location.origin}/api/auth/callback`,
         },
       })
 
+      console.log('[Register] signUp response:', { data, error })
+
       if (error) {
         const msg = error.message.includes('already registered') ? 'משתמש עם אימייל זה כבר קיים. נסה להתחבר.' : 'שגיאה בהרשמה: ' + error.message
+        console.error('[Register] signUp error:', error)
         setServerError(msg)
         toast.error(msg)
         setLoading(false)

@@ -69,8 +69,9 @@ export default function VideoCallPage() {
       setProfile(prof as unknown as User)
       setAppointment(typedApt)
 
-      // Payment wall
-      if (typedApt.payment_amount && typedApt.payment_amount > 0 && typedApt.payment_status !== 'completed') {
+      // Payment wall — doctors bypass, patients must pay
+      const isDoctor = (prof as unknown as User)?.role === 'doctor'
+      if (!isDoctor && typedApt.payment_amount && typedApt.payment_amount > 0 && typedApt.payment_status !== 'completed') {
         setState('payment_required')
         return
       }

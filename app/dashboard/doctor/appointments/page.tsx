@@ -1,7 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState } from 'react'
+import { useEffect, useState, useCallback } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Card, CardContent, CardHeader, Badge, Textarea, Input, PageLoading, EmptyState, Spinner } from '@/components/ui'
@@ -10,6 +10,126 @@ import type { Appointment, User, QuestionnaireResponse, QuestionItem } from '@/t
 
 type ResponseWithQuest = QuestionnaireResponse & {
   questionnaire?: { id: string; title: string; questions: QuestionItem[] }
+}
+
+// ── DocLink: signed URL for medical documents ──────────────────────
+function DocLink({ doc }: { doc: { id: string; file_name: string; file_type: string; storage_path: string } }) {
+  const supabase = getClient()
+  const [url, setUrl] = useState<string | null>(null)
+
+  useEffect(() => {
+    supabase.storage.from('medical-documents').createSignedUrl(doc.storage_path, 3600)
+      .then(({ data, error }) => {
+        console.log('[DocLink] signed url for', doc.file_name, ':', data?.signedUrl, 'error:', error)
+        if (data?.signedUrl) setUrl(data.signedUrl)
+      })
+  }, [doc.storage_path])
+
+  const isImage = doc.file_type?.startsWith('image/')
+
+  return (
+    <div className="flex items-center gap-3 p-2 rounded-lg border border-gray-100 hover:bg-gray-50">
+      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+        {isImage ? (
+          <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
+          </svg>
+        ) : (
+          <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
+          </svg>
+        )}
+      </div>
+      <span className="text-sm text-gray-700 flex-1 truncate">{doc.file_name}</span>
+      {url ? (
+        <a href={url} target="_blank" rel="noopener noreferrer"
+          className="text-xs text-blue-600 hover:underline font-medium shrink-0">
+          פתח
+        </a>
+      ) : (
+        <span className="text-xs text-gray-400 shrink-0">טוען...</span>
+      )}
+    </div>
+  )
+}
+
+// ── SchedulePanel: confirm + set date/time ─────────────────────────
+function SchedulePanel({ apt, onScheduled }: {
+  apt: Appointment
+  onScheduled: (updated: Partial<Appointment>) => void
+}) {
+  const supabase = getClient()
+  const [open, setOpen] = useState(false)
+  const [date, setDate] = useState(apt.scheduled_at ? apt.scheduled_at.slice(0, 16) : '')
+  const [duration, setDuration] = useState(apt.duration_minutes ?? 30)
+  const [saving, setSaving] = useState(false)
+
+  const confirm = async () => {
+    setSaving(true)
+    try {
+      const updates: Record<string, unknown> = {
+        status: 'scheduled',
+        doctor_accepted_at: new Date().toISOString(),
+        duration_minutes: duration,
+      }
+      if (date) updates.scheduled_at = new Date(date).toISOString()
+
+      const { error } = await supabase.from('appointments').update(updates).eq('id', apt.id)
+      if (error) throw error
+      onScheduled(updates as Partial<Appointment>)
+      setOpen(false)
+    } catch {
+      // ignore
+    } finally {
+      setSaving(false)
+    }
+  }
+
+  if (!open) {
+    return (
+      <Button onClick={() => setOpen(true)} className="bg-blue-600 hover:bg-blue-700 gap-2">
+        <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
+        </svg>
+        {apt.scheduled_at ? 'עדכן מועד' : 'אשר וקבע מועד'}
+      </Button>
+    )
+  }
+
+  return (
+    <div className="w-full border border-blue-200 rounded-xl p-4 bg-blue-50 space-y-3">
+      <p className="text-sm font-semibold text-blue-800">קביעת מועד לשיחת וידאו</p>
+      <div className="grid grid-cols-2 gap-3">
+        <div>
+          <label className="text-xs font-medium text-gray-600 block mb-1">תאריך ושעה</label>
+          <input
+            type="datetime-local"
+            value={date}
+            onChange={e => setDate(e.target.value)}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+          />
+        </div>
+        <div>
+          <label className="text-xs font-medium text-gray-600 block mb-1">משך (דקות)</label>
+          <select
+            value={duration}
+            onChange={e => setDuration(Number(e.target.value))}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white"
+          >
+            {[15, 20, 30, 45, 60, 90].map(m => (
+              <option key={m} value={m}>{m} דקות</option>
+            ))}
+          </select>
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <Button size="sm" onClick={confirm} loading={saving} className="bg-blue-600 hover:bg-blue-700">
+          אשר תור
+        </Button>
+        <Button size="sm" variant="outline" onClick={() => setOpen(false)}>ביטול</Button>
+      </div>
+    </div>
+  )
 }
 
 // ── helpers ────────────────────────────────────────────────────────
@@ -25,7 +145,7 @@ function PatientAvatar({ first, last, size = 'md' }: { first: string; last: stri
 function statusBadgeVariant(status: string): 'success' | 'danger' | 'warning' | 'info' | 'default' {
   if (status === 'completed') return 'success'
   if (status.startsWith('cancelled') || status.startsWith('no_show')) return 'danger'
-  if (status === 'pending') return 'warning'
+  if (status === 'pending' || status === 'payment_pending') return 'warning'
   if (status === 'in_progress') return 'success'
   return 'info'
 }
@@ -91,6 +211,8 @@ export default function DoctorAppointmentsPage() {
   const [generatedDoc, setGeneratedDoc] = useState<{ content: string; label: string } | null>(null)
   const [docType, setDocType] = useState('medical_letter')
   const [aiSummaryLoading, setAiSummaryLoading] = useState(false)
+  const [patientDocs, setPatientDocs] = useState<{ id: string; file_name: string; file_type: string; storage_path: string; created_at: string }[]>([])
+  const [docsLoading, setDocsLoading] = useState(false)
   const supabase = getClient()
 
   const DOC_TYPES = [
@@ -147,10 +269,25 @@ export default function DoctorAppointmentsPage() {
         .eq('appointment_id', apt.id)
         .eq('is_complete', true)
         .order('created_at', { ascending: false })
-
       setQuestResponses((qr || []) as unknown as ResponseWithQuest[])
     } catch {
       setQuestResponses([])
+    }
+
+    // Fetch patient documents attached to this appointment
+    setDocsLoading(true)
+    try {
+      const { data: docs, error: docsErr } = await supabase.from('documents')
+        .select('id, file_name, file_type, storage_path, created_at')
+        .eq('appointment_id', apt.id)
+        .order('created_at', { ascending: false })
+      console.log('[Docs] appointment:', apt.id, 'docs:', docs, 'error:', docsErr)
+      setPatientDocs((docs || []) as typeof patientDocs)
+    } catch (e) {
+      console.error('[Docs] failed to load:', e)
+      setPatientDocs([])
+    } finally {
+      setDocsLoading(false)
     }
   }
 
@@ -202,18 +339,21 @@ export default function DoctorAppointmentsPage() {
     setBrief(null)
     setMessage(null)
     try {
+      console.log('[AI Brief] calling for apt:', apt.id)
       const res = await fetch('/api/ai-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ appointmentId: apt.id, action: 'brief' }),
       })
+      const data = await res.json()
+      console.log('[AI Brief] response status:', res.status, 'data:', data)
       if (res.ok) {
-        const data = await res.json()
         setBrief(data.brief || data.summary || 'הבריף נוצר בהצלחה')
       } else {
-        setMessage({ type: 'error', text: 'שגיאה ביצירת בריף AI' })
+        setMessage({ type: 'error', text: data.error || 'שגיאה ביצירת בריף AI' })
       }
-    } catch {
+    } catch (e) {
+      console.error('[AI Brief] error:', e)
       setMessage({ type: 'error', text: 'שגיאה ביצירת בריף AI' })
     } finally {
       setBriefLoading(false)
@@ -224,6 +364,7 @@ export default function DoctorAppointmentsPage() {
     setAiSummaryLoading(true)
     setMessage(null)
     try {
+      console.log('[AI Summary] calling for apt:', apt.id)
       const res = await fetch('/api/ai-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -273,7 +414,8 @@ export default function DoctorAppointmentsPage() {
 
   const FILTER_OPTIONS = [
     { value: 'all',             label: 'הכל' },
-    { value: 'pending',         label: 'ממתינים' },
+    { value: 'pending',         label: 'ממתינים לאישור' },
+    { value: 'payment_pending', label: 'ממתינים לתשלום' },
     { value: 'doctor_confirmed',label: 'אושרו' },
     { value: 'scheduled',       label: 'מתוזמנים' },
     { value: 'in_progress',     label: 'בתהליך' },
@@ -624,8 +766,33 @@ export default function DoctorAppointmentsPage() {
                   </Card>
                 )}
 
+                {/* ── Patient Documents ── */}
+                {(docsLoading || patientDocs.length > 0) && (
+                  <Card className="border-gray-200">
+                    <CardHeader className="py-3 px-4 bg-gray-50 border-b border-gray-100">
+                      <div className="flex items-center gap-2">
+                        <svg className="w-4 h-4 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                          <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
+                        </svg>
+                        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">מסמכים שצורפו ע"י המטופל</p>
+                      </div>
+                    </CardHeader>
+                    <CardContent className="py-3 px-4">
+                      {docsLoading ? (
+                        <div className="flex items-center gap-2 text-sm text-gray-400"><Spinner size="sm" /> טוען מסמכים...</div>
+                      ) : (
+                        <div className="space-y-2">
+                          {patientDocs.map(doc => (
+                            <DocLink key={doc.id} doc={doc} />
+                          ))}
+                        </div>
+                      )}
+                    </CardContent>
+                  </Card>
+                )}
+
                 {/* ── AI pre-visit brief ── */}
-                {['doctor_confirmed', 'scheduled', 'ready', 'in_progress'].includes(selected.status) && (
+                {['pending', 'payment_pending', 'doctor_confirmed', 'scheduled', 'ready', 'in_progress'].includes(selected.status) && (
                   <Card className="border-purple-300 overflow-hidden">
                     <CardHeader className="bg-gradient-to-l from-purple-600 to-violet-700 py-3 px-4 border-0">
                       <div className="flex items-center justify-between">
@@ -735,7 +902,15 @@ export default function DoctorAppointmentsPage() {
                     שמור הערות
                   </Button>
 
-                  {['ready', 'in_progress', 'scheduled'].includes(selected.status) && (
+                  {/* ── Confirm + Schedule (for pending/payment_pending) ── */}
+                  {['pending', 'payment_pending', 'doctor_confirmed', 'time_selected'].includes(selected.status) && (
+                    <SchedulePanel apt={selected} onScheduled={apt => {
+                      setAppointments(prev => prev.map(a => a.id === apt.id ? { ...a, ...apt } : a))
+                      setSelected(prev => prev ? { ...prev, ...apt } : prev)
+                    }} />
+                  )}
+
+                  {['pending', 'payment_pending', 'doctor_confirmed', 'time_selected', 'paid', 'scheduled', 'ready', 'in_progress'].includes(selected.status) && (
                     <Button
                       onClick={() => router.push(`/video-call?id=${selected.id}`)}
                       className="bg-green-600 hover:bg-green-700 gap-2"

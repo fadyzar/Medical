@@ -168,7 +168,7 @@ export default function DoctorDashboard() {
 
   if (loading) return <PageLoading />
 
-  const pending   = appointments.filter(a => a.status === 'pending')
+  const pending   = appointments.filter(a => ['pending', 'payment_pending'].includes(a.status))
   const active    = appointments.filter(a => ['doctor_confirmed', 'scheduled', 'ready', 'in_progress'].includes(a.status))
   const today     = appointments.filter(a => a.scheduled_at && new Date(a.scheduled_at).toDateString() === new Date().toDateString())
   const completed = appointments.filter(a => a.status === 'completed')
