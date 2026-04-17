@@ -47,6 +47,7 @@ export type User = {
   date_of_birth: string | null; gender: string | null; id_number: string | null; avatar_url: string | null
   license_number: string | null; specialties: string[] | null; bio: string | null
   languages: string[]; consultation_price: number | null
+  accepts_video: boolean; accepts_clinic: boolean
   availability: AvailabilitySlot[]; total_appointments: number
   average_rating: number | null; total_ratings: number
   medical_history: MedicalHistory; emergency_contact: Record<string, string>
@@ -66,7 +67,7 @@ export type MedicalHistory = {
 export type Appointment = {
   id: string; organization_id: string; patient_id: string; doctor_id: string | null
   requested_specialty: string | null; chief_complaint: string; complaint_description: string | null
-  urgency_level: string; status: AppointmentStatus
+  urgency_level: string; appointment_type: 'video' | 'clinic'; status: AppointmentStatus
   status_history: Array<{ from: string; to: string; at: string; by: string }>
   ai_triage_score: number | null; ai_triage_category: string | null; ai_triage_reasoning: string | null
   ai_triage_at: string | null
@@ -126,7 +127,7 @@ export type QuestionnaireResponse = {
 
 export type Notification = {
   id: string; organization_id: string; user_id: string; appointment_id: string | null
-  type: string; template_name: string | null; content: string; variables: Record<string, unknown> | null
+  type: string; title: string | null; template_name: string | null; content: string; variables: Record<string, unknown> | null
   recipient_phone: string | null; recipient_email: string | null
   status: string; sent_at: string | null; delivered_at: string | null; read_at: string | null
   failed_at: string | null; error_message: string | null; retry_count: number

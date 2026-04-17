@@ -12,6 +12,7 @@ import type { User } from '@/types/database'
 
 // ── Types ──────────────────────────────────────────────────────────
 type Step = 'specialty' | 'doctor' | 'details' | 'documents' | 'confirm'
+type AppointmentType = 'video' | 'clinic'
 
 // ── Specialty icons ────────────────────────────────────────────────
 const SPECIALTY_ICONS: Record<string, string> = {
@@ -65,6 +66,7 @@ export default function NewAppointmentPage() {
     chief_complaint: '',
     complaint_description: '',
     urgency_level: 'routine',
+    appointment_type: 'video' as AppointmentType,
   })
   const [files, setFiles]   = useState<File[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
@@ -116,6 +118,7 @@ export default function NewAppointmentPage() {
         chief_complaint: form.chief_complaint,
         complaint_description: form.complaint_description || null,
         urgency_level: form.urgency_level,
+        appointment_type: form.appointment_type,
         payment_amount: selectedDoctor?.consultation_price || null,
         status: 'pending',
       }).select('id').single()
@@ -378,6 +381,35 @@ export default function NewAppointmentPage() {
                     onChange={e => setForm(p => ({ ...p, complaint_description: e.target.value }))}
                     rows={4}
                   />
+                </div>
+
+                {/* Appointment type */}
+                <div>
+                  <label className="block text-sm font-semibold text-gray-700 mb-2">סוג ייעוץ</label>
+                  <div className="grid grid-cols-2 gap-3">
+                    {([
+                      { value: 'video',  label: 'וידאו אונליין', desc: 'מהבית, בלי נסיעה', icon: '📹' },
+                      { value: 'clinic', label: 'במרפאה',         desc: 'ביקור פיזי',       icon: '🏥' },
+                    ] as { value: AppointmentType; label: string; desc: string; icon: string }[]).map(t => (
+                      <button
+                        key={t.value}
+                        type="button"
+                        onClick={() => setForm(p => ({ ...p, appointment_type: t.value }))}
+                        className={cn(
+                          'p-4 rounded-2xl border-2 text-right transition-all',
+                          form.appointment_type === t.value
+                            ? 'border-blue-500 bg-blue-50 shadow-sm shadow-blue-100'
+                            : 'border-gray-200 bg-white hover:border-blue-300'
+                        )}
+                      >
+                        <div className="text-2xl mb-1.5">{t.icon}</div>
+                        <p className={cn('font-semibold text-sm', form.appointment_type === t.value ? 'text-blue-700' : 'text-gray-800')}>
+                          {t.label}
+                        </p>
+                        <p className="text-xs text-gray-400 mt-0.5">{t.desc}</p>
+                      </button>
+                    ))}
+                  </div>
                 </div>
 
                 {/* Urgency */}

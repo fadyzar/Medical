@@ -85,6 +85,8 @@ export default function DoctorProfilePage() {
   const [languages, setLanguages] = useState<string[]>([])
   const [licenseNumber, setLicenseNumber] = useState('')
   const [phone, setPhone] = useState('')
+  const [acceptsVideo, setAcceptsVideo] = useState(true)
+  const [acceptsClinic, setAcceptsClinic] = useState(false)
 
   // Avatar
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
@@ -120,6 +122,8 @@ export default function DoctorProfilePage() {
           setLicenseNumber(p.license_number || '')
           setPhone(p.phone || '')
           setAvatarUrl(p.avatar_url)
+          setAcceptsVideo(p.accepts_video !== false)
+          setAcceptsClinic(!!p.accepts_clinic)
 
           // Load recent reviews
           const { data: appointments } = await supabase.from('appointments')
@@ -222,6 +226,8 @@ export default function DoctorProfilePage() {
         languages,
         license_number: licenseNumber.trim() || null,
         phone: phone.trim() || null,
+        accepts_video: acceptsVideo,
+        accepts_clinic: acceptsClinic,
       }).eq('id', profile.id)
 
       if (error) {
@@ -307,6 +313,67 @@ export default function DoctorProfilePage() {
             <p className="text-sm text-red-600 mt-2" role="alert">{errors.avatar}</p>
           )}
           <p className="text-xs text-gray-400 mt-3">PNG, JPG או WebP, עד 2MB</p>
+        </CardContent>
+      </Card>
+
+      {/* ── Consultation types ────────────────────────────── */}
+      <Card>
+        <CardHeader>
+          <h3 className="font-bold text-lg">סוגי ייעוץ זמינים</h3>
+          <p className="text-sm text-gray-500 mt-0.5">קבע אילו סוגי ייעוץ אתה מציע למטופלים</p>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          {([
+            {
+              key: 'video' as const,
+              label: 'ייעוץ בוידאו אונליין',
+              desc: 'מטופלים יכולים להתחבר מהבית דרך שיחת וידאו',
+              icon: '📹',
+              value: acceptsVideo,
+              onChange: setAcceptsVideo,
+            },
+            {
+              key: 'clinic' as const,
+              label: 'ביקור במרפאה',
+              desc: 'מטופלים יכולים להגיע לביקור פיזי',
+              icon: '🏥',
+              value: acceptsClinic,
+              onChange: setAcceptsClinic,
+            },
+          ]).map(opt => (
+            <div
+              key={opt.key}
+              className={cn(
+                'flex items-center justify-between gap-4 rounded-xl border-2 p-4 transition-all cursor-pointer',
+                opt.value ? 'border-blue-400 bg-blue-50' : 'border-gray-200 bg-white hover:border-gray-300'
+              )}
+              onClick={() => opt.onChange(!opt.value)}
+              role="checkbox"
+              aria-checked={opt.value}
+              tabIndex={0}
+              onKeyDown={e => e.key === ' ' && opt.onChange(!opt.value)}
+            >
+              <div className="flex items-center gap-3">
+                <span className="text-xl">{opt.icon}</span>
+                <div>
+                  <p className={cn('font-semibold text-sm', opt.value ? 'text-blue-800' : 'text-gray-700')}>{opt.label}</p>
+                  <p className="text-xs text-gray-400 mt-0.5">{opt.desc}</p>
+                </div>
+              </div>
+              <div className={cn(
+                'w-12 h-6 rounded-full relative transition-colors shrink-0',
+                opt.value ? 'bg-blue-500' : 'bg-gray-200'
+              )}>
+                <div className={cn(
+                  'absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform',
+                  opt.value ? 'translate-x-1' : 'translate-x-7'
+                )} />
+              </div>
+            </div>
+          ))}
+          {!acceptsVideo && !acceptsClinic && (
+            <p className="text-xs text-red-500 mt-1">יש לבחור לפחות סוג ייעוץ אחד</p>
+          )}
         </CardContent>
       </Card>
 

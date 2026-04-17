@@ -150,6 +150,144 @@ function statusBadgeVariant(status: string): 'success' | 'danger' | 'warning' | 
   return 'info'
 }
 
+// ── AI Summary Card ────────────────────────────────────────────────
+function parseSummary(raw: string): { natural: string; structured: Record<string, unknown> | null } {
+  try {
+    const parsed = JSON.parse(raw)
+    // Build natural language text from JSON
+    const lines: string[] = []
+    if (parsed.summary)         lines.push(parsed.summary)
+    if (parsed.diagnosis)       lines.push(`**אבחנה:** ${parsed.diagnosis}`)
+    if (parsed.treatment_plan)  lines.push(`**תוכנית טיפול:** ${parsed.treatment_plan}`)
+    if (parsed.medications?.length) lines.push(`**תרופות:** ${(parsed.medications as string[]).join(', ')}`)
+    if (parsed.follow_up)       lines.push(`**המשך טיפול:** ${parsed.follow_up}`)
+    if (parsed.red_flags?.length) lines.push(`⚠️ **סימנים לדאגה:** ${(parsed.red_flags as string[]).join(', ')}`)
+    return { natural: lines.join('\n\n') || raw, structured: parsed }
+  } catch {
+    return { natural: raw, structured: null }
+  }
+}
+
+function AISummaryCard({
+  summary, appointmentId, onSend, sending, sendResult, onClearResult,
+}: {
+  summary: string
+  appointmentId: string
+  onSend: (channel: 'email' | 'whatsapp' | 'in_app') => void
+  sending: boolean
+  sendResult: { ok: boolean; error?: string } | null
+  onClearResult: () => void
+}) {
+  const [showJson, setShowJson] = useState(false)
+  const { natural, structured } = parseSummary(summary)
+
+  return (
+    <Card className="border-blue-200">
+      <CardHeader className="py-3 px-4 border-b border-blue-100 bg-blue-50/60">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <svg className="w-4 h-4 text-blue-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22" />
+            </svg>
+            <p className="text-sm font-semibold text-blue-800">סיכום ייעוץ — AI</p>
+          </div>
+          {structured && (
+            <button
+              onClick={() => setShowJson(v => !v)}
+              className="text-xs text-blue-500 hover:text-blue-700 font-medium transition-colors"
+            >
+              {showJson ? 'הצג טקסט' : 'הצג JSON'}
+            </button>
+          )}
+        </div>
+      </CardHeader>
+      <CardContent className="py-4 px-4 space-y-4">
+        {/* Natural language view */}
+        {!showJson && (
+          <div className="space-y-2">
+            {natural.split('\n\n').map((para, i) => (
+              <p key={i} className="text-sm text-gray-700 leading-relaxed">
+                {para.replace(/\*\*(.*?)\*\*/g, (_, t) => t).split('**').map((seg, j) =>
+                  j % 2 === 1 ? <strong key={j}>{seg}</strong> : seg
+                )}
+              </p>
+            ))}
+          </div>
+        )}
+
+        {/* JSON view */}
+        {showJson && structured && (
+          <pre className="text-xs text-gray-600 bg-gray-50 rounded-xl p-3 overflow-auto max-h-60 border border-gray-200">
+            {JSON.stringify(structured, null, 2)}
+          </pre>
+        )}
+
+        {/* Send summary */}
+        <div className="pt-2 border-t border-blue-100">
+          <p className="text-xs font-semibold text-gray-500 mb-2">שלח סיכום למטופל</p>
+          <div className="flex flex-wrap gap-2">
+            <button
+              onClick={() => { onClearResult(); onSend('in_app') }}
+              disabled={sending}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium transition-colors disabled:opacity-50"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8h1a4 4 0 010 8h-1" /><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z" /><line x1="6" y1="1" x2="6" y2="4" /><line x1="10" y1="1" x2="10" y2="4" /><line x1="14" y1="1" x2="14" y2="4" />
+              </svg>
+              התראה במערכת
+            </button>
+            <button
+              onClick={() => { onClearResult(); onSend('email') }}
+              disabled={sending}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-indigo-700 text-xs font-medium transition-colors disabled:opacity-50"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
+              </svg>
+              אימייל
+            </button>
+            <button
+              onClick={() => { onClearResult(); onSend('whatsapp') }}
+              disabled={sending}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 text-xs font-medium transition-colors disabled:opacity-50"
+            >
+              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
+              </svg>
+              וואטסאפ
+            </button>
+            {sending && <Spinner size="sm" />}
+          </div>
+
+          {/* Result */}
+          {sendResult && (
+            <div className={cn(
+              'mt-2 rounded-lg px-3 py-2 text-xs flex items-center gap-2',
+              sendResult.ok ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+            )}>
+              {sendResult.ok ? (
+                <>
+                  <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  הסיכום נשלח בהצלחה
+                </>
+              ) : (
+                <>
+                  <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
+                  </svg>
+                  {sendResult.error || 'שגיאה בשליחה'}
+                </>
+              )}
+            </div>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 // ── SOAP field definitions ─────────────────────────────────────────
 const SOAP_FIELDS = [
   {
@@ -213,6 +351,8 @@ export default function DoctorAppointmentsPage() {
   const [aiSummaryLoading, setAiSummaryLoading] = useState(false)
   const [patientDocs, setPatientDocs] = useState<{ id: string; file_name: string; file_type: string; storage_path: string; created_at: string }[]>([])
   const [docsLoading, setDocsLoading] = useState(false)
+  const [sendingSummary, setSendingSummary] = useState(false)
+  const [sendSummaryResult, setSendSummaryResult] = useState<{ ok: boolean; error?: string } | null>(null)
   const supabase = getClient()
 
   const DOC_TYPES = [
@@ -274,20 +414,55 @@ export default function DoctorAppointmentsPage() {
       setQuestResponses([])
     }
 
-    // Fetch patient documents attached to this appointment
+    // Fetch patient documents — by appointment_id OR by patient_id (documents uploaded via my-documents)
     setDocsLoading(true)
     try {
-      const { data: docs, error: docsErr } = await supabase.from('documents')
-        .select('id, file_name, file_type, storage_path, created_at')
-        .eq('appointment_id', apt.id)
-        .order('created_at', { ascending: false })
-      console.log('[Docs] appointment:', apt.id, 'docs:', docs, 'error:', docsErr)
-      setPatientDocs((docs || []) as typeof patientDocs)
+      const patientId = (apt as unknown as { patient_id: string }).patient_id
+      const [{ data: aptDocs }, { data: patientAllDocs }] = await Promise.all([
+        supabase.from('documents')
+          .select('id, file_name, file_type, storage_path, created_at')
+          .eq('appointment_id', apt.id)
+          .order('created_at', { ascending: false }),
+        supabase.from('documents')
+          .select('id, file_name, file_type, storage_path, created_at')
+          .eq('patient_id', patientId)
+          .is('appointment_id', null)
+          .order('created_at', { ascending: false }),
+      ])
+      // Merge and deduplicate
+      const all = [...(aptDocs || []), ...(patientAllDocs || [])]
+      const seen = new Set<string>()
+      const deduped = all.filter(d => { if (seen.has(d.id)) return false; seen.add(d.id); return true })
+      setPatientDocs(deduped as typeof patientDocs)
     } catch (e) {
       console.error('[Docs] failed to load:', e)
       setPatientDocs([])
     } finally {
       setDocsLoading(false)
+    }
+  }
+
+  const sendSummaryToPatient = async (channel: 'email' | 'whatsapp' | 'in_app') => {
+    if (!selected) return
+    setSendingSummary(true)
+    setSendSummaryResult(null)
+    try {
+      const res = await fetch('/api/notifications/send-summary', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId: selected.id, channel }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        const channelResult = data.results?.[channel] || data.results?.in_app
+        setSendSummaryResult(channelResult || { ok: true })
+      } else {
+        setSendSummaryResult({ ok: false, error: data.error || 'שגיאה בשליחה' })
+      }
+    } catch {
+      setSendSummaryResult({ ok: false, error: 'שגיאה בשליחה' })
+    } finally {
+      setSendingSummary(false)
     }
   }
 
@@ -695,17 +870,14 @@ export default function DoctorAppointmentsPage() {
 
                 {/* ── AI summary (if exists) ── */}
                 {selected.ai_summary && (
-                  <Card className="border-blue-200 bg-blue-50">
-                    <CardHeader className="py-3 px-4 border-b border-blue-100 flex items-center gap-2">
-                      <svg className="w-4 h-4 text-blue-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 2a4 4 0 014 4v1h2a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2h2V6a4 4 0 014-4z" /><circle cx="9" cy="13" r="1" /><circle cx="15" cy="13" r="1" />
-                      </svg>
-                      <p className="text-sm font-semibold text-blue-800">סיכום ייעוץ — AI</p>
-                    </CardHeader>
-                    <CardContent className="py-3 px-4">
-                      <p className="text-sm text-blue-700 leading-relaxed whitespace-pre-wrap">{selected.ai_summary}</p>
-                    </CardContent>
-                  </Card>
+                  <AISummaryCard
+                    summary={selected.ai_summary}
+                    appointmentId={selected.id}
+                    onSend={sendSummaryToPatient}
+                    sending={sendingSummary}
+                    sendResult={sendSummaryResult}
+                    onClearResult={() => setSendSummaryResult(null)}
+                  />
                 )}
 
                 {/* ── questionnaire responses ── */}

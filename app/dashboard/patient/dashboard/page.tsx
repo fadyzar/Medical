@@ -71,6 +71,65 @@ function QuickActionCard({ icon, label, description, onClick, color }: {
   )
 }
 
+// ── Notifications Banner ──────────────────────────────────
+
+function NotificationsBanner({
+  notifications,
+  onMarkRead,
+}: {
+  notifications: { id: string; title: string; content: string; created_at: string; read_at: string | null }[]
+  onMarkRead: (id: string) => void
+}) {
+  const [expanded, setExpanded] = useState<string | null>(null)
+
+  return (
+    <div className="rounded-2xl border border-blue-200 bg-blue-50 overflow-hidden">
+      <div className="px-4 py-3 flex items-center gap-2 bg-blue-100/50 border-b border-blue-200">
+        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
+        <p className="text-sm font-semibold text-blue-800">
+          {notifications.length === 1 ? 'הודעה חדשה מהרופא שלך' : `${notifications.length} הודעות חדשות מהרופא שלך`}
+        </p>
+      </div>
+      <div className="divide-y divide-blue-100">
+        {notifications.map(n => (
+          <div key={n.id} className="px-4 py-3">
+            <button
+              className="w-full text-right flex items-start justify-between gap-3"
+              onClick={() => setExpanded(prev => prev === n.id ? null : n.id)}
+            >
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-gray-800">{n.title || 'הודעה חדשה'}</p>
+                <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
+                  {n.content?.split('\n')[0] || ''}
+                </p>
+              </div>
+              <svg className={cn('w-4 h-4 text-blue-400 shrink-0 mt-0.5 transition-transform', expanded === n.id && 'rotate-180')} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9" />
+              </svg>
+            </button>
+            {expanded === n.id && (
+              <div className="mt-3 space-y-3">
+                <div className="rounded-xl bg-white border border-blue-100 p-3">
+                  <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{n.content}</p>
+                </div>
+                <button
+                  onClick={() => onMarkRead(n.id)}
+                  className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1.5"
+                >
+                  <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                  סמן כנקרא
+                </button>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ── Main ─────────────────────────────────────────────────
 
 export default function PatientDashboard() {
@@ -82,23 +141,29 @@ export default function PatientDashboard() {
   const [recentDocs, setRecentDocs]   = useState<Document[]>([])
   const [loading, setLoading]         = useState(true)
   const [ratedMap, setRatedMap]       = useState<Record<string, number>>({})
+  const [notifications, setNotifications] = useState<{ id: string; title: string; content: string; created_at: string; read_at: string | null }[]>([])
 
   useEffect(() => {
     const load = async () => {
       try {
         const { data: { user } } = await supabase.auth.getUser()
         if (!user) { router.push('/auth/login'); return }
-        const [{ data: prof }, { data: apts }, { data: docs }] = await Promise.all([
+        const [{ data: prof }, { data: apts }, { data: docs }, { data: notifs }] = await Promise.all([
           supabase.from('users').select('*').eq('id', user.id).single(),
           supabase.from('appointments')
             .select('*, doctor:doctor_id(id, first_name, last_name, specialties, avatar_url, average_rating, total_ratings)')
             .eq('patient_id', user.id)
             .order('created_at', { ascending: false }).limit(50),
           supabase.from('documents').select('*').eq('patient_id', user.id).order('created_at', { ascending: false }).limit(5),
+          supabase.from('notifications')
+            .select('id, title, content, created_at, read_at')
+            .eq('user_id', user.id)
+            .order('created_at', { ascending: false }).limit(10),
         ])
         if (prof) setProfile(prof as unknown as User)
         if (apts) setAppointments(apts as unknown as PatientAppointment[])
         if (docs) setRecentDocs(docs as unknown as Document[])
+        if (notifs) setNotifications(notifs as typeof notifications)
       } catch { /* Error boundary will handle rendering errors */ }
       finally { setLoading(false) }
     }
@@ -161,6 +226,19 @@ export default function PatientDashboard() {
           קבע תור חדש
         </Button>
       </div>
+
+      {/* ── In-app notifications from doctor ── */}
+      {notifications.filter(n => !n.read_at).length > 0 && (
+        <NotificationsBanner
+          notifications={notifications.filter(n => !n.read_at)}
+          onMarkRead={async (id) => {
+            const { createClient } = await import('@supabase/supabase-js')
+            void createClient // unused — use existing supabase
+            await supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', id)
+            setNotifications(prev => prev.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n))
+          }}
+        />
+      )}
 
       {/* ── Active video call banner ── */}
       {inProgress && (
