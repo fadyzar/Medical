@@ -48,49 +48,48 @@ function getSpecialtyLabel(id: string | null): string {
 }
 
 /**
- * Convert Israeli phone number to international format for Infobip.
- * 0521234567 → 972521234567
- * +972521234567 → 972521234567
+ * Convert Israeli phone number to Green API chatId format.
+ * 0521234567  → 972521234567@c.us
+ * +972521234567 → 972521234567@c.us
  */
-function toInfobipPhone(phone: string): string {
+function toGreenApiChatId(phone: string): string {
   const cleaned = phone.replace(/[\s\-()]/g, '')
-  if (cleaned.startsWith('+972')) return cleaned.slice(1)
-  if (cleaned.startsWith('972')) return cleaned
-  if (cleaned.startsWith('0')) return `972${cleaned.slice(1)}`
-  return cleaned
+  let number: string
+  if (cleaned.startsWith('+972')) number = cleaned.slice(1)
+  else if (cleaned.startsWith('972')) number = cleaned
+  else if (cleaned.startsWith('0')) number = `972${cleaned.slice(1)}`
+  else number = cleaned
+  return `${number}@c.us`
 }
 
-// ── Core Send Function ───────────────────────────────
+// ── Core Send Function (Green API) ───────────────────
 
 export async function sendWhatsApp(
   params: SendWhatsAppParams,
   admin: SupabaseClient,
 ): Promise<SendWhatsAppResult> {
-  const apiKey = process.env.INFOBIP_API_KEY
-  const baseUrl = process.env.INFOBIP_BASE_URL
-  const fromNumber = process.env.INFOBIP_WHATSAPP_NUMBER
+  const instanceId = process.env.GREEN_API_INSTANCE_ID
+  const apiToken   = process.env.GREEN_API_TOKEN
 
-  if (!apiKey || !baseUrl) {
-    return { success: false, error: 'Infobip not configured' }
+  if (!instanceId || !apiToken) {
+    return { success: false, error: 'Green API not configured' }
   }
 
+  const url = `https://api.green-api.com/waInstance${instanceId}/sendMessage/${apiToken}`
+
   try {
-    const res = await fetch(`${baseUrl}/whatsapp/1/message/text`, {
+    const res = await fetch(url, {
       method: 'POST',
-      headers: {
-        Authorization: `App ${apiKey}`,
-        'Content-Type': 'application/json',
-      },
+      headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        from: fromNumber,
-        to: toInfobipPhone(params.to),
-        content: { text: params.message },
+        chatId: toGreenApiChatId(params.to),
+        message: params.message,
       }),
       signal: AbortSignal.timeout(15000),
     })
 
     const result = await res.json()
-    const messageId = result?.messages?.[0]?.messageId || null
+    const messageId: string | null = result?.idMessage || null
 
     // Record notification
     await admin.from('notifications').insert({
@@ -104,21 +103,21 @@ export async function sendWhatsApp(
       recipient_phone: params.to,
       status: res.ok ? 'sent' : 'failed',
       sent_at: res.ok ? new Date().toISOString() : null,
-      error_message: res.ok ? null : (result?.requestError?.serviceException?.text || 'Send failed'),
-      provider: 'infobip',
+      error_message: res.ok ? null : (result?.message || 'Send failed'),
+      provider: 'green-api',
       external_id: messageId,
     })
 
     if (!res.ok) {
-      const errMsg = result?.requestError?.serviceException?.text || `HTTP ${res.status}`
-      console.error('[WhatsApp]', errMsg)
+      const errMsg = result?.message || `HTTP ${res.status}`
+      console.error('[WhatsApp/GreenAPI]', errMsg)
       return { success: false, error: errMsg }
     }
 
-    return { success: true, messageId }
+    return { success: true, messageId: messageId ?? undefined }
   } catch (err) {
     const errorMessage = err instanceof Error ? err.message : 'WhatsApp send failed'
-    console.error('[WhatsApp]', errorMessage)
+    console.error('[WhatsApp/GreenAPI]', errorMessage)
 
     try {
       await admin.from('notifications').insert({
@@ -131,7 +130,7 @@ export async function sendWhatsApp(
         recipient_phone: params.to,
         status: 'failed',
         error_message: errorMessage,
-        provider: 'infobip',
+        provider: 'green-api',
       })
     } catch { /* ignore audit failure */ }
 
