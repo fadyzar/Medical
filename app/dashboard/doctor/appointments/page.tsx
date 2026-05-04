@@ -78,6 +78,13 @@ function SchedulePanel({ apt, onScheduled }: {
       if (error) throw error
       onScheduled(updates as Partial<Appointment>)
       setOpen(false)
+
+      // Notify patient: appointment scheduled
+      fetch('/api/notifications/trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId: apt.id, event: 'appointment_scheduled' }),
+      }).catch(() => {})
     } catch {
       // ignore
     } finally {
@@ -87,7 +94,17 @@ function SchedulePanel({ apt, onScheduled }: {
 
   if (!open) {
     return (
-      <Button onClick={() => setOpen(true)} className="bg-blue-600 hover:bg-blue-700 gap-2">
+      <Button onClick={() => {
+        setOpen(true)
+        // Notify patient that doctor opened the scheduling panel (confirmed interest)
+        if (!apt.doctor_accepted_at) {
+          fetch('/api/notifications/trigger', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ appointmentId: apt.id, event: 'appointment_confirmed' }),
+          }).catch(() => {})
+        }
+      }} className="bg-blue-600 hover:bg-blue-700 gap-2">
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
         </svg>
@@ -222,63 +239,43 @@ function AISummaryCard({
           </pre>
         )}
 
-        {/* Send summary */}
-        <div className="pt-2 border-t border-blue-100">
-          <p className="text-xs font-semibold text-gray-500 mb-2">שלח סיכום למטופל</p>
-          <div className="flex flex-wrap gap-2">
-            <button
-              onClick={() => { onClearResult(); onSend('in_app') }}
-              disabled={sending}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-blue-100 hover:bg-blue-200 text-blue-700 text-xs font-medium transition-colors disabled:opacity-50"
-            >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M18 8h1a4 4 0 010 8h-1" /><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z" /><line x1="6" y1="1" x2="6" y2="4" /><line x1="10" y1="1" x2="10" y2="4" /><line x1="14" y1="1" x2="14" y2="4" />
-              </svg>
-              התראה במערכת
-            </button>
-            <button
-              onClick={() => { onClearResult(); onSend('email') }}
-              disabled={sending}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-100 hover:bg-indigo-200 text-indigo-700 text-xs font-medium transition-colors disabled:opacity-50"
-            >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" />
-              </svg>
-              אימייל
-            </button>
-            <button
-              onClick={() => { onClearResult(); onSend('whatsapp') }}
-              disabled={sending}
-              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-green-100 hover:bg-green-200 text-green-700 text-xs font-medium transition-colors disabled:opacity-50"
-            >
-              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M21 15a2 2 0 01-2 2H7l-4 4V5a2 2 0 012-2h14a2 2 0 012 2z" />
-              </svg>
-              וואטסאפ
-            </button>
-            {sending && <Spinner size="sm" />}
+        {/* Send summary to patient */}
+        <div className="pt-3 border-t border-blue-100 space-y-2">
+          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">שלח סיכום למטופל</p>
+          <div className="grid grid-cols-3 gap-2">
+            {[
+              { channel: 'in_app' as const, label: 'בעמוד', icon: '🔔', cls: 'bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200' },
+              { channel: 'whatsapp' as const, label: 'WhatsApp', icon: '💬', cls: 'bg-green-50 hover:bg-green-100 text-green-700 border-green-200' },
+              { channel: 'email' as const, label: 'אימייל', icon: '📧', cls: 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200' },
+            ].map(opt => (
+              <button
+                key={opt.channel}
+                onClick={() => { onClearResult(); onSend(opt.channel) }}
+                disabled={sending}
+                className={cn(
+                  'flex flex-col items-center gap-1 py-2.5 rounded-xl border text-xs font-medium transition-all disabled:opacity-40',
+                  opt.cls
+                )}
+              >
+                <span className="text-base">{opt.icon}</span>
+                <span>{opt.label}</span>
+              </button>
+            ))}
           </div>
-
-          {/* Result */}
+          {sending && (
+            <div className="flex items-center gap-2 text-xs text-gray-500">
+              <Spinner size="sm" /> שולח...
+            </div>
+          )}
           {sendResult && (
             <div className={cn(
-              'mt-2 rounded-lg px-3 py-2 text-xs flex items-center gap-2',
-              sendResult.ok ? 'bg-green-50 text-green-700' : 'bg-red-50 text-red-700'
+              'rounded-xl px-3 py-2 text-xs flex items-center gap-2 font-medium',
+              sendResult.ok ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
             )}>
               {sendResult.ok ? (
-                <>
-                  <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <polyline points="20 6 9 17 4 12" />
-                  </svg>
-                  הסיכום נשלח בהצלחה
-                </>
+                <><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>נשלח בהצלחה ✓</>
               ) : (
-                <>
-                  <svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
-                  {sendResult.error || 'שגיאה בשליחה'}
-                </>
+                <><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>{sendResult.error || 'שגיאה בשליחה'}</>
               )}
             </div>
           )}
@@ -493,14 +490,12 @@ export default function DoctorAppointmentsPage() {
       return
     }
 
-    // Send consultation summary email to patient
-    try {
-      await fetch('/api/email/send-summary', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ appointmentId: selected.id }),
-      })
-    } catch { /* non-critical */ }
+    // Notify patient: appointment completed
+    fetch('/api/notifications/trigger', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ appointmentId: selected.id, event: 'appointment_completed' }),
+    }).catch(() => {})
 
     setSaving(false)
     setSelected(null)

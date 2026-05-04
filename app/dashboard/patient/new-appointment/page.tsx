@@ -140,7 +140,14 @@ export default function NewAppointmentPage() {
       }
 
       try { await fetch('/api/ai-triage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ appointmentId: apt.id }) }) } catch { /* non-critical */ }
-      try { fetch('/api/email/send-confirmation', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ appointmentId: apt.id }) }) } catch { /* non-critical */ }
+      // Notify patient (confirmation) + doctor (new request) via WhatsApp + in-app
+      try {
+        await fetch('/api/notifications/trigger-patient-created', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ appointmentId: apt.id }),
+        })
+      } catch { /* non-critical */ }
 
       setSuccess(true)
       toast.success('הבקשה נשלחה בהצלחה!')

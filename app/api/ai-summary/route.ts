@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
 import { summaryAgent, prescriptionAgent } from '@/lib/ai/agents'
+import { notify } from '@/lib/notifications'
 import { aiSummarySchema } from '@/lib/validation/schemas'
 import { rateLimit } from '@/lib/security/rate-limit'
 import { orchestrate } from '@/lib/ai/orchestrator'
@@ -115,6 +116,9 @@ export async function POST(req: Request) {
           ...(!apt.assessment && p?.soap?.assessment ? { assessment: p.soap.assessment } : {}),
           ...(!apt.plan && p?.soap?.plan ? { plan: p.soap.plan } : {}),
         }).eq('id', appointmentId)
+
+        // Auto-notify patient: summary is ready (in-app only, doctor can also send WhatsApp manually)
+        notify('consultation_summary', appointmentId, admin).catch(() => {})
       }
     }
 

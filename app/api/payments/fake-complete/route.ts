@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabase } from '@/lib/supabase/server'
+import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
+import { notify } from '@/lib/notifications'
 
 // Fake payment endpoint — simulates a successful payment.
 // Used during development / before Tranzila credentials are configured.
@@ -42,6 +43,12 @@ export async function POST(req: NextRequest) {
     console.error('[FakePayment] update error:', error)
     return NextResponse.json({ error: 'Failed to update appointment' }, { status: 500 })
   }
+
+  // Send WhatsApp + in-app notification to patient
+  try {
+    const admin = createServiceRole()
+    await notify('payment_success', appointmentId, admin)
+  } catch { /* non-critical */ }
 
   return NextResponse.json({ ok: true })
 }
