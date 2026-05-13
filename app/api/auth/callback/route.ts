@@ -1,4 +1,5 @@
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
+import { sendWelcomeEmail } from '@/lib/email'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
@@ -12,11 +13,14 @@ export async function GET(request: Request) {
     if (!error) {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
-        // Ensure profile exists (trigger may have failed silently)
         const admin = createServiceRole()
-        let { data: profile } = await admin.from('users').select('role').eq('id', user.id).single()
+        let { data: profile } = await admin.from('users')
+          .select('role, first_name, last_name, organization_id')
+          .eq('id', user.id).single()
+        let isNewProfile = false
 
         if (!profile) {
+          isNewProfile = true
           // Profile missing — create it now using metadata from auth
           const meta = user.user_metadata || {}
           const roleFromMeta = (meta.role as string) || 'patient'
@@ -41,12 +45,39 @@ export async function GET(request: Request) {
             }
           }
 
-          const { data: created } = await admin.from('users').upsert(profileData, { onConflict: 'id' }).select('role').single()
-
+          const { data: created } = await admin.from('users').upsert(profileData, { onConflict: 'id' }).select('role, first_name, last_name, organization_id').single()
           profile = created
         }
 
-        const role = (profile as { role?: string } | null)?.role || 'patient'
+        const typedProfile = profile as { role?: string; first_name?: string; last_name?: string; organization_id?: string } | null
+        const role = typedProfile?.role || 'patient'
+
+        // Send welcome email for new users (fire-and-forget, idempotent)
+        if (user.email && typedProfile?.organization_id) {
+          const { count } = await admin.from('notifications')
+            .select('id', { count: 'exact', head: true })
+            .eq('user_id', user.id)
+            .eq('template_name', 'welcome')
+
+          if ((count ?? 0) === 0 || isNewProfile) {
+            const { data: org } = await admin.from('organizations')
+              .select('name')
+              .eq('id', typedProfile.organization_id)
+              .maybeSingle()
+
+            sendWelcomeEmail({
+              userId: user.id,
+              email: user.email,
+              firstName: typedProfile.first_name || '',
+              lastName: typedProfile.last_name || '',
+              role,
+              organizationId: typedProfile.organization_id,
+              organizationName: (org as { name?: string } | null)?.name || 'המרפאה',
+              admin,
+            }).catch(() => {})
+          }
+        }
+
         const roleHome: Record<string, string> = {
           doctor: '/dashboard/doctor/dashboard',
           admin: '/dashboard/admin/dashboard',

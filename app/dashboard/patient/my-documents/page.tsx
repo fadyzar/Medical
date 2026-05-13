@@ -105,6 +105,14 @@ export default function MyDocumentsPage() {
         document_type: 'patient_upload',
       })
       if (insertErr) { setError('הקובץ הועלה אך לא נשמר. נסה שוב.'); return }
+
+      // Notify doctor (best-effort, non-blocking)
+      fetch('/api/documents/notify-upload', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ fileName: file.name }),
+      }).catch(() => {})
+
       loadDocs()
     } catch {
       setError('שגיאה בהעלאת הקובץ. נסה שוב.')
