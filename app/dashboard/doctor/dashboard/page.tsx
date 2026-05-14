@@ -95,11 +95,59 @@ function TimelineItem({ apt, isLast }: { apt: Appointment; isLast: boolean }) {
   )
 }
 
+// ── Notifications Banner ───────────────────────────────────────────
+type Notif = { id: string; title: string; content: string; created_at: string; read_at: string | null }
+
+function NotificationsBanner({ notifications, onMarkRead }: { notifications: Notif[]; onMarkRead: (id: string) => void }) {
+  const [expanded, setExpanded] = useState(false)
+  const unread = notifications.filter(n => !n.read_at)
+  if (notifications.length === 0) return null
+  const shown = expanded ? notifications : notifications.slice(0, 2)
+  return (
+    <div className="bg-blue-50 border border-blue-200 rounded-xl overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-blue-100">
+        <div className="flex items-center gap-2">
+          <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
+          </svg>
+          <span className="text-sm font-bold text-blue-900">התראות</span>
+          {unread.length > 0 && (
+            <span className="bg-blue-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{unread.length}</span>
+          )}
+        </div>
+        {notifications.length > 2 && (
+          <button onClick={() => setExpanded(e => !e)} className="text-xs text-blue-600 font-medium hover:underline">
+            {expanded ? 'הצג פחות' : `הצג הכל (${notifications.length})`}
+          </button>
+        )}
+      </div>
+      <div className="divide-y divide-blue-100">
+        {shown.map(n => (
+          <div key={n.id} className={cn('flex items-start gap-3 px-4 py-3', !n.read_at && 'bg-white/60')}>
+            {!n.read_at && <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-1.5" />}
+            {n.read_at && <span className="w-2 h-2 shrink-0" />}
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-semibold text-gray-900">{n.title}</p>
+              <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.content}</p>
+            </div>
+            {!n.read_at && (
+              <button onClick={() => onMarkRead(n.id)} className="text-xs text-blue-600 hover:underline shrink-0 mt-0.5">
+                קראתי
+              </button>
+            )}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
 // ── main component ─────────────────────────────────────────────────
 export default function DoctorDashboard() {
   const router = useRouter()
   const [profile, setProfile] = useState<User | null>(null)
   const [appointments, setAppointments] = useState<Appointment[]>([])
+  const [notifications, setNotifications] = useState<Notif[]>([])
   const [loading, setLoading] = useState(true)
   const [aiLoading, setAiLoading] = useState<string | null>(null)
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
@@ -113,22 +161,33 @@ export default function DoctorDashboard() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/auth/login'); return }
 
-      const [{ data: prof }, { data: apts }] = await Promise.all([
+      const [{ data: prof }, { data: apts }, { data: notifs }] = await Promise.all([
         supabase.from('users').select('*').eq('id', user.id).single(),
         supabase.from('appointments')
           .select('*, patient:patient_id(id, first_name, last_name, date_of_birth, phone, medical_history)')
           .eq('doctor_id', user.id)
           .order('created_at', { ascending: false })
           .limit(50),
+        supabase.from('notifications')
+          .select('id, title, content, created_at, read_at')
+          .eq('user_id', user.id)
+          .order('created_at', { ascending: false })
+          .limit(20),
       ])
 
       if (prof) setProfile(prof as unknown as User)
       if (apts) setAppointments(apts as unknown as Appointment[])
+      if (notifs) setNotifications(notifs as Notif[])
     } catch {
       // Prevents infinite loading on network error
     } finally {
       setLoading(false)
     }
+  }
+
+  const markRead = async (id: string) => {
+    await supabase.from('notifications').update({ read_at: new Date().toISOString() }).eq('id', id)
+    setNotifications(prev => prev.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n))
   }
 
   const confirmAppointment = async (id: string) => {
@@ -219,6 +278,11 @@ export default function DoctorDashboard() {
           </Button>
         </div>
       </div>
+
+      {/* ── notifications ── */}
+      {notifications.length > 0 && (
+        <NotificationsBanner notifications={notifications} onMarkRead={markRead} />
+      )}
 
       {/* ── toast message ── */}
       {message && (

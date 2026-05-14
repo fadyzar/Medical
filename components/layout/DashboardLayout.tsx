@@ -245,6 +245,7 @@ const NAV: Record<string, NavItem[]> = {
     { label: 'דשבורד', href: '/dashboard/doctor/dashboard', icon: 'home' },
     { label: 'תורים', href: '/dashboard/doctor/appointments', icon: 'clipboard' },
     { label: 'יומן', href: '/dashboard/doctor/calendar', icon: 'calendar' },
+    { label: 'זמינות', href: '/dashboard/doctor/availability', icon: 'settings' },
     { label: 'מטופלים', href: '/dashboard/doctor/patients', icon: 'users' },
     { label: 'שאלונים', href: '/dashboard/doctor/questionnaires', icon: 'list-checks' },
     { label: 'הפרופיל שלי', href: '/dashboard/doctor/profile', icon: 'user' },

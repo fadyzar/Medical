@@ -95,8 +95,9 @@ export async function POST(req: NextRequest) {
       try {
         const { Resend } = await import('resend')
         const resend = new Resend(resendKey)
+        const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'
         await resend.emails.send({
-          from: 'no-reply@telemed.co.il',
+          from: fromEmail,
           to: patient.email,
           subject: 'סיכום ייעוץ רפואי',
           html: buildEmailHtml(summaryText, patient.first_name, doctor),

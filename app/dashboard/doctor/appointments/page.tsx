@@ -18,9 +18,9 @@ function DocLink({ doc }: { doc: { id: string; file_name: string; file_type: str
   const [url, setUrl] = useState<string | null>(null)
 
   useEffect(() => {
+    if (!doc.storage_path) return  // skip if path is empty/null
     supabase.storage.from('medical-documents').createSignedUrl(doc.storage_path, 3600)
-      .then(({ data, error }) => {
-        console.log('[DocLink] signed url for', doc.file_name, ':', data?.signedUrl, 'error:', error)
+      .then(({ data }) => {
         if (data?.signedUrl) setUrl(data.signedUrl)
       })
   }, [doc.storage_path])
@@ -168,20 +168,50 @@ function statusBadgeVariant(status: string): 'success' | 'danger' | 'warning' | 
 }
 
 // ── AI Summary Card ────────────────────────────────────────────────
-function parseSummary(raw: string): { natural: string; structured: Record<string, unknown> | null } {
+function parseSummary(raw: string): { sections: { label: string; value: string; warning?: boolean }[]; structured: Record<string, unknown> | null } {
   try {
-    const parsed = JSON.parse(raw)
-    // Build natural language text from JSON
-    const lines: string[] = []
-    if (parsed.summary)         lines.push(parsed.summary)
-    if (parsed.diagnosis)       lines.push(`**אבחנה:** ${parsed.diagnosis}`)
-    if (parsed.treatment_plan)  lines.push(`**תוכנית טיפול:** ${parsed.treatment_plan}`)
-    if (parsed.medications?.length) lines.push(`**תרופות:** ${(parsed.medications as string[]).join(', ')}`)
-    if (parsed.follow_up)       lines.push(`**המשך טיפול:** ${parsed.follow_up}`)
-    if (parsed.red_flags?.length) lines.push(`⚠️ **סימנים לדאגה:** ${(parsed.red_flags as string[]).join(', ')}`)
-    return { natural: lines.join('\n\n') || raw, structured: parsed }
+    const p = JSON.parse(raw) as Record<string, unknown>
+    const soap = (p.soap || {}) as Record<string, string>
+    const sections: { label: string; value: string; warning?: boolean }[] = []
+
+    if (p.summary) sections.push({ label: 'סיכום', value: String(p.summary) })
+    if (soap.subjective) sections.push({ label: 'תלונות סובייקטיביות', value: soap.subjective })
+    if (soap.objective)  sections.push({ label: 'ממצאים אובייקטיביים', value: soap.objective })
+    if (soap.assessment) sections.push({ label: 'הערכה', value: soap.assessment })
+    if (soap.plan)       sections.push({ label: 'תוכנית טיפול', value: soap.plan })
+
+    // fallback fields (other AI schema variants)
+    if (!soap.assessment && p.diagnosis)      sections.push({ label: 'אבחנה', value: String(p.diagnosis) })
+    if (!soap.plan && p.treatment_plan)       sections.push({ label: 'תוכנית טיפול', value: String(p.treatment_plan) })
+    if (p.medications && Array.isArray(p.medications)) {
+      const meds = p.medications as string[]
+      if (meds.length) sections.push({ label: 'תרופות', value: meds.join(', ') })
+    }
+
+    const followUp = p.follow_up
+    if (followUp) {
+      if (Array.isArray(followUp) && followUp.length) {
+        sections.push({ label: 'המשך טיפול', value: (followUp as string[]).join(' | ') })
+      } else if (typeof followUp === 'string') {
+        sections.push({ label: 'המשך טיפול', value: followUp })
+      }
+    }
+
+    const findings = p.key_findings
+    if (Array.isArray(findings) && (findings as string[]).length) {
+      sections.push({ label: 'ממצאים עיקריים', value: (findings as string[]).join(' · ') })
+    }
+
+    const redFlags = p.red_flags
+    if (Array.isArray(redFlags) && (redFlags as string[]).length) {
+      sections.push({ label: '⚠️ סימנים לדאגה', value: (redFlags as string[]).join(', '), warning: true })
+    }
+
+    if (sections.length === 0) sections.push({ label: 'סיכום', value: raw })
+
+    return { sections, structured: p }
   } catch {
-    return { natural: raw, structured: null }
+    return { sections: [{ label: 'סיכום', value: raw }], structured: null }
   }
 }
 
@@ -196,7 +226,7 @@ function AISummaryCard({
   onClearResult: () => void
 }) {
   const [showJson, setShowJson] = useState(false)
-  const { natural, structured } = parseSummary(summary)
+  const { sections, structured } = parseSummary(summary)
 
   return (
     <Card className="border-blue-200">
@@ -219,15 +249,14 @@ function AISummaryCard({
         </div>
       </CardHeader>
       <CardContent className="py-4 px-4 space-y-4">
-        {/* Natural language view */}
+        {/* Natural language sections view */}
         {!showJson && (
-          <div className="space-y-2">
-            {natural.split('\n\n').map((para, i) => (
-              <p key={i} className="text-sm text-gray-700 leading-relaxed">
-                {para.replace(/\*\*(.*?)\*\*/g, (_, t) => t).split('**').map((seg, j) =>
-                  j % 2 === 1 ? <strong key={j}>{seg}</strong> : seg
-                )}
-              </p>
+          <div className="space-y-3">
+            {sections.map((sec, i) => (
+              <div key={i} className={cn('rounded-lg p-3', sec.warning ? 'bg-amber-50 border border-amber-200' : 'bg-gray-50 border border-gray-100')}>
+                <p className={cn('text-xs font-bold uppercase tracking-wide mb-1', sec.warning ? 'text-amber-700' : 'text-blue-600')}>{sec.label}</p>
+                <p className={cn('text-sm leading-relaxed', sec.warning ? 'text-amber-900' : 'text-gray-800')}>{sec.value}</p>
+              </div>
             ))}
           </div>
         )}
