@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import HeroCarousel from '@/components/ui/HeroCarousel'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://your-domain.co.il'
 
@@ -26,28 +27,6 @@ const jsonLd = {
   operatingSystem: 'Web',
   description: 'פלטפורמת ייעוץ רפואי אונליין — וידאו HD, סוכני AI, שאלונים דינמיים, תשלומים מאובטחים.',
 }
-
-// ── Testimonials ──────────────────────────────────────────────────────────
-const testimonials = [
-  {
-    quote: 'תוך 20 דקות הייתי עם רופאת עור שנתנה לי מרשם מדויק. חסכתי שלושה שבועות המתנה.',
-    name: 'מיכל לוי',
-    role: 'מטופלת, תל אביב',
-    img: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?auto=format&fit=crop&w=80&q=80',
-  },
-  {
-    quote: 'הסיכום שקיבלתי אחרי הייעוץ היה יותר מפורט מכל מה שקיבלתי אי פעם. הAI עשה עבודה מדהימה.',
-    name: 'אלון שמיר',
-    role: 'מטופל, חיפה',
-    img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=80&q=80',
-  },
-  {
-    quote: 'כרופאה, המערכת חסכה לי שעות של תיעוד. הAI מכין הכל ואני רק מאשרת ומשלימה.',
-    name: 'ד"ר רינת כהן',
-    role: 'רופאת עור ומין',
-    img: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=80&q=80',
-  },
-]
 
 // ── Features ──────────────────────────────────────────────────────────────
 const features = [
@@ -109,21 +88,15 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* ── Hero — full bleed image with overlay ───────────────────────── */}
+      {/* ── Hero — carousel with overlay ───────────────────────────────── */}
       <section className="relative min-h-screen flex items-center overflow-hidden">
-        {/* Background image */}
-        {/* eslint-disable-next-line @next/next/no-img-element */}
-        <img
-          src="https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1800&q=85"
-          alt=""
-          aria-hidden="true"
-          className="absolute inset-0 w-full h-full object-cover object-center"
-        />
+        {/* Carousel images */}
+        <HeroCarousel />
         {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-l from-slate-950/95 via-slate-900/80 to-slate-900/40" />
+        <div className="absolute inset-0 bg-gradient-to-l from-slate-950/95 via-slate-900/80 to-slate-900/40 z-10" />
 
         {/* Content */}
-        <div className="relative z-10 max-w-7xl mx-auto px-6 py-32 w-full">
+        <div className="relative z-20 max-w-7xl mx-auto px-6 py-32 w-full">
           <div className="max-w-2xl mr-auto">
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white/90 text-xs font-semibold tracking-widest uppercase px-4 py-2 rounded-full mb-8 backdrop-blur-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
@@ -164,31 +137,6 @@ export default function HomePage() {
           </div>
         </div>
 
-        {/* Floating stat card bottom-left */}
-        <div className="absolute bottom-10 left-8 hidden lg:flex items-center gap-4 bg-white/10 backdrop-blur-md border border-white/20 rounded-2xl px-5 py-4">
-          <div className="text-right">
-            <p className="text-2xl font-black text-white">10,000+</p>
-            <p className="text-xs text-white/60">ייעוצים מוצלחים</p>
-          </div>
-          <div className="w-px h-10 bg-white/20" />
-          <div className="text-right">
-            <p className="text-2xl font-black text-white">4.9 ★</p>
-            <p className="text-xs text-white/60">דירוג ממוצע</p>
-          </div>
-          <div className="w-px h-10 bg-white/20" />
-          <div className="text-right">
-            <p className="text-2xl font-black text-white">50+</p>
-            <p className="text-xs text-white/60">רופאים מומחים</p>
-          </div>
-        </div>
-
-        {/* Scroll indicator */}
-        <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex flex-col items-center gap-2 text-white/40">
-          <span className="text-xs tracking-widest uppercase">גלול למטה</span>
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <polyline points="6 9 12 15 18 9"/>
-          </svg>
-        </div>
       </section>
 
       {/* ── Feature sections ────────────────────────────────────────────── */}
@@ -286,46 +234,6 @@ export default function HomePage() {
                   <span className="text-4xl font-black text-white/10 group-hover:text-blue-500/30 transition-colors">{s.n}</span>
                   <h3 className="text-white font-bold mt-3">{s.title}</h3>
                   <p className="text-white/50 text-sm mt-1.5 leading-relaxed">{s.desc}</p>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── Testimonials ────────────────────────────────────────────────── */}
-      <section className="py-24 px-6 bg-white">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14">
-            <p className="text-xs font-bold tracking-widest uppercase text-blue-600 mb-4">חוות דעת</p>
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">מה אומרים המשתמשים</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map((t, i) => (
-              <div
-                key={t.name}
-                className={`rounded-3xl p-8 border flex flex-col gap-6 ${i === 1 ? 'bg-blue-600 border-blue-500 shadow-xl shadow-blue-600/20' : 'bg-slate-50 border-slate-100'}`}
-              >
-                <div className="flex gap-0.5">
-                  {[...Array(5)].map((_, j) => (
-                    <svg key={j} width="14" height="14" viewBox="0 0 24 24" fill={i === 1 ? '#bfdbfe' : '#fbbf24'} stroke="none">
-                      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-                    </svg>
-                  ))}
-                </div>
-                <p className={`text-[15px] leading-relaxed flex-1 ${i === 1 ? 'text-white' : 'text-slate-700'}`}>
-                  &ldquo;{t.quote}&rdquo;
-                </p>
-                <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full overflow-hidden border-2 border-white/20 shrink-0">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={t.img} alt={t.name} className="w-full h-full object-cover" loading="lazy" />
-                  </div>
-                  <div>
-                    <p className={`font-bold text-sm ${i === 1 ? 'text-white' : 'text-slate-900'}`}>{t.name}</p>
-                    <p className={`text-xs ${i === 1 ? 'text-blue-200' : 'text-slate-400'}`}>{t.role}</p>
-                  </div>
                 </div>
               </div>
             ))}
