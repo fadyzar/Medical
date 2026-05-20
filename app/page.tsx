@@ -74,7 +74,7 @@ export default function HomePage() {
             <div className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">
               <Link href="/doctors" className="hover:text-slate-900 transition-colors">רופאים</Link>
               <Link href="/specialties" className="hover:text-slate-900 transition-colors">התמחויות</Link>
-              <Link href="/onboarding" className="hover:text-slate-900 transition-colors">למרפאות</Link>
+              <Link href="/for-clinics" className="hover:text-slate-900 transition-colors">למרפאות</Link>
             </div>
             <div className="flex items-center gap-2">
               <Link href="/auth/login" className="hidden sm:block text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-2 transition-colors">
@@ -241,49 +241,22 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Clinic CTA — split with image ───────────────────────────────── */}
-      <section className="py-24 px-6 bg-slate-50">
-        <div className="max-w-7xl mx-auto">
-          <div className="relative rounded-3xl overflow-hidden min-h-[440px] flex items-center">
-            {/* Background image */}
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img
-              src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&w=1600&q=80"
-              alt=""
-              aria-hidden="true"
-              className="absolute inset-0 w-full h-full object-cover object-center"
-              loading="lazy"
-            />
-            <div className="absolute inset-0 bg-gradient-to-l from-slate-950/98 via-slate-900/90 to-slate-900/20" />
-
-            <div className="relative z-10 px-10 py-16 md:px-16 max-w-xl mr-auto">
-              <span className="inline-block bg-blue-500/20 border border-blue-400/30 text-blue-300 text-xs font-bold tracking-widest uppercase px-3 py-1.5 rounded-full mb-6">
-                SaaS למרפאות
-              </span>
-              <h2 className="text-3xl sm:text-4xl font-black text-white leading-tight tracking-tight">
-                הקם את הקליניקה
-                <br />
-                הדיגיטלית שלך — היום.
-              </h2>
-              <p className="text-slate-400 mt-4 text-lg leading-relaxed">
-                מיתוג אישי, AI מובנה, מנוי גמיש. כולל וידאו, שאלונים, תשלומים ותמיכה ישראלית.
-              </p>
-              <div className="flex flex-col sm:flex-row gap-3 mt-8">
-                <Link
-                  href="/onboarding"
-                  className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white font-bold px-7 py-4 rounded-2xl transition-all shadow-lg shadow-blue-600/20"
-                >
-                  ניסיון חינם — 14 ימים
-                </Link>
-                <Link
-                  href="/auth/login"
-                  className="inline-flex items-center justify-center border border-white/15 hover:border-white/30 text-slate-300 hover:text-white font-semibold px-7 py-4 rounded-2xl transition-all"
-                >
-                  יש לי חשבון
-                </Link>
-              </div>
-            </div>
+      {/* ── Clinic strip ─────────────────────────────────────────────────── */}
+      <section className="bg-slate-950 py-10 px-6">
+        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-5">
+          <div>
+            <p className="text-white font-bold text-lg">בעל מרפאה?</p>
+            <p className="text-slate-400 text-sm mt-1">הקם קליניקה דיגיטלית תוך 24 שעות — White Label, AI, וידאו, תשלומים.</p>
           </div>
+          <Link
+            href="/for-clinics"
+            className="shrink-0 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg shadow-blue-600/20 text-sm"
+          >
+            גלה עוד
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+            </svg>
+          </Link>
         </div>
       </section>
 

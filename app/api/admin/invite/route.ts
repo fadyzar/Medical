@@ -65,6 +65,34 @@ export async function POST(req: NextRequest) {
     const orgSettings = (org as unknown as { settings: Record<string, unknown> })?.settings || {}
     const inviterName = `${typedProfile.first_name} ${typedProfile.last_name}`
 
+    // Create or reuse a secure invite token in the invitations table
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const invitationsTable = (admin as any).from('invitations')
+    let inviteToken: string | undefined
+    const { data: existingInv } = await invitationsTable
+      .select('token')
+      .eq('organization_id', typedProfile.organization_id)
+      .eq('email', email.toLowerCase())
+      .is('used_at', null)
+      .gt('expires_at', new Date().toISOString())
+      .maybeSingle()
+
+    if (existingInv) {
+      inviteToken = (existingInv as { token: string }).token
+    } else {
+      const { data: newInv } = await invitationsTable
+        .insert({
+          organization_id: typedProfile.organization_id,
+          email: email.toLowerCase(),
+          role,
+          invited_by: user.id,
+          first_name: inviteeName.split(' ')[0] ?? null,
+        })
+        .select('token')
+        .single()
+      inviteToken = (newInv as { token: string } | null)?.token
+    }
+
     // Send invite email based on role
     let result: { success: boolean; error?: string }
 
@@ -76,17 +104,19 @@ export async function POST(req: NextRequest) {
         organizationName: orgName,
         inviterName,
         inviterUserId: user.id,
+        inviteToken,
         admin,
       })
     } else {
       result = await sendStaffInvite({
         name: inviteeName,
         email,
-        role,
+        role: role as 'staff' | 'admin',
         organizationId: typedProfile.organization_id,
         organizationName: orgName,
         inviterName,
         inviterUserId: user.id,
+        inviteToken,
         admin,
       })
     }

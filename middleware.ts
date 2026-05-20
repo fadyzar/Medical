@@ -7,6 +7,7 @@ const PUBLIC_PREFIXES = [
   '/api/',
   '/onboarding',
   '/marketing',
+  '/for-clinics',
   '/doctors',
   '/specialties',
   '/blog',
