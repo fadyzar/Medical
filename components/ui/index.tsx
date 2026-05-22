@@ -223,3 +223,6 @@ export function StatCard({ label, value, icon, color = 'blue' }: { label: string
     </Card>
   )
 }
+
+// Re-export AppointmentTimeline from separate file
+export { AppointmentTimeline } from './AppointmentTimeline'
