@@ -10,6 +10,9 @@ import type { Organization } from '@/types/database'
 
 // ── Types ──────────────────────────────────────────────
 
+// Integrations provided by the platform — no config needed by clinic
+const PLATFORM_PROVIDED: IntegrationKey[] = ['email', 'video']
+
 type IntegrationKey =
   | 'whatsapp'
   | 'email'
@@ -144,7 +147,7 @@ const INTEGRATIONS: IntegrationConfig[] = [
     ),
     color: 'text-indigo-600',
     fields: [
-      { id: 'subdomain', label: 'Subdomain', type: 'text', placeholder: 'my-clinic', hint: 'כתובת הגישה: my-clinic.telemedicin.co.il' },
+      { id: 'subdomain', label: 'Subdomain', type: 'text', placeholder: 'my-clinic', hint: 'כתובת הגישה: my-clinic.cannaforyou.net' },
       { id: 'custom_domain', label: 'דומיין מותאם אישית (אופציונלי)', type: 'text', placeholder: 'portal.my-clinic.co.il', hint: 'דורש הגדרת CNAME בספק הדומיין שלך' },
     ],
   },
@@ -256,15 +259,28 @@ export default function AdminIntegrationsPage() {
         </p>
       </div>
 
-      {/* Ownership notice */}
-      <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 text-sm text-blue-800">
-        <div className="flex gap-3">
-          <svg className="w-5 h-5 shrink-0 mt-0.5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/>
-          </svg>
-          <div>
-            <p className="font-semibold">מודל self-service</p>
-            <p className="mt-0.5">כל מרפאה פותחת חשבונות עצמאיים אצל ספקי השירות, ומזינה כאן את המפתחות שלה. המפתחות מאוחסנים בצורה מוצפנת ומשמשים אך ורק את המרפאה שלך.</p>
+      {/* Platform vs. self-service notice */}
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-sm text-green-800">
+          <div className="flex gap-3">
+            <svg className="w-5 h-5 shrink-0 mt-0.5 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12"/>
+            </svg>
+            <div>
+              <p className="font-semibold">כלול בתוכנית — עובד מיד</p>
+              <p className="mt-0.5">וידאו HD ואימייל מסופקים על ידי הפלטפורמה. לא נדרשת הגדרה נוספת.</p>
+            </div>
+          </div>
+        </div>
+        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-amber-800">
+          <div className="flex gap-3">
+            <svg className="w-5 h-5 shrink-0 mt-0.5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+            </svg>
+            <div>
+              <p className="font-semibold">דורש הגדרה עצמאית</p>
+              <p className="mt-0.5">WhatsApp, תשלומים וחשבוניות דורשים חשבונות עצמאיים אצל הספקים.</p>
+            </div>
           </div>
         </div>
       </div>
@@ -286,9 +302,13 @@ export default function AdminIntegrationsPage() {
             >
               <div className="flex items-start justify-between mb-3">
                 <span className={integ.color}>{integ.icon}</span>
-                <Badge variant={configured ? 'success' : 'default'}>
-                  {configured ? 'מחובר' : 'לא מחובר'}
-                </Badge>
+                {PLATFORM_PROVIDED.includes(integ.key) ? (
+                  <Badge variant="success">כלול בפלטפורמה</Badge>
+                ) : (
+                  <Badge variant={configured ? 'success' : 'default'}>
+                    {configured ? 'מחובר' : 'לא מחובר'}
+                  </Badge>
+                )}
               </div>
               <h3 className="font-bold text-gray-900">{integ.title}</h3>
               <p className="text-xs text-gray-500 mt-1 leading-relaxed">{integ.description}</p>
