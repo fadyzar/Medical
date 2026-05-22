@@ -65,6 +65,9 @@ export async function POST(req: NextRequest) {
     const orgSettings = (org as unknown as { settings: Record<string, unknown> })?.settings || {}
     const inviterName = `${typedProfile.first_name} ${typedProfile.last_name}`
 
+    // Use the real request origin so invite links work on any domain (Vercel, custom, localhost)
+    const baseUrl = req.nextUrl.origin
+
     // Create or reuse a secure invite token in the invitations table
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const invitationsTable = (admin as any).from('invitations')
@@ -105,6 +108,7 @@ export async function POST(req: NextRequest) {
         inviterName,
         inviterUserId: user.id,
         inviteToken,
+        baseUrl,
         admin,
       })
     } else {
@@ -117,6 +121,7 @@ export async function POST(req: NextRequest) {
         inviterName,
         inviterUserId: user.id,
         inviteToken,
+        baseUrl,
         admin,
       })
     }

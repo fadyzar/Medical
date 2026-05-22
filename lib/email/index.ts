@@ -610,10 +610,11 @@ export async function sendStaffInvite(params: {
   inviterName: string
   inviterUserId: string
   inviteToken?: string
+  baseUrl?: string
   admin: SupabaseClient
 }): Promise<{ success: boolean; error?: string }> {
   const { admin, ...data } = params
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const appUrl = data.baseUrl || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const registrationUrl = data.inviteToken
     ? `${appUrl}/auth/invite/${data.inviteToken}`
     : `${appUrl}/auth/register?invite=true&org=${data.organizationId}&email=${encodeURIComponent(data.email)}&role=${data.role}`
@@ -677,10 +678,11 @@ export async function sendDoctorInvite(params: {
   inviterName: string
   inviterUserId: string
   inviteToken?: string
+  baseUrl?: string
   admin: SupabaseClient
 }): Promise<{ success: boolean; error?: string }> {
   const { admin, ...data } = params
-  const appUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
+  const appUrl = data.baseUrl || process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
   const registrationUrl = data.inviteToken
     ? `${appUrl}/auth/invite/${data.inviteToken}`
     : `${appUrl}/auth/register?invite=true&org=${data.organizationId}&email=${encodeURIComponent(data.doctorEmail)}&role=doctor`
