@@ -398,7 +398,11 @@ export default function PatientDashboard() {
                     שלם עכשיו
                   </Button>
                 )}
-                {['ready', 'in_progress', 'scheduled', 'paid'].includes(nextApt.status) && (
+                {(nextApt.status === 'in_progress' ||
+                  (['ready', 'scheduled', 'paid'].includes(nextApt.status) &&
+                    nextApt.scheduled_at &&
+                    (new Date(nextApt.scheduled_at).getTime() - Date.now()) <= 15 * 60 * 1000)
+                ) && (
                   <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1.5" onClick={() => router.push(`/video-call?id=${nextApt.id}`)}>
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" />

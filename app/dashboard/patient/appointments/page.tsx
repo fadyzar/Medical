@@ -248,7 +248,11 @@ export default function PatientAppointmentsPage() {
             {filtered.map(apt => {
               const isExpanded = expanded === apt.id
               const doc = apt.doctor
-              const canVideo = ['ready', 'in_progress', 'scheduled', 'paid'].includes(apt.status)
+              const isNearTime = apt.scheduled_at
+                ? (new Date(apt.scheduled_at).getTime() - Date.now()) <= 15 * 60 * 1000
+                : false
+              const canVideo = apt.status === 'in_progress' ||
+                ((['ready', 'scheduled', 'paid'].includes(apt.status)) && isNearTime)
               const needsPayment = apt.status === 'payment_pending' || apt.payment_status === 'failed'
               const isCompleted = apt.status === 'completed'
 
