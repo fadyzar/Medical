@@ -218,7 +218,14 @@ export default function VideoCallPage() {
               <Button onClick={() => router.push(`/dashboard/patient/payment?id=${id}`)} size="lg" className="w-full">
                 עבור לתשלום
               </Button>
-              <Button onClick={() => router.push('/dashboard/patient/dashboard')} variant="outline" className="w-full border-gray-600 text-white">
+              <Button
+                onClick={() => { setState('checking'); if (id) init(id) }}
+                variant="outline"
+                className="w-full border-gray-600 text-white"
+              >
+                כבר שילמתי — נסה שוב
+              </Button>
+              <Button onClick={() => router.push('/dashboard/patient/dashboard')} variant="outline" className="w-full border-gray-600 text-gray-400 text-sm">
                 חזור לדשבורד
               </Button>
             </CardContent>
