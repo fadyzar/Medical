@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useMemo } from 'react'
+import { useState, useMemo, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { registerSchema } from '@/lib/validation/schemas'
@@ -8,6 +8,7 @@ import { toast } from 'sonner'
 import { Button, Input, Select } from '@/components/ui'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import { cn } from '@/lib/utils'
+import { getTenantSubdomain } from '@/lib/tenant'
 import Link from 'next/link'
 
 // ── Password strength ─────────────────────────────────────
@@ -70,10 +71,13 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
 
 // ── Component ─────────────────────────────────────────────
 
+type ClinicInfo = { id: string; name: string; logo_url?: string | null }
+
 export default function RegisterPage() {
   const router = useRouter()
   const searchParams = useSearchParams()
-  const orgId = searchParams.get('org') || ''   // optional: patient comes from a clinic link
+  // ?org=UUID — patient came from a clinic share link (email, QR, etc.)
+  const orgIdParam = searchParams.get('org') || ''
 
   const [step, setStep] = useState(1)
   const [form, setForm] = useState({
@@ -88,6 +92,29 @@ export default function RegisterPage() {
   const [serverError, setServerError] = useState('')
   const [showPassword, setShowPassword] = useState(false)
   const [emailSent, setEmailSent] = useState(false)
+
+  // Clinic context: set from subdomain or ?org= param
+  const [clinicInfo, setClinicInfo] = useState<ClinicInfo | null>(null)
+  const [resolvedOrgId, setResolvedOrgId] = useState(orgIdParam)
+
+  useEffect(() => {
+    // Priority 1: ?org= param → fetch org info by id
+    if (orgIdParam) {
+      fetch(`/api/org/by-id?id=${orgIdParam}`)
+        .then(r => r.ok ? r.json() : null)
+        .then((d: ClinicInfo | null) => { if (d) { setClinicInfo(d); setResolvedOrgId(d.id) } })
+        .catch(() => null)
+      return
+    }
+    // Priority 2: subdomain → fetch org info by subdomain
+    const sub = getTenantSubdomain(window.location.hostname)
+    if (sub) {
+      fetch(`/api/org/by-subdomain?subdomain=${sub}`)
+        .then(r => r.ok ? r.json() : null)
+        .then((d: ClinicInfo | null) => { if (d) { setClinicInfo(d); setResolvedOrgId(d.id) } })
+        .catch(() => null)
+    }
+  }, [orgIdParam])
 
   const passwordStrength = useMemo(() => getPasswordStrength(form.password), [form.password])
 
@@ -135,7 +162,7 @@ export default function RegisterPage() {
             first_name: form.first_name,
             last_name: form.last_name,
             role: 'patient',
-            ...(orgId ? { organization_id: orgId } : {}),
+            ...(resolvedOrgId ? { organization_id: resolvedOrgId } : {}),
           },
           emailRedirectTo: `${window.location.origin}/api/auth/callback`,
         },
@@ -168,7 +195,7 @@ export default function RegisterPage() {
             date_of_birth: form.date_of_birth || null,
             gender: (form.gender as 'male' | 'female' | 'other' | 'prefer_not_to_say') || null,
             role: 'patient',
-            ...(orgId ? { organization_id: orgId } : {}),
+            ...(resolvedOrgId ? { organization_id: resolvedOrgId } : {}),
           }).eq('id', user.id)
         } catch { /* non-critical */ }
 
@@ -208,7 +235,10 @@ export default function RegisterPage() {
   }
 
   return (
-    <AuthLayout title="הרשמה" subtitle="צור חשבון מטופל חינם תוך דקה">
+    <AuthLayout
+      title={clinicInfo ? `הרשמה ל${clinicInfo.name}` : 'הרשמה'}
+      subtitle={clinicInfo ? 'צור חשבון מטופל — ישויך אוטומטית למרפאה' : 'צור חשבון מטופל חינם תוך דקה'}
+    >
       <StepIndicator current={step} total={2} />
 
       {serverError && (
@@ -220,9 +250,12 @@ export default function RegisterPage() {
         </div>
       )}
 
-      {orgId && (
-        <div className="mb-5 p-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700">
-          נרשם דרך קישור מרפאה — ישויך אוטומטית לצוות המטפל.
+      {clinicInfo && (
+        <div className="mb-5 flex items-center gap-3 p-3 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700">
+          <svg className="w-5 h-5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          <span>נרשם ל<strong>{clinicInfo.name}</strong> — חשבונך ישויך אוטומטית למרפאה זו.</span>
         </div>
       )}
 

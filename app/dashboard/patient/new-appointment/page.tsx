@@ -8,33 +8,35 @@ import { Button, Textarea, Card, CardContent, Spinner } from '@/components/ui'
 import { SPECIALTIES, formatPrice, cn } from '@/lib/utils'
 import { newAppointmentSchema } from '@/lib/validation/schemas'
 import { toast } from 'sonner'
+import { useOrgContext } from '@/lib/hooks/useOrgContext'
 import type { User } from '@/types/database'
 
 // ── Types ──────────────────────────────────────────────────────────
 type Step = 'specialty' | 'doctor' | 'details' | 'documents' | 'confirm'
 type AppointmentType = 'video' | 'clinic'
 
+type DoctorRow = User & { organization_id: string }
+
 // ── Specialty icons ────────────────────────────────────────────────
 const SPECIALTY_ICONS: Record<string, string> = {
-  general:         '🩺',
-  dermatology:     '🔬',
-  orthopedics:     '🦴',
-  cardiology:      '❤️',
-  ent:             '👂',
-  neurology:       '🧠',
-  gastro:          '🫁',
-  urology:         '💊',
-  gynecology:      '🌸',
-  ophthalmology:   '👁️',
-  psychiatry:      '🧘',
-  endocrinology:   '⚗️',
-  pulmonology:     '🫀',
-  pediatrics:      '👶',
-  pain:            '🩹',
-  oncology:        '🔬',
+  general:       '🩺',
+  dermatology:   '🔬',
+  orthopedics:   '🦴',
+  cardiology:    '❤️',
+  ent:           '👂',
+  neurology:     '🧠',
+  gastro:        '🫁',
+  urology:       '💊',
+  gynecology:    '🌸',
+  ophthalmology: '👁️',
+  psychiatry:    '🧘',
+  endocrinology: '⚗️',
+  pulmonology:   '🫀',
+  pediatrics:    '👶',
+  pain:          '🩹',
+  oncology:      '🔬',
 }
 
-// ── Steps config ──────────────────────────────────────────────────
 const STEPS: { key: Step; label: string; num: number }[] = [
   { key: 'specialty', label: 'התמחות', num: 1 },
   { key: 'doctor',    label: 'רופא',   num: 2 },
@@ -44,9 +46,9 @@ const STEPS: { key: Step; label: string; num: number }[] = [
 ]
 
 const URGENCY_OPTIONS = [
-  { value: 'routine', label: 'רגיל',   desc: 'תוך מספר ימים',  color: 'emerald' },
-  { value: 'soon',    label: 'בהקדם',  desc: 'תוך 24–48 שעות', color: 'amber' },
-  { value: 'urgent',  label: 'דחוף',   desc: 'בהקדם האפשרי',   color: 'red' },
+  { value: 'routine', label: 'רגיל',  desc: 'תוך מספר ימים',  color: 'emerald' },
+  { value: 'soon',    label: 'בהקדם', desc: 'תוך 24–48 שעות', color: 'amber' },
+  { value: 'urgent',  label: 'דחוף',  desc: 'בהקדם האפשרי',   color: 'red' },
 ]
 
 // ── Component ─────────────────────────────────────────────────────
@@ -56,9 +58,10 @@ export default function NewAppointmentPage() {
 
   const [step, setStep]           = useState<Step>('specialty')
   const [loading, setLoading]     = useState(false)
-  const [doctors, setDoctors]     = useState<User[]>([])
+  const [doctors, setDoctors]     = useState<DoctorRow[]>([])
   const [loadingDocs, setLoadingDocs] = useState(false)
   const [success, setSuccess]     = useState(false)
+  const [patientOrgId, setPatientOrgId] = useState<string | null | undefined>(undefined)
 
   const [form, setForm] = useState({
     specialty: '',
@@ -71,18 +74,47 @@ export default function NewAppointmentPage() {
   const [files, setFiles]   = useState<File[]>([])
   const [errors, setErrors] = useState<Record<string, string>>({})
 
+  // Resolve org context: clinic subdomain > patient's existing org > marketplace
+  const { ctx: orgCtx, loading: orgLoading } = useOrgContext(patientOrgId)
+
+  // Load patient profile to get their org_id
   useEffect(() => {
-    if (!form.specialty) return
+    supabase.auth.getUser().then(({ data: { user } }) => {
+      if (!user) return
+      supabase.from('users').select('organization_id').eq('id', user.id).single()
+        .then(({ data }) => {
+          setPatientOrgId((data as { organization_id: string | null } | null)?.organization_id ?? null)
+        })
+    })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  // Fetch doctors whenever specialty or org context changes
+  useEffect(() => {
+    if (!form.specialty || orgLoading || patientOrgId === undefined) return
+
     setLoadingDocs(true)
     setForm(p => ({ ...p, doctor_id: '' }))
     setDoctors([])
+
     const load = async () => {
       try {
-        const { data } = await supabase.from('users')
-          .select('id, first_name, last_name, specialties, bio, consultation_price, average_rating, total_ratings, avatar_url, languages')
-          .eq('role', 'doctor').eq('is_active', true)
+        let query = supabase
+          .from('users')
+          .select('id, first_name, last_name, specialties, bio, consultation_price, average_rating, total_ratings, avatar_url, languages, organization_id')
+          .eq('role', 'doctor')
+          .eq('is_active', true)
           .contains('specialties', [form.specialty])
-        setDoctors((data || []) as unknown as User[])
+
+        // ── Clinic mode: filter by org ──────────────────────────────
+        if (orgCtx.id) {
+          query = query.eq('organization_id', orgCtx.id)
+        }
+        // ── Marketplace mode: all active doctors ────────────────────
+        // no additional filter
+
+        const { data } = await query
+        setDoctors((data || []) as unknown as DoctorRow[])
       } catch {
         // Prevents infinite spinner on error
       } finally {
@@ -90,7 +122,8 @@ export default function NewAppointmentPage() {
       }
     }
     load()
-  }, [form.specialty])
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [form.specialty, orgCtx.id, orgLoading, patientOrgId])
 
   const selectedDoctor = doctors.find(d => d.id === form.doctor_id)
 
@@ -102,16 +135,37 @@ export default function NewAppointmentPage() {
       setErrors(fieldErrors)
       return
     }
+
     setLoading(true)
     setErrors({})
+
     try {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/auth/login'); return }
-      const { data: profile } = await supabase.from('users').select('organization_id').eq('id', user.id).single()
-      if (!profile) { setErrors({ submit: 'לא ניתן לזהות את הפרופיל' }); toast.error('שגיאה בזיהוי פרופיל'); setLoading(false); return }
+
+      // Resolve appointment org_id:
+      // - Clinic mode: use orgCtx.id (patient's clinic or subdomain clinic)
+      // - Marketplace: use the selected doctor's org_id, and assign patient to it
+      let appointmentOrgId = orgCtx.id
+
+      if (orgCtx.isMarketplace && selectedDoctor?.organization_id) {
+        appointmentOrgId = selectedDoctor.organization_id
+
+        // Assign patient to this clinic on their first booking
+        await supabase.from('users')
+          .update({ organization_id: appointmentOrgId })
+          .eq('id', user.id)
+      }
+
+      if (!appointmentOrgId) {
+        setErrors({ submit: 'לא ניתן לזהות מרפאה. בחר רופא ונסה שוב.' })
+        toast.error('יש לבחור רופא')
+        setLoading(false)
+        return
+      }
 
       const { data: apt, error } = await supabase.from('appointments').insert({
-        organization_id: profile.organization_id,
+        organization_id: appointmentOrgId,
         patient_id: user.id,
         doctor_id: form.doctor_id || null,
         requested_specialty: form.specialty,
@@ -127,20 +181,32 @@ export default function NewAppointmentPage() {
 
       if (files.length > 0) {
         for (const file of files) {
-          const path = `${profile.organization_id}/${user.id}/${apt.id}/${Date.now()}-${file.name}`
+          const path = `${appointmentOrgId}/${user.id}/${apt.id}/${Date.now()}-${file.name}`
           const { error: uploadErr } = await supabase.storage.from('medical-documents').upload(path, file)
           if (!uploadErr) {
             await supabase.from('documents').insert({
-              organization_id: profile.organization_id, patient_id: user.id, appointment_id: apt.id,
-              uploaded_by: user.id, file_name: file.name, file_type: file.type,
-              file_size_bytes: file.size, storage_path: path, document_type: 'patient_upload',
+              organization_id: appointmentOrgId,
+              patient_id: user.id,
+              appointment_id: apt.id,
+              uploaded_by: user.id,
+              file_name: file.name,
+              file_type: file.type,
+              file_size_bytes: file.size,
+              storage_path: path,
+              document_type: 'patient_upload',
             })
           }
         }
       }
 
-      try { await fetch('/api/ai-triage', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ appointmentId: apt.id }) }) } catch { /* non-critical */ }
-      // Notify patient (confirmation) + doctor (new request) via WhatsApp + in-app
+      try {
+        await fetch('/api/ai-triage', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ appointmentId: apt.id }),
+        })
+      } catch { /* non-critical */ }
+
       try {
         await fetch('/api/notifications/trigger-patient-created', {
           method: 'POST',
@@ -152,7 +218,9 @@ export default function NewAppointmentPage() {
       setSuccess(true)
       toast.success('הבקשה נשלחה בהצלחה!')
       setTimeout(() => {
-        router.push(selectedDoctor?.consultation_price ? `/dashboard/patient/payment?id=${apt.id}` : '/dashboard/patient/dashboard')
+        router.push(selectedDoctor?.consultation_price
+          ? `/dashboard/patient/payment?id=${apt.id}`
+          : '/dashboard/patient/dashboard')
       }, 1800)
     } catch {
       setErrors({ submit: 'שגיאה ביצירת התור. נסה שוב.' })
@@ -179,8 +247,7 @@ export default function NewAppointmentPage() {
             <p className="text-gray-500 mt-2">
               {selectedDoctor?.consultation_price
                 ? 'מעביר אותך לדף התשלום...'
-                : 'התור נוצר. נעדכן אותך ברגע שהרופא יאשר.'
-              }
+                : 'התור נוצר. נעדכן אותך ברגע שהרופא יאשר.'}
             </p>
           </div>
           <Spinner className="mx-auto" />
@@ -196,8 +263,32 @@ export default function NewAppointmentPage() {
       {/* Header */}
       <div>
         <h1 className="text-2xl font-bold text-gray-900">קביעת תור חדש</h1>
-        <p className="text-sm text-gray-500 mt-1">ייעוץ רפואי אונליין עם מומחה — מהבית, ללא המתנה</p>
+        <p className="text-sm text-gray-500 mt-1">
+          {orgCtx.isMarketplace
+            ? 'בחר התמחות ורופא — ייעוץ מכל מרפאה בפלטפורמה'
+            : `ייעוץ רפואי אונליין — ${orgCtx.name}`}
+        </p>
       </div>
+
+      {/* Marketplace badge */}
+      {orgCtx.isMarketplace && (
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700">
+          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
+          </svg>
+          <span>אתה גולש בפלטפורמה הראשית — תוכל לבחור רופא מכל המרפאות. לאחר בחירת רופא תשויך אוטומטית למרפאה שלו.</span>
+        </div>
+      )}
+
+      {/* Clinic badge */}
+      {!orgCtx.isMarketplace && !orgLoading && (
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-emerald-50 border border-emerald-200 rounded-xl text-sm text-emerald-700">
+          <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/>
+          </svg>
+          <span>קביעת תור ב<strong className="mx-1">{orgCtx.name}</strong> — תוצג רשימת הרופאים של המרפאה</span>
+        </div>
+      )}
 
       {/* ── Stepper ── */}
       <div className="flex items-center" role="list" aria-label="שלבי קביעת תור">
@@ -206,16 +297,16 @@ export default function NewAppointmentPage() {
             <div className="flex flex-col items-center gap-1">
               <div className={cn(
                 'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all',
-                i < currentIdx  ? 'bg-blue-600 border-blue-600 text-white' :
+                i < currentIdx   ? 'bg-blue-600 border-blue-600 text-white' :
                 i === currentIdx ? 'bg-white border-blue-600 text-blue-600 shadow-md shadow-blue-100' :
                                    'bg-white border-gray-200 text-gray-400'
               )}>
                 {i < currentIdx
                   ? <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
-                  : s.num
-                }
+                  : s.num}
               </div>
-              <span className={cn('text-xs hidden sm:block font-medium', i === currentIdx ? 'text-blue-600' : i < currentIdx ? 'text-blue-400' : 'text-gray-400')}>
+              <span className={cn('text-xs hidden sm:block font-medium',
+                i === currentIdx ? 'text-blue-600' : i < currentIdx ? 'text-blue-400' : 'text-gray-400')}>
                 {s.label}
               </span>
             </div>
@@ -264,7 +355,9 @@ export default function NewAppointmentPage() {
               <div>
                 <h2 className="text-xl font-bold text-gray-900">בחר רופא</h2>
                 <p className="text-sm text-gray-500 mt-1">
-                  רופאים זמינים ב{SPECIALTIES.find(s => s.id === form.specialty)?.label}
+                  {orgCtx.isMarketplace
+                    ? `רופאים זמינים ב${SPECIALTIES.find(s => s.id === form.specialty)?.label} — מכל המרפאות`
+                    : `רופאים של ${orgCtx.name} ב${SPECIALTIES.find(s => s.id === form.specialty)?.label}`}
                 </p>
               </div>
 
@@ -278,69 +371,33 @@ export default function NewAppointmentPage() {
                   <div className="text-4xl">🔍</div>
                   <p className="font-medium text-gray-700">אין רופאים זמינים בהתמחות זו כרגע</p>
                   <p className="text-sm text-gray-400">ניתן להמשיך ולהגיש בקשה — נשבץ לך רופא</p>
-                  <Button variant="outline" onClick={() => { setForm(p => ({ ...p, doctor_id: '' })); setStep('details') }}>
-                    המשך ללא בחירת רופא
-                  </Button>
+                  {orgCtx.isMarketplace ? (
+                    <p className="text-xs text-amber-600">בקביעת תור ללא רופא ספציפי לא נוכל לשייך אותך למרפאה</p>
+                  ) : (
+                    <Button variant="outline" onClick={() => { setForm(p => ({ ...p, doctor_id: '' })); setStep('details') }}>
+                      המשך ללא בחירת רופא
+                    </Button>
+                  )}
                 </div>
               ) : (
                 <div className="space-y-3">
                   {doctors.map(doc => (
-                    <button
+                    <DoctorCard
                       key={doc.id}
+                      doc={doc}
+                      selected={form.doctor_id === doc.id}
+                      showClinic={orgCtx.isMarketplace}
                       onClick={() => { setForm(p => ({ ...p, doctor_id: doc.id })); setStep('details') }}
-                      className={cn(
-                        'w-full p-4 rounded-2xl border-2 text-right transition-all hover:shadow-sm active:scale-[0.99]',
-                        form.doctor_id === doc.id
-                          ? 'border-blue-500 bg-blue-50 shadow-md shadow-blue-100'
-                          : 'border-gray-200 bg-white hover:border-blue-300'
-                      )}
-                    >
-                      <div className="flex items-start gap-3">
-                        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-xl font-bold text-white shrink-0">
-                          {doc.avatar_url
-                            // eslint-disable-next-line @next/next/no-img-element
-                            ? <img src={doc.avatar_url} alt="" className="w-full h-full rounded-2xl object-cover" />
-                            : `${doc.first_name.charAt(0)}${doc.last_name.charAt(0)}`
-                          }
-                        </div>
-                        <div className="flex-1 min-w-0">
-                          <p className="font-bold text-gray-900">ד&quot;ר {doc.first_name} {doc.last_name}</p>
-                          {doc.specialties?.length && (
-                            <p className="text-xs text-blue-600 font-medium mt-0.5">{doc.specialties.slice(0,3).join(' · ')}</p>
-                          )}
-                          {doc.bio && <p className="text-sm text-gray-500 mt-1 line-clamp-2">{doc.bio}</p>}
-                          <div className="flex items-center gap-4 mt-2">
-                            {doc.average_rating != null && (
-                              <span className="flex items-center gap-1 text-sm">
-                                <span className="text-yellow-400">★</span>
-                                <span className="font-medium text-gray-700">{doc.average_rating.toFixed(1)}</span>
-                                <span className="text-gray-400">({doc.total_ratings})</span>
-                              </span>
-                            )}
-                            {doc.consultation_price && (
-                              <span className="text-sm font-bold text-emerald-600">{formatPrice(doc.consultation_price)}</span>
-                            )}
-                            {doc.languages?.length && (
-                              <span className="text-xs text-gray-400">{doc.languages.join(', ')}</span>
-                            )}
-                          </div>
-                        </div>
-                        {form.doctor_id === doc.id && (
-                          <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
-                            <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
-                              <polyline points="20 6 9 17 4 12" />
-                            </svg>
-                          </div>
-                        )}
-                      </div>
-                    </button>
+                    />
                   ))}
-                  <button
-                    onClick={() => { setForm(p => ({ ...p, doctor_id: '' })); setStep('details') }}
-                    className="w-full py-3 rounded-2xl border-2 border-dashed border-gray-200 text-sm text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-all"
-                  >
-                    המשך ללא בחירת רופא ← יושבץ אוטומטית
-                  </button>
+                  {!orgCtx.isMarketplace && (
+                    <button
+                      onClick={() => { setForm(p => ({ ...p, doctor_id: '' })); setStep('details') }}
+                      className="w-full py-3 rounded-2xl border-2 border-dashed border-gray-200 text-sm text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-all"
+                    >
+                      המשך ללא בחירת רופא ← יושבץ אוטומטית
+                    </button>
+                  )}
                 </div>
               )}
 
@@ -396,7 +453,7 @@ export default function NewAppointmentPage() {
                   <div className="grid grid-cols-2 gap-3">
                     {([
                       { value: 'video',  label: 'וידאו אונליין', desc: 'מהבית, בלי נסיעה', icon: '📹' },
-                      { value: 'clinic', label: 'במרפאה',         desc: 'ביקור פיזי',       icon: '🏥' },
+                      { value: 'clinic', label: 'במרפאה',        desc: 'ביקור פיזי',       icon: '🏥' },
                     ] as { value: AppointmentType; label: string; desc: string; icon: string }[]).map(t => (
                       <button
                         key={t.value}
@@ -431,9 +488,9 @@ export default function NewAppointmentPage() {
                         className={cn(
                           'p-3 rounded-xl border-2 text-center transition-all',
                           form.urgency_level === u.value
-                            ? u.color === 'red'     ? 'border-red-500 bg-red-50' :
-                              u.color === 'amber'   ? 'border-amber-500 bg-amber-50' :
-                                                      'border-emerald-500 bg-emerald-50'
+                            ? u.color === 'red'   ? 'border-red-500 bg-red-50' :
+                              u.color === 'amber' ? 'border-amber-500 bg-amber-50' :
+                                                    'border-emerald-500 bg-emerald-50'
                             : 'border-gray-200 bg-white hover:border-gray-300'
                         )}
                       >
@@ -476,7 +533,6 @@ export default function NewAppointmentPage() {
                 <p className="text-sm text-gray-500 mt-1">בדיקות, תמונות, הפניות — הרופא יצפה בהם לפני הייעוץ</p>
               </div>
 
-              {/* Drop zone */}
               <div
                 className="border-2 border-dashed border-gray-300 rounded-2xl p-8 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer"
                 onClick={() => document.getElementById('apt-file-upload')?.click()}
@@ -570,6 +626,13 @@ export default function NewAppointmentPage() {
                 )}
               </div>
 
+              {orgCtx.isMarketplace && selectedDoctor && (
+                <div className="flex items-start gap-2 p-3 bg-amber-50 border border-amber-200 rounded-xl text-xs text-amber-700">
+                  <svg className="w-4 h-4 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                  <span>לאחר שליחת הבקשה תשויך אוטומטית למרפאת הרופא שבחרת.</span>
+                </div>
+              )}
+
               {errors.submit && (
                 <div className="flex items-center gap-3 p-4 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700" role="alert">
                   <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" /></svg>
@@ -587,8 +650,7 @@ export default function NewAppointmentPage() {
               <p className="text-xs text-gray-400 text-center">
                 {selectedDoctor?.consultation_price
                   ? 'התשלום יתבצע בשלב הבא לאחר אישור הרופא'
-                  : 'לאחר שהרופא יאשר, ניצור איתך קשר לתיאום מועד'
-                }
+                  : 'לאחר שהרופא יאשר, ניצור איתך קשר לתיאום מועד'}
               </p>
             </div>
           )}
@@ -596,6 +658,82 @@ export default function NewAppointmentPage() {
       </Card>
     </div>
   )
+}
+
+// ── Doctor card ───────────────────────────────────────────────────
+function DoctorCard({
+  doc, selected, showClinic, onClick,
+}: {
+  doc: DoctorRow
+  selected: boolean
+  showClinic: boolean
+  onClick: () => void
+}) {
+  return (
+    <button
+      onClick={onClick}
+      className={cn(
+        'w-full p-4 rounded-2xl border-2 text-right transition-all hover:shadow-sm active:scale-[0.99]',
+        selected
+          ? 'border-blue-500 bg-blue-50 shadow-md shadow-blue-100'
+          : 'border-gray-200 bg-white hover:border-blue-300'
+      )}
+    >
+      <div className="flex items-start gap-3">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-xl font-bold text-white shrink-0 overflow-hidden">
+          {doc.avatar_url
+            // eslint-disable-next-line @next/next/no-img-element
+            ? <img src={doc.avatar_url} alt="" className="w-full h-full object-cover" />
+            : `${doc.first_name.charAt(0)}${doc.last_name.charAt(0)}`}
+        </div>
+        <div className="flex-1 min-w-0">
+          <p className="font-bold text-gray-900">ד&quot;ר {doc.first_name} {doc.last_name}</p>
+          {doc.specialties?.length && (
+            <p className="text-xs text-blue-600 font-medium mt-0.5">{doc.specialties.slice(0, 3).join(' · ')}</p>
+          )}
+          {showClinic && doc.organization_id && (
+            <ClinicName orgId={doc.organization_id} />
+          )}
+          {doc.bio && <p className="text-sm text-gray-500 mt-1 line-clamp-2">{doc.bio}</p>}
+          <div className="flex items-center gap-4 mt-2 flex-wrap">
+            {doc.average_rating != null && (
+              <span className="flex items-center gap-1 text-sm">
+                <span className="text-yellow-400">★</span>
+                <span className="font-medium text-gray-700">{doc.average_rating.toFixed(1)}</span>
+                <span className="text-gray-400">({doc.total_ratings})</span>
+              </span>
+            )}
+            {doc.consultation_price && (
+              <span className="text-sm font-bold text-emerald-600">{formatPrice(doc.consultation_price)}</span>
+            )}
+            {doc.languages?.length && (
+              <span className="text-xs text-gray-400">{doc.languages.join(', ')}</span>
+            )}
+          </div>
+        </div>
+        {selected && (
+          <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
+            <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          </div>
+        )}
+      </div>
+    </button>
+  )
+}
+
+// ── Clinic name fetcher (marketplace mode) ────────────────────────
+function ClinicName({ orgId }: { orgId: string }) {
+  const [name, setName] = useState<string | null>(null)
+  useEffect(() => {
+    fetch(`/api/org/by-id?id=${orgId}`)
+      .then(r => r.ok ? r.json() : null)
+      .then((d: { name?: string } | null) => { if (d?.name) setName(d.name) })
+      .catch(() => null)
+  }, [orgId])
+  if (!name) return null
+  return <p className="text-xs text-gray-400 mt-0.5">🏥 {name}</p>
 }
 
 // ── Summary row helper ────────────────────────────────────────────
