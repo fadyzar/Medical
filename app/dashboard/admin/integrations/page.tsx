@@ -157,6 +157,93 @@ function DomainCard({ orgId, currentSubdomain }: { orgId: string; currentSubdoma
   )
 }
 
+// ── WhatsApp Test Panel ────────────────────────────────
+function WhatsAppTestPanel({ isConfigured }: { isConfigured: boolean }) {
+  const [phone, setPhone] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState<'idle' | 'success' | 'error'>('idle')
+  const [errorMsg, setErrorMsg] = useState('')
+
+  async function sendTest() {
+    if (!phone) return
+    setLoading(true)
+    setResult('idle')
+    setErrorMsg('')
+    try {
+      const res = await fetch('/api/admin/whatsapp/test', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ phone }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setResult('success')
+      } else {
+        setResult('error')
+        setErrorMsg(data.error || 'שגיאה בשליחה')
+      }
+    } catch {
+      setResult('error')
+      setErrorMsg('שגיאת רשת')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  if (!isConfigured) {
+    return (
+      <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-500 text-center">
+        שמור את פרטי Green API תחילה כדי לשלוח הודעת טסט
+      </div>
+    )
+  }
+
+  return (
+    <div className="p-4 bg-green-50 border border-green-200 rounded-xl space-y-3">
+      <div className="flex items-center gap-2">
+        <svg viewBox="0 0 24 24" fill="currentColor" className="w-4 h-4 text-green-600">
+          <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
+          <path d="M12 0C5.373 0 0 5.373 0 12c0 2.09.543 4.05 1.49 5.752L0 24l6.417-1.471A11.95 11.95 0 0012 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 21.818a9.808 9.808 0 01-5.006-1.369l-.36-.213-3.71.851.89-3.617-.234-.372A9.796 9.796 0 012.182 12C2.182 6.584 6.584 2.182 12 2.182S21.818 6.584 21.818 12 17.416 21.818 12 21.818z"/>
+        </svg>
+        <p className="text-sm font-semibold text-green-800">שלח הודעת טסט</p>
+      </div>
+      <div className="flex gap-2">
+        <input
+          type="tel"
+          value={phone}
+          onChange={e => { setPhone(e.target.value); setResult('idle') }}
+          placeholder="0521234567"
+          className="flex-1 rounded-lg border border-green-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-green-400 bg-white"
+          dir="ltr"
+        />
+        <button
+          onClick={sendTest}
+          disabled={loading || !phone}
+          className="px-4 py-2 rounded-lg bg-green-600 text-white text-sm font-semibold hover:bg-green-700 disabled:opacity-50 transition-colors whitespace-nowrap"
+        >
+          {loading ? 'שולח...' : 'שלח טסט'}
+        </button>
+      </div>
+      {result === 'success' && (
+        <div className="flex items-center gap-2 text-sm text-green-700 font-medium">
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+            <polyline points="20 6 9 17 4 12"/>
+          </svg>
+          ההודעה נשלחה בהצלחה! בדוק את ה-WhatsApp של המספר שהזנת.
+        </div>
+      )}
+      {result === 'error' && (
+        <div className="flex items-center gap-2 text-sm text-red-600">
+          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
+          </svg>
+          {errorMsg}
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Types ──────────────────────────────────────────────
 
 // Integrations provided by the platform — no config needed by clinic
@@ -193,8 +280,8 @@ type IntegrationConfig = {
 const INTEGRATIONS: IntegrationConfig[] = [
   {
     key: 'whatsapp',
-    title: 'WhatsApp Business',
-    description: 'שליחת אישורים, תזכורות ועדכונים ישירות ל-WhatsApp של המטופלים',
+    title: 'WhatsApp (Green API)',
+    description: 'שליחת אישורים, תזכורות ועדכונים ישירות ל-WhatsApp של המטופלים ממספר המרפאה שלך',
     icon: (
       <svg viewBox="0 0 24 24" fill="currentColor" className="w-7 h-7">
         <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/>
@@ -203,11 +290,10 @@ const INTEGRATIONS: IntegrationConfig[] = [
     ),
     color: 'text-green-600',
     fields: [
-      { id: 'infobip_api_key', label: 'Infobip API Key', type: 'password', placeholder: 'xxxxxx-xxxxxxxx', required: true },
-      { id: 'infobip_base_url', label: 'Infobip Base URL', type: 'url', placeholder: 'https://xxxxx.api.infobip.com', required: true },
-      { id: 'whatsapp_sender', label: 'מספר שולח (WhatsApp)', type: 'text', placeholder: '972501234567', hint: 'מספר הטלפון הרשום כמספר WhatsApp Business שלך' },
+      { id: 'green_api_instance_id', label: 'Instance ID', type: 'text', placeholder: '1234567890', required: true, hint: 'נמצא ב-console.green-api.com תחת "My instances"' },
+      { id: 'green_api_token', label: 'API Token', type: 'password', placeholder: 'xxxxxxxxxxxxxxxxxxxxxxxxxxxxxxxx', required: true, hint: 'ה-Token של ה-instance שלך ב-Green API' },
     ],
-    providerNote: 'נדרש חשבון Infobip עצמאי. המרפאה אחראית לפתיחת החשבון, הגדרת ה-WhatsApp Business API ותשלום לספק.',
+    providerNote: 'נדרש חשבון Green API עצמאי בכתובת green-api.com. חבר את ה-WhatsApp שלך ל-instance, העתק את ה-ID וה-Token והזן כאן.',
   },
   {
     key: 'email',
@@ -555,6 +641,11 @@ export default function AdminIntegrationsPage() {
                     שמור הגדרות {activeInteg.title}
                   </Button>
                 </div>
+
+                {/* WhatsApp test panel */}
+                {activeKey === 'whatsapp' && (
+                  <WhatsAppTestPanel isConfigured={isConfigured('whatsapp')} />
+                )}
               </>
             )}
           </CardContent>

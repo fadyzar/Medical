@@ -62,19 +62,41 @@ function toGreenApiChatId(phone: string): string {
   return `${number}@c.us`
 }
 
+// ── Fetch Green API credentials for an org ───────────
+
+export async function getOrgGreenApiCredentials(
+  organizationId: string,
+  admin: SupabaseClient,
+): Promise<{ instanceId: string; apiToken: string } | null> {
+  const { data: org } = await admin
+    .from('organizations')
+    .select('settings')
+    .eq('id', organizationId)
+    .single()
+
+  const settings = (org?.settings || {}) as Record<string, Record<string, string>>
+  const wa = settings['integration_whatsapp'] || {}
+  const instanceId = wa['green_api_instance_id']?.trim()
+  const apiToken   = wa['green_api_token']?.trim()
+
+  if (!instanceId || !apiToken) return null
+  return { instanceId, apiToken }
+}
+
 // ── Core Send Function (Green API) ───────────────────
 
 export async function sendWhatsApp(
   params: SendWhatsAppParams,
   admin: SupabaseClient,
 ): Promise<SendWhatsAppResult> {
-  const instanceId = process.env.GREEN_API_INSTANCE_ID
-  const apiToken   = process.env.GREEN_API_TOKEN
+  // Read credentials from org settings (per-clinic)
+  const creds = await getOrgGreenApiCredentials(params.organizationId, admin)
 
-  if (!instanceId || !apiToken) {
-    return { success: false, error: 'Green API not configured' }
+  if (!creds) {
+    return { success: false, error: 'Green API not configured for this organization' }
   }
 
+  const { instanceId, apiToken } = creds
   const url = `https://api.green-api.com/waInstance${instanceId}/sendMessage/${apiToken}`
 
   try {
