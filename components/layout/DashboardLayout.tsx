@@ -279,7 +279,7 @@ const ROLE_LABELS: Record<string, string> = {
 
 // ── Component ────────────────────────────────────────────
 
-type OrgBranding = { name: string; logo_url?: string | null; primary_color?: string | null }
+type OrgBranding = { name: string; logo_url?: string | null; primary_color?: string | null; secondary_color?: string | null }
 
 export function DashboardLayout({ children, role }: { children: ReactNode; role: string }) {
   const router = useRouter()
@@ -317,7 +317,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
           if (role !== 'patient' && profile.organization_id) {
             supabase
               .from('organizations')
-              .select('name, logo_url, primary_color')
+              .select('name, logo_url, primary_color, secondary_color')
               .eq('id', profile.organization_id)
               .single()
               .then(({ data: orgData }) => {
@@ -344,11 +344,13 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
   }
 
   const navItems = NAV[role] || NAV.patient
-
-  // For mobile bottom tab: show max 5 items, prioritize dashboard first
   const mobileItems = navItems.slice(0, 5)
-
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
+
+  // Brand colors — fall back to blue if org hasn't set colors
+  const primary = org?.primary_color || '#2563eb'
+  const primaryLight = `${primary}18` // ~10% opacity for hover/active bg
+  const primaryMedium = `${primary}30` // ~20% opacity
 
   return (
     <div className="min-h-screen bg-gray-50/80" dir="rtl">
@@ -366,7 +368,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
             // eslint-disable-next-line @next/next/no-img-element
             <img src={org.logo_url} alt={org.name} className="w-9 h-9 rounded-xl object-cover shrink-0" />
           ) : (
-            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-teal-500 rounded-xl flex items-center justify-center shrink-0">
+            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `linear-gradient(135deg, ${primary}, ${org?.secondary_color || '#0d9488'})` }}>
               <IconStethoscope className="w-5 h-5 text-white" />
             </div>
           )}
@@ -391,13 +393,17 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
                 className={cn(
                   'flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-200 group relative',
                   sidebarCollapsed ? 'justify-center p-3' : 'px-4 py-3',
-                  active
-                    ? 'bg-gradient-to-l from-blue-600 to-blue-700 text-white shadow-md shadow-blue-200'
-                    : 'text-gray-600 hover:bg-blue-50 hover:text-blue-700'
+                  active ? 'text-white shadow-md' : 'text-gray-600'
                 )}
+                style={active
+                  ? { background: primary, boxShadow: `0 4px 12px ${primary}40` }
+                  : undefined
+                }
+                onMouseEnter={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = primaryLight; (e.currentTarget as HTMLElement).style.color = primary } }}
+                onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = '' } }}
                 aria-current={active ? 'page' : undefined}
               >
-                <Icon className={cn('w-5 h-5 shrink-0', active ? 'text-white' : 'text-gray-400 group-hover:text-blue-600')} />
+                <Icon className={cn('w-5 h-5 shrink-0', active ? 'text-white' : 'text-gray-400')} />
                 {!sidebarCollapsed && <span>{item.label}</span>}
                 {/* Tooltip for collapsed mode */}
                 {sidebarCollapsed && (
@@ -437,7 +443,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
             </button>
           ) : (
             <div className="flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-teal-500 flex items-center justify-center text-sm font-bold text-white shrink-0">
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center text-sm font-bold text-white shrink-0" style={{ background: `linear-gradient(135deg, ${primary}, ${org?.secondary_color || '#0d9488'})` }}>
                 {user ? getInitials(user.first_name, user.last_name) : '..'}
               </div>
               <div className="flex-1 min-w-0">
@@ -475,7 +481,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
                 // eslint-disable-next-line @next/next/no-img-element
                 <img src={org.logo_url} alt={org.name} className="w-8 h-8 rounded-lg object-cover" />
               ) : (
-                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-teal-500 rounded-lg flex items-center justify-center">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center" style={{ background: `linear-gradient(135deg, ${primary}, ${org?.secondary_color || '#0d9488'})` }}>
                   <IconStethoscope className="w-4 h-4 text-white" />
                 </div>
               )}
@@ -516,7 +522,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
                 aria-expanded={userMenuOpen}
                 aria-haspopup="true"
               >
-                <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-blue-500 to-teal-500 flex items-center justify-center text-sm font-bold text-white">
+                <div className="w-9 h-9 rounded-xl flex items-center justify-center text-sm font-bold text-white" style={{ background: `linear-gradient(135deg, ${primary}, ${org?.secondary_color || '#0d9488'})` }}>
                   {user ? getInitials(user.first_name, user.last_name) : '..'}
                 </div>
                 <div className="hidden sm:block text-right">
@@ -599,22 +605,18 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
                 href={item.href}
                 className={cn(
                   'flex flex-col items-center justify-center gap-0.5 flex-1 h-full rounded-xl mx-0.5 transition-colors',
-                  active
-                    ? 'text-blue-600'
-                    : 'text-gray-400 hover:text-gray-600'
+                  active ? '' : 'text-gray-400 hover:text-gray-600'
                 )}
+                style={active ? { color: primary } : undefined}
                 aria-current={active ? 'page' : undefined}
               >
-                <div className={cn(
-                  'w-10 h-7 flex items-center justify-center rounded-lg transition-colors',
-                  active && 'bg-blue-100'
-                )}>
+                <div
+                  className="w-10 h-7 flex items-center justify-center rounded-lg transition-colors"
+                  style={active ? { background: primaryMedium } : undefined}
+                >
                   <Icon className="w-5 h-5" />
                 </div>
-                <span className={cn(
-                  'text-[10px] font-medium leading-tight',
-                  active && 'font-semibold'
-                )}>
+                <span className={cn('text-[10px] font-medium leading-tight', active && 'font-semibold')}>
                   {item.label}
                 </span>
               </Link>
