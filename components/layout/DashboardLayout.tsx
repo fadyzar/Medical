@@ -279,10 +279,13 @@ const ROLE_LABELS: Record<string, string> = {
 
 // ── Component ────────────────────────────────────────────
 
+type OrgBranding = { name: string; logo_url?: string | null; primary_color?: string | null }
+
 export function DashboardLayout({ children, role }: { children: ReactNode; role: string }) {
   const router = useRouter()
   const pathname = usePathname()
   const [user, setUser] = useState<User | null>(null)
+  const [org, setOrg] = useState<OrgBranding | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
   const supabaseRef = useRef<ReturnType<typeof getClient> | null>(null)
@@ -305,9 +308,25 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
     supabase.auth.getUser().then(({ data: { user: authUser } }) => {
       if (!authUser) return
       supabase.from('users').select('*').eq('id', authUser.id).single()
-        .then(({ data }) => { if (data) setUser(data as unknown as User) })
+        .then(({ data }) => {
+          if (!data) return
+          const profile = data as unknown as User
+          setUser(profile)
+
+          // Fetch org branding for clinic roles
+          if (role !== 'patient' && profile.organization_id) {
+            supabase
+              .from('organizations')
+              .select('name, logo_url, primary_color')
+              .eq('id', profile.organization_id)
+              .single()
+              .then(({ data: orgData }) => {
+                if (orgData) setOrg(orgData as unknown as OrgBranding)
+              })
+          }
+        })
     })
-  }, [router])
+  }, [role, router])
 
   // Close user menu on outside click
   useEffect(() => {
@@ -343,12 +362,19 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
           'h-16 flex items-center border-b border-gray-100 shrink-0',
           sidebarCollapsed ? 'justify-center px-2' : 'px-5 gap-3'
         )}>
-          <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-teal-500 rounded-xl flex items-center justify-center shrink-0">
-            <IconStethoscope className="w-5 h-5 text-white" />
-          </div>
+          {org?.logo_url ? (
+            // eslint-disable-next-line @next/next/no-img-element
+            <img src={org.logo_url} alt={org.name} className="w-9 h-9 rounded-xl object-cover shrink-0" />
+          ) : (
+            <div className="w-9 h-9 bg-gradient-to-br from-blue-600 to-teal-500 rounded-xl flex items-center justify-center shrink-0">
+              <IconStethoscope className="w-5 h-5 text-white" />
+            </div>
+          )}
           {!sidebarCollapsed && (
-            <span className="text-lg font-bold bg-gradient-to-l from-blue-600 to-teal-600 bg-clip-text text-transparent">
-              טלמדיסן
+            <span className="text-lg font-bold truncate" style={org?.primary_color ? { color: org.primary_color } : undefined}>
+              <span className={org?.primary_color ? '' : 'bg-gradient-to-l from-blue-600 to-teal-600 bg-clip-text text-transparent'}>
+                {org?.name ?? 'טלמדיסן'}
+              </span>
             </span>
           )}
         </div>
@@ -418,7 +444,9 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
                 <p className="text-sm font-semibold text-gray-900 truncate">
                   {user ? `${user.first_name} ${user.last_name}` : '...'}
                 </p>
-                <p className="text-xs text-gray-400">{ROLE_LABELS[role]}</p>
+                <p className="text-xs text-gray-400 truncate">
+                  {org ? org.name : ROLE_LABELS[role]}
+                </p>
               </div>
               <button
                 onClick={handleLogout}
@@ -443,11 +471,18 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
           <div className="flex items-center gap-3">
             {/* Mobile logo */}
             <div className="lg:hidden flex items-center gap-2">
-              <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-teal-500 rounded-lg flex items-center justify-center">
-                <IconStethoscope className="w-4 h-4 text-white" />
-              </div>
-              <span className="text-base font-bold bg-gradient-to-l from-blue-600 to-teal-600 bg-clip-text text-transparent">
-                טלמדיסן
+              {org?.logo_url ? (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={org.logo_url} alt={org.name} className="w-8 h-8 rounded-lg object-cover" />
+              ) : (
+                <div className="w-8 h-8 bg-gradient-to-br from-blue-600 to-teal-500 rounded-lg flex items-center justify-center">
+                  <IconStethoscope className="w-4 h-4 text-white" />
+                </div>
+              )}
+              <span className="text-base font-bold" style={org?.primary_color ? { color: org.primary_color } : undefined}>
+                <span className={org?.primary_color ? '' : 'bg-gradient-to-l from-blue-600 to-teal-600 bg-clip-text text-transparent'}>
+                  {org?.name ?? 'טלמדיסן'}
+                </span>
               </span>
             </div>
             {/* Welcome text - desktop only */}
