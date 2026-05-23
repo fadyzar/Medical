@@ -38,6 +38,7 @@ export type Organization = {
   stripe_customer_id: string | null; stripe_subscription_id: string | null
   trial_ends_at: string | null; max_storage_gb: number
   current_doctors: number; current_month_appointments: number; current_storage_gb: number
+  domain_status: string; domain_error: string | null; domain_last_checked_at: string | null
   created_at: string; updated_at: string
 }
 

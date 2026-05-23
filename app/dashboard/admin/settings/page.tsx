@@ -27,6 +27,230 @@ const DEFAULT_HOURS: WorkingHours[] = [
   { day: 6, label: 'שבת', enabled: false, start: '08:00', end: '17:00' },
 ]
 
+function DomainCard({ orgId, currentSubdomain }: { orgId: string; currentSubdomain: string | null }) {
+  const [subdomain, setSubdomain] = useState(currentSubdomain || '')
+  const [status, setStatus] = useState<string>('none')
+  const [loading, setLoading] = useState(false)
+  const [checking, setChecking] = useState(false)
+  const [result, setResult] = useState<{
+    url?: string
+    vercelVerified?: boolean
+    error?: string | null
+    manualDns?: { type: string; name: string; value: string; instructions: string }
+    lastChecked?: string
+  } | null>(null)
+
+  useEffect(() => {
+    checkStatus()
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
+
+  async function checkStatus() {
+    setChecking(true)
+    try {
+      const res = await fetch('/api/admin/domain/status')
+      if (res.ok) {
+        const data = await res.json()
+        setStatus(data.status || 'none')
+        setResult(data)
+        if (data.subdomain) setSubdomain(data.subdomain)
+      }
+    } catch { /* non-critical */ } finally {
+      setChecking(false)
+    }
+  }
+
+  async function provision() {
+    if (!subdomain || subdomain.length < 3) {
+      toast.error('יש להזין סאבדומיין (לפחות 3 תווים)')
+      return
+    }
+    setLoading(true)
+    try {
+      const res = await fetch('/api/admin/domain/provision', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subdomain: subdomain.toLowerCase().trim() }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setStatus(data.status)
+        setResult(data)
+        if (data.status === 'active') {
+          toast.success('הדומיין מוכן ופעיל!')
+        } else if (data.dnsManual) {
+          toast.success('נוסף ל-Vercel! יש להוסיף את רשומת DNS ידנית.')
+        } else {
+          toast.success('הדומיין בתהליך הגדרה — בדוק שוב בעוד כמה דקות')
+        }
+      } else {
+        toast.error(data.error || 'שגיאה בהגדרת הדומיין')
+      }
+    } catch {
+      toast.error('שגיאת רשת')
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const STATUS_LABELS: Record<string, { label: string; color: string }> = {
+    none:        { label: 'לא הוגדר', color: 'bg-gray-100 text-gray-600' },
+    pending:     { label: 'מוגדר...', color: 'bg-yellow-100 text-yellow-700' },
+    vercel_added:{ label: 'ממתין ל-DNS', color: 'bg-blue-100 text-blue-700' },
+    active:      { label: 'פעיל', color: 'bg-green-100 text-green-700' },
+    failed:      { label: 'שגיאה', color: 'bg-red-100 text-red-700' },
+  }
+  const statusInfo = STATUS_LABELS[status] || STATUS_LABELS.none
+  const canEdit = status === 'none' || status === 'failed'
+
+  return (
+    <Card>
+      <CardHeader>
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <svg className="w-5 h-5 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+            </svg>
+            <h3 className="font-bold">דומיין המרפאה</h3>
+          </div>
+          <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusInfo.color}`}>
+            {statusInfo.label}
+          </span>
+        </div>
+        <p className="text-sm text-gray-500 mt-1">
+          הגדר כתובת ייחודית למרפאה: <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">שם.cannaforyou.net</code>
+        </p>
+      </CardHeader>
+      <CardContent>
+        <div className="space-y-4">
+
+          {/* Active domain */}
+          {status === 'active' && result?.url && (
+            <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
+              <svg className="w-5 h-5 text-green-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+              </svg>
+              <div className="flex-1 min-w-0">
+                <p className="text-sm font-semibold text-green-800">הדומיין פעיל</p>
+                <a href={result.url} target="_blank" rel="noopener noreferrer"
+                  className="text-sm text-green-700 hover:underline font-mono truncate block">
+                  {result.url}
+                </a>
+              </div>
+            </div>
+          )}
+
+          {/* Subdomain input */}
+          {canEdit && (
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1.5">סאבדומיין</label>
+              <div className="flex items-center gap-0">
+                <input
+                  type="text"
+                  value={subdomain}
+                  onChange={e => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+                  placeholder="shalom"
+                  className="flex-1 rounded-r-xl border border-l-0 border-gray-300 px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-400"
+                  dir="ltr"
+                />
+                <span className="bg-gray-100 border border-gray-300 rounded-l-xl px-3 py-2.5 text-sm text-gray-500 font-mono whitespace-nowrap">
+                  .cannaforyou.net
+                </span>
+              </div>
+              <p className="text-xs text-gray-400 mt-1">אותיות קטנות באנגלית, מספרים ומקף בלבד</p>
+            </div>
+          )}
+
+          {/* Show current subdomain when not editing */}
+          {!canEdit && subdomain && status !== 'active' && (
+            <div className="flex items-center gap-2 font-mono text-sm bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5">
+              <span className="text-gray-500">URL:</span>
+              <span className="text-gray-800">{subdomain}.cannaforyou.net</span>
+            </div>
+          )}
+
+          {/* Waiting for DNS — vercel_added */}
+          {status === 'vercel_added' && (
+            <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700">
+              <p className="font-semibold mb-1">נוסף ל-Vercel — ממתין לאימות DNS</p>
+              <p className="text-xs text-blue-600">לאחר שה-DNS מתפשט (עד 5 דקות) לחץ ״בדוק סטטוס״.</p>
+            </div>
+          )}
+
+          {/* Manual DNS instructions */}
+          {result?.manualDns && (
+            <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl space-y-3">
+              <div className="flex items-center gap-2">
+                <svg className="w-4 h-4 text-amber-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+                </svg>
+                <p className="text-sm font-semibold text-amber-800">יש להוסיף רשומת DNS ידנית בהוסטינגר</p>
+              </div>
+              <div className="bg-white border border-amber-200 rounded-lg p-3 font-mono text-xs space-y-1">
+                <div className="flex gap-4">
+                  <span className="text-gray-400 w-16 shrink-0">Type:</span>
+                  <span className="text-gray-900 font-semibold">{result.manualDns.type}</span>
+                </div>
+                <div className="flex gap-4">
+                  <span className="text-gray-400 w-16 shrink-0">Name:</span>
+                  <span className="text-gray-900 font-semibold">{result.manualDns.name}</span>
+                </div>
+                <div className="flex gap-4">
+                  <span className="text-gray-400 w-16 shrink-0">Value:</span>
+                  <span className="text-gray-900 font-semibold break-all">{result.manualDns.value}</span>
+                </div>
+                <div className="flex gap-4">
+                  <span className="text-gray-400 w-16 shrink-0">TTL:</span>
+                  <span className="text-gray-900">3600</span>
+                </div>
+              </div>
+              <button
+                onClick={() => navigator.clipboard.writeText(`Type: CNAME\nName: ${result.manualDns!.name}\nValue: ${result.manualDns!.value}\nTTL: 3600`).then(() => toast.success('הועתק!'))}
+                className="text-xs text-amber-700 hover:text-amber-900 flex items-center gap-1"
+              >
+                <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1"/></svg>
+                העתק פרטי DNS
+              </button>
+            </div>
+          )}
+
+          {/* Error */}
+          {status === 'failed' && result?.error && (
+            <div className="p-3 bg-red-50 border border-red-200 rounded-xl text-sm text-red-700">
+              <p className="font-semibold mb-0.5">שגיאה בהגדרת הדומיין</p>
+              <p className="text-xs text-red-600 font-mono">{result.error}</p>
+            </div>
+          )}
+
+          {/* Buttons */}
+          <div className="flex gap-2">
+            {canEdit && (
+              <Button onClick={provision} loading={loading} className="flex-1">
+                {status === 'failed' ? 'נסה שוב' : 'הפעל דומיין'}
+              </Button>
+            )}
+            {!canEdit && (
+              <Button onClick={provision} loading={loading} variant="outline" className="flex-1">
+                שנה דומיין
+              </Button>
+            )}
+            <Button onClick={checkStatus} loading={checking} variant="outline">
+              {checking ? 'בודק...' : 'בדוק סטטוס'}
+            </Button>
+          </div>
+
+          {result?.lastChecked && (
+            <p className="text-xs text-gray-400 text-center">
+              בדיקה אחרונה: {new Date(result.lastChecked).toLocaleTimeString('he-IL')}
+            </p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
+  )
+}
+
 export default function AdminSettingsPage() {
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
@@ -288,6 +512,9 @@ export default function AdminSettingsPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* ── Domain Management ─────────────────────────────── */}
+      <DomainCard orgId={org?.id ?? ''} currentSubdomain={org?.subdomain ?? null} />
 
       {/* Basic Info */}
       <Card>
