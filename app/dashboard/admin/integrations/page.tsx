@@ -590,6 +590,35 @@ export default function AdminIntegrationsPage() {
               <DomainCard orgId={orgId} currentSubdomain={org?.subdomain ?? null} />
             ) : (
               <>
+                {/* Green API setup guide */}
+                {activeKey === 'whatsapp' && (
+                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
+                    <p className="text-sm font-semibold text-blue-900">איך מתחברים ל-Green API?</p>
+                    <ol className="space-y-2.5 text-sm text-blue-800">
+                      <li className="flex gap-2.5">
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">1</span>
+                        <span>נכנסים לאתר <span className="font-mono font-semibold">green-api.com</span> ונפתחים חשבון חינמי</span>
+                      </li>
+                      <li className="flex gap-2.5">
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">2</span>
+                        <span>לוחצים <strong>«Create Instance»</strong> — בוחרים את הסוג <strong>API</strong></span>
+                      </li>
+                      <li className="flex gap-2.5">
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">3</span>
+                        <span>בתוך ה-instance לוחצים <strong>«Scan QR»</strong> וסורקים עם WhatsApp של המרפאה (הגדרות ← מכשירים מקושרים)</span>
+                      </li>
+                      <li className="flex gap-2.5">
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">4</span>
+                        <span>מעתיקים את <strong>idInstance</strong> ואת <strong>apiTokenInstance</strong> ומזינים בשדות למטה</span>
+                      </li>
+                      <li className="flex gap-2.5">
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">5</span>
+                        <span>שומרים ושולחים הודעת טסט לאימות</span>
+                      </li>
+                    </ol>
+                  </div>
+                )}
+
                 {/* Fields */}
                 <div className="space-y-4">
                   {activeInteg.fields.map(field => (
