@@ -19,31 +19,55 @@ export async function GET(request: Request) {
 
         // ── Process invite token if present ──────────────
         if (inviteToken) {
-          // eslint-disable-next-line @typescript-eslint/no-explicit-any
-          const invitationsTable = (admin as any).from('invitations')
-          const { data: inv } = await invitationsTable
-            .select('id, organization_id, email, role, expires_at, used_at')
-            .eq('token', inviteToken)
-            .maybeSingle()
+          type UserRole = 'patient' | 'doctor' | 'staff' | 'admin'
+          const validRoles: UserRole[] = ['patient', 'doctor', 'staff', 'admin']
+          let resolvedRole: UserRole | null = null
+          let resolvedOrgId: string | null = null
 
-          type InvRow = { id: string; organization_id: string; email: string; role: string; expires_at: string; used_at: string | null }
-          const invite = inv as InvRow | null
+          // Try invite table first (may not exist yet)
+          try {
+            // eslint-disable-next-line @typescript-eslint/no-explicit-any
+            const invitationsTable = (admin as any).from('invitations')
+            const { data: inv } = await invitationsTable
+              .select('id, organization_id, email, role, expires_at, used_at')
+              .eq('token', inviteToken)
+              .maybeSingle()
 
-          if (
-            invite &&
-            !invite.used_at &&
-            new Date(invite.expires_at) > new Date() &&
-            invite.email.toLowerCase() === user.email?.toLowerCase()
-          ) {
-            type UserRole = 'patient' | 'doctor' | 'staff' | 'admin'
-            await admin.from('users').update({
-              role: invite.role as UserRole,
-              organization_id: invite.organization_id,
-            }).eq('id', user.id)
+            type InvRow = { id: string; organization_id: string; email: string; role: string; expires_at: string; used_at: string | null }
+            const invite = inv as InvRow | null
 
-            await invitationsTable
-              .update({ used_at: new Date().toISOString() })
-              .eq('id', invite.id)
+            if (
+              invite &&
+              !invite.used_at &&
+              new Date(invite.expires_at) > new Date() &&
+              invite.email.toLowerCase() === user.email?.toLowerCase()
+            ) {
+              resolvedRole = validRoles.includes(invite.role as UserRole) ? (invite.role as UserRole) : null
+              resolvedOrgId = invite.organization_id
+              // Mark as used
+              await invitationsTable
+                .update({ used_at: new Date().toISOString() })
+                .eq('id', invite.id)
+            }
+          } catch {
+            // invitations table may not exist yet — fall through to metadata fallback
+          }
+
+          // Fallback: use role from signup metadata (set by InviteForm)
+          if (!resolvedRole) {
+            const roleFromMeta = meta.role as string | undefined
+            if (roleFromMeta && validRoles.includes(roleFromMeta as UserRole) && roleFromMeta !== 'patient') {
+              resolvedRole = roleFromMeta as UserRole
+            }
+            // org_id from metadata (InviteForm doesn't set this, but future-proof)
+            if (meta.organization_id) resolvedOrgId = meta.organization_id as string
+          }
+
+          // Apply resolved role + org to the user profile
+          if (resolvedRole) {
+            const updatePayload: Record<string, unknown> = { role: resolvedRole }
+            if (resolvedOrgId) updatePayload.organization_id = resolvedOrgId
+            await admin.from('users').update(updatePayload).eq('id', user.id)
           }
         }
 

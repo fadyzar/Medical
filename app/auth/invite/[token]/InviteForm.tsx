@@ -24,9 +24,10 @@ interface Props {
   email: string
   role: string
   orgName: string
+  orgId: string
 }
 
-export default function InviteForm({ token, email, role, orgName }: Props) {
+export default function InviteForm({ token, email, role, orgName, orgId }: Props) {
   const router = useRouter()
   const [form, setForm] = useState({
     first_name: '',
@@ -71,6 +72,7 @@ export default function InviteForm({ token, email, role, orgName }: Props) {
             last_name: form.last_name,
             role,
             invite_token: token,
+            organization_id: orgId,
           },
           emailRedirectTo: `${window.location.origin}/api/auth/callback`,
         },

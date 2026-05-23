@@ -112,6 +112,7 @@ export default async function InvitePage({ params }: Props) {
         email={invite.email}
         role={invite.role}
         orgName={orgName}
+        orgId={invite.organization_id}
       />
     </AuthLayout>
   )
