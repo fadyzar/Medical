@@ -1099,7 +1099,7 @@ export default function DoctorAppointmentsPage() {
                   </Button>
 
                   {/* ── Confirm + Schedule (for pending/payment_pending) ── */}
-                  {['pending', 'payment_pending', 'doctor_confirmed', 'time_selected'].includes(selected.status) && (
+                  {['pending', 'payment_pending', 'doctor_confirmed', 'time_selected', 'scheduled', 'paid', 'ready'].includes(selected.status) && (
                     <SchedulePanel apt={selected} onScheduled={apt => {
                       setAppointments(prev => prev.map(a => a.id === apt.id ? { ...a, ...apt } : a))
                       setSelected(prev => prev ? { ...prev, ...apt } : prev)
