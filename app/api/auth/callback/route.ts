@@ -14,6 +14,39 @@ export async function GET(request: Request) {
       const { data: { user } } = await supabase.auth.getUser()
       if (user) {
         const admin = createServiceRole()
+        const meta = user.user_metadata || {}
+        const inviteToken = meta.invite_token as string | undefined
+
+        // ── Process invite token if present ──────────────
+        if (inviteToken) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const invitationsTable = (admin as any).from('invitations')
+          const { data: inv } = await invitationsTable
+            .select('id, organization_id, email, role, expires_at, used_at')
+            .eq('token', inviteToken)
+            .maybeSingle()
+
+          type InvRow = { id: string; organization_id: string; email: string; role: string; expires_at: string; used_at: string | null }
+          const invite = inv as InvRow | null
+
+          if (
+            invite &&
+            !invite.used_at &&
+            new Date(invite.expires_at) > new Date() &&
+            invite.email.toLowerCase() === user.email?.toLowerCase()
+          ) {
+            type UserRole = 'patient' | 'doctor' | 'staff' | 'admin'
+            await admin.from('users').update({
+              role: invite.role as UserRole,
+              organization_id: invite.organization_id,
+            }).eq('id', user.id)
+
+            await invitationsTable
+              .update({ used_at: new Date().toISOString() })
+              .eq('id', invite.id)
+          }
+        }
+
         let { data: profile } = await admin.from('users')
           .select('role, first_name, last_name, organization_id')
           .eq('id', user.id).single()
@@ -21,8 +54,6 @@ export async function GET(request: Request) {
 
         if (!profile) {
           isNewProfile = true
-          // Profile missing — create it now using metadata from auth
-          const meta = user.user_metadata || {}
           const roleFromMeta = (meta.role as string) || 'patient'
           const validRoles = ['patient', 'doctor', 'staff', 'admin']
           const safeRole = validRoles.includes(roleFromMeta) ? roleFromMeta : 'patient'
@@ -37,12 +68,6 @@ export async function GET(request: Request) {
             first_name: (meta.first_name as string) || '',
             last_name: (meta.last_name as string) || '',
             role: safeRole,
-          }
-          if (safeRole === 'doctor') {
-            if (meta.license_number) profileData.license_number = meta.license_number
-            if (Array.isArray(meta.specialties) && meta.specialties.length > 0) {
-              profileData.specialties = meta.specialties
-            }
           }
 
           const { data: created } = await admin.from('users').upsert(profileData, { onConflict: 'id' }).select('role, first_name, last_name, organization_id').single()
