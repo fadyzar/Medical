@@ -37,7 +37,8 @@ export async function GET(req: Request) {
 
       const features = (org?.features || {}) as Record<string, boolean>
       const settings = (org?.settings || {}) as Record<string, unknown>
-      if (!features.email_notifications || settings.auto_reminder_24h === false) continue
+      // default: send unless explicitly disabled
+      if (features.email_notifications === false || settings.auto_reminder_24h === false) continue
 
       // Optimistic lock
       const { data: locked } = await admin
@@ -83,7 +84,7 @@ export async function GET(req: Request) {
 
       const features = (org?.features || {}) as Record<string, boolean>
       const settings = (org?.settings || {}) as Record<string, unknown>
-      if (!features.email_notifications || settings.auto_reminder_1h === false) continue
+      if (features.email_notifications === false || settings.auto_reminder_1h === false) continue
 
       const { data: locked } = await admin
         .from('appointments')
