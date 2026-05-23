@@ -4,9 +4,158 @@ export const dynamic = 'force-dynamic'
 import React, { useEffect, useState, useCallback, type ReactNode } from 'react'
 import { getClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import { Button, Input, Card, CardHeader, CardContent, Badge, PageLoading } from '@/components/ui'
+import { Button, Card, CardHeader, CardContent, Badge, PageLoading } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import type { Organization } from '@/types/database'
+
+// ── DomainCard (inline) ────────────────────────────────
+function DomainCard({ orgId, currentSubdomain }: { orgId: string; currentSubdomain: string | null }) {
+  const [subdomain, setSubdomain] = useState(currentSubdomain || '')
+  const [status, setStatus] = useState<string>('none')
+  const [loading, setLoading] = useState(false)
+  const [checking, setChecking] = useState(false)
+  const [result, setResult] = useState<{
+    url?: string
+    vercelVerified?: boolean
+    error?: string | null
+    manualDns?: { type: string; name: string; value: string; instructions: string }
+    lastChecked?: string
+  } | null>(null)
+
+  useEffect(() => { checkStatus() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [])
+
+  async function checkStatus() {
+    setChecking(true)
+    try {
+      const res = await fetch('/api/admin/domain/status')
+      if (res.ok) {
+        const data = await res.json()
+        setStatus(data.status || 'none')
+        setResult(data)
+        if (data.subdomain) setSubdomain(data.subdomain)
+      }
+    } catch { /* non-critical */ } finally { setChecking(false) }
+  }
+
+  async function provision() {
+    if (!subdomain || subdomain.length < 3) { toast.error('יש להזין סאבדומיין (לפחות 3 תווים)'); return }
+    setLoading(true)
+    try {
+      const res = await fetch('/api/admin/domain/provision', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subdomain: subdomain.toLowerCase().trim() }),
+      })
+      const data = await res.json()
+      if (res.ok) {
+        setStatus(data.status)
+        setResult(data)
+        if (data.status === 'active') toast.success('הדומיין מוכן ופעיל!')
+        else if (data.dnsManual) toast.success('נוסף ל-Vercel! יש להוסיף את רשומת DNS ידנית.')
+        else toast.success('הדומיין בתהליך הגדרה — בדוק שוב בעוד כמה דקות')
+      } else {
+        toast.error(data.error || 'שגיאה בהגדרת הדומיין')
+      }
+    } catch { toast.error('שגיאת רשת') } finally { setLoading(false) }
+  }
+
+  const STATUS_LABELS: Record<string, { label: string; color: string }> = {
+    none:         { label: 'לא הוגדר',      color: 'bg-gray-100 text-gray-600' },
+    pending:      { label: 'מגדיר...',       color: 'bg-yellow-100 text-yellow-700' },
+    vercel_added: { label: 'ממתין ל-DNS',    color: 'bg-blue-100 text-blue-700' },
+    active:       { label: 'פעיל',           color: 'bg-green-100 text-green-700' },
+    failed:       { label: 'שגיאה',          color: 'bg-red-100 text-red-700' },
+  }
+  const statusInfo = STATUS_LABELS[status] || STATUS_LABELS.none
+  const canEdit = status === 'none' || status === 'failed'
+
+  return (
+    <div className="space-y-4">
+      {/* Status badge */}
+      <div className="flex items-center gap-3">
+        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusInfo.color}`}>{statusInfo.label}</span>
+        {checking && <span className="text-xs text-gray-400">בודק...</span>}
+      </div>
+
+      {/* Active */}
+      {status === 'active' && result?.url && (
+        <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
+          <div className="flex-1 min-w-0">
+            <p className="text-sm font-semibold text-green-800">הדומיין פעיל</p>
+            <a href={result.url} target="_blank" rel="noopener noreferrer" className="text-sm text-green-700 hover:underline font-mono truncate block">{result.url}</a>
+          </div>
+        </div>
+      )}
+
+      {/* Input */}
+      {canEdit && (
+        <div>
+          <label className="block text-sm font-medium text-gray-700 mb-1.5">סאבדומיין</label>
+          <div className="flex items-center gap-0">
+            <input
+              type="text"
+              value={subdomain}
+              onChange={e => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
+              placeholder="shalom"
+              className="flex-1 rounded-r-xl border border-l-0 border-gray-300 px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-400"
+              dir="ltr"
+            />
+            <span className="bg-gray-100 border border-gray-300 rounded-l-xl px-3 py-2.5 text-sm text-gray-500 font-mono whitespace-nowrap">.cannaforyou.net</span>
+          </div>
+          <p className="text-xs text-gray-400 mt-1">אותיות קטנות באנגלית, מספרים ומקף בלבד</p>
+        </div>
+      )}
+
+      {/* Show subdomain when not editing */}
+      {!canEdit && subdomain && status !== 'active' && (
+        <div className="flex items-center gap-2 font-mono text-sm bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5">
+          <span className="text-gray-500">URL:</span>
+          <span className="text-gray-800">{subdomain}.cannaforyou.net</span>
+        </div>
+      )}
+
+      {/* vercel_added — waiting DNS */}
+      {status === 'vercel_added' && (
+        <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700">
+          <p className="font-semibold mb-1">נוסף ל-Vercel — ממתין לאימות DNS</p>
+          <p className="text-xs text-blue-600">לאחר שה-DNS מתפשט (עד 5 דקות) לחץ ״בדוק סטטוס״.</p>
+        </div>
+      )}
+
+      {/* Manual DNS */}
+      {result?.manualDns && (
+        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
+          <p className="font-semibold mb-2">הוסף רשומת DNS ידנית בהוסטינגר:</p>
+          <div className="font-mono text-xs bg-white border border-amber-200 rounded-lg p-3 space-y-1">
+            <div><span className="text-gray-500">סוג:</span> {result.manualDns.type}</div>
+            <div><span className="text-gray-500">שם:</span> {result.manualDns.name}</div>
+            <div><span className="text-gray-500">ערך:</span> {result.manualDns.value}</div>
+          </div>
+        </div>
+      )}
+
+      {/* Buttons */}
+      <div className="flex gap-2 flex-wrap pt-1">
+        {canEdit && (
+          <button
+            onClick={provision}
+            disabled={loading || !subdomain}
+            className="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
+          >
+            {loading ? 'מגדיר...' : 'הפעל דומיין'}
+          </button>
+        )}
+        <button
+          onClick={checkStatus}
+          disabled={checking}
+          className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
+        >
+          {checking ? 'בודק...' : 'בדוק סטטוס'}
+        </button>
+      </div>
+    </div>
+  )
+}
 
 // ── Types ──────────────────────────────────────────────
 
@@ -350,57 +499,64 @@ export default function AdminIntegrationsPage() {
               </div>
             )}
 
-            {/* Fields */}
-            <div className="space-y-4">
-              {activeInteg.fields.map(field => (
-                <div key={field.id} className="space-y-1.5">
-                  <label className="block text-sm font-medium text-gray-700">
-                    {field.label}
-                    {field.required && <span className="text-red-500 mr-1">*</span>}
-                  </label>
-                  <div className="relative">
-                    <input
-                      type={field.type === 'password' && !showSecret[field.id] ? 'password' : 'text'}
-                      value={values[activeKey]?.[field.id] || ''}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValues((prev: Record<string, Record<string, string>>) => ({
-                        ...prev,
-                        [activeKey]: { ...prev[activeKey], [field.id]: e.target.value },
-                      }))}
-                      placeholder={field.placeholder}
-                      className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
-                      dir="ltr"
-                    />
-                    {field.type === 'password' && (
-                      <button
-                        type="button"
-                        onClick={() => setShowSecret((prev: Record<string, boolean>) => ({ ...prev, [field.id]: !prev[field.id] }))}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                        aria-label={showSecret[field.id] ? 'הסתר' : 'הצג'}
-                      >
-                        {showSecret[field.id] ? (
-                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
-                            <line x1="1" y1="1" x2="23" y2="23"/>
-                          </svg>
-                        ) : (
-                          <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                            <circle cx="12" cy="12" r="3"/>
-                          </svg>
+            {/* Subdomain — use DomainCard instead of generic fields */}
+            {activeKey === 'subdomain' ? (
+              <DomainCard orgId={orgId} currentSubdomain={org?.subdomain ?? null} />
+            ) : (
+              <>
+                {/* Fields */}
+                <div className="space-y-4">
+                  {activeInteg.fields.map(field => (
+                    <div key={field.id} className="space-y-1.5">
+                      <label className="block text-sm font-medium text-gray-700">
+                        {field.label}
+                        {field.required && <span className="text-red-500 mr-1">*</span>}
+                      </label>
+                      <div className="relative">
+                        <input
+                          type={field.type === 'password' && !showSecret[field.id] ? 'password' : 'text'}
+                          value={values[activeKey]?.[field.id] || ''}
+                          onChange={(e: React.ChangeEvent<HTMLInputElement>) => setValues((prev: Record<string, Record<string, string>>) => ({
+                            ...prev,
+                            [activeKey]: { ...prev[activeKey], [field.id]: e.target.value },
+                          }))}
+                          placeholder={field.placeholder}
+                          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                          dir="ltr"
+                        />
+                        {field.type === 'password' && (
+                          <button
+                            type="button"
+                            onClick={() => setShowSecret((prev: Record<string, boolean>) => ({ ...prev, [field.id]: !prev[field.id] }))}
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            aria-label={showSecret[field.id] ? 'הסתר' : 'הצג'}
+                          >
+                            {showSecret[field.id] ? (
+                              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
+                                <line x1="1" y1="1" x2="23" y2="23"/>
+                              </svg>
+                            ) : (
+                              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                                <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
+                                <circle cx="12" cy="12" r="3"/>
+                              </svg>
+                            )}
+                          </button>
                         )}
-                      </button>
-                    )}
-                  </div>
-                  {field.hint && <p className="text-xs text-gray-400">{field.hint}</p>}
+                      </div>
+                      {field.hint && <p className="text-xs text-gray-400">{field.hint}</p>}
+                    </div>
+                  ))}
                 </div>
-              ))}
-            </div>
 
-            <div className="flex justify-end pt-2">
-              <Button onClick={() => handleSave(activeKey)} loading={saving}>
-                שמור הגדרות {activeInteg.title}
-              </Button>
-            </div>
+                <div className="flex justify-end pt-2">
+                  <Button onClick={() => handleSave(activeKey)} loading={saving}>
+                    שמור הגדרות {activeInteg.title}
+                  </Button>
+                </div>
+              </>
+            )}
           </CardContent>
         </Card>
       )}
