@@ -130,17 +130,61 @@ export default function VideoCallPage() {
     }
   }
 
+  const [aiSummary, setAiSummary]       = useState<string | null>(null)
+  const [summaryLoading, setSummaryLoading] = useState(false)
+  const [rating, setRating]             = useState(0)
+  const [rated, setRated]               = useState(false)
+
   const handleDisconnected = useCallback(async () => {
     if (!id) return
+
+    // Mark appointment completed + trigger AI summary (background)
     try {
-      await supabase.from('appointments').update({
-        video_ended_at: new Date().toISOString(),
-      }).eq('id', id)
-    } catch {
-      // Non-critical — video already ended
-    }
+      await fetch('/api/appointments/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId: id }),
+      })
+    } catch { /* non-critical */ }
+
     setState('disconnected')
-  }, [id, supabase])
+
+    // Doctor: poll for AI summary
+    if (profile?.role === 'doctor') {
+      setSummaryLoading(true)
+      const deadline = Date.now() + 45_000 // 45s timeout
+      const poll = setInterval(async () => {
+        try {
+          const { data } = await supabase
+            .from('appointments')
+            .select('ai_summary')
+            .eq('id', id)
+            .single()
+          if (data?.ai_summary) {
+            setAiSummary(data.ai_summary as string)
+            setSummaryLoading(false)
+            clearInterval(poll)
+          } else if (Date.now() > deadline) {
+            setSummaryLoading(false)
+            clearInterval(poll)
+          }
+        } catch { clearInterval(poll); setSummaryLoading(false) }
+      }, 3000)
+    }
+  }, [id, profile?.role, supabase])
+
+  const submitRating = async (stars: number) => {
+    if (!id || rated) return
+    setRating(stars)
+    try {
+      await fetch('/api/appointments/rate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId: id, rating: stars }),
+      })
+      setRated(true)
+    } catch { /* non-critical */ }
+  }
 
   const handleConnected = useCallback(async () => {
     if (!id) return
@@ -291,24 +335,143 @@ export default function VideoCallPage() {
           </div>
         )}
 
-        {state === 'disconnected' && (
-          <Card className="max-w-md w-full bg-gray-800 border-gray-700">
-            <CardContent className="p-6 text-center space-y-4">
-              <div className="flex justify-center">
-                <svg className="w-10 h-10 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" /></svg>
-              </div>
-              <h2 className="text-xl font-bold">השיחה הסתיימה</h2>
-              <p className="text-gray-400">תודה שהשתמשת בשירות הטלמדיסן שלנו</p>
-              <Button
-                onClick={() => router.push(
-                  profile?.role === 'doctor' ? '/dashboard/doctor/dashboard' : '/dashboard/patient/dashboard'
+        {state === 'disconnected' && profile?.role === 'doctor' && (
+          /* ── Doctor post-call screen ── */
+          <div className="max-w-lg w-full space-y-4">
+            {/* Header */}
+            <Card className="bg-gray-800 border-gray-700">
+              <CardContent className="p-5 flex items-center gap-4">
+                <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
+                  <svg className="w-6 h-6 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <div>
+                  <h2 className="text-lg font-bold text-white">הייעוץ הסתיים</h2>
+                  <p className="text-gray-400 text-sm">עם {otherParty} — {appointment?.chief_complaint}</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* AI Summary */}
+            <Card className="bg-gray-800 border-gray-700">
+              <CardContent className="p-5 space-y-3">
+                <div className="flex items-center gap-2">
+                  <svg className="w-4 h-4 text-blue-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                  <p className="text-sm font-semibold text-blue-300">סיכום AI</p>
+                </div>
+
+                {summaryLoading && (
+                  <div className="flex items-center gap-3 py-3 text-gray-400">
+                    <Spinner size="sm" />
+                    <span className="text-sm">מייצר סיכום אוטומטי...</span>
+                  </div>
                 )}
-                className="w-full"
+
+                {aiSummary && !summaryLoading && (
+                  <div className="bg-gray-900 rounded-xl p-4 text-sm text-gray-200 leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap">
+                    {aiSummary}
+                  </div>
+                )}
+
+                {!summaryLoading && !aiSummary && (
+                  <p className="text-sm text-gray-500">הסיכום לא נוצר אוטומטית — ניתן לייצר ידנית מדף התורים.</p>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Actions */}
+            <div className="grid grid-cols-1 gap-3">
+              <Button
+                onClick={() => router.push(`/dashboard/doctor/appointments?id=${id}`)}
+                size="lg"
+                className="w-full bg-blue-600 hover:bg-blue-700"
+              >
+                <svg className="w-4 h-4 ml-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+                השלם רשימות SOAP ושלח למטופל
+              </Button>
+              <Button
+                onClick={() => router.push('/dashboard/doctor/dashboard')}
+                variant="outline"
+                className="w-full border-gray-600 text-white hover:bg-gray-700"
               >
                 חזור לדשבורד
               </Button>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
+        )}
+
+        {state === 'disconnected' && profile?.role !== 'doctor' && (
+          /* ── Patient post-call screen ── */
+          <div className="max-w-lg w-full space-y-4">
+            {/* Header */}
+            <Card className="bg-gray-800 border-gray-700">
+              <CardContent className="p-5 text-center space-y-2">
+                <div className="w-14 h-14 rounded-full bg-green-500/20 flex items-center justify-center mx-auto">
+                  <svg className="w-7 h-7 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+                </div>
+                <h2 className="text-xl font-bold text-white">הייעוץ הסתיים</h2>
+                <p className="text-gray-400 text-sm">תודה שהשתמשת בשירותנו</p>
+              </CardContent>
+            </Card>
+
+            {/* Summary coming */}
+            <Card className="bg-gray-800 border-gray-700">
+              <CardContent className="p-4 flex items-start gap-3">
+                <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                </div>
+                <div>
+                  <p className="text-sm font-semibold text-white">סיכום הייעוץ בדרך</p>
+                  <p className="text-xs text-gray-400 mt-0.5">הרופא יכין סיכום ותשלח אליך הודעה. תוכל לראות אותו גם ב״המסמכים שלי״.</p>
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Rating */}
+            <Card className="bg-gray-800 border-gray-700">
+              <CardContent className="p-5 text-center space-y-3">
+                {!rated ? (
+                  <>
+                    <p className="text-sm font-semibold text-white">איך היה הייעוץ עם {otherParty}?</p>
+                    <div className="flex justify-center gap-2">
+                      {[1, 2, 3, 4, 5].map(star => (
+                        <button
+                          key={star}
+                          onClick={() => submitRating(star)}
+                          className="text-3xl transition-transform hover:scale-110 active:scale-95"
+                          aria-label={`${star} כוכבים`}
+                        >
+                          {star <= rating ? '⭐' : '☆'}
+                        </button>
+                      ))}
+                    </div>
+                    <p className="text-xs text-gray-500">הדירוג עוזר לשפר את השירות</p>
+                  </>
+                ) : (
+                  <div className="flex items-center justify-center gap-2 text-green-400">
+                    <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    <p className="text-sm font-medium">תודה על הדירוג!</p>
+                  </div>
+                )}
+              </CardContent>
+            </Card>
+
+            {/* Actions */}
+            <div className="grid grid-cols-2 gap-3">
+              <Button
+                onClick={() => router.push('/dashboard/patient/new-appointment')}
+                variant="outline"
+                className="border-gray-600 text-white hover:bg-gray-700"
+              >
+                קבע תור המשך
+              </Button>
+              <Button
+                onClick={() => router.push('/dashboard/patient/dashboard')}
+                className="bg-blue-600 hover:bg-blue-700"
+              >
+                לדשבורד
+              </Button>
+            </div>
+          </div>
         )}
 
         {state === 'error' && (
