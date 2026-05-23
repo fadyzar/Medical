@@ -4,6 +4,7 @@ import { onboardingFullSchema } from '@/lib/validation/onboarding-schema'
 import { PLANS, RESERVED_SUBDOMAINS } from '@/lib/config/plans'
 import { sendDoctorInvite, sendWelcomeEmail } from '@/lib/email'
 import { onboardingLimiter } from '@/lib/security/rate-limit'
+import { provisionSubdomain } from '@/lib/domain/provision'
 
 export async function POST(req: Request) {
   try {
@@ -109,6 +110,11 @@ export async function POST(req: Request) {
         : 'שגיאה ביצירת המשתמש'
       return NextResponse.json({ error: message }, { status: 400 })
     }
+
+    // Provision subdomain automatically (Vercel + Hostinger DNS) — fire-and-forget
+    provisionSubdomain(org.id, data.subdomain).catch(err => {
+      console.error('[Onboarding] Domain provision failed:', err instanceof Error ? err.message : 'Unknown')
+    })
 
     // Audit log
     await admin.from('audit_logs').insert({
