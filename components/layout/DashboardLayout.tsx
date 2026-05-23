@@ -353,7 +353,14 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
   const primaryMedium = `${primary}30` // ~20% opacity
 
   return (
-    <div className="min-h-screen bg-gray-50/80" dir="rtl">
+    <div
+      className="min-h-screen bg-gray-50/80"
+      dir="rtl"
+      style={{
+        '--brand-primary': primary,
+        '--brand-secondary': org?.secondary_color || '#6b7280',
+      } as React.CSSProperties}
+    >
       {/* ─── Desktop Sidebar ─────────────────────────────── */}
       <aside className={cn(
         'fixed right-0 top-0 bottom-0 z-40 bg-white border-l border-gray-200/80 transition-all duration-300 hidden lg:flex flex-col',

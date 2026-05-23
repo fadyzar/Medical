@@ -9,22 +9,53 @@ interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
 }
 
 export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
-  ({ className, variant = 'primary', size = 'md', loading, children, disabled, ...props }, ref) => {
-    const v = {
-      primary: 'bg-blue-600 text-white hover:bg-blue-700 shadow-sm',
-      secondary: 'bg-gray-100 text-gray-900 hover:bg-gray-200',
+  ({ className, variant = 'primary', size = 'md', loading, children, disabled, style, ...props }, ref) => {
+    const base = 'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors disabled:opacity-50 disabled:pointer-events-none focus-visible:outline-2 focus-visible:outline-offset-2'
+    const s = { sm: 'h-8 px-3 text-sm', md: 'h-10 px-4 text-sm', lg: 'h-12 px-6 text-base' }
+
+    // primary + secondary use CSS vars injected by DashboardLayout (fall back to blue/gray)
+    if (variant === 'primary') {
+      return (
+        <button
+          ref={ref}
+          disabled={disabled || loading}
+          className={cn(base, s[size], 'text-white shadow-sm brand-btn-primary', className)}
+          style={{ backgroundColor: 'var(--brand-primary, #2563eb)', ...style }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.filter = 'brightness(0.88)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.filter = '' }}
+          {...props}
+        >
+          {loading && <Spinner size="sm" />}
+          {children}
+        </button>
+      )
+    }
+
+    if (variant === 'secondary') {
+      return (
+        <button
+          ref={ref}
+          disabled={disabled || loading}
+          className={cn(base, s[size], 'text-white shadow-sm', className)}
+          style={{ backgroundColor: 'var(--brand-secondary, #6b7280)', ...style }}
+          onMouseEnter={e => { (e.currentTarget as HTMLElement).style.filter = 'brightness(0.88)' }}
+          onMouseLeave={e => { (e.currentTarget as HTMLElement).style.filter = '' }}
+          {...props}
+        >
+          {loading && <Spinner size="sm" />}
+          {children}
+        </button>
+      )
+    }
+
+    const staticVariants = {
       outline: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
       ghost: 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
       danger: 'bg-red-600 text-white hover:bg-red-700',
     }
-    const s = { sm: 'h-8 px-3 text-sm', md: 'h-10 px-4 text-sm', lg: 'h-12 px-6 text-base' }
+
     return (
-      <button ref={ref} disabled={disabled || loading} className={cn(
-        'inline-flex items-center justify-center gap-2 rounded-lg font-medium transition-colors',
-        'focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-500',
-        'disabled:opacity-50 disabled:pointer-events-none',
-        v[variant], s[size], className
-      )} {...props}>
+      <button ref={ref} disabled={disabled || loading} className={cn(base, staticVariants[variant as keyof typeof staticVariants], s[size], className)} style={style} {...props}>
         {loading && <Spinner size="sm" />}
         {children}
       </button>
