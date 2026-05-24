@@ -181,6 +181,7 @@ export default function PatientDashboard() {
     .filter(a => a.scheduled_at && new Date(a.scheduled_at) > now)
     .sort((a, b) => new Date(a.scheduled_at!).getTime() - new Date(b.scheduled_at!).getTime())
   const nextApt    = upcoming[0] || null
+  const proposedByDoctor = active.filter(a => a.doctor_proposed_at && !a.patient_confirmed_proposed_at)
   const needsAction = active.filter(a => a.status === 'payment_pending' || a.payment_status === 'failed')
   const unrated     = completed.filter(a => a.patient_rating == null && !ratedMap[a.id]).slice(0, 2)
   const inProgress  = active.find(a => a.status === 'in_progress')
@@ -239,6 +240,43 @@ export default function PatientDashboard() {
           }}
         />
       )}
+
+      {/* ── Doctor proposed alternative time alerts ── */}
+      {proposedByDoctor.map(apt => {
+        const doc = apt.doctor as { first_name: string; last_name: string } | null
+        const d = new Date(apt.scheduled_at!)
+        const days = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת']
+        const months = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר']
+        const t = `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`
+        const proposed = `יום ${days[d.getDay()]}, ${d.getDate()} ב${months[d.getMonth()]} — ${t}`
+        return (
+          <div key={apt.id} className="rounded-2xl border-2 border-amber-300 bg-amber-50 px-5 py-4 flex items-start justify-between gap-4">
+            <div className="flex items-start gap-3">
+              <div className="w-9 h-9 rounded-xl bg-amber-100 flex items-center justify-center shrink-0 mt-0.5">
+                <svg className="w-5 h-5 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                </svg>
+              </div>
+              <div>
+                <p className="text-sm font-bold text-amber-800">
+                  {doc ? `ד"ר ${doc.first_name} ${doc.last_name}` : 'הרופא'} הציע מועד חלופי לתור שלך
+                </p>
+                <p className="text-sm text-amber-700 mt-0.5">
+                  <strong>{proposed}</strong> — עבור: {apt.chief_complaint}
+                </p>
+                <p className="text-xs text-amber-600 mt-1">יש לאשר או לדחות את המועד המוצע</p>
+              </div>
+            </div>
+            <Button
+              size="sm"
+              className="shrink-0 bg-amber-600 hover:bg-amber-700"
+              onClick={() => router.push('/dashboard/patient/appointments')}
+            >
+              לאישור →
+            </Button>
+          </div>
+        )
+      })}
 
       {/* ── Active video call banner ── */}
       {inProgress && (

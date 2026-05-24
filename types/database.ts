@@ -86,6 +86,8 @@ export type Appointment = {
   ai_summary: string | null; ai_summary_generated_at: string | null
   ai_prescription_draft: string | null; ai_used: boolean | null
   doctor_accepted_at: string | null
+  doctor_proposed_at: string | null
+  patient_confirmed_proposed_at: string | null
   completed_at: string | null; patient_rating: number | null; patient_feedback: string | null
   cancelled_at: string | null; cancellation_reason: string | null
   no_show_recorded_at: string | null

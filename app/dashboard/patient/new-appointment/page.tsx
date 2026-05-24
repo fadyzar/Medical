@@ -12,10 +12,32 @@ import { useOrgContext } from '@/lib/hooks/useOrgContext'
 import type { User } from '@/types/database'
 
 // ── Types ──────────────────────────────────────────────────────────
-type Step = 'specialty' | 'doctor' | 'details' | 'documents' | 'confirm'
+type Step = 'specialty' | 'doctor' | 'datetime' | 'details' | 'documents' | 'confirm'
 type AppointmentType = 'video' | 'clinic'
 
 type DoctorRow = User & { organization_id: string }
+
+type Slot = { datetime: string; doctorId: string; doctorName: string }
+
+function formatHebrewDate(isoDate: string): string {
+  const d = new Date(isoDate + 'T00:00:00')
+  const days = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת']
+  const months = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר']
+  return `יום ${days[d.getDay()]}, ${d.getDate()} ב${months[d.getMonth()]}`
+}
+
+function formatTime(isoDatetime: string): string {
+  const d = new Date(isoDatetime)
+  return `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
+}
+
+function formatHebrewDateTime(isoDatetime: string): string {
+  const d = new Date(isoDatetime)
+  const days = ['ראשון', 'שני', 'שלישי', 'רביעי', 'חמישי', 'שישי', 'שבת']
+  const months = ['ינואר', 'פברואר', 'מרץ', 'אפריל', 'מאי', 'יוני', 'יולי', 'אוגוסט', 'ספטמבר', 'אוקטובר', 'נובמבר', 'דצמבר']
+  const time = `${d.getHours().toString().padStart(2, '0')}:${d.getMinutes().toString().padStart(2, '0')}`
+  return `יום ${days[d.getDay()]}, ${d.getDate()} ב${months[d.getMonth()]} — ${time}`
+}
 
 // ── Specialty icons ────────────────────────────────────────────────
 const SPECIALTY_ICONS: Record<string, string> = {
@@ -40,9 +62,10 @@ const SPECIALTY_ICONS: Record<string, string> = {
 const STEPS: { key: Step; label: string; num: number }[] = [
   { key: 'specialty', label: 'התמחות', num: 1 },
   { key: 'doctor',    label: 'רופא',   num: 2 },
-  { key: 'details',   label: 'פרטים',  num: 3 },
-  { key: 'documents', label: 'מסמכים', num: 4 },
-  { key: 'confirm',   label: 'אישור',  num: 5 },
+  { key: 'datetime',  label: 'מועד',   num: 3 },
+  { key: 'details',   label: 'פרטים',  num: 4 },
+  { key: 'documents', label: 'מסמכים', num: 5 },
+  { key: 'confirm',   label: 'אישור',  num: 6 },
 ]
 
 const URGENCY_OPTIONS = [
@@ -63,9 +86,14 @@ export default function NewAppointmentPage() {
   const [success, setSuccess]     = useState(false)
   const [patientOrgId, setPatientOrgId] = useState<string | null | undefined>(undefined)
 
+  const [slots, setSlots]             = useState<Slot[]>([])
+  const [slotsLoading, setSlotsLoading] = useState(false)
+  const [selectedSlot, setSelectedSlot] = useState<string | null>(null)
+
   const [form, setForm] = useState({
     specialty: '',
     doctor_id: '',
+    scheduled_at: '',
     chief_complaint: '',
     complaint_description: '',
     urgency_level: 'routine',
@@ -125,6 +153,32 @@ export default function NewAppointmentPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [form.specialty, orgCtx.id, orgLoading, patientOrgId])
 
+  // Fetch available slots when reaching the datetime step
+  useEffect(() => {
+    if (step !== 'datetime') return
+
+    // Need an orgId to fetch slots
+    const orgIdForSlots = form.doctor_id
+      ? doctors.find(d => d.id === form.doctor_id)?.organization_id
+      : orgCtx.id
+
+    if (!orgIdForSlots) return
+
+    setSlotsLoading(true)
+    setSlots([])
+    setSelectedSlot(null)
+
+    const params = new URLSearchParams({ orgId: orgIdForSlots, days: '30' })
+    if (form.doctor_id) params.set('doctorId', form.doctor_id)
+
+    fetch(`/api/appointments/available-slots?${params}`)
+      .then(r => r.ok ? r.json() : { slots: [] })
+      .then((d: { slots: Slot[] }) => setSlots(d.slots || []))
+      .catch(() => setSlots([]))
+      .finally(() => setSlotsLoading(false))
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [step, form.doctor_id, orgCtx.id])
+
   const selectedDoctor = doctors.find(d => d.id === form.doctor_id)
 
   const handleSubmit = async () => {
@@ -174,6 +228,7 @@ export default function NewAppointmentPage() {
         urgency_level: form.urgency_level,
         appointment_type: form.appointment_type,
         payment_amount: selectedDoctor?.consultation_price || null,
+        scheduled_at: selectedSlot || null,
         status: 'pending',
       }).select('id').single()
 
@@ -377,6 +432,7 @@ export default function NewAppointmentPage() {
                     <Button variant="outline" onClick={() => { setForm(p => ({ ...p, doctor_id: '' })); setStep('details') }}>
                       המשך ללא בחירת רופא
                     </Button>
+
                   )}
                 </div>
               ) : (
@@ -387,12 +443,12 @@ export default function NewAppointmentPage() {
                       doc={doc}
                       selected={form.doctor_id === doc.id}
                       showClinic={orgCtx.isMarketplace}
-                      onClick={() => { setForm(p => ({ ...p, doctor_id: doc.id })); setStep('details') }}
+                      onClick={() => { setForm(p => ({ ...p, doctor_id: doc.id })); setStep('datetime') }}
                     />
                   ))}
                   {!orgCtx.isMarketplace && (
                     <button
-                      onClick={() => { setForm(p => ({ ...p, doctor_id: '' })); setStep('details') }}
+                      onClick={() => { setForm(p => ({ ...p, doctor_id: '' })); setStep('datetime') }}
                       className="w-full py-3 rounded-2xl border-2 border-dashed border-gray-200 text-sm text-gray-500 hover:border-gray-300 hover:text-gray-700 transition-all"
                     >
                       המשך ללא בחירת רופא ← יושבץ אוטומטית
@@ -405,7 +461,109 @@ export default function NewAppointmentPage() {
             </div>
           )}
 
-          {/* ── Step 3: Details ── */}
+          {/* ── Step 3: Datetime ── */}
+          {step === 'datetime' && (() => {
+            const slotsByDate = slots.reduce<Record<string, Slot[]>>((acc, s) => {
+              const dateKey = s.datetime.slice(0, 10)
+              if (!acc[dateKey]) acc[dateKey] = []
+              acc[dateKey].push(s)
+              return acc
+            }, {})
+            const hasDoctorOrOrg = !!form.doctor_id || !!orgCtx.id
+
+            return (
+              <div className="space-y-5">
+                <div>
+                  <h2 className="text-xl font-bold text-gray-900">בחר מועד</h2>
+                  <p className="text-sm text-gray-500 mt-1">
+                    {selectedDoctor
+                      ? `מועדים פנויים אצל ד"ר ${selectedDoctor.first_name} ${selectedDoctor.last_name}`
+                      : 'מועדים פנויים אצל הרופאים הזמינים'}
+                  </p>
+                </div>
+
+                {!hasDoctorOrOrg ? (
+                  <div className="rounded-2xl bg-amber-50 border border-amber-200 p-6 text-center space-y-3">
+                    <div className="text-4xl">📅</div>
+                    <p className="font-medium text-gray-700">לא נבחר רופא</p>
+                    <p className="text-sm text-gray-500">הרופא יתאם איתך מועד לאחר אישור הבקשה</p>
+                  </div>
+                ) : slotsLoading ? (
+                  <div className="flex flex-col items-center py-10 gap-3 text-gray-400">
+                    <Spinner />
+                    <p className="text-sm">טוען מועדים פנויים...</p>
+                  </div>
+                ) : Object.keys(slotsByDate).length === 0 ? (
+                  <div className="rounded-2xl bg-gray-50 border border-gray-200 p-8 text-center space-y-3">
+                    <div className="text-4xl">📅</div>
+                    <p className="font-medium text-gray-700">אין מועדים פנויים ב-30 הימים הקרובים</p>
+                    <p className="text-sm text-gray-400">הרופא יתאם איתך מועד לאחר אישור הבקשה</p>
+                  </div>
+                ) : (
+                  <div className="space-y-5 max-h-[380px] overflow-y-auto pl-1 -mr-1">
+                    {Object.entries(slotsByDate).map(([dateKey, dateSlots]) => (
+                      <div key={dateKey}>
+                        <p className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-2">
+                          {formatHebrewDate(dateKey)}
+                        </p>
+                        <div className="flex flex-wrap gap-2">
+                          {dateSlots.map(slot => (
+                            <button
+                              key={slot.datetime}
+                              type="button"
+                              onClick={() => setSelectedSlot(prev => prev === slot.datetime ? null : slot.datetime)}
+                              className={cn(
+                                'px-3 py-2 rounded-xl border-2 text-sm font-medium transition-all',
+                                selectedSlot === slot.datetime
+                                  ? 'border-blue-500 bg-blue-600 text-white shadow-md shadow-blue-100'
+                                  : 'border-gray-200 bg-white text-gray-700 hover:border-blue-300 hover:bg-blue-50'
+                              )}
+                            >
+                              {formatTime(slot.datetime)}
+                              {!form.doctor_id && (
+                                <span className={cn('block text-[10px] mt-0.5', selectedSlot === slot.datetime ? 'text-blue-100' : 'text-gray-400')}>
+                                  {slot.doctorName.replace('ד"ר ', '')}
+                                </span>
+                              )}
+                            </button>
+                          ))}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                {selectedSlot && (
+                  <div className="flex items-center gap-2 px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700">
+                    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+                    </svg>
+                    <span>נבחר: <strong>{formatHebrewDateTime(selectedSlot)}</strong></span>
+                    <button
+                      type="button"
+                      onClick={() => setSelectedSlot(null)}
+                      className="mr-auto text-blue-400 hover:text-blue-600"
+                      aria-label="בטל בחירה"
+                    >
+                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                    </button>
+                  </div>
+                )}
+
+                <div className="flex gap-3 pt-2">
+                  <Button variant="outline" onClick={() => setStep('doctor')}>← חזור</Button>
+                  <Button
+                    className="flex-1"
+                    onClick={() => { setErrors({}); setStep('details') }}
+                  >
+                    {selectedSlot ? 'המשך →' : 'המשך ללא בחירת מועד →'}
+                  </Button>
+                </div>
+              </div>
+            )
+          })()}
+
+          {/* ── Step 4: Details ── */}
           {step === 'details' && (
             <div className="space-y-5">
               <div>
@@ -507,7 +665,7 @@ export default function NewAppointmentPage() {
               </div>
 
               <div className="flex gap-3 pt-2">
-                <Button variant="outline" onClick={() => setStep('doctor')}>← חזור</Button>
+                <Button variant="outline" onClick={() => setStep('datetime')}>← חזור</Button>
                 <Button
                   className="flex-1"
                   onClick={() => {
@@ -609,6 +767,9 @@ export default function NewAppointmentPage() {
                 {selectedDoctor && (
                   <SummaryRow label="רופא" value={`ד"ר ${selectedDoctor.first_name} ${selectedDoctor.last_name}`} icon="👨‍⚕️" />
                 )}
+                {selectedSlot && (
+                  <SummaryRow label="מועד מבוקש" value={formatHebrewDateTime(selectedSlot)} icon="📅" />
+                )}
                 <SummaryRow label="תלונה עיקרית" value={form.chief_complaint} icon="📋" />
                 <SummaryRow
                   label="דחיפות"
@@ -650,7 +811,9 @@ export default function NewAppointmentPage() {
               <p className="text-xs text-gray-400 text-center">
                 {selectedDoctor?.consultation_price
                   ? 'התשלום יתבצע בשלב הבא לאחר אישור הרופא'
-                  : 'לאחר שהרופא יאשר, ניצור איתך קשר לתיאום מועד'}
+                  : selectedSlot
+                    ? 'הרופא יאשר את המועד שבחרת — נשלח לך אישור'
+                    : 'לאחר שהרופא יאשר, ניצור איתך קשר לתיאום מועד'}
               </p>
             </div>
           )}

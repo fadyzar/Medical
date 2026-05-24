@@ -81,6 +81,88 @@ function StarRating({ rating, onRate }: { rating: number | null; onRate?: (r: nu
   )
 }
 
+// ── DoctorProposedBanner ──────────────────────────────────────────
+function DoctorProposedBanner({ apt, onConfirm }: {
+  apt: AptWithDoctor
+  onConfirm: (updated: Partial<AptWithDoctor>) => void
+}) {
+  const supabase = getClient()
+  const [saving, setSaving] = useState<'accept' | 'reject' | null>(null)
+
+  const formatProposed = (iso: string) => {
+    const d = new Date(iso)
+    const days = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת']
+    const months = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר']
+    const t = `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`
+    return `יום ${days[d.getDay()]}, ${d.getDate()} ב${months[d.getMonth()]} — ${t}`
+  }
+
+  const accept = async () => {
+    setSaving('accept')
+    try {
+      const updates = {
+        patient_confirmed_proposed_at: new Date().toISOString(),
+        status: 'scheduled' as const,
+      }
+      await supabase.from('appointments').update(updates).eq('id', apt.id)
+      onConfirm(updates)
+    } catch { /* ignore */ } finally { setSaving(null) }
+  }
+
+  const reject = async () => {
+    setSaving('reject')
+    try {
+      const updates = {
+        scheduled_at: null,
+        doctor_proposed_at: null,
+        patient_confirmed_proposed_at: null,
+        status: 'pending' as const,
+      }
+      await supabase.from('appointments').update(updates).eq('id', apt.id)
+      onConfirm(updates)
+    } catch { /* ignore */ } finally { setSaving(null) }
+  }
+
+  return (
+    <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-4 space-y-3">
+      <div className="flex items-start gap-3">
+        <div className="w-8 h-8 rounded-lg bg-amber-100 flex items-center justify-center shrink-0">
+          <svg className="w-4 h-4 text-amber-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+        </div>
+        <div>
+          <p className="text-sm font-bold text-amber-800">הרופא הציע מועד חלופי</p>
+          <p className="text-sm text-amber-700 mt-0.5">
+            {apt.doctor ? `ד"ר ${apt.doctor.first_name} ${apt.doctor.last_name}` : 'הרופא'} מציע:
+            {' '}<strong>{formatProposed(apt.scheduled_at!)}</strong>
+          </p>
+        </div>
+      </div>
+      <div className="flex gap-2">
+        <Button
+          size="sm"
+          className="bg-emerald-600 hover:bg-emerald-700 gap-1"
+          loading={saving === 'accept'}
+          disabled={!!saving}
+          onClick={accept}
+        >
+          ✓ אשר מועד
+        </Button>
+        <Button
+          size="sm"
+          variant="outline"
+          loading={saving === 'reject'}
+          disabled={!!saving}
+          onClick={reject}
+        >
+          דחה — הצע מועד אחר
+        </Button>
+      </div>
+    </div>
+  )
+}
+
 export default function PatientAppointmentsPage() {
   const router  = useRouter()
   const supabase = getClient()
@@ -255,6 +337,7 @@ export default function PatientAppointmentsPage() {
                 ((['ready', 'scheduled', 'paid'].includes(apt.status)) && isNearTime)
               const needsPayment = apt.status === 'payment_pending' || apt.payment_status === 'failed'
               const isCompleted = apt.status === 'completed'
+              const doctorProposedPending = !!apt.doctor_proposed_at && !apt.patient_confirmed_proposed_at
 
               return (
                 <div key={apt.id} className="hover:bg-gray-50/60 transition-colors">
@@ -311,6 +394,16 @@ export default function PatientAppointmentsPage() {
                   {isExpanded && (
                     <div className="px-5 pb-5 space-y-4">
                       <div className="h-px bg-gray-100" />
+
+                      {/* Doctor proposed alternative time banner */}
+                      {doctorProposedPending && apt.scheduled_at && (
+                        <DoctorProposedBanner
+                          apt={apt}
+                          onConfirm={updated => setAppointments(prev =>
+                            prev.map(a => a.id === apt.id ? { ...a, ...updated } : a)
+                          )}
+                        />
+                      )}
 
                       {/* Quick actions */}
                       {(canVideo || needsPayment) && (

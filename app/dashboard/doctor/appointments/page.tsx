@@ -59,12 +59,21 @@ function SchedulePanel({ apt, onScheduled }: {
   onScheduled: (updated: Partial<Appointment>) => void
 }) {
   const supabase = getClient()
-  const [open, setOpen] = useState(false)
-  const [date, setDate] = useState(apt.scheduled_at ? apt.scheduled_at.slice(0, 16) : '')
+  const [mode, setMode] = useState<'closed' | 'accept' | 'propose'>('closed')
+  const [altDate, setAltDate] = useState('')
   const [duration, setDuration] = useState(apt.duration_minutes ?? 30)
   const [saving, setSaving] = useState(false)
 
-  const confirm = async () => {
+  const patientRequestedAt = apt.scheduled_at && !apt.doctor_proposed_at ? apt.scheduled_at : null
+  const hasPatientSlot = !!patientRequestedAt
+
+  const toDatetimeLocal = (iso: string) => {
+    const d = new Date(iso)
+    const pad = (n: number) => n.toString().padStart(2, '0')
+    return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
+  }
+
+  const confirmAccepted = async () => {
     setSaving(true)
     try {
       const updates: Record<string, unknown> = {
@@ -72,39 +81,85 @@ function SchedulePanel({ apt, onScheduled }: {
         doctor_accepted_at: new Date().toISOString(),
         duration_minutes: duration,
       }
-      if (date) updates.scheduled_at = new Date(date).toISOString()
-
       const { error } = await supabase.from('appointments').update(updates).eq('id', apt.id)
       if (error) throw error
       onScheduled(updates as Partial<Appointment>)
-      setOpen(false)
-
-      // Notify patient: appointment scheduled
+      setMode('closed')
       fetch('/api/notifications/trigger', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ appointmentId: apt.id, event: 'appointment_scheduled' }),
       }).catch(() => {})
-    } catch {
-      // ignore
-    } finally {
-      setSaving(false)
+    } catch { /* ignore */ } finally { setSaving(false) }
+  }
+
+  const confirmManual = async () => {
+    if (!altDate) return
+    setSaving(true)
+    try {
+      const isoDate = new Date(altDate).toISOString()
+      const updates: Record<string, unknown> = {
+        status: 'scheduled',
+        scheduled_at: isoDate,
+        doctor_accepted_at: new Date().toISOString(),
+        duration_minutes: duration,
+      }
+      const { error } = await supabase.from('appointments').update(updates).eq('id', apt.id)
+      if (error) throw error
+      onScheduled(updates as Partial<Appointment>)
+      setMode('closed')
+      fetch('/api/notifications/trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId: apt.id, event: 'appointment_scheduled' }),
+      }).catch(() => {})
+    } catch { /* ignore */ } finally { setSaving(false) }
+  }
+
+  const proposeAlternative = async () => {
+    if (!altDate) return
+    setSaving(true)
+    try {
+      const isoDate = new Date(altDate).toISOString()
+      const updates: Record<string, unknown> = {
+        status: 'doctor_confirmed',
+        scheduled_at: isoDate,
+        doctor_proposed_at: new Date().toISOString(),
+        doctor_accepted_at: new Date().toISOString(),
+        duration_minutes: duration,
+      }
+      const { error } = await supabase.from('appointments').update(updates).eq('id', apt.id)
+      if (error) throw error
+      onScheduled(updates as Partial<Appointment>)
+      setMode('closed')
+      fetch('/api/notifications/trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId: apt.id, event: 'doctor_proposed_time' }),
+      }).catch(() => {})
+    } catch { /* ignore */ } finally { setSaving(false) }
+  }
+
+  const openPanel = () => {
+    if (!apt.doctor_accepted_at) {
+      fetch('/api/notifications/trigger', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId: apt.id, event: 'appointment_confirmed' }),
+      }).catch(() => {})
+    }
+    if (hasPatientSlot) {
+      setMode('accept')
+    } else {
+      setAltDate(apt.scheduled_at ? toDatetimeLocal(apt.scheduled_at) : '')
+      setMode('propose')
     }
   }
 
-  if (!open) {
+  // ── Closed state: just the button ──
+  if (mode === 'closed') {
     return (
-      <Button onClick={() => {
-        setOpen(true)
-        // Notify patient that doctor opened the scheduling panel (confirmed interest)
-        if (!apt.doctor_accepted_at) {
-          fetch('/api/notifications/trigger', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ appointmentId: apt.id, event: 'appointment_confirmed' }),
-          }).catch(() => {})
-        }
-      }} className="bg-blue-600 hover:bg-blue-700 gap-2">
+      <Button onClick={openPanel} className="bg-blue-600 hover:bg-blue-700 gap-2">
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
         </svg>
@@ -113,16 +168,64 @@ function SchedulePanel({ apt, onScheduled }: {
     )
   }
 
+  // ── Accept patient's requested time ──
+  if (mode === 'accept' && patientRequestedAt) {
+    const d = new Date(patientRequestedAt)
+    const days = ['ראשון','שני','שלישי','רביעי','חמישי','שישי','שבת']
+    const months = ['ינואר','פברואר','מרץ','אפריל','מאי','יוני','יולי','אוגוסט','ספטמבר','אוקטובר','נובמבר','דצמבר']
+    const timeStr = `${d.getHours().toString().padStart(2,'0')}:${d.getMinutes().toString().padStart(2,'0')}`
+    const dateStr = `יום ${days[d.getDay()]}, ${d.getDate()} ב${months[d.getMonth()]} — ${timeStr}`
+
+    return (
+      <div className="w-full border border-blue-200 rounded-xl p-4 bg-blue-50 space-y-3">
+        <p className="text-sm font-semibold text-blue-800">המטופל ביקש מועד</p>
+        <div className="flex items-center gap-2 bg-white border border-blue-200 rounded-lg px-4 py-3">
+          <svg className="w-4 h-4 text-blue-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
+          </svg>
+          <span className="text-sm font-semibold text-gray-800">{dateStr}</span>
+        </div>
+        <div>
+          <label className="text-xs font-medium text-gray-600 block mb-1">משך (דקות)</label>
+          <select
+            value={duration}
+            onChange={e => setDuration(Number(e.target.value))}
+            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white"
+          >
+            {[15, 20, 30, 45, 60, 90].map(m => (
+              <option key={m} value={m}>{m} דקות</option>
+            ))}
+          </select>
+        </div>
+        <div className="flex gap-2 flex-wrap">
+          <Button size="sm" onClick={confirmAccepted} loading={saving} className="bg-emerald-600 hover:bg-emerald-700">
+            ✓ אשר מועד זה
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => {
+            setAltDate(toDatetimeLocal(patientRequestedAt))
+            setMode('propose')
+          }}>
+            הצע מועד אחר
+          </Button>
+          <Button size="sm" variant="outline" onClick={() => setMode('closed')}>ביטול</Button>
+        </div>
+      </div>
+    )
+  }
+
+  // ── Propose / set manual time ──
   return (
     <div className="w-full border border-blue-200 rounded-xl p-4 bg-blue-50 space-y-3">
-      <p className="text-sm font-semibold text-blue-800">קביעת מועד לשיחת וידאו</p>
+      <p className="text-sm font-semibold text-blue-800">
+        {hasPatientSlot ? 'הצע מועד חלופי למטופל' : 'קביעת מועד לשיחת וידאו'}
+      </p>
       <div className="grid grid-cols-2 gap-3">
         <div>
           <label className="text-xs font-medium text-gray-600 block mb-1">תאריך ושעה</label>
           <input
             type="datetime-local"
-            value={date}
-            onChange={e => setDate(e.target.value)}
+            value={altDate}
+            onChange={e => setAltDate(e.target.value)}
             className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
           />
         </div>
@@ -140,11 +243,17 @@ function SchedulePanel({ apt, onScheduled }: {
         </div>
       </div>
       <div className="flex gap-2">
-        <Button size="sm" onClick={confirm} loading={saving} className="bg-blue-600 hover:bg-blue-700">
-          אשר תור
+        <Button size="sm" onClick={hasPatientSlot ? proposeAlternative : confirmManual} loading={saving} className="bg-blue-600 hover:bg-blue-700">
+          {hasPatientSlot ? 'שלח הצעה למטופל' : 'אשר תור'}
         </Button>
-        <Button size="sm" variant="outline" onClick={() => setOpen(false)}>ביטול</Button>
+        {hasPatientSlot && (
+          <Button size="sm" variant="outline" onClick={() => setMode('accept')}>חזור</Button>
+        )}
+        <Button size="sm" variant="outline" onClick={() => setMode('closed')}>ביטול</Button>
       </div>
+      {hasPatientSlot && (
+        <p className="text-xs text-blue-600">המטופל יקבל הודעה ויצטרך לאשר את המועד החלופי</p>
+      )}
     </div>
   )
 }
