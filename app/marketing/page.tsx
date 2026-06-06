@@ -486,7 +486,7 @@ export default function MarketingPage() {
 
           <div className="mt-12 pt-8 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-600">
             <p>&copy; {new Date().getFullYear()} טלמדיסן. כל הזכויות שמורות.</p>
-            <p>עשוי עם ❤ בישראל</p>
+            <p>נבנה ב <span className="font-semibold text-slate-500">NFD — Next Flow Digital</span></p>
           </div>
         </div>
       </footer>

@@ -672,6 +672,10 @@ export default function ForClinicsPage() {
 
           <div className="border-t border-white/5 pt-8 flex flex-col sm:flex-row items-center justify-between gap-4 text-sm text-slate-600">
             <p>© {new Date().getFullYear()} טלמדיסן. כל הזכויות שמורות.</p>
+            <p className="text-slate-700 text-xs">
+              נבנה ב{' '}
+              <span className="text-slate-500 font-semibold">NFD — Next Flow Digital</span>
+            </p>
             <div className="flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-green-400" />
               <span className="text-xs text-slate-500">כל המערכות פעילות</span>
