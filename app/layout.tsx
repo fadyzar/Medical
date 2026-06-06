@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from 'next'
 import { Toaster } from 'sonner'
+import AccessibilityWidget from '@/components/accessibility/AccessibilityWidget'
 import './globals.css'
 
 // CHECKLIST: SEO metadata
@@ -53,8 +54,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         })}} />
       </head>
       <body className="font-sans antialiased bg-gray-50 text-gray-900 min-h-screen">
-        {children}
+        {/* Skip to main content — WCAG 2.4.1, תקן ת"י 5568 */}
+        <a href="#main-content" className="skip-to-content">
+          דלג לתוכן הראשי
+        </a>
+        <div id="main-content" tabIndex={-1}>
+          {children}
+        </div>
         <Toaster position="top-center" toastOptions={{ style: { direction: 'rtl' } }} richColors />
+        {/* Accessibility widget — נגישות */}
+        <AccessibilityWidget />
       </body>
     </html>
   )
