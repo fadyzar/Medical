@@ -54,6 +54,7 @@ export async function provisionSubdomain(orgId: string, subdomain: string): Prom
 
   // Step 2: Add CNAME to Hostinger DNS
   const dnsResult = await addCnameToHostinger(subdomain)
+  console.log('[provision] dnsResult →', JSON.stringify(dnsResult))
 
   const dnsManual = !dnsResult.ok
   const finalStatus: 'vercel_added' = 'vercel_added'

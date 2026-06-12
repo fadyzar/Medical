@@ -28,28 +28,40 @@ export async function addCnameToHostinger(
   const apiKey = getApiKey()
   if (!apiKey) return { ok: false, notConfigured: true, error: 'HOSTINGER_API_KEY not configured' }
 
+  const url = `${HOSTINGER_API}/zones/${DNS_ZONE}`
+  const body = {
+    overwrite: false,
+    zone: [
+      {
+        name: subdomain,
+        type: 'CNAME',
+        ttl: 3600,
+        records: [{ content: `${getVercelTarget()}.` }],
+      },
+    ],
+  }
+
+  console.log('[Hostinger] addCname →', url)
+  console.log('[Hostinger] body →', JSON.stringify(body))
+
   try {
-    const res = await fetch(`${HOSTINGER_API}/zones/${DNS_ZONE}`, {
+    const res = await fetch(url, {
       method: 'PUT',
       headers: headers(apiKey),
-      body: JSON.stringify({
-        overwrite: false,
-        zone: [
-          {
-            name: subdomain,
-            type: 'CNAME',
-            ttl: 3600,
-            records: [{ content: `${getVercelTarget()}.` }],
-          },
-        ],
-      }),
+      body: JSON.stringify(body),
     })
+
+    const text = await res.text()
+    console.log('[Hostinger] status →', res.status)
+    console.log('[Hostinger] response →', text)
 
     if (res.ok) return { ok: true }
 
-    const data = await res.json().catch(() => ({})) as { message?: string; errors?: unknown }
-    return { ok: false, error: (data.message) || `Hostinger API ${res.status}` }
+    let data: { message?: string; errors?: unknown } = {}
+    try { data = JSON.parse(text) } catch { /* raw text */ }
+    return { ok: false, error: data.message || `Hostinger API ${res.status}: ${text}` }
   } catch (err) {
+    console.error('[Hostinger] network error →', err)
     return { ok: false, error: err instanceof Error ? err.message : 'Network error' }
   }
 }
