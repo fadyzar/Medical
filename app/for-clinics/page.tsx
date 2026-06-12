@@ -9,243 +9,254 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'טלמדיסן למרפאות — הפלטפורמה שמכפילה הכנסות',
     description: 'הקם קליניקה דיגיטלית תוך 24 שעות.',
-    type: 'website', locale: 'he_IL',
+    type: 'website',
+    locale: 'he_IL',
   },
 }
 
-// ── Icons ─────────────────────────────────────────────────────────
+// ── Feature sections data ────────────────────────────────────────────
 
-function Check({ c = '#34d399' }: { c?: string }) {
+const features = [
+  {
+    tag: 'ייעוצי וידאו',
+    title: 'שיחות וידאו HD — מובנות בפלטפורמה',
+    body: 'ייעוצים בוידאו מוצפן ויציב. חדר המתנה דיגיטלי, בדיקת ציוד אוטומטית, ו-SOAP notes בצד המסך בזמן אמת. אפס התקנות למטופל.',
+    img: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=700&q=80',
+    imgAlt: 'רופא בשיחת וידאו עם מטופל',
+  },
+  {
+    tag: 'בינה מלאכותית',
+    title: 'AI שכותב את התיעוד בשבילך',
+    body: 'לפני כל ייעוץ — מיון אוטומטי ושאלון קליטה. אחרי — SOAP notes נכתבים לבד וטיוטת מרשם מוכנה לאישור. חיסכון של שעות תיעוד ביום.',
+    img: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?auto=format&fit=crop&w=700&q=80',
+    imgAlt: 'AI רפואי מנתח מידע',
+  },
+  {
+    tag: 'White-Label',
+    title: 'המרפאה שלך — הזהות שלך',
+    body: 'לוגו, צבעים, ו-subdomain ייחודיים. המטופלים שלך רואים רק את שם המרפאה שלך — לא "טלמדיסן". מיתוג מלא בכמה קליקים.',
+    img: 'https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?auto=format&fit=crop&w=700&q=80',
+    imgAlt: 'מרפאה עם מיתוג אישי',
+  },
+]
+
+// ── Check icon ────────────────────────────────────────────────────────
+
+function Check() {
   return (
-    <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke={c} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg className="w-5 h-5 text-blue-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <polyline points="20 6 9 17 4 12" />
     </svg>
   )
 }
 
-// ── Page ──────────────────────────────────────────────────────────
+// ── Page ──────────────────────────────────────────────────────────────
 
 export default function ForClinicsPage() {
   return (
-    <div className="min-h-screen" dir="rtl" style={{ background: '#07090f' }}>
+    <div className="min-h-screen bg-white" dir="rtl">
 
-      {/* ── NAV ── */}
-      <nav
-        className="sticky top-0 z-50 flex items-center justify-between h-16 px-4 max-w-7xl mx-auto"
-        dir="rtl"
-      >
-        <Link href="/" className="text-xl font-black text-white tracking-tight">טלמדיסן</Link>
-        <div className="hidden md:flex items-center gap-7 text-sm" style={{ color: '#64748b' }}>
-          <Link href="#features" className="hover:text-white transition-colors">פיצ׳רים</Link>
-          <Link href="#pricing" className="hover:text-white transition-colors">מחירים</Link>
-          <Link href="#compare" className="hover:text-white transition-colors">השוואה</Link>
-          <Link href="/doctors" className="hover:text-white transition-colors">לרופאים</Link>
+      {/* ── Navbar ── */}
+      <header className="fixed inset-x-0 top-0 z-50">
+        <div className="mx-auto max-w-7xl px-6">
+          <nav className="mt-4 flex items-center justify-between rounded-2xl bg-white/80 backdrop-blur-md border border-white/60 shadow-sm px-5 h-14">
+            <Link href="/" className="flex items-center gap-2 font-bold text-lg text-slate-900">
+              <span className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <path d="M4.8 2.3A.3.3 0 105 2H4a2 2 0 00-2 2v5a6 6 0 006 6 6 6 0 006-6V4a2 2 0 00-2-2h-1"/>
+                  <path d="M8 15v1a6 6 0 006 6 6 6 0 006-6v-4"/><circle cx="20" cy="10" r="2"/>
+                </svg>
+              </span>
+              טלמדיסן
+            </Link>
+            <div className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">
+              <Link href="/doctors" className="hover:text-slate-900 transition-colors">לרופאים</Link>
+              <Link href="#features" className="hover:text-slate-900 transition-colors">פיצ׳רים</Link>
+              <Link href="#pricing" className="hover:text-slate-900 transition-colors">מחירים</Link>
+            </div>
+            <div className="flex items-center gap-2">
+              <Link href="/auth/login" className="hidden sm:block text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-2 transition-colors">
+                כניסה
+              </Link>
+              <Link href="/auth/register?type=clinic" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors shadow-sm shadow-blue-600/20">
+                ניסיון חינם — 14 יום
+              </Link>
+            </div>
+          </nav>
         </div>
-        <div className="flex items-center gap-3">
-          <Link href="/auth/login" className="text-sm font-medium transition-colors hover:text-white" style={{ color: '#64748b' }}>התחברות</Link>
-          <Link href="/auth/register?type=clinic"
-            className="text-sm font-bold text-white px-5 py-2.5 rounded-lg transition-all hover:scale-105"
-            style={{ background: 'linear-gradient(135deg,#2563eb,#4f46e5)' }}>
-            14 ימי ניסיון חינם
-          </Link>
-        </div>
-      </nav>
+      </header>
 
-      {/* ── HERO ── */}
-      <section className="relative overflow-hidden" dir="rtl">
-        {/* Mesh gradients */}
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute w-[600px] h-[600px] rounded-full blur-3xl"
-            style={{ top: '-20%', right: '-10%', background: 'radial-gradient(circle, rgba(59,130,246,0.12) 0%, transparent 70%)' }} />
-          <div className="absolute w-[400px] h-[400px] rounded-full blur-3xl"
-            style={{ bottom: '-10%', left: '10%', background: 'radial-gradient(circle, rgba(139,92,246,0.1) 0%, transparent 70%)' }} />
-        </div>
-        {/* Grid */}
-        <div className="pointer-events-none absolute inset-0"
-          style={{
-            opacity: 0.025,
-            backgroundImage: ['linear-gradient(rgba(255,255,255,1) 1px, transparent 1px)', 'linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)'].join(', '),
-            backgroundSize: '64px 64px',
-          }} />
+      {/* ── Hero — fullscreen carousel ── */}
+      <section className="relative min-h-screen flex items-center overflow-hidden">
+        <HeroCarousel />
+        <div className="absolute inset-0 bg-gradient-to-l from-slate-950/95 via-slate-900/80 to-slate-900/40 z-10" />
 
-        {/* Hero headline section */}
-        <div className="relative max-w-7xl mx-auto px-4 sm:px-6 pt-16 pb-0 text-center">
-          {/* Social proof badge */}
-          <div className="inline-flex items-center gap-2.5 mb-8 rounded-full border px-5 py-2.5 text-sm font-bold"
-            style={{ background: 'rgba(59,130,246,0.08)', borderColor: 'rgba(59,130,246,0.2)', color: '#93c5fd' }}>
-            <div className="flex -space-x-1.5 rtl:space-x-reverse">
-              {['#3b82f6','#10b981','#8b5cf6'].map((c, i) => (
-                <div key={i} className="w-5 h-5 rounded-full border-2 flex items-center justify-center text-white text-[8px] font-black"
-                  style={{ background: c, borderColor: '#07090f' }}>מ</div>
+        <div className="relative z-20 max-w-7xl mx-auto px-6 py-32 w-full">
+          <div className="max-w-2xl mr-auto">
+            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white/90 text-xs font-semibold tracking-widest uppercase px-4 py-2 rounded-full mb-8 backdrop-blur-sm">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+              50+ מרפאות כבר פועלות על הפלטפורמה
+            </div>
+
+            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.05] tracking-tight">
+              קליניקה דיגיטלית
+              <br />
+              <span className="text-blue-400">תוך 24 שעות.</span>
+            </h1>
+
+            <p className="text-lg text-white/70 mt-6 leading-relaxed max-w-lg">
+              ניהול תורים, ייעוצי וידאו HD, AI שכותב תיעוד, מיתוג אישי ותמיכה ישראלית — פלטפורמה אחת, פתרון מלא.
+            </p>
+
+            <div className="flex flex-col sm:flex-row gap-3 mt-10">
+              <Link
+                href="/auth/register?type=clinic"
+                className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white font-bold text-base px-8 py-4 rounded-2xl transition-all shadow-xl shadow-blue-600/30 hover:shadow-blue-500/40 hover:-translate-y-0.5"
+              >
+                התחל ניסיון חינם — 14 יום
+              </Link>
+              <Link
+                href="#features"
+                className="inline-flex items-center justify-center border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 text-white font-semibold text-base px-8 py-4 rounded-2xl transition-all backdrop-blur-sm"
+              >
+                גלה את הפיצ׳רים
+              </Link>
+            </div>
+
+            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-10">
+              {['✓ הפעלה תוך 24 שעות', '✓ AI שכותב תיעוד', '✓ White-Label מלא', '✓ ביטול בכל עת'].map(t => (
+                <span key={t} className="text-sm text-white/60 font-medium">{t}</span>
               ))}
             </div>
-            <span style={{ color: '#64748b' }}>|</span>
-            <span>50+ מרפאות כבר פועלות על הפלטפורמה</span>
           </div>
-
-          <h1 className="font-black text-white mx-auto"
-            style={{ fontSize: 'clamp(2.5rem, 6vw, 5rem)', lineHeight: '0.92', maxWidth: '900px', letterSpacing: '-0.02em' }}>
-            הפלטפורמה שמכפילה<br />
-            <span className="bg-clip-text text-transparent"
-              style={{ backgroundImage: 'linear-gradient(90deg, #60a5fa 0%, #818cf8 50%, #a78bfa 100%)' }}>
-              הכנסות המרפאה שלך
-            </span>
-          </h1>
-
-          <p className="mt-6 text-xl max-w-2xl mx-auto leading-relaxed" style={{ color: '#94a3b8' }}>
-            קליניקה דיגיטלית מלאה תוך 24 שעות — ייעוצי וידאו, AI שכותב תיעוד,
-            ניהול תורים אוטומטי, ומיתוג אישי. בלי בזבוז זמן.
-          </p>
-
-          <div className="flex flex-wrap gap-4 justify-center mt-10 mb-16">
-            <Link href="/auth/register?type=clinic"
-              className="inline-flex items-center gap-2 text-white font-black px-10 py-5 rounded-2xl text-lg transition-all hover:scale-105"
-              style={{ background: 'linear-gradient(135deg,#2563eb,#4f46e5)', boxShadow: '0 8px 32px rgba(59,130,246,0.35)' }}>
-              התחל ניסיון חינם — 14 יום
-              <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24" strokeWidth={2.5}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M15 19l-7-7 7-7"/>
-              </svg>
-            </Link>
-            <a href="#features"
-              className="inline-flex items-center gap-2 font-bold px-10 py-5 rounded-2xl text-lg transition-all hover:scale-105"
-              style={{ border: '1.5px solid rgba(255,255,255,0.15)', color: '#e2e8f0', background: 'rgba(255,255,255,0.05)' }}>
-              ראה דמו חי ↓
-            </a>
-          </div>
-
-          {/* Inline stats */}
-          <div className="flex flex-wrap items-center justify-center gap-8 text-sm pb-0" style={{ color: '#64748b' }}>
-            {[
-              { icon: '🔒', t: 'HIPAA & GDPR' },
-              { icon: '⚡', t: 'הפעלה תוך 24ש׳' },
-              { icon: '🇮🇱', t: 'תמיכה בעברית' },
-              { icon: '💳', t: 'ביטול בכל עת' },
-            ].map((b, i) => (
-              <span key={i} className="flex items-center gap-1.5 font-medium">{b.icon} {b.t}</span>
-            ))}
-          </div>
-        </div>
-
-        {/* Carousel (features demo) */}
-        <div id="features">
-          <HeroCarousel />
         </div>
       </section>
 
-      {/* ── ROI STRIP ── */}
-      <div style={{ background: 'linear-gradient(135deg,#1e1b4b,#172554)', borderTop: '1px solid rgba(255,255,255,0.07)', borderBottom: '1px solid rgba(255,255,255,0.07)' }}>
-        <div className="max-w-5xl mx-auto px-4 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+      {/* ── Stats strip ── */}
+      <div className="bg-blue-600 py-8 px-6">
+        <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center text-white">
           {[
-            { v: '+40%', l: 'הכנסות ממוצעות תוך 3 חודשים', c: '#34d399' },
-            { v: '-3 שעות', l: 'פחות תיעוד ידני ביום', c: '#60a5fa' },
-            { v: '0%', l: 'no-show עם תזכורות אוטומטיות', c: '#a78bfa' },
-            { v: '× 2.4', l: 'תפוקת ייעוצים לרופא', c: '#fbbf24' },
+            { v: '+40%', l: 'הכנסות ממוצעות תוך 3 חודשים' },
+            { v: '−3 שעות', l: 'פחות תיעוד ידני ביום' },
+            { v: '0%', l: 'no-show עם תזכורות אוטומטיות' },
+            { v: '× 2.4', l: 'תפוקת ייעוצים לרופא' },
           ].map((s, i) => (
             <div key={i}>
-              <p className="text-3xl font-black" style={{ color: s.c }}>{s.v}</p>
-              <p className="text-xs mt-1.5 leading-relaxed" style={{ color: '#94a3b8' }}>{s.l}</p>
+              <p className="text-2xl font-black">{s.v}</p>
+              <p className="text-blue-100 text-xs mt-1 font-medium">{s.l}</p>
             </div>
           ))}
         </div>
       </div>
 
-      {/* ── FEATURES GRID ── */}
-      <section className="py-24 px-4 relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0"
-          style={{
-            opacity: 0.02,
-            backgroundImage: ['linear-gradient(rgba(255,255,255,1) 1px, transparent 1px)', 'linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)'].join(', '),
-            backgroundSize: '64px 64px',
-          }} />
-        <div className="relative max-w-6xl mx-auto">
-          <div className="text-center mb-16">
-            <span className="text-xs font-black tracking-widest uppercase px-4 py-2 rounded-full"
-              style={{ background: 'rgba(59,130,246,0.1)', border: '1px solid rgba(59,130,246,0.2)', color: '#60a5fa' }}>
-              הכל כלול
-            </span>
-            <h2 className="font-black text-white mt-5 mb-3" style={{ fontSize: 'clamp(1.8rem,4vw,3rem)' }}>
+      {/* ── Feature sections — alternating with real images ── */}
+      <section id="features" className="bg-slate-50 py-4">
+        {features.map((f, i) => (
+          <div
+            key={f.tag}
+            className={`max-w-7xl mx-auto px-6 py-20 grid lg:grid-cols-2 gap-16 items-center`}
+          >
+            {/* Text */}
+            <div className={i % 2 === 1 ? 'order-1 lg:order-2' : 'order-1'}>
+              <span className="inline-block bg-blue-100 text-blue-700 text-xs font-bold tracking-widest uppercase px-3 py-1.5 rounded-full mb-5">
+                {f.tag}
+              </span>
+              <h2 className="text-3xl sm:text-4xl font-black text-slate-900 leading-tight tracking-tight">
+                {f.title}
+              </h2>
+              <p className="text-slate-500 mt-5 text-lg leading-relaxed">{f.body}</p>
+              <Link
+                href="/auth/register?type=clinic"
+                className="inline-flex items-center gap-2 mt-8 text-blue-600 font-semibold hover:gap-3 transition-all group"
+              >
+                התחל עכשיו
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-[-3px] transition-transform">
+                  <line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/>
+                </svg>
+              </Link>
+            </div>
+
+            {/* Image */}
+            <div className={i % 2 === 1 ? 'order-2 lg:order-1' : 'order-2'}>
+              <div className="relative">
+                <div className="rounded-3xl overflow-hidden shadow-2xl shadow-slate-200 aspect-[4/3]">
+                  {/* eslint-disable-next-line @next/next/no-img-element */}
+                  <img
+                    src={f.img}
+                    alt={f.imgAlt}
+                    className="w-full h-full object-cover"
+                    loading="lazy"
+                  />
+                </div>
+                <div
+                  className={`absolute -z-10 w-48 h-48 opacity-30 ${i % 2 === 0 ? '-bottom-6 -left-6' : '-bottom-6 -right-6'}`}
+                  style={{ backgroundImage: 'radial-gradient(circle, #94a3b8 1px, transparent 1px)', backgroundSize: '16px 16px' }}
+                />
+              </div>
+            </div>
+          </div>
+        ))}
+      </section>
+
+      {/* ── All features list ── */}
+      <section className="py-24 px-6 bg-white">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-14">
+            <p className="text-xs font-bold tracking-widest uppercase text-blue-600 mb-4">הכל כלול</p>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
               כל מה שמרפאה מודרנית צריכה
             </h2>
-            <p className="text-lg" style={{ color: '#64748b' }}>פלטפורמה אחת — פתרון מלא</p>
+            <p className="text-slate-500 mt-4 text-lg">פלטפורמה אחת — בלי לרכב על כמה כלים</p>
           </div>
-
-          <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-5">
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-6">
             {[
-              {
-                from: '#3b82f6', to: '#6366f1',
-                icon: '📹',
-                title: 'ייעוצי וידאו HD',
-                desc: 'שיחות וידאו מוצפנות ויציבות. חדר המתנה דיגיטלי ובדיקת ציוד אוטומטית לפני כל ייעוץ.',
-                points: ['LiveKit מוצפן', 'חדר המתנה', 'הקלטה אופציונלית'],
-              },
-              {
-                from: '#8b5cf6', to: '#ec4899',
-                icon: '🤖',
-                title: 'AI — 4 סוכנים חכמים',
-                desc: 'מיון, SOAP notes אוטומטיים, טיוטת מרשם ושאלון קליטה דינמי. שעות חיסכון ביום.',
-                points: ['Triage agent', 'SOAP אוטומטי', 'טיוטת מרשם'],
-                badge: '🔥 חם',
-              },
-              {
-                from: '#10b981', to: '#0891b2',
-                icon: '📅',
-                title: 'ניהול תורים חכם',
-                desc: 'מטופל בוחר מועד מהסלוטים הפנויים. הרופא מאשר או מציע חלופה. אפס ג\'אגלינג.',
-                points: ['בחירת מועד עצמאית', 'אישור דיגיטלי', 'תזכורות WhatsApp'],
-              },
-              {
-                from: '#f59e0b', to: '#ef4444',
-                icon: '🎨',
-                title: 'White-Label מלא',
-                desc: 'לוגו, צבעים, subdomain ייחודיים. המטופלים רואים רק את שם המרפאה שלך.',
-                points: ['Subdomain מותאם', 'צבעים ולוגו', 'דומיין אישי'],
-              },
-              {
-                from: '#06b6d4', to: '#6366f1',
-                icon: '📋',
-                title: 'מסמכים דיגיטליים',
-                desc: 'מרשמים, אישורי מחלה וסיכומים נשלחים ישירות למטופל. חתימה דיגיטלית מאובטחת.',
-                points: ['מרשמים דיגיטליים', 'אישורי מחלה', 'חתימה מאובטחת'],
-              },
-              {
-                from: '#84cc16', to: '#10b981',
-                icon: '📊',
-                title: 'דוחות ואנליטיקה',
-                desc: 'הכנסות, זמני המתנה, AI usage, no-show rate. כל מה שצריך לקבל החלטות.',
-                points: ['הכנסות בזמן אמת', 'AI usage tracking', 'No-show analytics'],
-              },
+              { icon: '📹', title: 'ייעוצי וידאו HD', desc: 'LiveKit מוצפן, חדר המתנה דיגיטלי, ניהול ציוד.' },
+              { icon: '🤖', title: 'AI — 4 סוכנים', desc: 'מיון, SOAP notes, טיוטת מרשם ושאלון קליטה.', hot: true },
+              { icon: '📅', title: 'ניהול תורים', desc: 'מטופל בוחר מועד, רופא מאשר, תזכורות אוטומטיות.' },
+              { icon: '🎨', title: 'White-Label מלא', desc: 'לוגו, צבעים, subdomain ודומיין אישי.' },
+              { icon: '📋', title: 'מסמכים דיגיטליים', desc: 'מרשמים, אישורי מחלה, חתימה דיגיטלית.' },
+              { icon: '📊', title: 'דוחות ואנליטיקה', desc: 'הכנסות, no-show, AI usage — הכל בזמן אמת.' },
+              { icon: '🔔', title: 'תזכורות אוטומטיות', desc: 'WhatsApp + Email — 24ש׳ ושעה לפני הייעוץ.' },
+              { icon: '🔒', title: 'HIPAA & GDPR', desc: 'הצפנה מקצה לקצה, audit log, אחסון בישראל.' },
+              { icon: '🇮🇱', title: 'תמיכה ישראלית', desc: 'צוות תמיכה בעברית, זמן תגובה עד 2 שעות.' },
             ].map((f, i) => (
-              <div key={i} className="rounded-2xl p-6 group transition-all hover:-translate-y-1 hover:scale-[1.01] relative overflow-hidden"
-                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                {/* Hover glow */}
-                <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity rounded-2xl pointer-events-none"
-                  style={{ background: `radial-gradient(ellipse at top right, ${f.from}10, transparent 60%)` }} />
-                <div className="absolute top-0 right-0 left-0 h-0.5 rounded-t-2xl"
-                  style={{ background: `linear-gradient(90deg, ${f.from}, ${f.to})` }} />
+              <div key={i} className="bg-slate-50 hover:bg-blue-50 border border-slate-100 hover:border-blue-200 rounded-2xl p-6 transition-all group">
+                <div className="flex items-start justify-between mb-3">
+                  <span className="text-2xl">{f.icon}</span>
+                  {f.hot && (
+                    <span className="text-xs font-black text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">🔥 חם</span>
+                  )}
+                </div>
+                <h3 className="font-black text-slate-900 mb-1.5">{f.title}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">{f.desc}</p>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
 
-                <div className="relative">
-                  <div className="flex items-start justify-between mb-4">
-                    <div className="w-11 h-11 rounded-xl flex items-center justify-center text-xl"
-                      style={{ background: `${f.from}20`, border: `1px solid ${f.from}30` }}>
-                      {f.icon}
-                    </div>
-                    {f.badge && (
-                      <span className="text-xs font-black px-2.5 py-1 rounded-full"
-                        style={{ background: 'rgba(239,68,68,0.15)', border: '1px solid rgba(239,68,68,0.3)', color: '#f87171' }}>
-                        {f.badge}
-                      </span>
-                    )}
-                  </div>
-                  <h3 className="font-black text-white text-lg mb-2">{f.title}</h3>
-                  <p className="text-sm leading-relaxed mb-4" style={{ color: '#64748b' }}>{f.desc}</p>
-                  <div className="space-y-1.5">
-                    {f.points.map(p => (
-                      <div key={p} className="flex items-center gap-2">
-                        <Check c={f.from} />
-                        <span className="text-xs font-medium" style={{ color: '#94a3b8' }}>{p}</span>
-                      </div>
-                    ))}
-                  </div>
+      {/* ── How it works ── */}
+      <section className="py-24 px-6 bg-slate-950">
+        <div className="max-w-5xl mx-auto">
+          <div className="text-center mb-16">
+            <p className="text-xs font-bold tracking-widest uppercase text-blue-400 mb-4">תהליך</p>
+            <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">מהרשמה לקליניקה פעילה — 4 שלבים</h2>
+          </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {[
+              { n: '01', title: 'נרשמים', desc: 'הרשמה בדקה אחת. 14 ימי ניסיון חינם, ללא כרטיס אשראי.' },
+              { n: '02', title: 'מגדירים מיתוג', desc: 'מעלים לוגו, בוחרים צבעים ומקבלים subdomain ייחודי.' },
+              { n: '03', title: 'מזמינים רופאים', desc: 'שולחים הזמנה באימייל. רופאים מצטרפים ומגדירים זמינות.' },
+              { n: '04', title: 'מתחילים לקבל', desc: 'מטופלים קובעים תורים, הרופאים מקיימים ייעוצים, AI מתעד.' },
+            ].map((s, i) => (
+              <div key={s.n} className="relative group">
+                {i < 3 && (
+                  <div className="hidden lg:block absolute top-7 left-0 w-full h-px bg-white/10 -z-10" />
+                )}
+                <div className="bg-white/5 hover:bg-white/8 border border-white/10 hover:border-white/20 rounded-2xl p-6 transition-all">
+                  <span className="text-4xl font-black text-white/10 group-hover:text-blue-500/30 transition-colors">{s.n}</span>
+                  <h3 className="text-white font-bold mt-3">{s.title}</h3>
+                  <p className="text-white/50 text-sm mt-1.5 leading-relaxed">{s.desc}</p>
                 </div>
               </div>
             ))}
@@ -253,43 +264,21 @@ export default function ForClinicsPage() {
         </div>
       </section>
 
-      {/* ── COMPARISON TABLE ── */}
-      <section id="compare" className="py-24 px-4" style={{ background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      {/* ── Comparison table ── */}
+      <section className="py-24 px-6 bg-white">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-14">
-            <span className="text-xs font-black tracking-widest uppercase px-4 py-2 rounded-full"
-              style={{ background: 'rgba(139,92,246,0.1)', border: '1px solid rgba(139,92,246,0.2)', color: '#a78bfa' }}>
-              למה טלמדיסן?
-            </span>
-            <h2 className="font-black text-white mt-5 mb-2" style={{ fontSize: 'clamp(1.8rem,4vw,3rem)' }}>
-              בואו נשווה בכנות
-            </h2>
-            <p style={{ color: '#64748b' }}>מה שאחרים לא נותנים — אנחנו כן</p>
+            <p className="text-xs font-bold tracking-widest uppercase text-blue-600 mb-4">השוואה</p>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">למה טלמדיסן?</h2>
+            <p className="text-slate-500 mt-3 text-lg">מה שאחרים לא נותנים — אנחנו כן</p>
           </div>
-
-          <div className="rounded-2xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.08)' }}>
-            {/* Header */}
-            <div className="grid grid-cols-4 text-center text-xs font-black uppercase tracking-wide"
-              style={{ background: '#1e293b', borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
-              <div className="py-4 text-right px-6" style={{ color: '#475569' }}>פיצ׳ר</div>
-              {[
-                { name: 'טלמדיסן', from: '#3b82f6', to: '#4f46e5', highlight: true },
-                { name: 'HiDoc', from: '#64748b', to: '#475569' },
-                { name: 'ביקורופא', from: '#64748b', to: '#475569' },
-              ].map((h, i) => (
-                <div key={i} className="py-4 relative">
-                  {h.highlight && (
-                    <div className="absolute top-0 left-0 right-0 h-0.5"
-                      style={{ background: `linear-gradient(90deg, ${h.from}, ${h.to})` }} />
-                  )}
-                  <span className="font-black" style={{ color: h.highlight ? '#e2e8f0' : '#475569' }}>{h.name}</span>
-                  {h.highlight && (
-                    <div className="text-[9px] mt-0.5 font-bold" style={{ color: '#60a5fa' }}>המומלץ</div>
-                  )}
-                </div>
+          <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
+            <div className="grid grid-cols-4 text-center text-xs font-bold uppercase tracking-wide bg-slate-50 border-b border-slate-200">
+              <div className="py-4 px-4 text-right text-slate-500">פיצ׳ר</div>
+              {['טלמדיסן', 'HiDoc', 'ביקורופא'].map((h, i) => (
+                <div key={i} className={`py-4 ${i === 0 ? 'text-blue-700 bg-blue-50' : 'text-slate-400'}`}>{h}</div>
               ))}
             </div>
-            {/* Rows */}
             {[
               { f: 'White-Label מלא', vals: [true, false, false] },
               { f: 'AI SOAP notes', vals: [true, false, false] },
@@ -300,20 +289,13 @@ export default function ForClinicsPage() {
               { f: 'תמיכה ישראלית', vals: [true, false, false] },
               { f: 'ביטול בכל עת', vals: [true, false, false] },
             ].map((row, i) => (
-              <div key={i} className="grid grid-cols-4 text-center text-sm items-center"
-                style={{
-                  borderBottom: i < 7 ? '1px solid rgba(255,255,255,0.04)' : 'none',
-                  background: i % 2 === 0 ? 'transparent' : 'rgba(255,255,255,0.01)',
-                }}>
-                <div className="py-3.5 px-6 text-right font-medium" style={{ color: '#94a3b8' }}>{row.f}</div>
+              <div key={i} className={`grid grid-cols-4 text-center text-sm items-center border-b border-slate-100 last:border-0 ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
+                <div className="py-3.5 px-4 text-right font-medium text-slate-600">{row.f}</div>
                 {row.vals.map((v, j) => (
-                  <div key={j} className="py-3.5">
+                  <div key={j} className={`py-3.5 ${j === 0 ? 'bg-blue-50/50' : ''}`}>
                     {v
-                      ? <span className="inline-flex items-center justify-center w-6 h-6 rounded-full text-white text-xs font-black"
-                          style={{ background: j === 0 ? 'linear-gradient(135deg,#2563eb,#4f46e5)' : 'rgba(52,211,153,0.15)', color: j === 0 ? '#fff' : '#34d399' }}>
-                          ✓
-                        </span>
-                      : <span className="text-slate-600">—</span>
+                      ? <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-black ${j === 0 ? 'bg-blue-600 text-white' : 'bg-emerald-100 text-emerald-700'}`}>✓</span>
+                      : <span className="text-slate-300 text-lg">—</span>
                     }
                   </div>
                 ))}
@@ -323,84 +305,79 @@ export default function ForClinicsPage() {
         </div>
       </section>
 
-      {/* ── PRICING ── */}
-      <section id="pricing" className="py-24 px-4">
+      {/* ── Pricing ── */}
+      <section id="pricing" className="py-24 px-6 bg-slate-50">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
-            <span className="text-xs font-black tracking-widest uppercase px-4 py-2 rounded-full"
-              style={{ background: 'rgba(16,185,129,0.1)', border: '1px solid rgba(16,185,129,0.2)', color: '#34d399' }}>
-              תמחור
-            </span>
-            <h2 className="font-black text-white mt-5 mb-2" style={{ fontSize: 'clamp(1.8rem,4vw,3rem)' }}>
+            <p className="text-xs font-bold tracking-widest uppercase text-blue-600 mb-4">תמחור</p>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
               מחיר פשוט, שקוף, ללא הפתעות
             </h2>
-            <p style={{ color: '#64748b' }}>14 ימי ניסיון חינם בכל תוכנית · אין כרטיס אשראי</p>
+            <p className="text-slate-500 mt-3 text-lg">14 ימי ניסיון חינם בכל תוכנית · אין כרטיס אשראי</p>
           </div>
-
           <div className="grid md:grid-cols-3 gap-6">
             {[
               {
-                name: 'Starter', price: '₪299', sub: 'לחודש',
+                name: 'Starter',
+                price: '₪299',
+                sub: 'לחודש',
                 desc: 'למרפאה קטנה שמתחילה',
-                from: '#3b82f6', to: '#6366f1',
+                highlight: false,
                 points: ['עד 2 רופאים', '100 ייעוצים/חודש', 'וידאו HD', 'מרשמים דיגיטליים', 'White-Label'],
-                cta: 'התחל ניסיון',
               },
               {
-                name: 'Pro', price: '₪799', sub: 'לחודש',
+                name: 'Pro',
+                price: '₪799',
+                sub: 'לחודש',
                 desc: 'למרפאה מתפתחת עם AI',
-                from: '#8b5cf6', to: '#ec4899',
                 highlight: true,
                 badge: 'הכי פופולרי',
                 points: ['עד 10 רופאים', 'ייעוצים ללא הגבלה', 'AI — 4 סוכנים', 'אנליטיקה מלאה', 'תמיכה עדיפות'],
-                cta: 'התחל ניסיון',
               },
               {
-                name: 'Enterprise', price: 'צור קשר', sub: '',
+                name: 'Enterprise',
+                price: 'צור קשר',
+                sub: '',
                 desc: 'לרשת מרפאות וארגונים',
-                from: '#10b981', to: '#0891b2',
+                highlight: false,
                 points: ['רופאים ללא הגבלה', 'Multi-clinic', 'SLA מותאם', 'Dedicated support', 'API access'],
-                cta: 'צור קשר',
               },
-            ].map((plan, i) => (
-              <div key={i} className="rounded-2xl p-7 relative overflow-hidden transition-all hover:-translate-y-1"
-                style={{
-                  background: plan.highlight ? `linear-gradient(160deg, ${plan.from}18, ${plan.to}10)` : 'rgba(255,255,255,0.03)',
-                  border: plan.highlight ? `1px solid ${plan.from}50` : '1px solid rgba(255,255,255,0.07)',
-                  boxShadow: plan.highlight ? `0 20px 60px ${plan.from}20` : 'none',
-                }}>
+            ].map((plan) => (
+              <div key={plan.name}
+                className={`relative rounded-2xl p-8 border transition-all hover:-translate-y-1 ${
+                  plan.highlight
+                    ? 'bg-blue-600 border-blue-500 shadow-2xl shadow-blue-600/30'
+                    : 'bg-white border-slate-200 shadow-sm'
+                }`}
+              >
                 {plan.badge && (
-                  <div className="absolute top-0 left-0 right-0 h-0.5"
-                    style={{ background: `linear-gradient(90deg, ${plan.from}, ${plan.to})` }} />
-                )}
-                {plan.badge && (
-                  <span className="absolute top-4 left-5 text-xs font-black px-3 py-1 rounded-full"
-                    style={{ background: `${plan.from}25`, color: plan.from, border: `1px solid ${plan.from}40` }}>
+                  <span className="absolute -top-3 right-1/2 translate-x-1/2 bg-amber-400 text-slate-900 text-xs font-black px-4 py-1 rounded-full">
                     {plan.badge}
                   </span>
                 )}
-
-                <h3 className="font-black text-white text-xl mb-1 mt-6">{plan.name}</h3>
-                <p className="text-sm mb-5" style={{ color: '#64748b' }}>{plan.desc}</p>
+                <h3 className={`font-black text-xl mb-1 ${plan.highlight ? 'text-white' : 'text-slate-900'}`}>{plan.name}</h3>
+                <p className={`text-sm mb-5 ${plan.highlight ? 'text-blue-100' : 'text-slate-500'}`}>{plan.desc}</p>
                 <div className="mb-6">
-                  <span className="text-4xl font-black text-white">{plan.price}</span>
-                  {plan.sub && <span className="text-sm mr-1" style={{ color: '#64748b' }}>{plan.sub}</span>}
+                  <span className={`text-4xl font-black ${plan.highlight ? 'text-white' : 'text-slate-900'}`}>{plan.price}</span>
+                  {plan.sub && <span className={`text-sm mr-1 ${plan.highlight ? 'text-blue-200' : 'text-slate-400'}`}>{plan.sub}</span>}
                 </div>
-                <Link href={plan.price === 'צור קשר' ? '/contact' : '/auth/register?type=clinic'}
-                  className="block text-center font-black py-3.5 rounded-xl mb-6 text-white transition-all hover:scale-105 text-sm"
-                  style={{
-                    background: plan.highlight
-                      ? `linear-gradient(135deg, ${plan.from}, ${plan.to})`
-                      : 'rgba(255,255,255,0.08)',
-                    boxShadow: plan.highlight ? `0 8px 24px ${plan.from}40` : 'none',
-                  }}>
-                  {plan.cta}
+                <Link
+                  href={plan.price === 'צור קשר' ? '/contact' : '/auth/register?type=clinic'}
+                  className={`block text-center font-bold py-3 rounded-xl mb-6 text-sm transition-all hover:scale-105 ${
+                    plan.highlight
+                      ? 'bg-white text-blue-600 hover:bg-blue-50'
+                      : 'bg-blue-600 text-white hover:bg-blue-700'
+                  }`}
+                >
+                  {plan.price === 'צור קשר' ? 'צור קשר' : 'התחל ניסיון חינם'}
                 </Link>
                 <div className="space-y-2.5">
                   {plan.points.map(p => (
                     <div key={p} className="flex items-center gap-2.5">
-                      <Check c={plan.from} />
-                      <span className="text-sm font-medium" style={{ color: '#94a3b8' }}>{p}</span>
+                      <svg className={`w-4 h-4 shrink-0 ${plan.highlight ? 'text-blue-200' : 'text-blue-600'}`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="20 6 9 17 4 12"/>
+                      </svg>
+                      <span className={`text-sm ${plan.highlight ? 'text-blue-100' : 'text-slate-600'}`}>{p}</span>
                     </div>
                   ))}
                 </div>
@@ -410,53 +387,35 @@ export default function ForClinicsPage() {
         </div>
       </section>
 
-      {/* ── TESTIMONIALS ── */}
-      <section className="py-24 px-4" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+      {/* ── Testimonials ── */}
+      <section className="py-24 px-6 bg-white">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-14">
-            <span className="text-xs font-black tracking-widest uppercase px-4 py-2 rounded-full"
-              style={{ background: 'rgba(251,191,36,0.1)', border: '1px solid rgba(251,191,36,0.2)', color: '#fbbf24' }}>
-              לקוחות מרוצים
-            </span>
-            <h2 className="font-black text-white mt-5 mb-2" style={{ fontSize: 'clamp(1.8rem,4vw,3rem)' }}>
-              מה אומרות המרפאות שלנו
-            </h2>
+            <p className="text-xs font-bold tracking-widest uppercase text-blue-600 mb-4">לקוחות מרוצים</p>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">מה אומרות המרפאות</h2>
           </div>
           <div className="grid md:grid-cols-3 gap-6">
             {[
-              {
-                name: 'ד"ר שרה לוי', role: 'מנהלת מרפאת השרון', text: 'הכנסות עלו ב-45% תוך חודשיים. הרופאים שלי חסכו שעתיים ביום על תיעוד. ה-AI פשוט עושה את העבודה.',
-                from: '#3b82f6', to: '#6366f1', stars: 5,
-              },
-              {
-                name: 'ד"ר אמיר כהן', role: 'קליניקת כרמל', text: 'הייתי סקפטי בהתחלה. אחרי שבוע — לא מבין איך עבדתי בלי. המטופלים מגיעים לשיחה עם שאלון מלא ו-AI מיון כבר.',
-                from: '#8b5cf6', to: '#ec4899', stars: 5,
-              },
-              {
-                name: 'נדב ברק', role: 'מנכ"ל רשת רפואה פרטית', text: 'ניהלנו 3 מרפאות עם 3 מערכות שונות. היום — מערכת אחת, לוח שלים, תמיכה מדהימה. ממליץ בחום לכל רשת.',
-                from: '#10b981', to: '#0891b2', stars: 5,
-              },
+              { name: 'ד"ר שרה לוי', role: 'מנהלת מרפאת השרון', text: 'הכנסות עלו ב-45% תוך חודשיים. הרופאים חסכו שעתיים ביום על תיעוד. ה-AI פשוט עושה את העבודה.' },
+              { name: 'ד"ר אמיר כהן', role: 'קליניקת כרמל', text: 'הייתי סקפטי בהתחלה. אחרי שבוע — לא מבין איך עבדתי בלי. המטופלים מגיעים עם שאלון מלא ומיון AI כבר.' },
+              { name: 'נדב ברק', role: 'מנכ"ל רשת רפואה פרטית', text: 'ניהלנו 3 מרפאות עם 3 מערכות שונות. היום — מערכת אחת, לוח שלים, תמיכה מדהימה.' },
             ].map((t, i) => (
-              <div key={i} className="rounded-2xl p-6 relative overflow-hidden"
-                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                <div className="absolute top-0 right-0 w-24 h-24 rounded-bl-full opacity-5"
-                  style={{ background: `linear-gradient(135deg, ${t.from}, ${t.to})` }} />
+              <div key={i} className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
                 <div className="flex gap-0.5 mb-4">
-                  {[...Array(t.stars)].map((_, j) => (
+                  {[...Array(5)].map((_, j) => (
                     <svg key={j} className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
                       <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
                     </svg>
                   ))}
                 </div>
-                <p className="text-sm leading-relaxed mb-6" style={{ color: '#94a3b8' }}>&ldquo;{t.text}&rdquo;</p>
+                <p className="text-slate-600 leading-relaxed mb-5 text-sm">&ldquo;{t.text}&rdquo;</p>
                 <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-black"
-                    style={{ background: `linear-gradient(135deg, ${t.from}, ${t.to})` }}>
+                  <div className="w-9 h-9 rounded-full bg-blue-600 flex items-center justify-center text-white text-sm font-bold">
                     {t.name.charAt(0)}
                   </div>
                   <div>
-                    <p className="text-sm font-bold text-white">{t.name}</p>
-                    <p className="text-xs" style={{ color: '#475569' }}>{t.role}</p>
+                    <p className="text-sm font-bold text-slate-900">{t.name}</p>
+                    <p className="text-xs text-slate-400">{t.role}</p>
                   </div>
                 </div>
               </div>
@@ -465,116 +424,80 @@ export default function ForClinicsPage() {
         </div>
       </section>
 
-      {/* ── FAQ ── */}
-      <section className="py-24 px-4" style={{ background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-        <div className="max-w-3xl mx-auto">
-          <div className="text-center mb-14">
-            <h2 className="font-black text-white" style={{ fontSize: 'clamp(1.8rem,4vw,3rem)' }}>שאלות נפוצות</h2>
+      {/* ── Final CTA ── */}
+      <section className="bg-slate-950 py-20 px-6">
+        <div className="max-w-5xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-10">
+          <div>
+            <p className="text-xs font-bold tracking-widest uppercase text-blue-400 mb-3">מוכן להתחיל?</p>
+            <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
+              14 ימי ניסיון חינם.<br />
+              <span className="text-blue-400">ללא כרטיס אשראי.</span>
+            </h2>
+            <p className="text-slate-400 mt-4 leading-relaxed max-w-lg">
+              הפעלה תוך 24 שעות, תמיכה בעברית, ביטול בכל עת. מעל 50 מרפאות כבר מנהלות את הקליניקה הדיגיטלית שלהן עם טלמדיסן.
+            </p>
           </div>
-          <div className="space-y-4">
-            {[
-              { q: 'כמה זמן לוקחת ההפעלה?', a: 'פחות מ-24 שעות. אחרי הרשמה, צוות התמיכה שלנו מגדיר את הסביבה, מעלה את הלוגו והצבעים שלך, ומכשיר את הרופאים.' },
-              { q: 'האם ה-AI בוחר עבור הרופא?', a: 'לא. ה-AI מסכם, מציג ומציע — אבל הרופא מאשר הכל. לא ניתן לשמור סיכום ללא אישור הרופא.' },
-              { q: 'מה קורה עם נתוני המטופלים?', a: 'הנתונים מוצפנים AES-256, מאוחסנים בישראל, ועומדים בדרישות HIPAA ו-GDPR. אתה הבעלים של הנתונים.' },
-              { q: 'האם ניתן לבטל בכל עת?', a: 'כן. אין חוזים, אין קנסות. מבטל — המנוי נגמר בסוף התקופה הנוכחית ואתה מקבל ייצוא מלא של הנתונים.' },
-              { q: 'מה כלול בתמיכה?', a: 'שיחה, מייל ו-WhatsApp. זמן תגובה ממוצע של 2 שעות בשעות העסקים. בפרו ומעלה — SLA מוגדר.' },
-            ].map((faq, i) => (
-              <div key={i} className="rounded-2xl p-6"
-                style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.07)' }}>
-                <p className="font-black text-white mb-2">{faq.q}</p>
-                <p className="text-sm leading-relaxed" style={{ color: '#64748b' }}>{faq.a}</p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ── FINAL CTA ── */}
-      <section className="py-24 px-4 relative overflow-hidden">
-        <div className="pointer-events-none absolute inset-0">
-          <div className="absolute w-[500px] h-[500px] rounded-full blur-3xl"
-            style={{ top: '-20%', right: '-10%', background: 'radial-gradient(circle, rgba(59,130,246,0.15) 0%, transparent 70%)' }} />
-          <div className="absolute w-[400px] h-[400px] rounded-full blur-3xl"
-            style={{ bottom: '-10%', left: '0%', background: 'radial-gradient(circle, rgba(139,92,246,0.12) 0%, transparent 70%)' }} />
-        </div>
-        <div className="relative max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2.5 mb-8 rounded-full border px-5 py-2.5 text-sm font-bold"
-            style={{ background: 'rgba(52,211,153,0.08)', borderColor: 'rgba(52,211,153,0.2)', color: '#6ee7b7' }}>
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-400" />
-            </span>
-            מגדירים קליניקות חדשות כל שבוע
-          </div>
-          <h2 className="font-black text-white mb-5"
-            style={{ fontSize: 'clamp(2rem,5vw,3.75rem)', lineHeight: '0.95' }}>
-            מוכן לקחת את<br />
-            <span className="bg-clip-text text-transparent"
-              style={{ backgroundImage: 'linear-gradient(90deg, #60a5fa, #818cf8, #a78bfa)' }}>
-              המרפאה קדימה?
-            </span>
-          </h2>
-          <p className="text-xl mb-10" style={{ color: '#94a3b8' }}>
-            14 ימי ניסיון חינם. ללא כרטיס אשראי. הפעלה תוך 24 שעות.
-          </p>
-          <div className="flex flex-wrap gap-4 justify-center mb-8">
-            <Link href="/auth/register?type=clinic"
-              className="inline-flex items-center gap-2 text-white font-black px-10 py-5 rounded-2xl text-lg transition-all hover:scale-105"
-              style={{ background: 'linear-gradient(135deg,#2563eb,#4f46e5)', boxShadow: '0 8px 32px rgba(59,130,246,0.4)' }}>
+          <div className="flex flex-col gap-3 shrink-0">
+            <Link
+              href="/auth/register?type=clinic"
+              className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white font-bold text-base px-8 py-4 rounded-2xl transition-all shadow-xl shadow-blue-600/30 hover:-translate-y-0.5"
+            >
               התחל ניסיון חינם — 14 יום
             </Link>
-            <Link href="/contact"
-              className="inline-flex items-center gap-2 font-bold px-10 py-5 rounded-2xl text-lg transition-all hover:scale-105"
-              style={{ border: '1.5px solid rgba(255,255,255,0.15)', color: '#e2e8f0', background: 'rgba(255,255,255,0.05)' }}>
+            <Link
+              href="/contact"
+              className="inline-flex items-center justify-center border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 text-white font-semibold text-sm px-8 py-3 rounded-2xl transition-all"
+            >
               דבר עם המכירות
             </Link>
           </div>
-          <p className="text-sm" style={{ color: '#334155' }}>
-            ביטול בכל עת · HIPAA &amp; GDPR · תמיכה בעברית
-          </p>
         </div>
       </section>
 
-      {/* ── FOOTER ── */}
-      <footer className="py-14 px-4" style={{ background: '#020408', borderTop: '1px solid rgba(255,255,255,0.05)' }}>
-        <div className="max-w-6xl mx-auto">
-          <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-sm mb-10" style={{ color: '#334155' }}>
-            <div>
-              <h5 className="font-black text-white text-xl mb-3">טלמדיסן</h5>
-              <p className="leading-relaxed" style={{ color: '#475569' }}>פלטפורמת ייעוץ רפואי אונליין — SaaS White-Label לישראל.</p>
+      {/* ── Footer ── */}
+      <footer className="bg-slate-950 py-16 px-6" style={{ borderTop: '1px solid rgba(255,255,255,0.05)' }}>
+        <div className="max-w-7xl mx-auto">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-10 text-sm">
+            <div className="col-span-2 md:col-span-1">
+              <Link href="/" className="flex items-center gap-2 mb-4">
+                <span className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M4.8 2.3A.3.3 0 105 2H4a2 2 0 00-2 2v5a6 6 0 006 6 6 6 0 006-6V4a2 2 0 00-2-2h-1"/>
+                    <path d="M8 15v1a6 6 0 006 6 6 6 0 006-6v-4"/><circle cx="20" cy="10" r="2"/>
+                  </svg>
+                </span>
+                <span className="text-white font-bold text-lg">טלמדיסן</span>
+              </Link>
+              <p className="text-slate-500 leading-relaxed text-sm">פלטפורמת SaaS רפואי White-Label לישראל.</p>
             </div>
             <div>
-              <h5 className="font-bold text-white mb-3">פלטפורמה</h5>
-              <div className="space-y-2">
-                {['#features:פיצ׳רים', '#pricing:מחירים', '#compare:השוואה', '/for-clinics:למרפאות'].map(l => {
-                  const [href, label] = l.split(':')
-                  return <p key={href}><a href={href} className="hover:text-white transition-colors">{label}</a></p>
-                })}
-              </div>
+              <p className="text-white font-bold mb-4">פלטפורמה</p>
+              <nav className="space-y-3 text-slate-500">
+                <p><a href="#features" className="hover:text-white transition-colors">פיצ׳רים</a></p>
+                <p><a href="#pricing" className="hover:text-white transition-colors">מחירים</a></p>
+                <p><Link href="/doctors" className="hover:text-white transition-colors">לרופאים</Link></p>
+              </nav>
             </div>
             <div>
-              <h5 className="font-bold text-white mb-3">לרופאים</h5>
-              <div className="space-y-2">
-                {['/doctors:הרופאים שלנו', '/auth/register?type=doctor:הצטרף כרופא', '/blog:בלוג', '/auth/login:התחברות'].map(l => {
-                  const [href, label] = l.split(':')
-                  return <p key={href}><Link href={href} className="hover:text-white transition-colors">{label}</Link></p>
-                })}
-              </div>
+              <p className="text-white font-bold mb-4">חשבון</p>
+              <nav className="space-y-3 text-slate-500">
+                <p><Link href="/auth/register?type=clinic" className="hover:text-white transition-colors">הרשמה חינם</Link></p>
+                <p><Link href="/auth/login" className="hover:text-white transition-colors">התחברות</Link></p>
+                <p><Link href="/contact" className="hover:text-white transition-colors">יצירת קשר</Link></p>
+              </nav>
             </div>
             <div>
-              <h5 className="font-bold text-white mb-3">משפטי</h5>
-              <div className="space-y-2">
-                {['/terms:תנאי שימוש', '/privacy:מדיניות פרטיות', '/accessibility:נגישות', '/cookies:עוגיות'].map(l => {
-                  const [href, label] = l.split(':')
-                  return <p key={href}><Link href={href} className="hover:text-white transition-colors">{label}</Link></p>
-                })}
-              </div>
+              <p className="text-white font-bold mb-4">משפטי</p>
+              <nav className="space-y-3 text-slate-500">
+                <p><Link href="/terms" className="hover:text-white transition-colors">תנאי שימוש</Link></p>
+                <p><Link href="/privacy" className="hover:text-white transition-colors">מדיניות פרטיות</Link></p>
+                <p><Link href="/accessibility" className="hover:text-white transition-colors">נגישות</Link></p>
+              </nav>
             </div>
           </div>
-          <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs pt-8"
-            style={{ borderTop: '1px solid rgba(255,255,255,0.04)', color: '#1e293b' }}>
-            <span style={{ color: '#334155' }}>&copy; {new Date().getFullYear()} טלמדיסן. כל הזכויות שמורות.</span>
-            <span style={{ color: '#475569' }}>נבנה ב NFD — Next Flow Digital</span>
+          <div className="mt-12 pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-600">
+            <p>&copy; {new Date().getFullYear()} טלמדיסן. כל הזכויות שמורות.</p>
+            <p>נבנה ב <span className="font-semibold text-slate-500">NFD — Next Flow Digital</span></p>
           </div>
         </div>
       </footer>
