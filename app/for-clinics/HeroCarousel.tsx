@@ -1,69 +1,69 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
-import { cn } from '@/lib/utils'
+import { useState, useEffect, useCallback, useRef } from 'react'
 
-// ── Mock UI components for each slide ────────────────────────────
+// ── Mock UI components ──────────────────────────────────────────────
+
 function DashboardMock() {
   return (
-    <div className="w-full h-full bg-slate-900 rounded-xl overflow-hidden border border-white/10 text-right" dir="rtl">
-      {/* Header */}
-      <div className="flex items-center justify-between px-4 py-3 bg-slate-800 border-b border-white/10">
+    <div className="w-full h-full rounded-2xl overflow-hidden" dir="rtl"
+      style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)' }}>
+      {/* Top bar */}
+      <div className="flex items-center justify-between px-4 py-3"
+        style={{ background: '#1e293b', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
         <div className="flex items-center gap-2">
-          <div className="w-6 h-6 rounded-md bg-blue-600 flex items-center justify-center">
-            <div className="w-3 h-3 rounded-full bg-white/80" />
-          </div>
+          <div className="w-6 h-6 rounded-lg flex items-center justify-center text-white text-[10px] font-black"
+            style={{ background: 'linear-gradient(135deg,#2563eb,#4f46e5)' }}>כ</div>
           <span className="text-white text-xs font-bold">מרפאת כרמל</span>
         </div>
-        <div className="flex items-center gap-2 text-xs text-slate-400">
-          <div className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
-          <span>חי</span>
+        <div className="flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+          <span className="text-slate-400 text-[10px]">חי</span>
         </div>
       </div>
-
-      {/* KPI cards */}
+      {/* KPI row */}
       <div className="grid grid-cols-4 gap-2 p-3">
         {[
-          { val: '24', label: 'תורים היום', color: 'text-blue-400' },
-          { val: '₪8,200', label: 'הכנסות', color: 'text-green-400' },
-          { val: '12', label: 'מטופלים חדשים', color: 'text-purple-400' },
-          { val: '4.9★', label: 'דירוג', color: 'text-yellow-400' },
+          { v: '24', l: 'תורים היום', c: '#60a5fa' },
+          { v: '₪8,200', l: 'הכנסות', c: '#34d399' },
+          { v: '12', l: 'מטופלים חדשים', c: '#a78bfa' },
+          { v: '4.9★', l: 'דירוג', c: '#fbbf24' },
         ].map(k => (
-          <div key={k.label} className="bg-white/5 rounded-lg p-2 border border-white/8">
-            <p className={`text-base font-black ${k.color}`}>{k.val}</p>
-            <p className="text-slate-500 text-[9px] mt-0.5 leading-tight">{k.label}</p>
+          <div key={k.l} className="rounded-xl p-2.5" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+            <p className="text-sm font-black" style={{ color: k.c }}>{k.v}</p>
+            <p className="text-[9px] mt-0.5 leading-tight" style={{ color: '#475569' }}>{k.l}</p>
           </div>
         ))}
       </div>
-
-      {/* Mini chart */}
-      <div className="px-3 mb-2">
-        <p className="text-slate-500 text-[9px] mb-1.5 font-semibold">ייעוצים — 7 ימים אחרונים</p>
-        <div className="flex items-end gap-1 h-10">
-          {[6, 9, 5, 12, 8, 15, 11].map((h, i) => (
-            <div key={i} className="flex-1 rounded-t-sm bg-blue-600/60 hover:bg-blue-500/80 transition-all" style={{ height: `${(h / 15) * 100}%` }} />
+      {/* Chart */}
+      <div className="px-3 pb-2">
+        <p className="text-[9px] mb-2 font-semibold" style={{ color: '#475569' }}>הכנסות — 7 ימים</p>
+        <div className="flex items-end gap-1 h-12">
+          {[40,60,35,80,55,100,75].map((h, i) => (
+            <div key={i} className="flex-1 rounded-t-sm transition-all"
+              style={{ height: `${h}%`, background: i === 5 ? 'linear-gradient(180deg,#3b82f6,#4f46e5)' : 'rgba(59,130,246,0.25)' }} />
           ))}
         </div>
-        <div className="flex justify-between mt-0.5">
-          {['א', 'ב', 'ג', 'ד', 'ה', 'ו', 'ש'].map(d => (
-            <span key={d} className="text-slate-600 text-[8px] flex-1 text-center">{d}</span>
+        <div className="flex justify-between mt-1">
+          {['א','ב','ג','ד','ה','ו','ש'].map(d => (
+            <span key={d} className="text-[8px] flex-1 text-center" style={{ color: '#334155' }}>{d}</span>
           ))}
         </div>
       </div>
-
-      {/* Appointments list */}
+      {/* Appointment list */}
       <div className="px-3 pb-3 space-y-1">
-        <p className="text-slate-500 text-[9px] mb-1.5 font-semibold">תורים קרובים</p>
+        <p className="text-[9px] mb-1.5 font-semibold" style={{ color: '#475569' }}>תורים קרובים</p>
         {[
-          { time: '09:00', doc: 'ד"ר כהן', name: 'יונתן לוי', status: 'bg-green-500' },
-          { time: '09:30', doc: 'ד"ר לוי', name: 'שרה כהן', status: 'bg-blue-500' },
-          { time: '10:00', doc: 'ד"ר כהן', name: 'אבי משה', status: 'bg-amber-500' },
-        ].map(apt => (
-          <div key={apt.time} className="flex items-center gap-2 bg-white/4 rounded-lg px-2 py-1.5">
-            <div className={`w-1 h-5 rounded-full ${apt.status} shrink-0`} />
-            <span className="text-blue-300 text-[9px] font-mono w-8 shrink-0">{apt.time}</span>
-            <span className="text-slate-400 text-[9px] flex-1 truncate">{apt.doc}</span>
-            <span className="text-white text-[9px] font-medium truncate">{apt.name}</span>
+          { t: '09:00', doc: 'ד"ר כהן', name: 'יונתן לוי', c: '#22c55e' },
+          { t: '09:30', doc: 'ד"ר לוי', name: 'שרה כהן', c: '#3b82f6' },
+          { t: '10:00', doc: 'ד"ר כהן', name: 'אבי משה', c: '#f59e0b' },
+        ].map(a => (
+          <div key={a.t} className="flex items-center gap-2 rounded-lg px-2 py-1.5"
+            style={{ background: 'rgba(255,255,255,0.03)' }}>
+            <div className="w-1 h-5 rounded-full shrink-0" style={{ background: a.c }} />
+            <span className="text-[9px] font-mono w-8 shrink-0" style={{ color: '#60a5fa' }}>{a.t}</span>
+            <span className="text-[9px] flex-1 truncate" style={{ color: '#64748b' }}>{a.doc}</span>
+            <span className="text-[9px] font-medium" style={{ color: '#e2e8f0' }}>{a.name}</span>
           </div>
         ))}
       </div>
@@ -73,56 +73,61 @@ function DashboardMock() {
 
 function VideoMock() {
   return (
-    <div className="w-full h-full bg-slate-950 rounded-xl overflow-hidden border border-white/10" dir="rtl">
-      <div className="grid grid-cols-3 gap-0 h-full">
-        {/* Video area */}
-        <div className="col-span-2 flex flex-col">
-          {/* Patient video */}
-          <div className="flex-1 bg-gradient-to-br from-slate-800 to-slate-900 relative flex items-center justify-center">
-            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-white font-bold text-lg">ש</div>
-            <div className="absolute top-2 right-2 bg-black/60 text-white text-[9px] px-1.5 py-0.5 rounded-md font-medium">שרה כהן — מטופלת</div>
-            {/* Doctor PiP */}
-            <div className="absolute bottom-2 left-2 w-16 h-12 rounded-lg bg-gradient-to-br from-slate-700 to-slate-800 border border-white/20 flex items-center justify-center overflow-hidden">
-              <div className="w-7 h-7 rounded-full bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center text-white font-bold text-xs">כ</div>
-            </div>
+    <div className="w-full h-full rounded-2xl overflow-hidden flex flex-col"
+      style={{ background: '#020817', border: '1px solid rgba(255,255,255,0.08)' }}>
+      <div className="flex items-center justify-between px-3 py-2"
+        style={{ background: '#0f172a', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="flex items-center gap-1.5">
+          <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+          <span className="text-[10px] font-medium" style={{ color: '#94a3b8' }}>שיחה חיה</span>
+        </div>
+        <span className="text-[10px] font-mono" style={{ color: '#475569' }}>18:32</span>
+      </div>
+      <div className="flex flex-1 overflow-hidden">
+        {/* Main video */}
+        <div className="flex-1 relative flex items-center justify-center"
+          style={{ background: 'linear-gradient(135deg,#1e293b,#0f172a)' }}>
+          <div className="text-center">
+            <div className="w-14 h-14 rounded-full mx-auto mb-2 flex items-center justify-center text-white text-xl font-black"
+              style={{ background: 'linear-gradient(135deg,#3b82f6,#4f46e5)' }}>ש</div>
+            <p className="text-white text-[10px] font-bold">שרה כהן</p>
+            <p className="text-[9px]" style={{ color: '#64748b' }}>מטופלת</p>
           </div>
-          {/* Controls bar */}
-          <div className="bg-slate-900 px-3 py-2 flex items-center justify-between border-t border-white/8">
-            <div className="flex items-center gap-2 text-slate-500 text-[9px]">
-              <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-              <span>18:32</span>
-            </div>
-            <div className="flex gap-2">
-              {['M', 'V', '⏹'].map(c => (
-                <div key={c} className="w-6 h-6 rounded-full bg-white/10 flex items-center justify-center text-white text-[9px] cursor-pointer hover:bg-white/20">{c}</div>
-              ))}
-              <div className="w-6 h-6 rounded-full bg-red-600 flex items-center justify-center text-white text-[9px]">✕</div>
-            </div>
-            <div className="text-[9px] text-slate-500">HD</div>
+          {/* PiP */}
+          <div className="absolute bottom-2 left-2 w-14 h-10 rounded-lg flex items-center justify-center"
+            style={{ background: 'linear-gradient(135deg,#1e293b,#334155)', border: '1px solid rgba(255,255,255,0.15)' }}>
+            <div className="w-6 h-6 rounded-full flex items-center justify-center text-white text-[9px] font-bold"
+              style={{ background: 'linear-gradient(135deg,#10b981,#0891b2)' }}>כ</div>
+          </div>
+          {/* AI badge */}
+          <div className="absolute top-2 right-2 flex items-center gap-1 rounded-lg px-2 py-1 text-[9px] font-bold text-white"
+            style={{ background: 'rgba(59,130,246,0.7)', backdropFilter: 'blur(8px)' }}>
+            <span className="w-1.5 h-1.5 rounded-full bg-green-400 animate-pulse" />
+            AI מנתח
           </div>
         </div>
-
-        {/* SOAP Notes panel */}
-        <div className="bg-slate-800/80 border-r border-white/8 flex flex-col">
-          <div className="px-2 py-2 border-b border-white/8">
-            <p className="text-white text-[9px] font-bold">סיכום AI</p>
-            <p className="text-slate-500 text-[8px]">מתעדכן בזמן אמת</p>
+        {/* SOAP panel */}
+        <div className="w-28 flex flex-col" style={{ background: '#1e293b', borderRight: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="p-2" style={{ borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+            <p className="text-[9px] font-bold text-white">SOAP — AI</p>
+            <p className="text-[8px]" style={{ color: '#475569' }}>מתעדכן בזמן אמת</p>
           </div>
-          <div className="flex-1 p-2 space-y-2 overflow-hidden">
+          <div className="flex-1 p-2 space-y-1.5 overflow-hidden">
             {[
-              { label: 'S', text: 'כאב ראש כרוני, 3 שבועות, ללא חום' },
-              { label: 'O', text: 'לחץ 120/80, ללא ממצאים פתולוגיים' },
-              { label: 'A', text: 'מיגרנה טנסיבית סבירה' },
-              { label: 'P', text: 'אקמול 500, מעקב שבועי...' },
+              { l: 'S', t: 'כאב ראש, 3 שבועות' },
+              { l: 'O', t: 'לחץ 120/80, תקין' },
+              { l: 'A', t: 'מיגרנה טנסיבית' },
+              { l: 'P', t: 'אקמול 500mg' },
             ].map(s => (
-              <div key={s.label} className="bg-white/5 rounded-md p-1.5">
-                <span className="text-blue-400 text-[8px] font-black">{s.label}:</span>
-                <p className="text-slate-400 text-[8px] mt-0.5 leading-relaxed line-clamp-2">{s.text}</p>
+              <div key={s.l} className="rounded-md p-1.5" style={{ background: 'rgba(255,255,255,0.04)' }}>
+                <span className="text-[8px] font-black" style={{ color: '#60a5fa' }}>{s.l}:</span>
+                <p className="text-[8px] leading-relaxed" style={{ color: '#64748b' }}>{s.t}</p>
               </div>
             ))}
           </div>
-          <div className="p-2 border-t border-white/8">
-            <div className="bg-blue-600/80 text-white text-[8px] text-center py-1 rounded-md font-semibold">שמור סיכום</div>
+          <div className="p-2">
+            <div className="text-center text-[8px] text-white font-bold py-1 rounded-md"
+              style={{ background: 'linear-gradient(135deg,#2563eb,#4f46e5)' }}>שמור</div>
           </div>
         </div>
       </div>
@@ -132,98 +137,103 @@ function VideoMock() {
 
 function BrandingMock() {
   const clinics = [
-    { name: 'מרפאת השרון', sub: 'sharon-clinic', primary: '#2563eb', secondary: '#4f46e5', initials: 'ש' },
-    { name: 'קליניקת ד"ר לוי', sub: 'drlevy', primary: '#059669', secondary: '#0891b2', initials: 'ל' },
-    { name: 'מרכז כרמל הרפואי', sub: 'carmel-med', primary: '#7c3aed', secondary: '#db2777', initials: 'כ' },
+    { n: 'מרפאת השרון', sub: 'sharon-clinic', from: '#2563eb', to: '#4f46e5', init: 'ש' },
+    { n: 'קליניקת ד"ר לוי', sub: 'drlevy', from: '#059669', to: '#0891b2', init: 'ל' },
+    { n: 'מרכז כרמל', sub: 'carmel-med', from: '#7c3aed', to: '#db2777', init: 'כ' },
   ]
   return (
-    <div className="w-full h-full bg-slate-900 rounded-xl overflow-hidden border border-white/10 p-3 space-y-2" dir="rtl">
-      <div className="text-center mb-3">
-        <p className="text-slate-400 text-[9px] font-bold uppercase tracking-widest">כל מרפאה — זהות ייחודית משלה</p>
-      </div>
+    <div className="w-full h-full rounded-2xl p-4 space-y-3 overflow-hidden" dir="rtl"
+      style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)' }}>
+      <p className="text-[9px] font-black uppercase tracking-widest text-center" style={{ color: '#334155' }}>
+        כל מרפאה — זהות ייחודית משלה
+      </p>
       {clinics.map(c => (
-        <div key={c.sub} className="bg-white/5 rounded-xl border border-white/8 overflow-hidden">
-          {/* Mini navbar */}
-          <div className="flex items-center justify-between px-3 py-1.5 border-b border-white/5" style={{ backgroundColor: c.primary + '22' }}>
-            <div className="flex items-center gap-1.5">
-              <div className="w-5 h-5 rounded-md flex items-center justify-center text-white text-[9px] font-black" style={{ backgroundColor: c.primary }}>{c.initials}</div>
-              <span className="text-white text-[9px] font-bold">{c.name}</span>
+        <div key={c.sub} className="rounded-xl overflow-hidden" style={{ border: '1px solid rgba(255,255,255,0.06)' }}>
+          <div className="flex items-center justify-between px-3 py-2" style={{ background: `${c.from}18`, borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+            <div className="flex items-center gap-2">
+              <div className="w-5 h-5 rounded-md flex items-center justify-center text-white text-[9px] font-black"
+                style={{ background: `linear-gradient(135deg,${c.from},${c.to})` }}>{c.init}</div>
+              <span className="text-white text-[10px] font-bold">{c.n}</span>
             </div>
-            <span className="text-slate-500 text-[8px]">{c.sub}.cannaforyou.net</span>
+            <span className="text-[8px]" style={{ color: '#334155' }}>{c.sub}.telemed.co.il</span>
           </div>
-          {/* Content preview */}
-          <div className="px-3 py-2 flex items-center gap-3">
+          <div className="flex items-center gap-3 px-3 py-2">
             <div className="flex gap-1">
-              {[c.primary, c.secondary, '#ffffff33'].map((col, i) => (
-                <div key={i} className="w-3 h-3 rounded-full border border-white/20" style={{ backgroundColor: col }} />
+              {[c.from, c.to, '#ffffff20'].map((col, i) => (
+                <div key={i} className="w-3 h-3 rounded-full" style={{ background: col, border: '1px solid rgba(255,255,255,0.15)' }} />
               ))}
             </div>
-            <div className="flex-1 h-1.5 rounded-full bg-white/5">
-              <div className="h-full rounded-full w-3/5" style={{ backgroundColor: c.primary + '80' }} />
+            <div className="flex-1 h-1.5 rounded-full" style={{ background: 'rgba(255,255,255,0.05)' }}>
+              <div className="h-full rounded-full w-3/5" style={{ background: `linear-gradient(90deg,${c.from},${c.to})` }} />
             </div>
-            <div className="text-[8px] text-slate-500">פעיל</div>
+            <span className="text-[8px] text-green-400 font-bold">פעיל</span>
           </div>
         </div>
       ))}
-      <div className="text-center pt-1">
-        <span className="text-[8px] text-slate-600 bg-white/5 px-2 py-0.5 rounded-full">+ הגדרות צבע, לוגו ו-subdomain</span>
-      </div>
     </div>
   )
 }
 
 function AIMock() {
   const [chars, setChars] = useState(0)
-  const text = 'מטופל בן 42, תלונה על כאב ראש כרוני. על פי הניתוח: דחיפות 4/10. ממליץ על ייעוץ נוירולוגי. תרופות: יש לבדוק אלרגיה לאספירין לפני מרשם.'
+  const text = 'מטופל בן 42, כאב ראש כרוני 3 שבועות, ללא חום. דחיפות: 4/10. ממליץ: ייעוץ נוירולוגי. לבדוק אלרגיה לאספירין לפני מרשם.'
+  const elapsed = useRef(0)
+
   useEffect(() => {
-    const id = setInterval(() => setChars(p => p < text.length ? p + 2 : 0), 60)
+    const id = setInterval(() => {
+      elapsed.current += 1
+      setChars(p => p >= text.length ? 0 : p + 3)
+    }, 55)
     return () => clearInterval(id)
-  }, [])
+  }, [text.length])
 
   return (
-    <div className="w-full h-full bg-slate-900 rounded-xl overflow-hidden border border-white/10 p-3 flex flex-col gap-2" dir="rtl">
-      {/* Triage score */}
-      <div className="bg-white/5 rounded-xl border border-white/8 p-3 flex items-center gap-3">
-        <div className="w-10 h-10 rounded-xl bg-amber-500/20 border border-amber-500/30 flex items-center justify-center shrink-0">
-          <span className="text-amber-400 font-black text-base">4</span>
+    <div className="w-full h-full rounded-2xl p-4 flex flex-col gap-3" dir="rtl"
+      style={{ background: '#0f172a', border: '1px solid rgba(255,255,255,0.08)' }}>
+      {/* Triage badge */}
+      <div className="flex items-center gap-3 rounded-xl p-3" style={{ background: 'rgba(245,158,11,0.1)', border: '1px solid rgba(245,158,11,0.2)' }}>
+        <div className="w-10 h-10 rounded-xl flex items-center justify-center shrink-0" style={{ background: 'rgba(245,158,11,0.2)' }}>
+          <span className="text-base font-black text-amber-400">4</span>
         </div>
         <div>
           <p className="text-white text-[10px] font-bold">ציון מיון AI</p>
-          <p className="text-slate-500 text-[9px]">דחיפות בינונית · ייעוץ תוך 48ש׳</p>
+          <p className="text-[9px]" style={{ color: '#94a3b8' }}>דחיפות בינונית · ייעוץ תוך 48ש׳</p>
         </div>
-        <div className="mr-auto text-[9px] text-green-400 bg-green-400/10 px-2 py-0.5 rounded-full border border-green-400/20">הושלם</div>
+        <span className="mr-auto text-[9px] font-bold text-green-400 rounded-full px-2 py-0.5"
+          style={{ background: 'rgba(52,211,153,0.1)', border: '1px solid rgba(52,211,153,0.2)' }}>הושלם</span>
       </div>
 
-      {/* AI Typing */}
-      <div className="flex-1 bg-white/5 rounded-xl border border-white/8 p-3">
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-4 h-4 rounded-md bg-blue-600/30 border border-blue-500/30 flex items-center justify-center">
-            <div className="w-2 h-2 rounded-full bg-blue-400" />
+      {/* Typing */}
+      <div className="flex-1 rounded-xl p-3 flex flex-col gap-2" style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.06)' }}>
+        <div className="flex items-center gap-2">
+          <div className="w-4 h-4 rounded-md flex items-center justify-center" style={{ background: 'rgba(59,130,246,0.2)' }}>
+            <span className="text-blue-400 text-[8px] font-black">AI</span>
           </div>
-          <p className="text-blue-400 text-[9px] font-bold">סיכום AI — מתכתב...</p>
+          <p className="text-[9px] font-bold" style={{ color: '#60a5fa' }}>סיכום SOAP — מתכתב</p>
           <div className="flex gap-0.5 mr-auto">
-            {[0, 1, 2].map(i => (
+            {[0,1,2].map(i => (
               <div key={i} className="w-1 h-1 rounded-full bg-blue-400 animate-bounce" style={{ animationDelay: `${i * 0.2}s` }} />
             ))}
           </div>
         </div>
-        <p className="text-slate-300 text-[9px] leading-relaxed">
+        <p className="text-[9px] leading-relaxed" style={{ color: '#94a3b8' }}>
           {text.slice(0, chars)}
-          <span className="inline-block w-0.5 h-3 bg-blue-400 ml-0.5 animate-pulse" />
+          <span className="inline-block w-0.5 h-3 ml-0.5 animate-pulse" style={{ background: '#60a5fa', verticalAlign: 'text-bottom' }} />
         </p>
       </div>
 
-      {/* Agents list */}
+      {/* Agents */}
       <div className="grid grid-cols-2 gap-1.5">
         {[
-          { name: 'Triage Agent', done: true, color: 'text-green-400' },
-          { name: 'Intake Agent', done: true, color: 'text-green-400' },
-          { name: 'Summary Agent', done: false, color: 'text-blue-400' },
-          { name: 'Prescription Agent', done: false, color: 'text-slate-500' },
+          { n: 'Triage Agent', done: true },
+          { n: 'Intake Agent', done: true },
+          { n: 'Summary Agent', done: false, active: true },
+          { n: 'Prescription', done: false },
         ].map(a => (
-          <div key={a.name} className="flex items-center gap-1.5 bg-white/4 rounded-lg px-2 py-1">
-            <div className={`w-1.5 h-1.5 rounded-full ${a.done ? 'bg-green-400' : a.color === 'text-blue-400' ? 'bg-blue-400 animate-pulse' : 'bg-slate-600'}`} />
-            <span className={`text-[8px] font-medium ${a.color}`}>{a.name}</span>
+          <div key={a.n} className="flex items-center gap-1.5 rounded-lg px-2 py-1.5"
+            style={{ background: 'rgba(255,255,255,0.04)' }}>
+            <span className={`w-1.5 h-1.5 rounded-full ${a.done ? 'bg-green-400' : a.active ? 'bg-blue-400 animate-pulse' : 'bg-slate-600'}`} />
+            <span className="text-[8px] font-medium" style={{ color: a.done ? '#34d399' : a.active ? '#60a5fa' : '#475569' }}>{a.n}</span>
           </div>
         ))}
       </div>
@@ -231,30 +241,35 @@ function AIMock() {
   )
 }
 
-// ── Slides data ────────────────────────────────────────────────────
+// ── Slides ─────────────────────────────────────────────────────────
+
 const SLIDES = [
   {
     tag: 'לוח בקרה',
-    title: 'כל המרפאה\u00A0— במסך אחד',
-    desc: 'KPIs בזמן אמת, לוח תורים, הכנסות ומטופלים. הכל בדאשבורד נקי ומהיר.',
+    headline: ['כל המרפאה', 'במסך אחד'],
+    desc: 'KPIs בזמן אמת, לוח תורים, הכנסות ומטופלים. דאשבורד נקי שחוסך שעות ניהול.',
+    from: '#3b82f6', to: '#6366f1',
     ui: <DashboardMock />,
   },
   {
     tag: 'ייעוץ וידאו',
-    title: 'שיחת וידאו HD\u00A0— מובנית',
+    headline: ['שיחות וידאו HD', 'מובנות בפלטפורמה'],
     desc: 'SOAP notes בצד, מסמכי מטופל גלויים, סיכום AI אוטומטי בסוף כל שיחה.',
+    from: '#10b981', to: '#0891b2',
     ui: <VideoMock />,
   },
   {
-    tag: 'White Label',
-    title: 'המרפאה שלך\u00A0— הזהות שלך',
-    desc: 'לוגו, צבעים ו-subdomain ייחודיים. המטופלים רואים רק את המרפאה שלך.',
+    tag: 'White-Label',
+    headline: ['המרפאה שלך', 'הזהות שלך'],
+    desc: 'לוגו, צבעים ו-subdomain ייחודיים. המטופלים רואים רק את שם המרפאה שלך.',
+    from: '#8b5cf6', to: '#ec4899',
     ui: <BrandingMock />,
   },
   {
     tag: 'בינה מלאכותית',
-    title: 'AI שחוסך שעות\u00A0של תיעוד',
-    desc: 'מיון אוטומטי לפני הייעוץ, SOAP notes נכתבים לבד, טיוטת מרשם מוכנה.',
+    headline: ['AI שכותב', 'את התיעוד בשבילך'],
+    desc: 'מיון אוטומטי לפני ייעוץ. SOAP notes נכתבים לבד. טיוטת מרשם מוכנה תוך שניות.',
+    from: '#f59e0b', to: '#ef4444',
     ui: <AIMock />,
   },
 ]
@@ -262,82 +277,104 @@ const SLIDES = [
 export default function HeroCarousel() {
   const [active, setActive] = useState(0)
   const [paused, setPaused] = useState(false)
+  const [progress, setProgress] = useState(0)
+  const DURATION = 5000
 
-  const next = useCallback(() => setActive(p => (p + 1) % SLIDES.length), [])
+  const go = useCallback((i: number) => {
+    setActive(i)
+    setProgress(0)
+    setPaused(true)
+    setTimeout(() => setPaused(false), 500)
+  }, [])
 
   useEffect(() => {
     if (paused) return
-    const id = setInterval(next, 4500)
-    return () => clearInterval(id)
-  }, [next, paused])
+    const start = Date.now()
+    const raf = () => {
+      const p = Math.min(100, ((Date.now() - start) / DURATION) * 100)
+      setProgress(p)
+      if (p < 100) { handle = requestAnimationFrame(raf) }
+      else { setProgress(0); setActive(a => (a + 1) % SLIDES.length) }
+    }
+    let handle = requestAnimationFrame(raf)
+    return () => cancelAnimationFrame(handle)
+  }, [active, paused])
+
+  const slide = SLIDES[active]
 
   return (
-    <div className="relative w-full max-w-6xl mx-auto mt-16 px-6" dir="rtl">
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 lg:gap-12 items-center">
+    <div className="w-full max-w-6xl mx-auto px-4 sm:px-6 py-16" dir="rtl">
 
-        {/* ── Left: text content ── */}
-        <div className="space-y-6 order-2 lg:order-1">
-          {/* Tabs */}
-          <div className="flex flex-wrap gap-2">
-            {SLIDES.map((s, i) => (
-              <button
-                key={s.tag}
-                onClick={() => { setActive(i); setPaused(true) }}
-                className={cn(
-                  'text-xs font-bold px-3 py-1.5 rounded-full border transition-all',
-                  active === i
-                    ? 'bg-blue-600 border-blue-500 text-white shadow-lg shadow-blue-600/30'
-                    : 'border-white/10 text-slate-400 hover:border-white/25 hover:text-white bg-white/3'
-                )}
+      {/* Progress bar */}
+      <div className="flex gap-1.5 mb-10">
+        {SLIDES.map((s, i) => (
+          <button key={i} onClick={() => go(i)} className="flex-1 flex flex-col gap-1.5 group">
+            <div className="flex items-center gap-1.5">
+              <span
+                className="text-xs font-bold transition-colors"
+                style={{ color: i === active ? '#e2e8f0' : '#475569' }}
               >
                 {s.tag}
-              </button>
-            ))}
-          </div>
-
-          {/* Animated text */}
-          <div className="min-h-[120px]">
-            <h3 className="text-2xl sm:text-3xl font-black text-white leading-tight tracking-tight">
-              {SLIDES[active].title}
-            </h3>
-            <p className="text-slate-400 mt-4 text-base leading-relaxed">
-              {SLIDES[active].desc}
-            </p>
-          </div>
-
-          {/* Progress dots */}
-          <div className="flex items-center gap-2">
-            {SLIDES.map((_, i) => (
-              <button
-                key={i}
-                onClick={() => { setActive(i); setPaused(true) }}
-                className={cn(
-                  'rounded-full transition-all',
-                  active === i ? 'w-6 h-2 bg-blue-500' : 'w-2 h-2 bg-white/20 hover:bg-white/40'
-                )}
-                aria-label={`שקופית ${i + 1}`}
+              </span>
+            </div>
+            <div className="h-0.5 rounded-full overflow-hidden" style={{ background: 'rgba(255,255,255,0.1)' }}>
+              <div
+                className="h-full rounded-full transition-all"
+                style={{
+                  width: i === active ? `${progress}%` : i < active ? '100%' : '0%',
+                  background: `linear-gradient(90deg, ${slide.from}, ${slide.to})`,
+                  transition: i === active ? 'none' : 'width 0.3s',
+                }}
               />
+            </div>
+          </button>
+        ))}
+      </div>
+
+      {/* Content */}
+      <div className="grid lg:grid-cols-2 gap-12 items-center">
+
+        {/* Text */}
+        <div>
+          <h3 className="font-black text-white leading-none tracking-tight mb-5"
+            style={{ fontSize: 'clamp(1.8rem, 3.5vw, 2.75rem)' }}>
+            {slide.headline[0]}{' '}
+            <span className="bg-clip-text text-transparent"
+              style={{ backgroundImage: `linear-gradient(135deg, ${slide.from}, ${slide.to})` }}>
+              {slide.headline[1]}
+            </span>
+          </h3>
+          <p className="text-base leading-relaxed mb-8" style={{ color: '#94a3b8' }}>
+            {slide.desc}
+          </p>
+          {/* Feature bullets */}
+          <div className="space-y-3">
+            {[
+              ['⚡', 'הפעלה בפחות מ-24 שעות'],
+              ['🔒', 'HIPAA & GDPR מאובטח'],
+              ['🇮🇱', 'תמיכה בעברית · ממשק RTL'],
+            ].map(([icon, text]) => (
+              <div key={text} className="flex items-center gap-3">
+                <span className="text-base">{icon}</span>
+                <span className="text-sm font-medium" style={{ color: '#94a3b8' }}>{text}</span>
+              </div>
             ))}
           </div>
         </div>
 
-        {/* ── Right: UI mock ── */}
+        {/* Mock UI */}
         <div
-          className="h-64 sm:h-72 lg:h-80 order-1 lg:order-2 relative"
+          className="relative h-64 sm:h-72 lg:h-80"
           onMouseEnter={() => setPaused(true)}
           onMouseLeave={() => setPaused(false)}
         >
-          {/* Glow behind */}
-          <div className="absolute inset-0 bg-blue-600/10 rounded-2xl blur-2xl scale-105" />
-          <div className="relative h-full rounded-2xl overflow-hidden shadow-2xl shadow-black/40 border border-white/10">
+          {/* Glow */}
+          <div className="absolute inset-0 rounded-2xl blur-2xl"
+            style={{ background: `radial-gradient(ellipse, ${slide.from}25, transparent 70%)`, transform: 'scale(1.1)' }} />
+          <div className="relative h-full rounded-2xl overflow-hidden shadow-2xl" style={{ boxShadow: `0 32px 64px rgba(0,0,0,0.5)` }}>
             {SLIDES.map((s, i) => (
-              <div
-                key={i}
-                className={cn(
-                  'absolute inset-0 transition-opacity duration-500',
-                  active === i ? 'opacity-100' : 'opacity-0 pointer-events-none'
-                )}
-              >
+              <div key={i} className="absolute inset-0 transition-opacity duration-500"
+                style={{ opacity: i === active ? 1 : 0, pointerEvents: i === active ? 'auto' : 'none' }}>
                 {s.ui}
               </div>
             ))}
