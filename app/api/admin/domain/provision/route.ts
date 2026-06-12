@@ -58,6 +58,7 @@ export async function POST(req: NextRequest) {
 
     const result = await provisionSubdomain(orgId, subdomain)
 
+    // Return full result including debug info so it's visible in browser Network tab
     return NextResponse.json(result)
   } catch (err) {
     console.error('[domain/provision]', err instanceof Error ? err.message : err)
