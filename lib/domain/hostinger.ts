@@ -28,25 +28,22 @@ export async function addCnameToHostinger(
   const apiKey = getApiKey()
   if (!apiKey) return { ok: false, notConfigured: true, error: 'HOSTINGER_API_KEY not configured' }
 
-  const url = `${HOSTINGER_API}/zones/${DNS_ZONE}`
+  // POST /v1/dns/zones/{zone}/records — Hostinger hPanel API v1
+  const url = `${HOSTINGER_API}/zones/${DNS_ZONE}/records`
+  const target = getVercelTarget()
   const body = {
-    overwrite: false,
-    zone: [
-      {
-        name: subdomain,
-        type: 'CNAME',
-        ttl: 3600,
-        records: [{ content: `${getVercelTarget()}.` }],
-      },
-    ],
+    type: 'CNAME',
+    name: subdomain,
+    content: target.endsWith('.') ? target : `${target}.`,
+    ttl: 3600,
   }
 
-  console.log('[Hostinger] addCname →', url)
+  console.log('[Hostinger] POST →', url)
   console.log('[Hostinger] body →', JSON.stringify(body))
 
   try {
     const res = await fetch(url, {
-      method: 'PUT',
+      method: 'POST',
       headers: headers(apiKey),
       body: JSON.stringify(body),
     })
@@ -73,18 +70,24 @@ export async function deleteCnameFromHostinger(
   const apiKey = getApiKey()
   if (!apiKey) return { ok: false, notConfigured: true }
 
+  // GET records first to find the record ID, then DELETE by ID
   try {
-    const res = await fetch(`${HOSTINGER_API}/zones/${DNS_ZONE}`, {
+    const listRes = await fetch(`${HOSTINGER_API}/zones/${DNS_ZONE}/records`, {
+      headers: headers(apiKey),
+    })
+    if (!listRes.ok) return { ok: false, error: `Hostinger list ${listRes.status}` }
+
+    const records = await listRes.json() as Array<{ id?: string; name: string; type: string }>
+    const record = records.find(r => r.name === subdomain && r.type === 'CNAME')
+    if (!record?.id) return { ok: true } // already gone
+
+    const delRes = await fetch(`${HOSTINGER_API}/zones/${DNS_ZONE}/records/${record.id}`, {
       method: 'DELETE',
       headers: headers(apiKey),
-      body: JSON.stringify({
-        filters: [{ name: subdomain, type: 'CNAME' }],
-      }),
     })
-
-    if (res.ok) return { ok: true }
-    const data = await res.json().catch(() => ({})) as { message?: string }
-    return { ok: false, error: data.message || `Hostinger DELETE ${res.status}` }
+    if (delRes.ok || delRes.status === 404) return { ok: true }
+    const data = await delRes.json().catch(() => ({})) as { message?: string }
+    return { ok: false, error: data.message || `Hostinger DELETE ${delRes.status}` }
   } catch (err) {
     return { ok: false, error: err instanceof Error ? err.message : 'Network error' }
   }
@@ -96,7 +99,7 @@ export async function checkCnameExists(subdomain: string): Promise<boolean> {
   if (!apiKey) return false
 
   try {
-    const res = await fetch(`${HOSTINGER_API}/zones/${DNS_ZONE}`, {
+    const res = await fetch(`${HOSTINGER_API}/zones/${DNS_ZONE}/records`, {
       headers: headers(apiKey),
     })
     if (!res.ok) return false
