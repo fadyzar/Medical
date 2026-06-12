@@ -2,7 +2,7 @@
 // Docs: https://developers.hostinger.com
 // Zone: cannaforyou.net
 
-const HOSTINGER_API = 'https://api.hostinger.com/api/dns/v1'
+const HOSTINGER_API = 'https://api.hostinger.com/v1/dns'
 const DNS_ZONE = 'cannaforyou.net'
 
 function getApiKey() {
