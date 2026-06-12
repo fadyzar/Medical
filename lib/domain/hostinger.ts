@@ -1,8 +1,8 @@
 // Hostinger DNS API v1
-// Docs: https://developers.hostinger.com
+// Docs: https://developers.hostinger.com/api/dns/v1
 // Zone: cannaforyou.net
 
-const HOSTINGER_API = 'https://api.hostinger.com/v1/dns'
+const HOSTINGER_API = 'https://developers.hostinger.com/api/dns/v1'
 const DNS_ZONE = 'cannaforyou.net'
 
 function getApiKey() {
@@ -21,29 +21,37 @@ function headers(apiKey: string) {
   }
 }
 
-// Add a CNAME record (merge — does not overwrite existing records)
+// Add a CNAME record — PUT /zones/{zone} with overwrite:false merges records
 export async function addCnameToHostinger(
   subdomain: string,
 ): Promise<{ ok: boolean; error?: string; notConfigured?: boolean }> {
   const apiKey = getApiKey()
   if (!apiKey) return { ok: false, notConfigured: true, error: 'HOSTINGER_API_KEY not configured' }
 
-  // POST /v1/dns/zones/{zone}/records — Hostinger hPanel API v1
-  const url = `${HOSTINGER_API}/zones/${DNS_ZONE}/records`
+  const url = `${HOSTINGER_API}/zones/${DNS_ZONE}`
   const target = getVercelTarget()
+  const content = target.endsWith('.') ? target : `${target}.`
+
   const body = {
-    type: 'CNAME',
-    name: subdomain,
-    content: target.endsWith('.') ? target : `${target}.`,
-    ttl: 3600,
+    overwrite: false,
+    zone: {
+      records: [
+        {
+          name: subdomain,
+          type: 'CNAME',
+          content,
+          ttl: 14400,
+        },
+      ],
+    },
   }
 
-  console.log('[Hostinger] POST →', url)
+  console.log('[Hostinger] PUT →', url)
   console.log('[Hostinger] body →', JSON.stringify(body))
 
   try {
     const res = await fetch(url, {
-      method: 'POST',
+      method: 'PUT',
       headers: headers(apiKey),
       body: JSON.stringify(body),
     })
@@ -63,29 +71,33 @@ export async function addCnameToHostinger(
   }
 }
 
-// Delete a CNAME record (by name + type)
+// Delete a CNAME record
 export async function deleteCnameFromHostinger(
   subdomain: string,
 ): Promise<{ ok: boolean; error?: string; notConfigured?: boolean }> {
   const apiKey = getApiKey()
   if (!apiKey) return { ok: false, notConfigured: true }
 
-  // GET records first to find the record ID, then DELETE by ID
+  const url = `${HOSTINGER_API}/zones/${DNS_ZONE}`
+
   try {
-    const listRes = await fetch(`${HOSTINGER_API}/zones/${DNS_ZONE}/records`, {
-      headers: headers(apiKey),
-    })
+    // GET current zone records
+    const listRes = await fetch(url, { headers: headers(apiKey) })
     if (!listRes.ok) return { ok: false, error: `Hostinger list ${listRes.status}` }
 
-    const records = await listRes.json() as Array<{ id?: string; name: string; type: string }>
+    const zone = await listRes.json() as { zone?: { records?: Array<{ id?: string; name: string; type: string }> } }
+    const records = zone?.zone?.records || []
     const record = records.find(r => r.name === subdomain && r.type === 'CNAME')
-    if (!record?.id) return { ok: true } // already gone
+    if (!record) return { ok: true } // already gone
 
-    const delRes = await fetch(`${HOSTINGER_API}/zones/${DNS_ZONE}/records/${record.id}`, {
-      method: 'DELETE',
+    // Re-PUT the zone without this record
+    const remaining = records.filter(r => !(r.name === subdomain && r.type === 'CNAME'))
+    const delRes = await fetch(url, {
+      method: 'PUT',
       headers: headers(apiKey),
+      body: JSON.stringify({ overwrite: true, zone: { records: remaining } }),
     })
-    if (delRes.ok || delRes.status === 404) return { ok: true }
+    if (delRes.ok) return { ok: true }
     const data = await delRes.json().catch(() => ({})) as { message?: string }
     return { ok: false, error: data.message || `Hostinger DELETE ${delRes.status}` }
   } catch (err) {
@@ -93,19 +105,16 @@ export async function deleteCnameFromHostinger(
   }
 }
 
-// Check if CNAME already exists (returns true if found)
+// Check if CNAME already exists
 export async function checkCnameExists(subdomain: string): Promise<boolean> {
   const apiKey = getApiKey()
   if (!apiKey) return false
 
   try {
-    const res = await fetch(`${HOSTINGER_API}/zones/${DNS_ZONE}/records`, {
-      headers: headers(apiKey),
-    })
+    const res = await fetch(`${HOSTINGER_API}/zones/${DNS_ZONE}`, { headers: headers(apiKey) })
     if (!res.ok) return false
-
-    const records = await res.json() as Array<{ name: string; type: string }>
-    return records.some(r => r.name === subdomain && r.type === 'CNAME')
+    const zone = await res.json() as { zone?: { records?: Array<{ name: string; type: string }> } }
+    return (zone?.zone?.records || []).some(r => r.name === subdomain && r.type === 'CNAME')
   } catch {
     return false
   }
@@ -116,8 +125,8 @@ export function getManualDnsInstructions(subdomain: string) {
   return {
     type: 'CNAME',
     name: subdomain,
-    value: `${target}.`,
-    ttl: 3600,
-    instructions: `In Hostinger DNS Manager for ${DNS_ZONE}, add:\nType: CNAME\nName: ${subdomain}\nPoints to: ${target}.\nTTL: 3600`,
+    value: target.endsWith('.') ? target : `${target}.`,
+    ttl: 14400,
+    instructions: `In Hostinger DNS Manager for ${DNS_ZONE}, add:\nType: CNAME\nName: ${subdomain}\nPoints to: ${target}.\nTTL: 14400`,
   }
 }
