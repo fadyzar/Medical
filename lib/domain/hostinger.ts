@@ -34,16 +34,14 @@ export async function addCnameToHostinger(
 
   const body = {
     overwrite: false,
-    zone: {
-      records: [
-        {
-          name: subdomain,
-          type: 'CNAME',
-          content,
-          ttl: 14400,
-        },
-      ],
-    },
+    zone: [
+      {
+        name: subdomain,
+        type: 'CNAME',
+        ttl: 14400,
+        records: [{ content }],
+      },
+    ],
   }
 
   console.log('[Hostinger] PUT →', url)
