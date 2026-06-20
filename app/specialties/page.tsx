@@ -2,14 +2,14 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { SPECIALTIES } from '@/lib/utils'
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://your-domain.co.il'
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cannaforyou.net'
 
 export const metadata: Metadata = {
-  title: 'התמחויות רפואיות — ייעוץ אונליין | טלמדיסן',
+  title: 'התמחויות רפואיות — ייעוץ אונליין',
   description: 'ייעוץ רפואי אונליין בכל ההתמחויות: רפואה כללית, עור, אורתופדיה, קרדיולוגיה, נוירולוגיה, פסיכיאטריה ועוד. רופאים מומחים בשיחת וידאו.',
-  keywords: ['התמחויות רפואיות', 'ייעוץ אונליין', 'רופא מומחה', 'טלמדיסן', 'שיחת וידאו'],
+  keywords: ['התמחויות רפואיות', 'ייעוץ אונליין', 'רופא מומחה', 'CANNA', 'שיחת וידאו'],
   openGraph: {
-    title: 'התמחויות רפואיות — ייעוץ אונליין | טלמדיסן',
+    title: 'התמחויות רפואיות — ייעוץ אונליין | CANNA',
     description: 'ייעוץ רפואי אונליין בכל ההתמחויות. רופאים מומחים בשיחת וידאו.',
     type: 'website',
     locale: 'he_IL',
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: 'summary_large_image',
-    title: 'התמחויות רפואיות — ייעוץ אונליין | טלמדיסן',
+    title: 'התמחויות רפואיות — ייעוץ אונליין | CANNA',
     description: 'ייעוץ רפואי אונליין בכל ההתמחויות. רופאים מומחים בשיחת וידאו.',
   },
   alternates: { canonical: `${BASE_URL}/specialties` },
@@ -46,7 +46,7 @@ export default function SpecialtiesPage() {
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'MedicalBusiness',
-    name: 'טלמדיסן — התמחויות רפואיות',
+    name: 'CANNA — התמחויות רפואיות',
     url: `${BASE_URL}/specialties`,
     description: 'ייעוץ רפואי אונליין בכל ההתמחויות',
     areaServed: { '@type': 'Country', name: 'Israel' },
@@ -63,7 +63,7 @@ export default function SpecialtiesPage() {
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-black text-blue-600">טלמדיסן</Link>
+          <Link href="/" className="text-2xl font-black text-blue-600">CANNA</Link>
           <div className="flex items-center gap-4">
             <Link href="/specialties" className="text-sm text-blue-600 font-medium">התמחויות</Link>
             <Link href="/doctors" className="text-sm text-gray-600 hover:text-gray-900">הרופאים שלנו</Link>
@@ -128,7 +128,7 @@ export default function SpecialtiesPage() {
       <footer className="py-12 px-4 bg-gray-900 text-gray-400">
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
           <div>
-            <h5 className="font-bold text-white mb-3">טלמדיסן</h5>
+            <h5 className="font-bold text-white mb-3">CANNA</h5>
             <p>פלטפורמת ייעוץ רפואי אונליין מתקדמת</p>
           </div>
           <div>
@@ -151,7 +151,7 @@ export default function SpecialtiesPage() {
           </div>
         </div>
         <div className="max-w-6xl mx-auto mt-8 pt-8 border-t border-gray-800 text-center text-xs">
-          &copy; {new Date().getFullYear()} טלמדיסן. כל הזכויות שמורות.
+          &copy; {new Date().getFullYear()} CANNA. כל הזכויות שמורות.
         </div>
       </footer>
     </div>

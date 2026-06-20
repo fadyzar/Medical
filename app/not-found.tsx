@@ -44,7 +44,7 @@ export default function NotFound() {
         </div>
 
         <p className="text-xs text-gray-400 mt-8">
-          צריך עזרה? פנה אלינו ב-<a href="mailto:support@telemed.co.il" className="text-blue-600 hover:underline">support@telemed.co.il</a>
+          צריך עזרה? פנה אלינו ב-<a href="mailto:medical@cannaforyou.net" className="text-blue-600 hover:underline">medical@cannaforyou.net</a>
         </p>
       </div>
     </div>

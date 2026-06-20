@@ -1,11 +1,11 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://your-domain.co.il'
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cannaforyou.net'
 
 export const metadata: Metadata = {
-  title: 'תנאי שימוש | טלמדיסן',
-  description: 'תנאי השימוש של פלטפורמת טלמדיסן — ייעוץ רפואי אונליין.',
+  title: 'תנאי שימוש',
+  description: 'תנאי השימוש של פלטפורמת CANNA — ייעוץ רפואי אונליין.',
   alternates: { canonical: `${BASE_URL}/terms` },
 }
 
@@ -15,7 +15,7 @@ export default function TermsPage() {
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-black text-blue-600">טלמדיסן</Link>
+          <Link href="/" className="text-2xl font-black text-blue-600">CANNA</Link>
           <div className="flex items-center gap-4">
             <Link href="/specialties" className="text-sm text-gray-600 hover:text-gray-900">התמחויות</Link>
             <Link href="/doctors" className="text-sm text-gray-600 hover:text-gray-900">הרופאים שלנו</Link>
@@ -33,14 +33,14 @@ export default function TermsPage() {
 
         <h2>1. כללי</h2>
         <p>
-          ברוכים הבאים לטלמדיסן (להלן: &quot;הפלטפורמה&quot;, &quot;האתר&quot; או &quot;השירות&quot;).
+          ברוכים הבאים לCANNA (להלן: &quot;הפלטפורמה&quot;, &quot;האתר&quot; או &quot;השירות&quot;).
           השימוש בפלטפורמה כפוף לתנאי שימוש אלו. בעצם השימוש בפלטפורמה, אתה מסכים לתנאים אלו במלואם.
           אם אינך מסכים לתנאים, אנא הימנע משימוש בפלטפורמה.
         </p>
 
         <h2>2. תיאור השירות</h2>
         <p>
-          טלמדיסן מספקת פלטפורמה טכנולוגית לייעוץ רפואי מרחוק באמצעות שיחות וידאו.
+          CANNA מספקת פלטפורמה טכנולוגית לייעוץ רפואי מרחוק באמצעות שיחות וידאו.
           הפלטפורמה מחברת בין מטופלים לרופאים מורשים ומאפשרת קביעת תורים, שיחות וידאו מאובטחות, קבלת סיכומי ייעוץ ומרשמים דיגיטליים.
         </p>
 
@@ -84,7 +84,7 @@ export default function TermsPage() {
 
         <h2>8. קניין רוחני</h2>
         <p>
-          כל התוכן בפלטפורמה — לרבות עיצוב, לוגו, טקסטים, תמונות וקוד — הם קניינה של טלמדיסן או של בעלי הרישיון שלה.
+          כל התוכן בפלטפורמה — לרבות עיצוב, לוגו, טקסטים, תמונות וקוד — הם קניינה של CANNA או של בעלי הרישיון שלה.
           אין להעתיק, לשכפל, להפיץ או להשתמש בתוכן ללא אישור בכתב.
         </p>
 
@@ -97,7 +97,7 @@ export default function TermsPage() {
 
         <h2>10. שינויים בתנאים</h2>
         <p>
-          טלמדיסן רשאית לעדכן תנאים אלו מעת לעת. שינויים מהותיים יפורסמו באתר ובהודעה למשתמשים רשומים.
+          CANNA רשאית לעדכן תנאים אלו מעת לעת. שינויים מהותיים יפורסמו באתר ובהודעה למשתמשים רשומים.
           המשך שימוש בפלטפורמה לאחר עדכון התנאים מהווה הסכמה לתנאים המעודכנים.
         </p>
 
@@ -108,7 +108,7 @@ export default function TermsPage() {
 
         <h2>12. יצירת קשר</h2>
         <p>
-          לשאלות בנוגע לתנאי שימוש אלו, ניתן לפנות אלינו בכתובת: support@telemed.co.il
+          לשאלות בנוגע לתנאי שימוש אלו, ניתן לפנות אלינו בכתובת: medical@cannaforyou.net
         </p>
       </article>
 
@@ -119,7 +119,7 @@ export default function TermsPage() {
           <Link href="/privacy" className="hover:text-white">מדיניות פרטיות</Link>
           <Link href="/accessibility" className="hover:text-white">נגישות</Link>
         </div>
-        <p>&copy; {new Date().getFullYear()} טלמדיסן. כל הזכויות שמורות.</p>
+        <p>&copy; {new Date().getFullYear()} CANNA. כל הזכויות שמורות.</p>
       </footer>
     </div>
   )

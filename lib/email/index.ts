@@ -243,8 +243,8 @@ function buildConsultationSummaryHtml(data: SummaryData): string {
 export async function sendEmail(params: SendEmailParams, admin: SupabaseClient): Promise<SendEmailResult> {
   try {
     const resend = getResendClient()
-    const fromAddress = process.env.RESEND_FROM_EMAIL || 'noreply@telemed.co.il'
-    const fromName = params.organizationName || 'טלמדיסן'
+    const fromAddress = process.env.RESEND_FROM_EMAIL || 'noreply@cannaforyou.net'
+    const fromName = params.organizationName || 'CANNA'
 
     const { data, error } = await resend.emails.send({
       from: `${fromName} <${fromAddress}>`,
@@ -355,7 +355,7 @@ export async function sendAppointmentConfirmation(params: { appointmentId: strin
   if (await alreadySent(appointmentId, templateName, admin)) return
 
   const { apt, patient, doctor, org } = await fetchAppointmentContext(appointmentId, admin)
-  const orgName = org?.name || 'טלמדיסן'
+  const orgName = org?.name || 'CANNA'
 
   const html = buildAppointmentConfirmationHtml({
     patientName: `${patient.first_name} ${patient.last_name}`,
@@ -388,7 +388,7 @@ export async function sendReminder24h(params: { appointmentId: string; admin: Su
   const { apt, patient, doctor, org } = await fetchAppointmentContext(appointmentId, admin)
   if (!doctor || !apt.scheduled_at) return
 
-  const orgName = org?.name || 'טלמדיסן'
+  const orgName = org?.name || 'CANNA'
 
   const html = buildReminder24hHtml({
     patientName: `${patient.first_name} ${patient.last_name}`,
@@ -421,7 +421,7 @@ export async function sendReminder1h(params: { appointmentId: string; admin: Sup
   const { apt, patient, doctor, org } = await fetchAppointmentContext(appointmentId, admin)
   if (!doctor || !apt.scheduled_at) return
 
-  const orgName = org?.name || 'טלמדיסן'
+  const orgName = org?.name || 'CANNA'
 
   const html = buildReminder1hHtml({
     patientName: `${patient.first_name} ${patient.last_name}`,
@@ -455,7 +455,7 @@ export async function sendConsultationSummary(params: { appointmentId: string; a
   const { apt, patient, doctor, org } = await fetchAppointmentContext(appointmentId, admin)
   if (!doctor) return
 
-  const orgName = org?.name || 'טלמדיסן'
+  const orgName = org?.name || 'CANNA'
 
   const html = buildConsultationSummaryHtml({
     patientName: `${patient.first_name} ${patient.last_name}`,
@@ -535,7 +535,7 @@ export async function sendPaymentReceipt(params: {
   const { apt, patient, doctor, org } = await fetchAppointmentContext(appointmentId, admin)
   if (!apt.payment_amount) return
 
-  const orgName = org?.name || 'טלמדיסן'
+  const orgName = org?.name || 'CANNA'
 
   const html = buildPaymentReceiptHtml({
     patientName: `${patient.first_name} ${patient.last_name}`,
@@ -586,7 +586,7 @@ function buildStaffInviteHtml(data: StaffInviteData): string {
     ctaText: 'הירשם למערכת',
     content: `
       <h2 style="margin:0 0 16px;color:#1f2937;font-size:20px;">שלום ${data.name},</h2>
-      <p style="margin:0 0 20px;">${data.inviterName} מזמין אותך להצטרף כ<strong>${roleLabel}</strong> ל<strong>${data.organizationName}</strong> בפלטפורמת טלמדיסן.</p>
+      <p style="margin:0 0 20px;">${data.inviterName} מזמין אותך להצטרף כ<strong>${roleLabel}</strong> ל<strong>${data.organizationName}</strong> בפלטפורמת CANNA.</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f9ff;border-radius:8px;margin:0 0 20px;">
         <tr><td style="padding:16px;">
           <p style="margin:0 0 8px;">🏥 <strong>מרפאה:</strong> ${data.organizationName}</p>
@@ -627,7 +627,7 @@ export async function sendStaffInvite(params: {
   const roleLabel = ROLE_LABELS_EMAIL[data.role] || data.role
   return sendEmail({
     to: data.email,
-    subject: `הוזמנת להצטרף כ${roleLabel} ל${data.organizationName} בטלמדיסן`,
+    subject: `הוזמנת להצטרף כ${roleLabel} ל${data.organizationName} בCANNA`,
     html,
     organizationId: data.organizationId,
     userId: data.inviterUserId,
@@ -656,7 +656,7 @@ function buildDoctorInviteHtml(data: DoctorInviteData): string {
     ctaText: 'הירשם כרופא',
     content: `
       <h2 style="margin:0 0 16px;color:#1f2937;font-size:20px;">שלום ${data.doctorName},</h2>
-      <p style="margin:0 0 20px;">${data.inviterName} מזמין אותך להצטרף לצוות הרפואי של <strong>${data.organizationName}</strong> בפלטפורמת טלמדיסן.</p>
+      <p style="margin:0 0 20px;">${data.inviterName} מזמין אותך להצטרף לצוות הרפואי של <strong>${data.organizationName}</strong> בפלטפורמת CANNA.</p>
       <table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background-color:#f0f9ff;border-radius:8px;margin:0 0 20px;">
         <tr><td style="padding:16px;">
           <p style="margin:0 0 8px;">🏥 <strong>מרפאה:</strong> ${data.organizationName}</p>
@@ -694,7 +694,7 @@ export async function sendDoctorInvite(params: {
 
   return sendEmail({
     to: data.doctorEmail,
-    subject: `הוזמנת להצטרף ל${data.organizationName} בטלמדיסן`,
+    subject: `הוזמנת להצטרף ל${data.organizationName} בCANNA`,
     html,
     organizationId: data.organizationId,
     userId: data.inviterUserId,

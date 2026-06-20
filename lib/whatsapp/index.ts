@@ -245,7 +245,7 @@ const APP_URL = () => process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'
 
 function buildAppointmentConfirmation(context: AppointmentContext): string {
   const { apt, patient, doctor, org } = context
-  const orgName = org?.name || 'טלמדיסן'
+  const orgName = org?.name || 'CANNA'
   const specialtyLabel = getSpecialtyLabel(apt.requested_specialty)
   const doctorLine = doctor
     ? `ד"ר ${doctor.first_name} ${doctor.last_name}`
@@ -269,7 +269,7 @@ function buildAppointmentConfirmation(context: AppointmentContext): string {
 
 function buildReminder1h(context: AppointmentContext): string {
   const { apt, patient, doctor, org } = context
-  const orgName = org?.name || 'טלמדיסן'
+  const orgName = org?.name || 'CANNA'
   const specialtyLabel = getSpecialtyLabel(apt.requested_specialty)
 
   return [
@@ -293,7 +293,7 @@ function buildReminder1h(context: AppointmentContext): string {
 
 function buildVideoCallLink(context: AppointmentContext): string {
   const { apt, patient, doctor, org } = context
-  const orgName = org?.name || 'טלמדיסן'
+  const orgName = org?.name || 'CANNA'
 
   return [
     `שלום ${patient.first_name},`,
@@ -308,7 +308,7 @@ function buildVideoCallLink(context: AppointmentContext): string {
 
 function buildPaymentConfirmation(context: AppointmentContext): string {
   const { apt, patient, org } = context
-  const orgName = org?.name || 'טלמדיסן'
+  const orgName = org?.name || 'CANNA'
   const amount = apt.payment_amount ? formatPrice(apt.payment_amount) : ''
 
   return [

@@ -18,7 +18,7 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
           </a>
         </div>
         <p className="text-xs text-gray-400">
-          אם הבעיה נמשכת, פנה אלינו ב-<a href="mailto:support@telemed.co.il" className="text-blue-600 hover:underline">support@telemed.co.il</a>
+          אם הבעיה נמשכת, פנה אלינו ב-<a href="mailto:medical@cannaforyou.net" className="text-blue-600 hover:underline">medical@cannaforyou.net</a>
         </p>
       </div>
     </div>

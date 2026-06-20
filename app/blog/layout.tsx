@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 
 export const metadata: Metadata = {
   title: {
-    template: '%s | בלוג טלמדיסן',
-    default: 'בלוג רפואי | טלמדיסן',
+    template: '%s | בלוג CANNA',
+    default: 'בלוג רפואי | CANNA',
   },
 }
 

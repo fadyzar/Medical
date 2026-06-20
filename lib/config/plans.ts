@@ -43,7 +43,7 @@ export const PLANS: Plan[] = [
   {
     id: 'basic',
     name: 'בסיסי',
-    description: 'למרפאות קטנות שרוצות להתחיל עם טלמדיסן',
+    description: 'למרפאות קטנות שרוצות להתחיל עם CANNA',
     price_monthly: 499,
     stripe_price_id: process.env.STRIPE_BASIC_PRICE_ID || null,
     max_doctors: 5,

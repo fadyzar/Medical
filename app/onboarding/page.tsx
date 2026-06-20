@@ -362,9 +362,9 @@ export default function OnboardingPage() {
                       {checkingSubdomain ? (
                         <><Spinner size="sm" /><span className="text-gray-400">בודק זמינות...</span></>
                       ) : subdomainAvailable === true ? (
-                        <span className="text-green-600 font-medium">{form.subdomain}.telemed.co.il — זמין ✓</span>
+                        <span className="text-green-600 font-medium">{form.subdomain}.cannaforyou.net — זמין ✓</span>
                       ) : subdomainAvailable === false ? (
-                        <span className="text-red-600 font-medium">{form.subdomain}.telemed.co.il — תפוס</span>
+                        <span className="text-red-600 font-medium">{form.subdomain}.cannaforyou.net — תפוס</span>
                       ) : null}
                     </div>
                   )}
@@ -746,7 +746,7 @@ export default function OnboardingPage() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-500">דומיין</span>
-                  <span className="font-medium text-blue-600">{form.subdomain}.telemed.co.il</span>
+                  <span className="font-medium text-blue-600">{form.subdomain}.cannaforyou.net</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-gray-500">מנהל</span>

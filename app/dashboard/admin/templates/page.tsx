@@ -386,7 +386,7 @@ export default function AdminTemplatesPage() {
                       .replace(/{{clinic_name}}/g, org?.name || 'המרפאה שלנו')
                       .replace(/{{appointment_date}}/g, '15/04/2026')
                       .replace(/{{appointment_time}}/g, '10:00')
-                      .replace(/{{video_link}}/g, 'https://clinic.telemedicin.co.il/video/...')
+                      .replace(/{{video_link}}/g, 'https://cannaforyou.net/video-call/...')
                       .replace(/{{amount}}/g, '₪350')
                       .replace(/{{summary}}/g, 'אבחנה: שגרת בדיקה. תוכנית: לחזור בעוד 3 חודשים.')
                       .replace(/{{invoice_url}}/g, 'https://...')

@@ -2,7 +2,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Textarea, Card, CardContent, Spinner } from '@/components/ui'
 import { SPECIALTIES, formatPrice, cn } from '@/lib/utils'
@@ -78,6 +78,10 @@ const URGENCY_OPTIONS = [
 export default function NewAppointmentPage() {
   const router   = useRouter()
   const supabase = getClient()
+  const searchParams = useSearchParams()
+
+  // Doctor deep-link: /new-appointment?doctor=<id> preselects the doctor
+  const [pendingDoctorId, setPendingDoctorId] = useState<string | null>(searchParams.get('doctor'))
 
   const [step, setStep]           = useState<Step>('specialty')
   const [loading, setLoading]     = useState(false)
@@ -117,6 +121,26 @@ export default function NewAppointmentPage() {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // Doctor deep-link: resolve the doctor's specialty so we land directly on their slots
+  useEffect(() => {
+    if (!pendingDoctorId || form.specialty) return
+    supabase.from('users')
+      .select('specialties')
+      .eq('id', pendingDoctorId)
+      .eq('role', 'doctor')
+      .eq('is_active', true)
+      .single()
+      .then(({ data }) => {
+        const specs = (data as { specialties: string[] | null } | null)?.specialties
+        if (specs && specs.length > 0) {
+          setForm(p => ({ ...p, specialty: specs[0] }))
+        } else {
+          setPendingDoctorId(null) // doctor not bookable — fall back to normal flow
+        }
+      })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pendingDoctorId])
+
   // Fetch doctors whenever specialty or org context changes
   useEffect(() => {
     if (!form.specialty || orgLoading || patientOrgId === undefined) return
@@ -142,7 +166,15 @@ export default function NewAppointmentPage() {
         // no additional filter
 
         const { data } = await query
-        setDoctors((data || []) as unknown as DoctorRow[])
+        const loaded = (data || []) as unknown as DoctorRow[]
+        setDoctors(loaded)
+
+        // Deep-link: auto-select the requested doctor and skip ahead to slots
+        if (pendingDoctorId && loaded.some(d => d.id === pendingDoctorId)) {
+          setForm(p => ({ ...p, doctor_id: pendingDoctorId }))
+          setStep('datetime')
+          setPendingDoctorId(null)
+        }
       } catch {
         // Prevents infinite spinner on error
       } finally {
@@ -496,8 +528,15 @@ export default function NewAppointmentPage() {
                 ) : Object.keys(slotsByDate).length === 0 ? (
                   <div className="rounded-2xl bg-gray-50 border border-gray-200 p-8 text-center space-y-3">
                     <div className="text-4xl">📅</div>
-                    <p className="font-medium text-gray-700">אין מועדים פנויים ב-30 הימים הקרובים</p>
-                    <p className="text-sm text-gray-400">הרופא יתאם איתך מועד לאחר אישור הבקשה</p>
+                    <p className="font-medium text-gray-700">
+                      {form.doctor_id ? 'אין זמינות כרגע לרופא זה' : 'אין מועדים פנויים ב-30 הימים הקרובים'}
+                    </p>
+                    <p className="text-sm text-gray-400">
+                      ניתן להמשיך והרופא יתאם איתך מועד לאחר אישור הבקשה{form.doctor_id ? ', או לבחור רופא אחר' : ''}
+                    </p>
+                    {form.doctor_id && (
+                      <Button variant="outline" onClick={() => setStep('doctor')}>← בחר רופא אחר</Button>
+                    )}
                   </div>
                 ) : (
                   <div className="space-y-5 max-h-[380px] overflow-y-auto pl-1 -mr-1">

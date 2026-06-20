@@ -2,7 +2,7 @@ import type { MetadataRoute } from 'next'
 import { SPECIALTIES } from '@/lib/utils'
 import { getAllPosts } from '@/lib/blog/posts'
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://your-domain.co.il'
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cannaforyou.net'
 
 export default function sitemap(): MetadataRoute.Sitemap {
   return [

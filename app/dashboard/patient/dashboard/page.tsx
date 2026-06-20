@@ -635,7 +635,7 @@ export default function PatientDashboard() {
                 </svg>
               </div>
             }
-            title={`ברוך הבא, ${firstName || 'לטלמדיסן'}!`}
+            title={`ברוך הבא, ${firstName || 'לCANNA'}!`}
             description="קבע את הייעוץ הרפואי הראשון שלך עם מומחה — מהבית, ללא המתנה"
             action={
               <Button size="lg" onClick={() => router.push('/dashboard/patient/new-appointment')}>

@@ -38,7 +38,7 @@ async function callClaude(system: string, user: string, maxTokens = 2048): Promi
 // ---- TRIAGE ----
 export async function triageAgent(input: { complaint: string; description?: string; age?: number; gender?: string }) {
   return callClaude(
-    `אתה סוכן מיון רפואי במערכת טלמדיסן ישראלית. ענה JSON בלבד:
+    `אתה סוכן מיון רפואי במערכת CANNA ישראלית. ענה JSON בלבד:
 {"urgency_score":<1-10>,"category":"<קטגוריה>","recommended_specialty":"<התמחות>","reasoning":"<הסבר בעברית>","red_flags":[],"suggested_questions":[]}
 1-3=לא דחוף, 4-6=בינוני, 7-8=דחוף, 9-10=חירום`,
     `תלונה: ${input.complaint}${input.description ? `\nתיאור: ${input.description}` : ''}${input.age ? `\nגיל: ${input.age}` : ''}`,

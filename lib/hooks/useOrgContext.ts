@@ -14,12 +14,17 @@ export interface OrgContext {
 
 const MARKETPLACE: OrgContext = {
   id: null,
-  name: 'טלמדיסן',
+  name: 'CANNA',
   logoUrl: null,
   primaryColor: null,
   subdomain: null,
   isMarketplace: true,
 }
+
+// The seed "default" organization is a placeholder, NOT a real clinic.
+// Patients sitting in it must be treated as marketplace so they can see
+// (and book) doctors across the whole platform.
+export const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001'
 
 type OrgData = { id: string; name: string; logo_url?: string | null; primary_color?: string | null; subdomain?: string | null }
 
@@ -49,8 +54,8 @@ export function useOrgContext(patientOrgId?: string | null): { ctx: OrgContext; 
 
     async function resolve() {
       try {
-        // Priority 1: patient already has an org
-        if (patientOrgId) {
+        // Priority 1: patient already has a *real* org (not the placeholder default)
+        if (patientOrgId && patientOrgId !== DEFAULT_ORG_ID) {
           const r = await fetch(`/api/org/by-id?id=${patientOrgId}`)
           if (!cancelled && r.ok) {
             const data: OrgData = await r.json()

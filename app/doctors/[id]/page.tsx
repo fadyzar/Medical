@@ -26,7 +26,7 @@ type ReviewData = {
 
 // ── Helpers ────────────────────────────────────────────
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://your-domain.co.il'
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cannaforyou.net'
 
 function getSpecialtyLabel(id: string): string {
   return SPECIALTIES.find(s => s.id === id)?.label || id
@@ -46,7 +46,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     .single()
 
   if (!data) {
-    return { title: 'רופא לא נמצא — טלמדיסן' }
+    return { title: 'רופא לא נמצא' }
   }
 
   const doc = data as unknown as DoctorData
@@ -54,14 +54,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const specialtyLabels = (doc.specialties || []).map(getSpecialtyLabel).join(', ')
   const description = doc.bio
     ? doc.bio.slice(0, 160)
-    : `${name} — ${specialtyLabels || 'רופא'} | ייעוץ אונליין בוידאו בטלמדיסן`
+    : `${name} — ${specialtyLabels || 'רופא'} | ייעוץ אונליין בוידאו בCANNA`
 
   return {
-    title: `${name} — ייעוץ רפואי אונליין | טלמדיסן`,
+    title: `${name} — ייעוץ רפואי אונליין`,
     description,
-    keywords: [name, ...specialtyLabels.split(', '), 'רופא אונליין', 'ייעוץ רפואי', 'טלמדיסן'],
+    keywords: [name, ...specialtyLabels.split(', '), 'רופא אונליין', 'ייעוץ רפואי', 'CANNA'],
     openGraph: {
-      title: `${name} — טלמדיסן`,
+      title: `${name} — CANNA`,
       description,
       type: 'profile',
       locale: 'he_IL',
@@ -69,7 +69,7 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
     },
     twitter: {
       card: 'summary_large_image',
-      title: `${name} — טלמדיסן`,
+      title: `${name} — CANNA`,
       description,
     },
     alternates: { canonical: `${BASE_URL}/doctors/${id}` },
@@ -151,7 +151,7 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-black text-blue-600">טלמדיסן</Link>
+          <Link href="/" className="text-2xl font-black text-blue-600">CANNA</Link>
           <div className="flex items-center gap-4">
             <Link href="/specialties" className="text-sm text-gray-600 hover:text-gray-900">התמחויות</Link>
             <Link href="/doctors" className="text-sm text-gray-600 hover:text-gray-900">הרופאים שלנו</Link>
@@ -361,7 +361,7 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
       <footer className="py-12 px-4 bg-gray-900 text-gray-400">
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
           <div>
-            <h5 className="font-bold text-white mb-3">טלמדיסן</h5>
+            <h5 className="font-bold text-white mb-3">CANNA</h5>
             <p>פלטפורמת ייעוץ רפואי אונליין מתקדמת</p>
           </div>
           <div>
@@ -385,7 +385,7 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
           </div>
         </div>
         <div className="max-w-6xl mx-auto mt-8 pt-8 border-t border-gray-800 text-center text-xs">
-          &copy; {new Date().getFullYear()} טלמדיסן. כל הזכויות שמורות.
+          &copy; {new Date().getFullYear()} CANNA. כל הזכויות שמורות.
         </div>
       </footer>
     </div>

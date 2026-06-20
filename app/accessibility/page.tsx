@@ -2,8 +2,8 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
-  title: 'הצהרת נגישות | טלמדיסן',
-  description: 'הצהרת הנגישות של פלטפורמת טלמדיסן — מחויבות לנגישות דיגיטלית לפי תקן ת"י 5568 ו-WCAG 2.1 AA.',
+  title: 'הצהרת נגישות',
+  description: 'הצהרת הנגישות של פלטפורמת CANNA — מחויבות לנגישות דיגיטלית לפי תקן ת"י 5568 ו-WCAG 2.1 AA.',
 }
 
 const FEATURES = [
@@ -85,8 +85,8 @@ export default function AccessibilityPage() {
       {/* ── Navbar ── */}
       <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm" role="navigation" aria-label="ניווט ראשי">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="text-xl font-black text-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 rounded" aria-label="טלמדיסן — עמוד הבית">
-            טלמדיסן
+          <Link href="/" className="text-xl font-black text-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 rounded" aria-label="CANNA — עמוד הבית">
+            CANNA
           </Link>
           <div className="flex items-center gap-4">
             <Link href="/" className="text-sm text-gray-600 hover:text-gray-900 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 rounded px-1">
@@ -117,7 +117,7 @@ export default function AccessibilityPage() {
         <section className="mb-10 bg-blue-50 border border-blue-200 rounded-2xl p-6" aria-labelledby="intro-heading">
           <h2 id="intro-heading" className="text-lg font-bold text-blue-900 mb-3">מחויבות לנגישות</h2>
           <p className="text-blue-800 text-sm leading-relaxed">
-            טלמדיסן מחויבת להנגשת הפלטפורמה לכלל האוכלוסייה, לרבות אנשים עם מוגבלויות שונות —
+            CANNA מחויבת להנגשת הפלטפורמה לכלל האוכלוסייה, לרבות אנשים עם מוגבלויות שונות —
             לקויי ראייה, לקויי שמיעה, לקויי מוטוריקה ולקויי קוגניציה.
             אנו פועלים בהתאם ל<strong>חוק שוויון זכויות לאנשים עם מוגבלות, תשנ&quot;ח-1998</strong> ול<strong>תקנות הנגישות לשירותי אינטרנט</strong>
             {' '}המבוססות על תקן ת&quot;י 5568 / WCAG 2.1 ברמה AA.
@@ -259,7 +259,7 @@ export default function AccessibilityPage() {
       {/* Footer */}
       <footer className="py-8 px-6 bg-gray-900 text-gray-400 text-sm" role="contentinfo">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
-          <p>© {new Date().getFullYear()} טלמדיסן. כל הזכויות שמורות.</p>
+          <p>© {new Date().getFullYear()} CANNA. כל הזכויות שמורות.</p>
           <nav aria-label="ניווט תחתון" className="flex items-center gap-5">
             <Link href="/terms" className="hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white rounded">תנאי שימוש</Link>
             <Link href="/privacy" className="hover:text-white transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-white rounded">פרטיות</Link>

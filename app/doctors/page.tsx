@@ -4,14 +4,14 @@ import { createServiceRole } from '@/lib/supabase/server'
 import { SPECIALTIES, formatPrice } from '@/lib/utils'
 import DoctorsHeroCarousel from './DoctorsHeroCarousel'
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://your-domain.co.il'
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cannaforyou.net'
 
 export const metadata: Metadata = {
   title: 'הרופאים שלנו — רופאים מומחים לייעוץ אונליין',
   description: 'מצא רופא מומחה לייעוץ אונליין בוידאו. כל ההתמחויות — רפואה כללית, עור, קרדיולוגיה ועוד. קבע תור היום.',
-  keywords: ['רופאים אונליין', 'רופא מומחה', 'ייעוץ רפואי', 'טלמדיסן'],
+  keywords: ['רופאים אונליין', 'רופא מומחה', 'ייעוץ רפואי', 'CANNA'],
   openGraph: {
-    title: 'הרופאים שלנו — טלמדיסן',
+    title: 'הרופאים שלנו — CANNA',
     description: 'מצא רופא מומחה לייעוץ אונליין בוידאו. כל ההתמחויות. קבע תור היום.',
     type: 'website', locale: 'he_IL', url: `${BASE_URL}/doctors`,
   },
@@ -59,7 +59,7 @@ export default async function DoctorsPage() {
 
   const jsonLd = {
     '@context': 'https://schema.org', '@type': 'MedicalClinic',
-    name: 'טלמדיסן', url: `${BASE_URL}/doctors`,
+    name: 'CANNA', url: `${BASE_URL}/doctors`,
     areaServed: { '@type': 'Country', name: 'Israel' },
     medicalSpecialty: 'Telemedicine',
   }
@@ -84,7 +84,7 @@ export default async function DoctorsPage() {
         }}
         dir="rtl"
       >
-        <Link href="/" className="text-xl font-black text-white tracking-tight">טלמדיסן</Link>
+        <Link href="/" className="text-xl font-black text-white tracking-tight">CANNA</Link>
         <div className="flex items-center gap-5">
           <Link href="/specialties" className="text-sm text-slate-400 hover:text-white transition-colors hidden sm:block">התמחויות</Link>
           <Link href="/doctors" className="text-sm font-semibold text-blue-400 hidden sm:block">הרופאים שלנו</Link>
@@ -265,7 +265,7 @@ export default async function DoctorsPage() {
                         )}
                       </div>
                       <Link
-                        href={`/auth/register?doctorId=${doc.id}`}
+                        href={`/dashboard/patient/new-appointment?doctor=${doc.id}`}
                         className="text-sm font-bold text-white px-5 py-2.5 rounded-xl transition-all hover:scale-105 shadow-md"
                         style={{ background: `linear-gradient(135deg, ${from}, ${to})` }}
                       >
@@ -412,7 +412,7 @@ export default async function DoctorsPage() {
         <div className="max-w-6xl mx-auto">
           <div className="grid grid-cols-2 md:grid-cols-4 gap-8 text-sm mb-10" style={{ color: '#64748b' }}>
             <div>
-              <h5 className="font-black text-white text-lg mb-3">טלמדיסן</h5>
+              <h5 className="font-black text-white text-lg mb-3">CANNA</h5>
               <p className="leading-relaxed">פלטפורמת ייעוץ רפואי אונליין — AI, וידאו, מרשמים דיגיטליים.</p>
             </div>
             <div>
@@ -443,7 +443,7 @@ export default async function DoctorsPage() {
           </div>
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs pt-8"
             style={{ borderTop: '1px solid rgba(255,255,255,0.05)', color: '#334155' }}>
-            <span>&copy; {new Date().getFullYear()} טלמדיסן. כל הזכויות שמורות.</span>
+            <span>&copy; {new Date().getFullYear()} CANNA. כל הזכויות שמורות.</span>
             <span style={{ color: '#475569' }}>נבנה ב NFD — Next Flow Digital</span>
           </div>
         </div>

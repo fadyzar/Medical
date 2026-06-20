@@ -382,7 +382,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
           {!sidebarCollapsed && (
             <span className="text-lg font-bold truncate" style={org?.primary_color ? { color: org.primary_color } : undefined}>
               <span className={org?.primary_color ? '' : 'bg-gradient-to-l from-blue-600 to-teal-600 bg-clip-text text-transparent'}>
-                {org?.name ?? 'טלמדיסן'}
+                {org?.name ?? 'CANNA'}
               </span>
             </span>
           )}
@@ -494,7 +494,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
               )}
               <span className="text-base font-bold" style={org?.primary_color ? { color: org.primary_color } : undefined}>
                 <span className={org?.primary_color ? '' : 'bg-gradient-to-l from-blue-600 to-teal-600 bg-clip-text text-transparent'}>
-                  {org?.name ?? 'טלמדיסן'}
+                  {org?.name ?? 'CANNA'}
                 </span>
               </span>
             </div>

@@ -1,7 +1,7 @@
 import { ImageResponse } from 'next/og'
 
 export const runtime = 'edge'
-export const alt = 'טלמדיסן — ייעוץ רפואי אונליין'
+export const alt = 'CANNA — ייעוץ רפואי אונליין'
 export const size = { width: 1200, height: 630 }
 export const contentType = 'image/png'
 
@@ -43,7 +43,7 @@ export default function OgImage() {
             lineHeight: 1.1,
           }}
         >
-          טלמדיסן
+          CANNA
         </h1>
         <p
           style={{

@@ -2,14 +2,14 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import HeroCarousel from '@/components/ui/HeroCarousel'
 
-const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://your-domain.co.il'
+const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cannaforyou.net'
 
 export const metadata: Metadata = {
-  title: 'טלמדיסן — ייעוץ רפואי אונליין | הפלטפורמה המובילה',
+  title: { absolute: 'CANNA — ייעוץ רפואי אונליין | הפלטפורמה המובילה בישראל' },
   description: 'ייעוץ רפואי אונליין בוידאו עם רופאים מומחים. סיכומי AI חכמים, שאלונים דינמיים, תשלומים מאובטחים. הפלטפורמה הרפואית המתקדמת בישראל.',
-  keywords: ['טלמדיסן', 'ייעוץ רפואי אונליין', 'telemedicine', 'רופא אונליין', 'SaaS רפואי'],
+  keywords: ['CANNA', 'ייעוץ רפואי אונליין', 'telemedicine', 'רופא אונליין', 'SaaS רפואי'],
   openGraph: {
-    title: 'טלמדיסן — ייעוץ רפואי אונליין',
+    title: 'CANNA — ייעוץ רפואי אונליין',
     description: 'ייעוץ רפואי בוידאו עם רופאים מומחים.',
     type: 'website',
     locale: 'he_IL',
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
 const jsonLd = {
   '@context': 'https://schema.org',
   '@type': 'SoftwareApplication',
-  name: 'טלמדיסן',
+  name: 'CANNA',
   url: BASE_URL,
   applicationCategory: 'HealthApplication',
   operatingSystem: 'Web',
@@ -69,7 +69,7 @@ export default function HomePage() {
                   <path d="M8 15v1a6 6 0 006 6 6 6 0 006-6v-4"/><circle cx="20" cy="10" r="2"/>
                 </svg>
               </span>
-              טלמדיסן
+              CANNA
             </Link>
             <div className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">
               <Link href="/doctors" className="hover:text-slate-900 transition-colors">רופאים</Link>
@@ -272,7 +272,7 @@ export default function HomePage() {
                     <path d="M8 15v1a6 6 0 006 6 6 6 0 006-6v-4"/><circle cx="20" cy="10" r="2"/>
                   </svg>
                 </span>
-                <span className="text-white font-bold text-lg">טלמדיסן</span>
+                <span className="text-white font-bold text-lg">CANNA</span>
               </Link>
               <p className="text-slate-500 leading-relaxed text-sm">פלטפורמת ייעוץ רפואי אונליין מתקדמת לישראל.</p>
             </div>
@@ -301,7 +301,7 @@ export default function HomePage() {
             </div>
           </div>
           <div className="mt-12 pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-600">
-            <p>&copy; {new Date().getFullYear()} טלמדיסן. כל הזכויות שמורות.</p>
+            <p>&copy; {new Date().getFullYear()} CANNA. כל הזכויות שמורות.</p>
             <p>נבנה ב <span className="font-semibold text-slate-500">NFD — Next Flow Digital</span></p>
           </div>
         </div>

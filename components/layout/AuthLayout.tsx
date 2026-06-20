@@ -82,7 +82,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
             <div className="w-11 h-11 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
               <IconStethoscope className="w-6 h-6 text-white" />
             </div>
-            <span className="text-2xl font-bold text-white">טלמדיסן</span>
+            <span className="text-2xl font-bold text-white">CANNA</span>
           </Link>
         </div>
 
@@ -149,7 +149,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
             <div className="w-9 h-9 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
               <IconStethoscope className="w-5 h-5 text-white" />
             </div>
-            <span className="text-xl font-bold text-white">טלמדיסן</span>
+            <span className="text-xl font-bold text-white">CANNA</span>
           </Link>
           <h1 className="text-2xl font-bold text-white">{title}</h1>
           {subtitle && <p className="text-blue-100 text-sm mt-1">{subtitle}</p>}
@@ -171,7 +171,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
         {/* Footer */}
         <div className="text-center py-4 px-4 text-xs text-gray-400">
           <p>
-            &copy; {new Date().getFullYear()} טלמדיסן — ייעוץ רפואי מקצועי אונליין
+            &copy; {new Date().getFullYear()} CANNA — ייעוץ רפואי מקצועי אונליין
           </p>
           <div className="flex items-center justify-center gap-3 mt-1">
             <Link href="/terms" className="hover:text-gray-600 transition-colors">תנאי שימוש</Link>

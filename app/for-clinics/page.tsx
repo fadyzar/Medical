@@ -3,11 +3,11 @@ import Link from 'next/link'
 import HeroCarousel from './HeroCarousel'
 
 export const metadata: Metadata = {
-  title: 'טלמדיסן למרפאות — SaaS רפואי ישראלי',
+  title: { absolute: 'CANNA למרפאות — SaaS רפואי ישראלי' },
   description: 'הקם קליניקה דיגיטלית תוך 24 שעות. ניהול תורים, וידאו HD, סיכומי AI, מיתוג אישי ותמיכה ישראלית. ניסיון חינם 14 ימים.',
-  keywords: ['telemedicine saas', 'SaaS מרפאות', 'ניהול קליניקה דיגיטלית', 'טלמדיסן'],
+  keywords: ['telemedicine saas', 'SaaS מרפאות', 'ניהול קליניקה דיגיטלית', 'CANNA'],
   openGraph: {
-    title: 'טלמדיסן למרפאות — הפלטפורמה שמכפילה הכנסות',
+    title: 'CANNA למרפאות — הפלטפורמה שמכפילה הכנסות',
     description: 'הקם קליניקה דיגיטלית תוך 24 שעות.',
     type: 'website',
     locale: 'he_IL',
@@ -34,7 +34,7 @@ const features = [
   {
     tag: 'White-Label',
     title: 'המרפאה שלך — הזהות שלך',
-    body: 'לוגו, צבעים, ו-subdomain ייחודיים. המטופלים שלך רואים רק את שם המרפאה שלך — לא "טלמדיסן". מיתוג מלא בכמה קליקים.',
+    body: 'לוגו, צבעים, ו-subdomain ייחודיים. המטופלים שלך רואים רק את שם המרפאה שלך — לא "CANNA". מיתוג מלא בכמה קליקים.',
     img: 'https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?auto=format&fit=crop&w=700&q=80',
     imgAlt: 'מרפאה עם מיתוג אישי',
   },
@@ -67,7 +67,7 @@ export default function ForClinicsPage() {
                   <path d="M8 15v1a6 6 0 006 6 6 6 0 006-6v-4"/><circle cx="20" cy="10" r="2"/>
                 </svg>
               </span>
-              טלמדיסן
+              CANNA
             </Link>
             <div className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">
               <Link href="/doctors" className="hover:text-slate-900 transition-colors">לרופאים</Link>
@@ -264,41 +264,31 @@ export default function ForClinicsPage() {
         </div>
       </section>
 
-      {/* ── Comparison table ── */}
+      {/* ── Capabilities ── */}
       <section className="py-24 px-6 bg-white">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-14">
-            <p className="text-xs font-bold tracking-widest uppercase text-blue-600 mb-4">השוואה</p>
-            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">למה טלמדיסן?</h2>
-            <p className="text-slate-500 mt-3 text-lg">מה שאחרים לא נותנים — אנחנו כן</p>
+            <p className="text-xs font-bold tracking-widest uppercase text-blue-600 mb-4">היכולות</p>
+            <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">כל מה שמרפאה דיגיטלית צריכה</h2>
+            <p className="text-slate-500 mt-3 text-lg">פלטפורמה אחת, מקצה לקצה</p>
           </div>
-          <div className="rounded-2xl overflow-hidden border border-slate-200 shadow-sm">
-            <div className="grid grid-cols-4 text-center text-xs font-bold uppercase tracking-wide bg-slate-50 border-b border-slate-200">
-              <div className="py-4 px-4 text-right text-slate-500">פיצ׳ר</div>
-              {['טלמדיסן', 'HiDoc', 'ביקורופא'].map((h, i) => (
-                <div key={i} className={`py-4 ${i === 0 ? 'text-blue-700 bg-blue-50' : 'text-slate-400'}`}>{h}</div>
-              ))}
-            </div>
+          <div className="grid sm:grid-cols-2 gap-4">
             {[
-              { f: 'White-Label מלא', vals: [true, false, false] },
-              { f: 'AI SOAP notes', vals: [true, false, false] },
-              { f: 'מרשמים דיגיטליים', vals: [true, true, false] },
-              { f: 'ממשק עברית מלא', vals: [true, false, true] },
-              { f: 'תורים + אישור רופא', vals: [true, true, true] },
-              { f: 'Subdomain אישי', vals: [true, false, false] },
-              { f: 'תמיכה ישראלית', vals: [true, false, false] },
-              { f: 'ביטול בכל עת', vals: [true, false, false] },
+              { t: 'White-Label מלא', d: 'מיתוג אישי — לוגו, צבעים ו-Subdomain משלך' },
+              { t: 'AI SOAP notes', d: 'סיכום ייעוץ אוטומטי שהרופא מאשר בלחיצה' },
+              { t: 'מרשמים דיגיטליים', d: 'טיוטת מרשם חכמה עם בדיקת אלרגיות' },
+              { t: 'ממשק עברית מלא (RTL)', d: 'כל המערכת בעברית, נגישה ומותאמת מובייל' },
+              { t: 'תורים + אישור רופא', d: 'זרימת קביעת תור מלאה עם אישור ותשלום' },
+              { t: 'וידאו HD מוצפן', d: 'שיחות וידאו מאובטחות ישירות בדפדפן' },
+              { t: 'תמיכה ישראלית', d: 'ליווי והטמעה בעברית, בשעות ישראל' },
+              { t: 'ביטול בכל עת', d: 'ללא התחייבות ארוכת טווח' },
             ].map((row, i) => (
-              <div key={i} className={`grid grid-cols-4 text-center text-sm items-center border-b border-slate-100 last:border-0 ${i % 2 === 0 ? 'bg-white' : 'bg-slate-50/50'}`}>
-                <div className="py-3.5 px-4 text-right font-medium text-slate-600">{row.f}</div>
-                {row.vals.map((v, j) => (
-                  <div key={j} className={`py-3.5 ${j === 0 ? 'bg-blue-50/50' : ''}`}>
-                    {v
-                      ? <span className={`inline-flex items-center justify-center w-6 h-6 rounded-full text-xs font-black ${j === 0 ? 'bg-blue-600 text-white' : 'bg-emerald-100 text-emerald-700'}`}>✓</span>
-                      : <span className="text-slate-300 text-lg">—</span>
-                    }
-                  </div>
-                ))}
+              <div key={i} className="flex items-start gap-3 rounded-2xl border border-slate-200 p-5 bg-slate-50/50">
+                <span className="inline-flex items-center justify-center w-7 h-7 shrink-0 rounded-full bg-blue-600 text-white text-sm font-black">✓</span>
+                <div>
+                  <p className="font-bold text-slate-900">{row.t}</p>
+                  <p className="text-sm text-slate-500 mt-0.5">{row.d}</p>
+                </div>
               </div>
             ))}
           </div>
@@ -434,7 +424,7 @@ export default function ForClinicsPage() {
               <span className="text-blue-400">ללא כרטיס אשראי.</span>
             </h2>
             <p className="text-slate-400 mt-4 leading-relaxed max-w-lg">
-              הפעלה תוך 24 שעות, תמיכה בעברית, ביטול בכל עת. מעל 50 מרפאות כבר מנהלות את הקליניקה הדיגיטלית שלהן עם טלמדיסן.
+              הפעלה תוך 24 שעות, תמיכה בעברית, ביטול בכל עת. מעל 50 מרפאות כבר מנהלות את הקליניקה הדיגיטלית שלהן עם CANNA.
             </p>
           </div>
           <div className="flex flex-col gap-3 shrink-0">
@@ -466,7 +456,7 @@ export default function ForClinicsPage() {
                     <path d="M8 15v1a6 6 0 006 6 6 6 0 006-6v-4"/><circle cx="20" cy="10" r="2"/>
                   </svg>
                 </span>
-                <span className="text-white font-bold text-lg">טלמדיסן</span>
+                <span className="text-white font-bold text-lg">CANNA</span>
               </Link>
               <p className="text-slate-500 leading-relaxed text-sm">פלטפורמת SaaS רפואי White-Label לישראל.</p>
             </div>
@@ -496,7 +486,7 @@ export default function ForClinicsPage() {
             </div>
           </div>
           <div className="mt-12 pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-600">
-            <p>&copy; {new Date().getFullYear()} טלמדיסן. כל הזכויות שמורות.</p>
+            <p>&copy; {new Date().getFullYear()} CANNA. כל הזכויות שמורות.</p>
             <p>נבנה ב <span className="font-semibold text-slate-500">NFD — Next Flow Digital</span></p>
           </div>
         </div>

@@ -9,6 +9,7 @@ const PUBLIC_PREFIXES = [
   '/onboarding',
   '/marketing',
   '/for-clinics',
+  '/contact',
   '/doctors',
   '/specialties',
   '/blog',
