@@ -235,18 +235,20 @@ export default function MarketingPage() {
         </div>
       </section>
 
-      {/* ── Stats bar ──────────────────────────────────────────── */}
+      {/* ── Capabilities bar (factual — no fabricated metrics) ──── */}
       <div className="border-y border-slate-100 bg-slate-50">
-        <div className="max-w-5xl mx-auto px-6 py-10 grid grid-cols-2 md:grid-cols-4 gap-8 text-center">
+        <div className="max-w-6xl mx-auto px-6 py-10 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-8 text-center">
           {[
-            { v: '10,000+', l: 'ייעוצים מוצלחים' },
-            { v: '50+',     l: 'רופאים מומחים' },
-            { v: '< 15 דק׳', l: 'זמן ממוצע לרופא' },
-            { v: '24/7',    l: 'זמינות מלאה' },
+            { v: 'מערכת תורים', l: 'קביעה ואישור אונליין' },
+            { v: 'שיחות וידאו', l: 'מוצפנות מקצה לקצה' },
+            { v: 'סיכומי AI', l: 'SOAP אוטומטי' },
+            { v: 'תזכורות', l: 'אימייל ו-WhatsApp' },
+            { v: 'ניהול מסמכים', l: 'מאובטח ומסודר' },
+            { v: 'הפרדת מרפאות', l: 'בידוד מלא לכל מרפאה' },
           ].map(s => (
-            <div key={s.l}>
-              <p className="text-3xl font-black text-slate-900">{s.v}</p>
-              <p className="text-sm text-slate-500 mt-1 font-medium">{s.l}</p>
+            <div key={s.v}>
+              <p className="text-base lg:text-lg font-black text-slate-900 leading-tight">{s.v}</p>
+              <p className="text-xs text-slate-500 mt-1 font-medium">{s.l}</p>
             </div>
           ))}
         </div>
@@ -255,7 +257,7 @@ export default function MarketingPage() {
       {/* ── Features — alternating image/text ─────────────────── */}
       <section className="py-28 px-6">
         <div className="max-w-7xl mx-auto space-y-28">
-          {features.map((f, i) => (
+          {features.map((f) => (
             <div
               key={f.label}
               className={`grid lg:grid-cols-2 gap-16 items-center ${f.reverse ? 'direction-ltr' : ''}`}
