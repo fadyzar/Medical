@@ -194,7 +194,7 @@ export default function MarketingPage() {
               </span>
               <span className="flex items-center gap-1.5">
                 <CheckCircle />
-                תוצאות אותו יום
+                סיכום ביקור באותו יום
               </span>
               <span className="flex items-center gap-1.5">
                 <CheckCircle />
