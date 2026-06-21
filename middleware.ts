@@ -19,6 +19,9 @@ const PUBLIC_PREFIXES = [
   '/video-call',
 ]
 
+// White-label clinic subdomain routing — off until wildcard DNS is configured.
+const TENANT_SUBDOMAINS_ENABLED = process.env.ENABLE_TENANT_SUBDOMAINS === 'true'
+
 // Role → allowed dashboard prefix
 const ROLE_DASHBOARDS: Record<string, string> = {
   patient: '/dashboard/patient',
@@ -106,8 +109,11 @@ export async function middleware(req: NextRequest) {
       const role = (profile as { role?: string } | null)?.role || 'patient'
       const dashPath = `${ROLE_DASHBOARDS[role] ?? ROLE_DASHBOARDS.patient}/dashboard`
 
-      // If user belongs to a clinic with a subdomain, redirect there
-      if (role !== 'patient' && profile) {
+      // Optional white-label: redirect clinic users to their subdomain.
+      // Disabled until wildcard DNS exists — otherwise this points at a
+      // non-resolving host and breaks admin/doctor login. Re-enable by
+      // setting ENABLE_TENANT_SUBDOMAINS=true once *.cannaforyou.net resolves.
+      if (TENANT_SUBDOMAINS_ENABLED && role !== 'patient' && profile) {
         const orgId = (profile as { organization_id?: string }).organization_id
         if (orgId) {
           const { data: org } = await supabase
@@ -151,8 +157,8 @@ export async function middleware(req: NextRequest) {
       return NextResponse.redirect(new URL(`${allowedPrefix}/dashboard`, req.url))
     }
 
-    // If clinic staff/doctor/admin on main platform → redirect to their subdomain
-    if (role !== 'patient' && !tenantSubdomain && profile) {
+    // Optional white-label subdomain routing (gated — see note above).
+    if (TENANT_SUBDOMAINS_ENABLED && role !== 'patient' && !tenantSubdomain && profile) {
       const orgId = (profile as { organization_id?: string }).organization_id
       if (orgId) {
         const { data: org } = await supabase
