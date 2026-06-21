@@ -3,22 +3,12 @@
 import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
-const MOCK_DOCTORS = [
-  {
-    initials: 'מכ', name: 'ד"ר מיכל כהן', spec: 'עור ומין',
-    rating: 4.9, reviews: 234, price: 350, available: true,
-    from: '#3b82f6', to: '#6366f1',
-  },
-  {
-    initials: 'אל', name: 'ד"ר אמיר לוי', spec: 'קרדיולוגיה',
-    rating: 4.8, reviews: 187, price: 420, available: true,
-    from: '#10b981', to: '#0891b2',
-  },
-  {
-    initials: 'רש', name: 'ד"ר רון שמיר', spec: 'אורתופדיה',
-    rating: 4.9, reviews: 312, price: 380, available: false,
-    from: '#8b5cf6', to: '#ec4899',
-  },
+/* Illustrative specialty cards for the hero — no fabricated doctors, names,
+   ratings, reviews or prices. Real doctors are listed in the grid below. */
+const SPECIALTY_CARDS = [
+  { icon: '🔬', spec: 'עור ומין', tag: 'ייעוץ בוידאו', from: '#3b82f6', to: '#6366f1' },
+  { icon: '❤️', spec: 'קרדיולוגיה', tag: 'ייעוץ בוידאו', from: '#10b981', to: '#0891b2' },
+  { icon: '🦴', spec: 'אורתופדיה', tag: 'ייעוץ בוידאו', from: '#8b5cf6', to: '#ec4899' },
 ]
 
 const SPECIALTIES_PREVIEW = [
@@ -184,13 +174,13 @@ export default function DoctorsHeroCarousel() {
           <div className="grid grid-cols-4 gap-4 pt-8"
             style={{ borderTop: '1px solid rgba(255,255,255,0.07)' }}>
             {[
-              { v: '50+', l: 'רופאים' },
-              { v: '4.9★', l: 'דירוג' },
-              { v: '<24ש׳', l: 'לתור ראשון' },
-              { v: '100%', l: 'מוצפן' },
+              { v: 'וידאו HD', l: 'מוצפן' },
+              { v: 'סיכומי AI', l: 'אחרי ייעוץ' },
+              { v: 'מרשמים', l: 'דיגיטליים' },
+              { v: 'מסמכים', l: 'מאובטחים' },
             ].map((s, i) => (
               <div key={i} className="text-center">
-                <p className="text-2xl font-black text-white">{s.v}</p>
+                <p className="text-base font-black text-white leading-tight">{s.v}</p>
                 <p className="text-xs mt-0.5" style={{ color: '#64748b' }}>{s.l}</p>
               </div>
             ))}
@@ -212,7 +202,7 @@ export default function DoctorsHeroCarousel() {
             style={{ background: 'radial-gradient(ellipse, rgba(59,130,246,0.15) 0%, transparent 70%)' }} />
 
           {/* Cards fan */}
-          {MOCK_DOCTORS.map((doc, i) => {
+          {SPECIALTY_CARDS.map((doc, i) => {
             const cfg = CARDS[i]
             const isActive = active === i
             return (
@@ -242,53 +232,53 @@ export default function DoctorsHeroCarousel() {
                       : '0 8px 32px rgba(0,0,0,0.3)',
                   }}
                 >
-                  {/* Status */}
+                  {/* Status — neutral capability badge */}
                   <div className="flex items-center justify-between mb-4">
                     <span
                       className="text-xs font-bold px-3 py-1 rounded-full"
                       style={{
-                        background: doc.available ? 'rgba(16,185,129,0.15)' : 'rgba(100,116,139,0.15)',
-                        border: doc.available ? '1px solid rgba(16,185,129,0.3)' : '1px solid rgba(100,116,139,0.3)',
-                        color: doc.available ? '#34d399' : '#94a3b8',
+                        background: 'rgba(16,185,129,0.15)',
+                        border: '1px solid rgba(16,185,129,0.3)',
+                        color: '#34d399',
                       }}
                     >
-                      {doc.available ? '● זמין עכשיו' : '○ בתור קצר'}
+                      ● ייעוץ אונליין
                     </span>
-                    <span className="text-sm font-black" style={{ color: '#fbbf24' }}>
-                      ★ {doc.rating}
+                    <span className="text-xs font-bold" style={{ color: '#60a5fa' }}>
+                      {doc.tag}
                     </span>
                   </div>
 
-                  {/* Avatar + Name */}
+                  {/* Specialty icon + label */}
                   <div className="flex items-center gap-4 mb-4">
                     <div
-                      className="w-14 h-14 rounded-2xl flex items-center justify-center text-white text-xl font-black shrink-0"
+                      className="w-14 h-14 rounded-2xl flex items-center justify-center text-2xl shrink-0"
                       style={{
                         background: `linear-gradient(135deg, ${doc.from}, ${doc.to})`,
                         boxShadow: `0 8px 24px ${doc.from}40`,
                       }}
                     >
-                      {doc.initials}
+                      {doc.icon}
                     </div>
                     <div>
-                      <p className="font-black text-white text-base">{doc.name}</p>
-                      <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>{doc.spec}</p>
-                      <p className="text-xs mt-0.5" style={{ color: '#64748b' }}>{doc.reviews} ביקורות</p>
+                      <p className="font-black text-white text-base">{doc.spec}</p>
+                      <p className="text-xs mt-0.5" style={{ color: '#94a3b8' }}>רופאים מומחים בפלטפורמה</p>
                     </div>
                   </div>
 
-                  {/* Price + CTA */}
+                  {/* CTA */}
                   <div className="flex items-center justify-between pt-3"
                     style={{ borderTop: '1px solid rgba(255,255,255,0.08)' }}>
-                    <span className="text-lg font-black" style={{ color: '#34d399' }}>
-                      ₪{doc.price}
+                    <span className="text-sm font-bold" style={{ color: '#34d399' }}>
+                      וידאו HD מוצפן
                     </span>
-                    <button
+                    <a
+                      href="#doctors-grid"
                       className="text-xs font-bold px-4 py-2 rounded-xl text-white transition-all hover:scale-105"
                       style={{ background: 'linear-gradient(135deg, #2563eb, #4f46e5)' }}
                     >
                       קבע תור
-                    </button>
+                    </a>
                   </div>
                 </div>
               </div>
@@ -324,7 +314,7 @@ export default function DoctorsHeroCarousel() {
 
           {/* Card dots */}
           <div className="absolute -bottom-8 flex gap-2">
-            {MOCK_DOCTORS.map((_, i) => (
+            {SPECIALTY_CARDS.map((_, i) => (
               <button
                 key={i}
                 onClick={() => setActive(i)}

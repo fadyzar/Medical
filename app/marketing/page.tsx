@@ -6,7 +6,7 @@ const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cannaforyou.net'
 export const metadata: Metadata = {
   title: { absolute: 'CANNA — ייעוץ רפואי אונליין | הפלטפורמה המובילה' },
   description: 'ייעוץ רפואי אונליין בוידאו עם רופאים מומחים. סיכומי AI חכמים, שאלונים דינמיים, תשלומים מאובטחים. הפלטפורמה הרפואית המתקדמת בישראל.',
-  keywords: ['CANNA', 'ייעוץ רפואי אונליין', 'telemedicine', 'רופא אונליין', 'SaaS רפואי', 'פלטפורמה רפואית'],
+  keywords: ['CANNA', 'ייעוץ רפואי אונליין', 'רופא אונליין', 'SaaS רפואי', 'פלטפורמה רפואית'],
   openGraph: {
     title: 'CANNA — ייעוץ רפואי אונליין | הפלטפורמה המובילה',
     description: 'ייעוץ רפואי בוידאו עם רופאים מומחים. AI, שאלונים, תשלומים מאובטחים.',

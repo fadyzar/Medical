@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_APP_URL || 'https://cannaforyou.net'),
   title: { default: 'CANNA — ייעוץ רפואי אונליין', template: '%s | CANNA' },
   description: 'פלטפורמת CANNA מתקדמת — ייעוץ רפואי בוידאו עם רופאים מומחים, סיכומי AI, שאלונים דינמיים, תשלומים מאובטחים. הפלטפורמה המובילה בישראל.',
-  keywords: ['CANNA', 'ייעוץ רפואי אונליין', 'רופא אונליין', 'שיחת וידאו רופא', 'telemedicine israel'],
+  keywords: ['CANNA', 'ייעוץ רפואי אונליין', 'רופא אונליין', 'שיחת וידאו רופא'],
   authors: [{ name: 'CANNA' }],
   openGraph: {
     type: 'website',
@@ -46,7 +46,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           "name": "CANNA",
           "url": "https://cannaforyou.net",
           "description": "פלטפורמת ייעוץ רפואי אונליין",
-          "medicalSpecialty": "Telemedicine",
+          "medicalSpecialty": "General",
           "availableService": { "@type": "MedicalProcedure", "name": "ייעוץ רפואי בוידאו" },
           "areaServed": { "@type": "Country", "name": "Israel" },
           "address": { "@type": "PostalAddress", "addressCountry": "IL" },

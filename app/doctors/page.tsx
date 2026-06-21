@@ -61,7 +61,7 @@ export default async function DoctorsPage() {
     '@context': 'https://schema.org', '@type': 'MedicalClinic',
     name: 'CANNA', url: `${BASE_URL}/doctors`,
     areaServed: { '@type': 'Country', name: 'Israel' },
-    medicalSpecialty: 'Telemedicine',
+    medicalSpecialty: 'General',
   }
 
   /* Gradient palette for avatars — cycles by index */
@@ -109,8 +109,8 @@ export default async function DoctorsPage() {
       <div className="bg-gradient-to-r from-blue-600 to-indigo-700 py-5 px-4">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center text-white">
           {[
-            { v: typedDoctors.length > 0 ? `${typedDoctors.length}+` : '50+', l: 'רופאים פעילים' },
-            { v: `${Object.keys(specialtyCounts).length > 0 ? Object.keys(specialtyCounts).length : '15'}+`, l: 'התמחויות' },
+            { v: typedDoctors.length > 0 ? `${typedDoctors.length}` : '—', l: 'רופאים פעילים' },
+            { v: Object.keys(specialtyCounts).length > 0 ? `${Object.keys(specialtyCounts).length}` : '—', l: 'התמחויות' },
             { v: 'וידאו HD', l: 'שיחות מוצפנות' },
             { v: 'AI', l: 'סיכום ומרשם' },
           ].map((s, i) => (

@@ -22,7 +22,7 @@ const DEFAULT: Settings = {
   invertColors: false,
 }
 
-const STORAGE_KEY = 'telemed_a11y_v1'
+const STORAGE_KEY = 'canna_a11y_v1'
 
 const FONT_LABELS   = ['רגיל', 'גדול', 'גדול\u00A0מאוד', 'ענק']
 const FONT_VALUES   = ['100%', '115%', '130%', '150%']

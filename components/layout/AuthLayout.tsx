@@ -42,14 +42,6 @@ function IconClock({ className }: { className?: string }) {
   )
 }
 
-function IconStar({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="currentColor" stroke="none">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-    </svg>
-  )
-}
-
 // ── Features list for brand panel ────────────────────────
 
 const FEATURES = [
@@ -94,8 +86,8 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
               זמינה לך היום
             </h2>
             <p className="text-blue-100 mt-3 text-lg leading-relaxed">
-              אלפי מטופלים כבר נהנים מייעוץ רפואי מקצועי
-              מהבית — בקליק אחד.
+              ייעוץ רפואי מקצועי בשיחת וידאו —
+              מהבית, בקליק אחד.
             </p>
           </div>
 
@@ -112,31 +104,22 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
           </div>
         </div>
 
-        {/* Social proof */}
+        {/* Capability card — factual, no fabricated social proof */}
         <div className="relative z-10">
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5">
-            <div className="flex items-center gap-1 mb-2">
-              {[1, 2, 3, 4, 5].map(i => (
-                <IconStar key={i} className="w-4 h-4 text-yellow-400" />
+            <p className="text-white text-sm font-semibold mb-3">מה כלול בפלטפורמת CANNA</p>
+            <div className="space-y-2.5">
+              {['שיחות וידאו מוצפנות מקצה לקצה', 'סיכום ביקור ותיעוד מבוסס AI', 'ניהול מסמכים רפואיים מאובטח', 'תזכורות אוטומטיות לתורים'].map((t, i) => (
+                <div key={i} className="flex items-center gap-2.5">
+                  <svg className="w-4 h-4 text-teal-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                  <span className="text-white/90 text-sm">{t}</span>
+                </div>
               ))}
-              <span className="text-white/80 text-sm mr-2">4.9/5</span>
-            </div>
-            <p className="text-white/90 text-sm leading-relaxed">
-              &ldquo;שירות מדהים. תוך דקות הייתי עם רופא מומחה שנתן לי טיפול מקצועי. ממליץ בחום!&rdquo;
-            </p>
-            <div className="flex items-center gap-3 mt-3">
-              <div className="w-9 h-9 bg-white/20 rounded-full flex items-center justify-center text-sm font-bold text-white">
-                דכ
-              </div>
-              <div>
-                <p className="text-white text-sm font-medium">דוד כהן</p>
-                <p className="text-blue-200 text-xs">מטופל מרוצה, תל אביב</p>
-              </div>
             </div>
           </div>
 
           <p className="text-blue-200 text-xs mt-4 text-center">
-            מעל 10,000 ייעוצים מוצלחים &middot; 50+ רופאים מומחים
+            מאובטח בתקן HIPAA &middot; הפרדה מלאה בין מרפאות
           </p>
         </div>
       </div>

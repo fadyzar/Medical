@@ -5,9 +5,9 @@ import HeroCarousel from './HeroCarousel'
 export const metadata: Metadata = {
   title: { absolute: 'CANNA למרפאות — SaaS רפואי ישראלי' },
   description: 'הקם קליניקה דיגיטלית תוך 24 שעות. ניהול תורים, וידאו HD, סיכומי AI, מיתוג אישי ותמיכה ישראלית. ניסיון חינם 14 ימים.',
-  keywords: ['telemedicine saas', 'SaaS מרפאות', 'ניהול קליניקה דיגיטלית', 'CANNA'],
+  keywords: ['SaaS מרפאות', 'ניהול קליניקה דיגיטלית', 'CANNA'],
   openGraph: {
-    title: 'CANNA למרפאות — הפלטפורמה שמכפילה הכנסות',
+    title: 'CANNA למרפאות — פלטפורמה רפואית White-Label',
     description: 'הקם קליניקה דיגיטלית תוך 24 שעות.',
     type: 'website',
     locale: 'he_IL',
@@ -120,7 +120,7 @@ export default function ForClinicsPage() {
           <div className="max-w-2xl mr-auto">
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white/90 text-xs font-semibold tracking-widest uppercase px-4 py-2 rounded-full mb-8 backdrop-blur-sm">
               <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
-              50+ מרפאות כבר פועלות על הפלטפורמה
+              פלטפורמת SaaS רפואית White-Label
             </div>
 
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.05] tracking-tight">
@@ -157,17 +157,17 @@ export default function ForClinicsPage() {
         </div>
       </section>
 
-      {/* ── Stats strip ── */}
+      {/* ── Capabilities strip (factual — no fabricated metrics) ── */}
       <div className="bg-blue-600 py-8 px-6">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center text-white">
           {[
-            { v: '+40%', l: 'הכנסות ממוצעות תוך 3 חודשים' },
-            { v: '−3 שעות', l: 'פחות תיעוד ידני ביום' },
-            { v: '0%', l: 'no-show עם תזכורות אוטומטיות' },
-            { v: '× 2.4', l: 'תפוקת ייעוצים לרופא' },
+            { v: 'ניהול תורים', l: 'יומן, אישור ותשלום' },
+            { v: 'תיעוד AI', l: 'SOAP אוטומטי לרופא' },
+            { v: 'תזכורות', l: 'אימייל ו-WhatsApp' },
+            { v: 'White-Label', l: 'מיתוג מלא למרפאה' },
           ].map((s, i) => (
             <div key={i}>
-              <p className="text-2xl font-black">{s.v}</p>
+              <p className="text-base md:text-lg font-black leading-tight">{s.v}</p>
               <p className="text-blue-100 text-xs mt-1 font-medium">{s.l}</p>
             </div>
           ))}
@@ -398,7 +398,7 @@ export default function ForClinicsPage() {
               <span className="text-blue-400">ללא כרטיס אשראי.</span>
             </h2>
             <p className="text-slate-400 mt-4 leading-relaxed max-w-lg">
-              הפעלה תוך 24 שעות, תמיכה בעברית, ביטול בכל עת. מעל 50 מרפאות כבר מנהלות את הקליניקה הדיגיטלית שלהן עם CANNA.
+              הפעלה תוך 24 שעות, תמיכה בעברית, ביטול בכל עת. נהלו את הקליניקה הדיגיטלית שלכם — תורים, וידאו, AI ומיתוג — במקום אחד עם CANNA.
             </p>
           </div>
           <div className="flex flex-col gap-3 shrink-0">
