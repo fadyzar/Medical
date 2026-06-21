@@ -470,6 +470,9 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
               </button>
             </div>
           )}
+          {!sidebarCollapsed && (
+            <p className="text-[10px] text-gray-300 text-center mt-3 tracking-wide">מופעל ע״י CANNA</p>
+          )}
         </div>
       </aside>
 
