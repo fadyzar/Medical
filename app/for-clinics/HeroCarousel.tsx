@@ -2,44 +2,45 @@
 
 import { useEffect, useState, useCallback } from 'react'
 
+/**
+ * CANNA-branded gradient hero carousel for the clinics landing page.
+ * No stock photography — premium SaaS-healthcare gradients with a subtle medical motif.
+ */
 const slides = [
-  {
-    src: 'https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?auto=format&fit=crop&w=1800&q=85',
-    alt: 'מרפאה מודרנית',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?auto=format&fit=crop&w=1800&q=85',
-    alt: 'רופא עם טאבלט דיגיטלי',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1551076805-e1869033e561?auto=format&fit=crop&w=1800&q=85',
-    alt: 'צוות רפואי מקצועי',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1504813184591-01572f98c85f?auto=format&fit=crop&w=1800&q=85',
-    alt: 'ניהול קליניקה דיגיטלית',
-  },
-  {
-    src: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?auto=format&fit=crop&w=1800&q=85',
-    alt: 'טכנולוגיה רפואית',
-  },
+  { from: '#0f172a', via: '#1e40af', to: '#0e7490', label: 'מרפאה דיגיטלית' },
+  { from: '#0c4a6e', via: '#0369a1', to: '#0d9488', label: 'ניהול חכם' },
+  { from: '#1e3a8a', via: '#4338ca', to: '#0e7490', label: 'מיתוג White-Label' },
+  { from: '#065f46', via: '#0d9488', to: '#0369a1', label: 'AI לרופאים' },
 ]
+
+function MedicalMotif() {
+  return (
+    <svg className="absolute inset-0 w-full h-full" aria-hidden="true" preserveAspectRatio="xMidYMid slice">
+      <defs>
+        <pattern id="clinics-grid" width="64" height="64" patternUnits="userSpaceOnUse">
+          <path d="M64 0H0V64" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="1" />
+        </pattern>
+        <linearGradient id="clinics-ecg" x1="0" y1="0" x2="1" y2="0">
+          <stop offset="0" stopColor="rgba(255,255,255,0)" />
+          <stop offset="0.5" stopColor="rgba(255,255,255,0.3)" />
+          <stop offset="1" stopColor="rgba(255,255,255,0)" />
+        </linearGradient>
+      </defs>
+      <rect width="100%" height="100%" fill="url(#clinics-grid)" />
+      <path
+        d="M0 70 H120 l18 -42 18 84 22 -120 16 78 H360 l18 -30 18 60 22 -90 16 60 H700 l18 -42 18 84 22 -120 16 78 H1100"
+        fill="none" stroke="url(#clinics-ecg)" strokeWidth="2.5" transform="translate(0,40)"
+      />
+    </svg>
+  )
+}
 
 export default function HeroCarousel() {
   const [current, setCurrent] = useState(0)
-  const [transitioning, setTransitioning] = useState(false)
 
-  const goTo = useCallback((idx: number) => {
-    if (transitioning) return
-    setTransitioning(true)
-    setTimeout(() => {
-      setCurrent(idx)
-      setTransitioning(false)
-    }, 400)
-  }, [transitioning])
-
-  const next = useCallback(() => goTo((current + 1) % slides.length), [current, goTo])
-  const prev = useCallback(() => goTo((current - 1 + slides.length) % slides.length), [current, goTo])
+  const goTo = useCallback((idx: number) => setCurrent(idx), [])
+  const next = useCallback(() => setCurrent(c => (c + 1) % slides.length), [])
+  const prev = useCallback(() => setCurrent(c => (c - 1 + slides.length) % slides.length), [])
 
   useEffect(() => {
     const timer = setInterval(next, 5000)
@@ -49,48 +50,35 @@ export default function HeroCarousel() {
   return (
     <>
       {slides.map((slide, i) => (
-        // eslint-disable-next-line @next/next/no-img-element
-        <img
-          key={slide.src}
-          src={slide.src}
-          alt={i === 0 ? '' : slide.alt}
+        <div
+          key={slide.label}
           aria-hidden={i !== current}
-          className="absolute inset-0 w-full h-full object-cover object-center transition-opacity duration-700"
-          style={{ opacity: i === current ? 1 : 0 }}
-          loading={i === 0 ? 'eager' : 'lazy'}
-        />
+          className="absolute inset-0 transition-opacity duration-700"
+          style={{
+            opacity: i === current ? 1 : 0,
+            background: `linear-gradient(135deg, ${slide.from} 0%, ${slide.via} 55%, ${slide.to} 100%)`,
+          }}
+        >
+          <MedicalMotif />
+          <div className="absolute inset-0" style={{
+            background: 'radial-gradient(60% 60% at 75% 25%, rgba(255,255,255,0.14) 0%, transparent 60%), radial-gradient(50% 50% at 20% 80%, rgba(255,255,255,0.08) 0%, transparent 60%)',
+          }} />
+        </div>
       ))}
 
-      <button
-        onClick={prev}
-        aria-label="תמונה קודמת"
-        className="absolute left-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center backdrop-blur-sm transition-all"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="15 18 9 12 15 6"/>
-        </svg>
+      <button onClick={prev} aria-label="שקופית קודמת"
+        className="absolute left-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center backdrop-blur-sm transition-all">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"/></svg>
       </button>
-      <button
-        onClick={next}
-        aria-label="תמונה הבאה"
-        className="absolute right-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center backdrop-blur-sm transition-all"
-      >
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-          <polyline points="9 18 15 12 9 6"/>
-        </svg>
+      <button onClick={next} aria-label="שקופית הבאה"
+        className="absolute right-5 top-1/2 -translate-y-1/2 z-20 w-10 h-10 rounded-full bg-white/10 hover:bg-white/20 border border-white/20 flex items-center justify-center backdrop-blur-sm transition-all">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"/></svg>
       </button>
 
       <div className="absolute bottom-8 left-1/2 -translate-x-1/2 z-20 flex items-center gap-2">
         {slides.map((_, i) => (
-          <button
-            key={i}
-            onClick={() => goTo(i)}
-            aria-label={`תמונה ${i + 1}`}
-            className="transition-all duration-300"
-          >
-            <span className={`block rounded-full transition-all duration-300 ${
-              i === current ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/40 hover:bg-white/60'
-            }`} />
+          <button key={i} onClick={() => goTo(i)} aria-label={`שקופית ${i + 1}`} className="transition-all duration-300">
+            <span className={`block rounded-full transition-all duration-300 ${i === current ? 'w-6 h-2 bg-white' : 'w-2 h-2 bg-white/40 hover:bg-white/60'}`} />
           </button>
         ))}
       </div>

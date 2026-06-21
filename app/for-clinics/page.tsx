@@ -21,24 +21,49 @@ const features = [
     tag: 'ייעוצי וידאו',
     title: 'שיחות וידאו HD — מובנות בפלטפורמה',
     body: 'ייעוצים בוידאו מוצפן ויציב. חדר המתנה דיגיטלי, בדיקת ציוד אוטומטית, ו-SOAP notes בצד המסך בזמן אמת. אפס התקנות למטופל.',
-    img: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=700&q=80',
-    imgAlt: 'רופא בשיחת וידאו עם מטופל',
+    icon: 'video' as const,
+    gradient: ['#0c4a6e', '#0e7490', '#0f766e'] as const,
   },
   {
     tag: 'בינה מלאכותית',
     title: 'AI שכותב את התיעוד בשבילך',
     body: 'לפני כל ייעוץ — מיון אוטומטי ושאלון קליטה. אחרי — SOAP notes נכתבים לבד וטיוטת מרשם מוכנה לאישור. חיסכון של שעות תיעוד ביום.',
-    img: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?auto=format&fit=crop&w=700&q=80',
-    imgAlt: 'AI רפואי מנתח מידע',
+    icon: 'ai' as const,
+    gradient: ['#1e3a8a', '#4338ca', '#0e7490'] as const,
   },
   {
     tag: 'White-Label',
     title: 'המרפאה שלך — הזהות שלך',
     body: 'לוגו, צבעים, ו-subdomain ייחודיים. המטופלים שלך רואים רק את שם המרפאה שלך — לא "CANNA". מיתוג מלא בכמה קליקים.',
-    img: 'https://images.unsplash.com/photo-1631217868264-e5b90bb7e133?auto=format&fit=crop&w=700&q=80',
-    imgAlt: 'מרפאה עם מיתוג אישי',
+    icon: 'brand' as const,
+    gradient: ['#065f46', '#0d9488', '#0369a1'] as const,
   },
 ]
+
+// ── Branded feature visual — gradient panel + icon (no stock photos) ──
+function FeatureIcon({ name }: { name: 'video' | 'ai' | 'brand' }) {
+  const c = { width: 96, height: 96, viewBox: '0 0 24 24', fill: 'none', stroke: 'white', strokeWidth: 1.4, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+  if (name === 'video') return (<svg {...c}><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>)
+  if (name === 'ai') return (<svg {...c}><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>)
+  return (<svg {...c}><path d="M12 2l2.2 5.5L20 8l-4 4 1 6-5-3-5 3 1-6-4-4 5.8-.5z"/></svg>)
+}
+
+function FeatureVisual({ icon, gradient, side }: { icon: 'video' | 'ai' | 'brand'; gradient: readonly [string, string, string]; side: number }) {
+  return (
+    <div className="relative">
+      <div className="rounded-3xl overflow-hidden shadow-2xl shadow-slate-200 aspect-[4/3] relative flex items-center justify-center"
+        style={{ background: `linear-gradient(135deg, ${gradient[0]} 0%, ${gradient[1]} 55%, ${gradient[2]} 100%)` }}>
+        <div className="absolute inset-0 opacity-[0.12]" style={{ backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(60% 60% at 70% 25%, rgba(255,255,255,0.18) 0%, transparent 60%)' }} />
+        <div className="relative w-28 h-28 rounded-3xl bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center shadow-lg">
+          <FeatureIcon name={icon} />
+        </div>
+      </div>
+      <div className={`absolute -z-10 w-48 h-48 opacity-30 ${side % 2 === 0 ? '-bottom-6 -left-6' : '-bottom-6 -right-6'}`}
+        style={{ backgroundImage: 'radial-gradient(circle, #94a3b8 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
+    </div>
+  )
+}
 
 // ── Check icon ────────────────────────────────────────────────────────
 
@@ -176,23 +201,9 @@ export default function ForClinicsPage() {
               </Link>
             </div>
 
-            {/* Image */}
+            {/* Visual — branded gradient, no stock photo */}
             <div className={i % 2 === 1 ? 'order-2 lg:order-1' : 'order-2'}>
-              <div className="relative">
-                <div className="rounded-3xl overflow-hidden shadow-2xl shadow-slate-200 aspect-[4/3]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={f.img}
-                    alt={f.imgAlt}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
-                <div
-                  className={`absolute -z-10 w-48 h-48 opacity-30 ${i % 2 === 0 ? '-bottom-6 -left-6' : '-bottom-6 -right-6'}`}
-                  style={{ backgroundImage: 'radial-gradient(circle, #94a3b8 1px, transparent 1px)', backgroundSize: '16px 16px' }}
-                />
-              </div>
+              <FeatureVisual icon={f.icon} gradient={f.gradient} side={i} />
             </div>
           </div>
         ))}

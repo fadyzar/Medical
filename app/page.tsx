@@ -34,24 +34,50 @@ const features = [
     tag: 'וידאו HD',
     title: 'ייעוץ כמו בקליניקה, מהסלון',
     body: 'שיחת וידאו באיכות גבוהה עם הרופא שלך. אין תור, אין נסיעה — ייעוץ בתוך דקות.',
-    img: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=700&q=80',
-    imgAlt: 'רופא בשיחת וידאו',
+    icon: 'video' as const,
+    gradient: ['#0c4a6e', '#0e7490', '#0f766e'] as const,
   },
   {
     tag: 'בינה מלאכותית',
     title: 'AI שמכין את הרופא לפגישה',
     body: 'לפני כל ייעוץ — AI מנתח את התלונה, בודק היסטוריה רפואית ומדרג דחיפות. אחרי — מייצר סיכום SOAP מלא.',
-    img: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?auto=format&fit=crop&w=700&q=80',
-    imgAlt: 'בינה מלאכותית רפואית',
+    icon: 'ai' as const,
+    gradient: ['#1e3a8a', '#4338ca', '#0e7490'] as const,
   },
   {
     tag: 'אבטחה',
     title: 'הפרטיות שלך — קו אדום',
     body: 'הצפנה מקצה לקצה, תקן HIPAA, audit log מלא. המסמכים שלך נגישים רק לך ולרופא המטפל.',
-    img: 'https://images.unsplash.com/photo-1584515933487-779824d29309?auto=format&fit=crop&w=700&q=80',
-    imgAlt: 'אבטחת מידע רפואי',
+    icon: 'shield' as const,
+    gradient: ['#065f46', '#0d9488', '#0369a1'] as const,
   },
 ]
+
+// ── Branded feature visual — gradient panel + medical icon (no stock photos) ──
+function FeatureIcon({ name }: { name: 'video' | 'ai' | 'shield' }) {
+  const common = { width: 96, height: 96, viewBox: '0 0 24 24', fill: 'none', stroke: 'white', strokeWidth: 1.4, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+  if (name === 'video') return (<svg {...common}><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>)
+  if (name === 'ai') return (<svg {...common}><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>)
+  return (<svg {...common}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>)
+}
+
+function FeatureVisual({ icon, gradient, side }: { icon: 'video' | 'ai' | 'shield'; gradient: readonly [string, string, string]; side: number }) {
+  return (
+    <div className="relative">
+      <div className="rounded-3xl overflow-hidden shadow-2xl shadow-slate-200 aspect-[4/3] relative flex items-center justify-center"
+        style={{ background: `linear-gradient(135deg, ${gradient[0]} 0%, ${gradient[1]} 55%, ${gradient[2]} 100%)` }}>
+        {/* grid + glow motif */}
+        <div className="absolute inset-0 opacity-[0.12]" style={{ backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        <div className="absolute inset-0" style={{ background: 'radial-gradient(60% 60% at 70% 25%, rgba(255,255,255,0.18) 0%, transparent 60%)' }} />
+        <div className="relative w-28 h-28 rounded-3xl bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center shadow-lg">
+          <FeatureIcon name={icon} />
+        </div>
+      </div>
+      <div className={`absolute -z-10 w-48 h-48 opacity-30 ${side % 2 === 0 ? '-bottom-6 -left-6' : '-bottom-6 -right-6'}`}
+        style={{ backgroundImage: 'radial-gradient(circle, #94a3b8 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
+    </div>
+  )
+}
 
 export default function HomePage() {
   return (
@@ -166,24 +192,9 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* Image side */}
+            {/* Visual side — branded gradient, no stock photo */}
             <div className={i % 2 === 1 ? 'order-2 lg:order-1' : 'order-2'}>
-              <div className="relative">
-                <div className="rounded-3xl overflow-hidden shadow-2xl shadow-slate-200 aspect-[4/3]">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={f.img}
-                    alt={f.imgAlt}
-                    className="w-full h-full object-cover"
-                    loading="lazy"
-                  />
-                </div>
-                {/* Decorative dot grid */}
-                <div
-                  className={`absolute -z-10 w-48 h-48 opacity-30 ${i % 2 === 0 ? '-bottom-6 -left-6' : '-bottom-6 -right-6'}`}
-                  style={{ backgroundImage: 'radial-gradient(circle, #94a3b8 1px, transparent 1px)', backgroundSize: '16px 16px' }}
-                />
-              </div>
+              <FeatureVisual icon={f.icon} gradient={f.gradient} side={i} />
             </div>
           </div>
         ))}

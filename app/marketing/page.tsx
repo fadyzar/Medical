@@ -35,14 +35,6 @@ function CheckCircle() {
   )
 }
 
-function Star() {
-  return (
-    <svg width="16" height="16" viewBox="0 0 24 24" fill="#facc15" stroke="none">
-      <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
-    </svg>
-  )
-}
-
 // ── Data ──────────────────────────────────────────────────────────────
 
 const features = [
@@ -51,8 +43,8 @@ const features = [
     heading: 'שיחה עם הרופא — בלי לצאת מהבית',
     body: 'ייעוץ בשיחת וידאו באיכות גבוהה עם רופאים מומחים. אין תור, אין המתנה — זמינות 24/7 מכל מכשיר.',
     bullets: ['חיבור מאובטח מקצה לקצה', 'תמיכה בכל המכשירים', 'חדר המתנה דיגיטלי'],
-    img: 'https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=900&q=80',
-    imgAlt: 'רופא בשיחת וידאו',
+    icon: 'video' as const,
+    gradient: ['#0c4a6e', '#0e7490', '#0f766e'] as const,
     reverse: false,
   },
   {
@@ -60,8 +52,8 @@ const features = [
     heading: 'AI שעובד בשבילך',
     body: 'ארבעה סוכני AI מתקדמים מסייעים לרופא: מיון דחיפות, סיכום SOAP, טיוטת מרשם ושאלון קליטה דינמי.',
     bullets: ['סיכום אוטומטי לאחר כל ייעוץ', 'מיון חכם לפי דחיפות', 'טיוטת מרשם לרופא'],
-    img: 'https://images.unsplash.com/photo-1559757148-5c350d0d3c56?auto=format&fit=crop&w=900&q=80',
-    imgAlt: 'AI רפואי',
+    icon: 'ai' as const,
+    gradient: ['#1e3a8a', '#4338ca', '#0e7490'] as const,
     reverse: true,
   },
   {
@@ -69,11 +61,32 @@ const features = [
     heading: 'כל המידע שלך — מוגן ומסודר',
     body: 'העלה תוצאות בדיקות, תמונות ומסמכים רפואיים. מוצפן, פרטי, ועומד בתקן HIPAA.',
     bullets: ['הצפנה מלאה בענן', 'גישה רק לצוות הרפואי', 'Audit log מלא'],
-    img: 'https://images.unsplash.com/photo-1584515933487-779824d29309?auto=format&fit=crop&w=900&q=80',
-    imgAlt: 'אבטחת מידע רפואי',
+    icon: 'shield' as const,
+    gradient: ['#065f46', '#0d9488', '#0369a1'] as const,
     reverse: false,
   },
 ]
+
+// ── Branded feature visual — gradient panel + icon (no stock photos) ──
+function FeatureIcon({ name }: { name: 'video' | 'ai' | 'shield' }) {
+  const c = { width: 104, height: 104, viewBox: '0 0 24 24', fill: 'none', stroke: 'white', strokeWidth: 1.4, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
+  if (name === 'video') return (<svg {...c}><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>)
+  if (name === 'ai') return (<svg {...c}><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>)
+  return (<svg {...c}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>)
+}
+
+function FeatureVisual({ icon, gradient, aspect = 'aspect-video' }: { icon: 'video' | 'ai' | 'shield'; gradient: readonly [string, string, string]; aspect?: string }) {
+  return (
+    <div className={`rounded-3xl overflow-hidden ${aspect} shadow-xl shadow-slate-200 relative flex items-center justify-center`}
+      style={{ background: `linear-gradient(135deg, ${gradient[0]} 0%, ${gradient[1]} 55%, ${gradient[2]} 100%)` }}>
+      <div className="absolute inset-0 opacity-[0.12]" style={{ backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+      <div className="absolute inset-0" style={{ background: 'radial-gradient(60% 60% at 70% 25%, rgba(255,255,255,0.18) 0%, transparent 60%)' }} />
+      <div className="relative w-28 h-28 rounded-3xl bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center shadow-lg">
+        <FeatureIcon name={icon} />
+      </div>
+    </div>
+  )
+}
 
 const steps = [
   { n: '01', title: 'נרשם בחינם', desc: 'יצירת חשבון תוך דקה עם האימייל שלך.' },
@@ -190,15 +203,15 @@ export default function MarketingPage() {
             </div>
           </div>
 
-          {/* Hero Image */}
+          {/* Hero Visual — branded gradient, no stock photo */}
           <div className="order-1 lg:order-2 relative">
-            <div className="relative rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl shadow-slate-200">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://images.unsplash.com/photo-1576091160550-2173dba999ef?auto=format&fit=crop&w=900&q=80"
-                alt="רופא בייעוץ וידאו"
-                className="w-full h-full object-cover"
-              />
+            <div className="relative rounded-3xl overflow-hidden aspect-[4/3] shadow-2xl shadow-slate-200 flex items-center justify-center"
+              style={{ background: 'linear-gradient(135deg, #0c4a6e 0%, #0e7490 55%, #0f766e 100%)' }}>
+              <div className="absolute inset-0 opacity-[0.12]" style={{ backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+              <div className="absolute inset-0" style={{ background: 'radial-gradient(60% 60% at 70% 25%, rgba(255,255,255,0.18) 0%, transparent 60%)' }} />
+              <div className="relative w-32 h-32 rounded-3xl bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center shadow-lg">
+                <FeatureIcon name="video" />
+              </div>
               {/* Overlay card */}
               <div className="absolute bottom-5 right-5 bg-white rounded-2xl shadow-xl px-5 py-4 flex items-center gap-4 max-w-[220px]">
                 <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center shrink-0">
@@ -213,13 +226,10 @@ export default function MarketingPage() {
               </div>
             </div>
 
-            {/* Floating stat */}
+            {/* Floating badge — capability, not a fabricated metric */}
             <div className="absolute -top-4 -left-4 bg-blue-600 text-white rounded-2xl px-5 py-3 shadow-lg shadow-blue-600/30">
-              <p className="text-2xl font-black">4.9<span className="text-base font-medium text-blue-200">/5</span></p>
-              <div className="flex gap-0.5 mt-0.5">
-                {[...Array(5)].map((_, i) => <Star key={i} />)}
-              </div>
-              <p className="text-xs text-blue-200 mt-0.5">מ-10,000+ ייעוצים</p>
+              <p className="text-lg font-black">וידאו HD</p>
+              <p className="text-xs text-blue-200 mt-0.5">מוצפן מקצה לקצה</p>
             </div>
           </div>
         </div>
@@ -274,17 +284,9 @@ export default function MarketingPage() {
                 </Link>
               </div>
 
-              {/* Image */}
+              {/* Visual — branded gradient, no stock photo */}
               <div className={f.reverse ? 'order-2 lg:order-1' : ''}>
-                <div className="rounded-3xl overflow-hidden aspect-video shadow-xl shadow-slate-200">
-                  {/* eslint-disable-next-line @next/next/no-img-element */}
-                  <img
-                    src={f.img}
-                    alt={f.imgAlt}
-                    className="w-full h-full object-cover"
-                    loading={i === 0 ? 'eager' : 'lazy'}
-                  />
-                </div>
+                <FeatureVisual icon={f.icon} gradient={f.gradient} />
               </div>
             </div>
           ))}
@@ -372,15 +374,10 @@ export default function MarketingPage() {
                 </Link>
               </div>
             </div>
-            {/* Image */}
+            {/* Visual — branded gradient, no stock photo */}
             <div className="hidden lg:block relative">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img
-                src="https://images.unsplash.com/photo-1582750433449-648ed127bb54?auto=format&fit=crop&w=800&q=80"
-                alt="ניהול מרפאה דיגיטלית"
-                className="absolute inset-0 w-full h-full object-cover opacity-60"
-                loading="lazy"
-              />
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e40af 55%, #0e7490 100%)' }} />
+              <div className="absolute inset-0 opacity-[0.12]" style={{ backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
               <div className="absolute inset-0 bg-gradient-to-r from-slate-900 to-transparent" />
             </div>
           </div>
