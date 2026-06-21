@@ -111,8 +111,8 @@ export default async function DoctorsPage() {
           {[
             { v: typedDoctors.length > 0 ? `${typedDoctors.length}+` : '50+', l: 'רופאים פעילים' },
             { v: `${Object.keys(specialtyCounts).length > 0 ? Object.keys(specialtyCounts).length : '15'}+`, l: 'התמחויות' },
-            { v: '4.9 / 5', l: 'דירוג ממוצע' },
-            { v: '< 24 שעות', l: 'עד לתור ראשון' },
+            { v: 'וידאו HD', l: 'שיחות מוצפנות' },
+            { v: 'AI', l: 'סיכום ומרשם' },
           ].map((s, i) => (
             <div key={i}>
               <p className="text-2xl font-black">{s.v}</p>
@@ -313,47 +313,6 @@ export default async function DoctorsPage() {
         </div>
       </section>
 
-      {/* ── Testimonials ── */}
-      <section className="py-24 px-4" style={{ background: '#f8fafc' }}>
-        <div className="max-w-5xl mx-auto">
-          <div className="text-center mb-14">
-            <span className="text-xs font-black tracking-widest uppercase text-green-700 bg-green-50 px-4 py-2 rounded-full">ביקורות אמיתיות</span>
-            <h2 className="text-4xl font-black text-gray-900 mt-4 mb-2">מה אומרים המטופלים שלנו</h2>
-            <p className="text-gray-500">רק מטופלים שסיימו ייעוץ יכולים לדרג</p>
-          </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            {[
-              { name: 'שרה מ.', spec: 'ייעוץ עור ומין', text: 'הרופאה הסבירה בסבלנות ועזרה מאוד. קיבלתי מרשם תוך 20 דקות, חיסכתי יום שלם של המתנה בקופת חולים.', stars: 5, from: '#3b82f6', to: '#6366f1' },
-              { name: 'דוד ק.', spec: 'ייעוץ קרדיולוגי', text: 'שירות מקצועי לחלוטין. הרופא עיין בבדיקות שלי, הסביר את הממצאים ונתן המלצות ברורות. מומלץ בחום.', stars: 5, from: '#10b981', to: '#0891b2' },
-              { name: 'נועה ל.', spec: 'רפואה כללית', text: 'ממש נוח מהבית, אפסתי שעתיים נסיעה. הרופא ידע בדיוק מה לעשות. אפליקציה מהירה ופשוטה.', stars: 5, from: '#8b5cf6', to: '#ec4899' },
-            ].map((t, i) => (
-              <div key={i} className="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 relative overflow-hidden">
-                <div className="absolute top-0 right-0 w-32 h-32 rounded-bl-full opacity-5"
-                  style={{ background: `linear-gradient(135deg, ${t.from}, ${t.to})` }} />
-                <div className="flex gap-0.5 mb-4">
-                  {[...Array(t.stars)].map((_, j) => (
-                    <svg key={j} className="w-4 h-4 text-amber-400" fill="currentColor" viewBox="0 0 20 20">
-                      <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
-                    </svg>
-                  ))}
-                </div>
-                <p className="text-gray-700 leading-relaxed mb-5 text-sm">&ldquo;{t.text}&rdquo;</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-9 h-9 rounded-full flex items-center justify-center text-white text-sm font-bold"
-                    style={{ background: `linear-gradient(135deg, ${t.from}, ${t.to})` }}>
-                    {t.name.charAt(0)}
-                  </div>
-                  <div>
-                    <p className="text-sm font-bold text-gray-900">{t.name}</p>
-                    <p className="text-xs text-gray-400">{t.spec}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
       {/* ── CTA ── */}
       <section className="py-24 px-4 relative overflow-hidden"
         style={{
@@ -444,7 +403,7 @@ export default async function DoctorsPage() {
           <div className="flex flex-col sm:flex-row items-center justify-between gap-3 text-xs pt-8"
             style={{ borderTop: '1px solid rgba(255,255,255,0.05)', color: '#334155' }}>
             <span>&copy; {new Date().getFullYear()} CANNA. כל הזכויות שמורות.</span>
-            <span style={{ color: '#475569' }}>נבנה ב NFD — Next Flow Digital</span>
+            <span style={{ color: '#475569' }}>CANNA For You — ייעוץ רפואי אונליין</span>
           </div>
         </div>
       </footer>

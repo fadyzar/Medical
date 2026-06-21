@@ -302,7 +302,7 @@ export default function HomePage() {
           </div>
           <div className="mt-12 pt-8 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-600">
             <p>&copy; {new Date().getFullYear()} CANNA. כל הזכויות שמורות.</p>
-            <p>נבנה ב <span className="font-semibold text-slate-500">NFD — Next Flow Digital</span></p>
+            <p>CANNA For You — ייעוץ רפואי אונליין</p>
           </div>
         </div>
       </footer>

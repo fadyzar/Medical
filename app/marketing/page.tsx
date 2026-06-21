@@ -82,29 +82,6 @@ const steps = [
   { n: '04', title: 'נכנס לייעוץ', desc: 'שיחת וידאו עם הרופא, סיכום AI באותו יום.' },
 ]
 
-const testimonials = [
-  {
-    name: 'מיכל לוי',
-    role: 'אם לשלושה ילדים',
-    text: 'חסכתי שעות של המתנה. תוך 20 דקות הייתי עם רופא ילדים שהרגיע אותי ונתן הנחיות ברורות.',
-    img: 'https://images.unsplash.com/photo-1494790108755-2616b612b786?auto=format&fit=crop&w=120&q=80',
-    stars: 5,
-  },
-  {
-    name: 'אלון שמיר',
-    role: 'מנהל בהייטק',
-    text: 'הכי שימושי שיש. הסיכום שקיבלתי אחרי הייעוץ היה מפורט יותר מכל מה שנתנו לי בקופת חולים.',
-    img: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=120&q=80',
-    stars: 5,
-  },
-  {
-    name: 'ד"ר רינת כהן',
-    role: 'רופאת עור ומין',
-    text: 'כרופאה, המערכת חסכה לי שעות של תיעוד. הAI מכין את הסיכום ואני רק מאשרת ומשלימה.',
-    img: 'https://images.unsplash.com/photo-1559839734-2b71ea197ec2?auto=format&fit=crop&w=120&q=80',
-    stars: 5,
-  },
-]
 
 const specialties = [
   'רפואה כללית', 'עור ומין', 'אורתופדיה', 'קרדיולוגיה',
@@ -364,35 +341,6 @@ export default function MarketingPage() {
         </div>
       </section>
 
-      {/* ── Testimonials ───────────────────────────────────────── */}
-      <section className="py-24 px-6 bg-slate-50">
-        <div className="max-w-6xl mx-auto">
-          <div className="text-center mb-14">
-            <span className="text-xs font-bold tracking-widest uppercase text-blue-600">חוות דעת</span>
-            <h2 className="text-3xl sm:text-4xl font-black mt-3 text-slate-900">מה אומרים המשתמשים</h2>
-          </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {testimonials.map(t => (
-              <div key={t.name} className="bg-white rounded-2xl p-7 shadow-sm border border-slate-100 flex flex-col gap-5">
-                <div className="flex gap-0.5">
-                  {[...Array(t.stars)].map((_, i) => <Star key={i} />)}
-                </div>
-                <p className="text-slate-600 leading-relaxed flex-1 text-[15px]">{`"${t.text}"`}</p>
-                <div className="flex items-center gap-3">
-                  <div className="w-11 h-11 rounded-full overflow-hidden shrink-0">
-                    {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={t.img} alt={t.name} className="w-full h-full object-cover" loading="lazy" />
-                  </div>
-                  <div>
-                    <p className="font-bold text-slate-900 text-sm">{t.name}</p>
-                    <p className="text-slate-400 text-xs">{t.role}</p>
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
 
       {/* ── For Clinics CTA ────────────────────────────────────── */}
       <section className="py-24 px-6">
@@ -486,7 +434,7 @@ export default function MarketingPage() {
 
           <div className="mt-12 pt-8 border-t border-slate-800 flex flex-col sm:flex-row justify-between items-center gap-4 text-xs text-slate-600">
             <p>&copy; {new Date().getFullYear()} CANNA. כל הזכויות שמורות.</p>
-            <p>נבנה ב <span className="font-semibold text-slate-500">NFD — Next Flow Digital</span></p>
+            <p>CANNA For You — ייעוץ רפואי אונליין</p>
           </div>
         </div>
       </footer>
