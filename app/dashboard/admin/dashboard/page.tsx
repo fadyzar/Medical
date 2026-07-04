@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { Button, Card, CardContent, CardHeader, StatCard, Badge, PageLoading, EmptyState } from '@/components/ui'
+import { ChartCard, AreaTrend, DonutChart, MED } from '@/components/ui/medical'
 import { STATUS_LABELS, formatDateTime, formatPrice, cn, getInitials } from '@/lib/utils'
 import type { Organization } from '@/types/database'
 
@@ -143,6 +144,8 @@ export default function AdminDashboard() {
   const [doctors, setDoctors] = useState<DashDoctor[]>([])
   const [auditLog, setAuditLog] = useState<AuditEntry[]>([])
   const [todayApts, setTodayApts] = useState<DashAppointment[]>([])
+  const [trend, setTrend] = useState<Array<{ day: string; appointments: number; revenue: number }>>([])
+  const [statusDist, setStatusDist] = useState<Array<{ name: string; value: number }>>([])
 
   useEffect(() => {
     loadDashboard()
@@ -173,7 +176,7 @@ export default function AdminDashboard() {
         usersCount, doctorsCount, patientsCount, staffCount,
         totalAptsCount, completedApts, pendingAptsCount, activeAptsCount,
         aiCount,
-        recentRes, doctorsRes, auditRes,
+        recentRes, doctorsRes, auditRes, trendRes,
       ] = await Promise.all([
         supabase.from('organizations').select('*').eq('id', orgId).single(),
 
@@ -204,6 +207,11 @@ export default function AdminDashboard() {
           .eq('organization_id', orgId)
           .order('created_at', { ascending: false })
           .limit(8),
+        // Last 30 days of appointments for real trend charts (no fake data)
+        supabase.from('appointments')
+          .select('status, created_at, payment_amount')
+          .eq('organization_id', orgId)
+          .gte('created_at', new Date(Date.now() - 30 * 864e5).toISOString()),
       ])
 
       if (orgRes.data) setOrg(orgRes.data as unknown as Organization)
@@ -235,6 +243,26 @@ export default function AdminDashboard() {
         const d = a.scheduled_at || a.created_at
         return new Date(d).toDateString() === today
       }))
+
+      // ── Build real 14-day trend + status distribution ──
+      const trendRows = (trendRes.data || []) as Array<{ status: string; created_at: string; payment_amount: number | null }>
+      const days: Array<{ day: string; appointments: number; revenue: number }> = []
+      for (let i = 13; i >= 0; i--) {
+        const d = new Date(Date.now() - i * 864e5)
+        const key = d.toISOString().slice(0, 10)
+        const label = d.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' })
+        const dayRows = trendRows.filter(r => r.created_at.slice(0, 10) === key)
+        days.push({
+          day: label,
+          appointments: dayRows.length,
+          revenue: dayRows.filter(r => r.status === 'completed').reduce((s, r) => s + (r.payment_amount || 0), 0),
+        })
+      }
+      setTrend(days)
+
+      const distMap: Record<string, number> = {}
+      for (const r of trendRows) distMap[r.status] = (distMap[r.status] || 0) + 1
+      setStatusDist(Object.entries(distMap).map(([k, v]) => ({ name: STATUS_LABELS[k] || k, value: v })))
     } catch {
       toast.error('שגיאה בטעינת נתוני הדשבורד')
     } finally {
@@ -393,6 +421,38 @@ export default function AdminDashboard() {
         <StatCard label="צוות שירות" value={stats.staff} icon={<IconUsers />} color="blue" />
         <StatCard label="הושלמו" value={stats.completedAppointments} icon={<IconCheck />} color="green" />
         <StatCard label="שימושי AI" value={stats.aiUsage} icon={<IconAI />} color="purple" />
+      </div>
+
+      {/* ── Analytics charts (real data, honest empty states) ─── */}
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2">
+          <ChartCard
+            title="תורים ב-14 הימים האחרונים"
+            subtitle="מספר תורים חדשים ליום"
+            hasData={trend.some(d => d.appointments > 0)}
+            emptyLabel="עדיין אין תורים להצגה בגרף"
+          >
+            <AreaTrend data={trend} dataKey="appointments" xKey="day" color={MED.blue} />
+          </ChartCard>
+        </div>
+        <ChartCard
+          title="התפלגות תורים"
+          subtitle="לפי סטטוס — 30 יום"
+          hasData={statusDist.length > 0}
+          emptyLabel="אין נתונים עדיין"
+        >
+          <DonutChart data={statusDist} />
+        </ChartCard>
+        <div className="lg:col-span-3">
+          <ChartCard
+            title="הכנסות יומיות"
+            subtitle="מתורים שהושלמו — 14 יום"
+            hasData={trend.some(d => d.revenue > 0)}
+            emptyLabel="עדיין אין הכנסות להצגה בגרף"
+          >
+            <AreaTrend data={trend} dataKey="revenue" xKey="day" color={MED.emerald} />
+          </ChartCard>
+        </div>
       </div>
 
       {/* ── Today + Plan usage ───────────────────────── */}

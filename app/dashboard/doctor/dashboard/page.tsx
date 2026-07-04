@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Card, CardContent, CardHeader, StatCard, Badge, PageLoading, EmptyState, Spinner } from '@/components/ui'
+import { ChartCard, BarTrend, MED } from '@/components/ui/medical'
 import { STATUS_LABELS, formatDateTime, formatTime, getInitials, cn } from '@/lib/utils'
 import type { Appointment, User } from '@/types/database'
 
@@ -233,6 +234,16 @@ export default function DoctorDashboard() {
   const completed = appointments.filter(a => a.status === 'completed')
   const needSummary = completed.filter(a => !a.ai_summary)
 
+  // Real 7-day appointment volume (by scheduled date, falling back to created)
+  const weeklyData = Array.from({ length: 7 }).map((_, i) => {
+    const d = new Date(Date.now() - (6 - i) * 864e5)
+    const key = d.toDateString()
+    return {
+      day: d.toLocaleDateString('he-IL', { weekday: 'short' }),
+      count: appointments.filter(a => new Date(a.scheduled_at || a.created_at).toDateString() === key).length,
+    }
+  })
+
   const todaySorted = [...today].sort((a, b) => {
     if (!a.scheduled_at) return 1
     if (!b.scheduled_at) return -1
@@ -377,6 +388,16 @@ export default function DoctorDashboard() {
           }
         />
       </div>
+
+      {/* ── weekly appointments chart (real data) ── */}
+      <ChartCard
+        title="תורים בשבוע האחרון"
+        subtitle="נפח ביקורים ל-7 ימים"
+        hasData={weeklyData.some(d => d.count > 0)}
+        emptyLabel="עדיין אין תורים להצגה בגרף"
+      >
+        <BarTrend data={weeklyData} dataKey="count" xKey="day" color={MED.teal} />
+      </ChartCard>
 
       {/* ── today's schedule ── */}
       <Card>

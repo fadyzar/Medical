@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Card, CardContent, CardHeader, Badge, EmptyState, PageLoading } from '@/components/ui'
+import { ChartCard, AreaTrend, MED } from '@/components/ui/medical'
 import { STATUS_LABELS, formatDateTime, formatDate, cn, getInitials } from '@/lib/utils'
 import type { Appointment, User, Document } from '@/types/database'
 
@@ -190,6 +191,18 @@ export default function PatientDashboard() {
   const hour = now.getHours()
   const greeting = hour < 12 ? 'בוקר טוב' : hour < 17 ? 'צהריים טובים' : 'ערב טוב'
   const firstName = profile.first_name || ''
+
+  // Real 6-month activity (consultations per month)
+  const activityData = Array.from({ length: 6 }).map((_, i) => {
+    const d = new Date(now.getFullYear(), now.getMonth() - (5 - i), 1)
+    return {
+      month: d.toLocaleDateString('he-IL', { month: 'short' }),
+      count: appointments.filter(a => {
+        const ad = new Date(a.scheduled_at || a.created_at)
+        return ad.getFullYear() === d.getFullYear() && ad.getMonth() === d.getMonth()
+      }).length,
+    }
+  })
 
   return (
     <div className="space-y-6" dir="rtl">
@@ -644,6 +657,17 @@ export default function PatientDashboard() {
             }
           />
         </Card>
+      )}
+
+      {/* ── Activity summary (real data) ── */}
+      {completed.length > 0 && (
+        <ChartCard
+          title="הפעילות שלי"
+          subtitle="ייעוצים ב-6 החודשים האחרונים"
+          hasData={activityData.some(d => d.count > 0)}
+        >
+          <AreaTrend data={activityData} dataKey="count" xKey="month" color={MED.blue} />
+        </ChartCard>
       )}
 
       {/* ── Quick actions ── */}

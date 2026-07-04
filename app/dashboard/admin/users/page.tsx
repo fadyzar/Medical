@@ -292,23 +292,18 @@ export default function AdminUsersPage() {
         <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></svg>} title="לא נמצאו משתמשים" description="הוסף רופאים וצוות למערכת" />
       ) : (
         <Card>
-          <div className="overflow-x-auto">
+          <div className="overflow-auto max-h-[70vh] rounded-2xl border border-slate-100">
             <table className="w-full text-sm">
-              <thead>
-                <tr className="border-b bg-gray-50">
-                  <th className="text-right px-4 py-3 font-medium text-gray-600">שם</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-600">אימייל</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-600">תפקיד</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-600">התמחויות</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-600">תורים</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-600">סטטוס</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-600">הצטרפות</th>
-                  <th className="text-right px-4 py-3 font-medium text-gray-600">פעולות</th>
+              <thead className="sticky top-0 z-10">
+                <tr className="bg-slate-50/95 backdrop-blur border-b border-slate-200">
+                  {['שם', 'אימייל', 'תפקיד', 'התמחויות', 'תורים', 'סטטוס', 'הצטרפות', 'פעולות'].map(h => (
+                    <th key={h} className="text-right px-4 py-3 text-[11px] font-bold uppercase tracking-wider text-slate-500 whitespace-nowrap">{h}</th>
+                  ))}
                 </tr>
               </thead>
-              <tbody className="divide-y">
+              <tbody className="divide-y divide-slate-50">
                 {filtered.map(user => (
-                  <tr key={user.id} className="hover:bg-gray-50">
+                  <tr key={user.id} className="hover:bg-blue-50/40 transition-colors">
                     <td className="px-4 py-3">
                       <div className="flex items-center gap-2">
                         <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-xs font-bold text-blue-700">
