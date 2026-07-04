@@ -1,5 +1,6 @@
 import Link from 'next/link'
 import type { Metadata } from 'next'
+import { BrandSupportEmail } from '@/components/branding/BrandProvider'
 
 export const metadata: Metadata = {
   title: 'הדף לא נמצא (404)',
@@ -44,7 +45,7 @@ export default function NotFound() {
         </div>
 
         <p className="text-xs text-gray-400 mt-8">
-          צריך עזרה? פנה אלינו ב-<a href="mailto:medical@cannaforyou.net" className="text-blue-600 hover:underline">medical@cannaforyou.net</a>
+          צריך עזרה? פנה אלינו ב-<BrandSupportEmail className="text-blue-600 hover:underline" />
         </p>
       </div>
     </div>

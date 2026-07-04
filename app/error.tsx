@@ -1,5 +1,7 @@
 'use client'
 
+import { BrandSupportEmail } from '@/components/branding/BrandProvider'
+
 export default function Error({ error, reset }: { error: Error; reset: () => void }) {
   return (
     <div className="min-h-screen flex items-center justify-center bg-gradient-to-b from-red-50 to-white px-4" dir="rtl">
@@ -18,7 +20,7 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
           </a>
         </div>
         <p className="text-xs text-gray-400">
-          אם הבעיה נמשכת, פנה אלינו ב-<a href="mailto:medical@cannaforyou.net" className="text-blue-600 hover:underline">medical@cannaforyou.net</a>
+          אם הבעיה נמשכת, פנה אלינו ב-<BrandSupportEmail className="text-blue-600 hover:underline" />
         </p>
       </div>
     </div>

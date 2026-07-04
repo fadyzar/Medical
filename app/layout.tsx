@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from 'next'
 import { Toaster } from 'sonner'
 import AccessibilityWidget from '@/components/accessibility/AccessibilityWidget'
+import { BrandProvider } from '@/components/branding/BrandProvider'
 import './globals.css'
 
 // CHECKLIST: SEO metadata
@@ -58,9 +59,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         <a href="#main-content" className="skip-to-content">
           דלג לתוכן הראשי
         </a>
-        <div id="main-content" tabIndex={-1}>
-          {children}
-        </div>
+        <BrandProvider>
+          <div id="main-content" tabIndex={-1}>
+            {children}
+          </div>
+        </BrandProvider>
         <Toaster position="top-center" toastOptions={{ style: { direction: 'rtl' } }} richColors />
         {/* Accessibility widget — נגישות */}
         <AccessibilityWidget />

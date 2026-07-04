@@ -1,5 +1,5 @@
 import { forwardRef, type ButtonHTMLAttributes, type InputHTMLAttributes, type TextareaHTMLAttributes, type SelectHTMLAttributes, type ReactNode } from 'react'
-import { cn } from '@/lib/utils'
+import { cn, STATUS_LABELS, STATUS_COLORS } from '@/lib/utils'
 
 // ==================== BUTTON ====================
 interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
@@ -257,3 +257,69 @@ export function StatCard({ label, value, icon, color = 'blue' }: { label: string
 
 // Re-export AppointmentTimeline from separate file
 export { AppointmentTimeline } from './AppointmentTimeline'
+
+// ==================== STATUS CHIP ====================
+// Consistent appointment-status pill used across every dashboard.
+export function StatusChip({ status, className }: { status: string; className?: string }) {
+  const label = STATUS_LABELS[status] || status
+  const color = STATUS_COLORS[status] || 'bg-gray-100 text-gray-700'
+  return (
+    <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold', color, className)}>
+      <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
+      {label}
+    </span>
+  )
+}
+
+// ==================== SKELETON ====================
+export function Skeleton({ className }: { className?: string }) {
+  return <div className={cn('animate-pulse rounded-lg bg-gray-100', className)} />
+}
+
+export function SkeletonCard() {
+  return (
+    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <Skeleton className="h-3 w-24" />
+          <Skeleton className="h-7 w-16" />
+        </div>
+        <Skeleton className="h-11 w-11 rounded-xl" />
+      </div>
+    </div>
+  )
+}
+
+/** Premium dashboard skeleton — mirrors the real dashboard grid while loading. */
+export function DashboardSkeleton() {
+  return (
+    <div className="space-y-6" dir="rtl" aria-busy="true" aria-label="טוען">
+      <div className="space-y-2">
+        <Skeleton className="h-7 w-56" />
+        <Skeleton className="h-4 w-40" />
+      </div>
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+        {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
+      </div>
+      <div className="grid lg:grid-cols-3 gap-6">
+        <div className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
+          <Skeleton className="h-5 w-40" />
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="flex items-center gap-3">
+              <Skeleton className="h-10 w-10 rounded-xl" />
+              <div className="flex-1 space-y-2">
+                <Skeleton className="h-3.5 w-1/2" />
+                <Skeleton className="h-3 w-1/3" />
+              </div>
+              <Skeleton className="h-6 w-20 rounded-full" />
+            </div>
+          ))}
+        </div>
+        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
+          <Skeleton className="h-5 w-32" />
+          {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}
+        </div>
+      </div>
+    </div>
+  )
+}

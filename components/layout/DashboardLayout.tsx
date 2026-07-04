@@ -336,6 +336,11 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
     return () => document.removeEventListener('click', close)
   }, [userMenuOpen])
 
+  // White-label: reflect the clinic brand in the browser tab title.
+  useEffect(() => {
+    if (org?.name) document.title = `${org.name} — לוח בקרה`
+  }, [org?.name])
+
   const handleLogout = async () => {
     localStorage.removeItem('rememberMe')
     localStorage.removeItem('sessionExpiresAt')

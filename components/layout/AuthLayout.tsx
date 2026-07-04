@@ -2,6 +2,7 @@
 
 import Link from 'next/link'
 import { type ReactNode } from 'react'
+import { useBrand } from '@/components/branding/BrandProvider'
 
 // ── SVG Icons for the brand panel ────────────────────────
 
@@ -59,10 +60,14 @@ interface AuthLayoutProps {
 }
 
 export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
+  const brand = useBrand()
+  const panelGradient = `linear-gradient(160deg, ${brand.primaryColor} 0%, ${brand.primaryColor} 45%, ${brand.secondaryColor} 100%)`
+  const mobileGradient = `linear-gradient(90deg, ${brand.primaryColor}, ${brand.secondaryColor})`
+
   return (
     <div className="min-h-screen flex" dir="rtl">
       {/* ─── Brand Panel (desktop only) ────────────────── */}
-      <div className="hidden lg:flex lg:w-[480px] xl:w-[540px] bg-gradient-to-b from-blue-700 via-blue-600 to-teal-600 flex-col justify-between p-10 relative overflow-hidden">
+      <div className="hidden lg:flex lg:w-[480px] xl:w-[540px] flex-col justify-between p-10 relative overflow-hidden" style={{ background: panelGradient }}>
         {/* Decorative circles */}
         <div className="absolute -top-20 -right-20 w-72 h-72 bg-white/5 rounded-full" />
         <div className="absolute -bottom-32 -left-32 w-96 h-96 bg-white/5 rounded-full" />
@@ -71,10 +76,15 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
         {/* Logo */}
         <div className="relative z-10">
           <Link href="/" className="flex items-center gap-3">
-            <div className="w-11 h-11 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
-              <IconStethoscope className="w-6 h-6 text-white" />
-            </div>
-            <span className="text-2xl font-bold text-white">CANNA</span>
+            {brand.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={brand.logoUrl} alt={brand.name} className="w-11 h-11 rounded-xl object-cover bg-white/20" />
+            ) : (
+              <div className="w-11 h-11 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
+                <IconStethoscope className="w-6 h-6 text-white" />
+              </div>
+            )}
+            <span className="text-2xl font-bold text-white">{brand.name}</span>
           </Link>
         </div>
 
@@ -107,7 +117,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
         {/* Capability card — factual, no fabricated social proof */}
         <div className="relative z-10">
           <div className="bg-white/10 backdrop-blur-sm rounded-2xl p-5">
-            <p className="text-white text-sm font-semibold mb-3">מה כלול בפלטפורמת CANNA</p>
+            <p className="text-white text-sm font-semibold mb-3">מה כלול בפלטפורמת {brand.name}</p>
             <div className="space-y-2.5">
               {['שיחות וידאו מוצפנות מקצה לקצה', 'סיכום ביקור ותיעוד מבוסס AI', 'ניהול מסמכים רפואיים מאובטח', 'תזכורות אוטומטיות לתורים'].map((t, i) => (
                 <div key={i} className="flex items-center gap-2.5">
@@ -127,12 +137,17 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
       {/* ─── Form Panel ────────────────────────────────── */}
       <div className="flex-1 flex flex-col min-h-screen bg-gray-50/50">
         {/* Mobile header */}
-        <div className="lg:hidden bg-gradient-to-l from-blue-700 to-teal-600 px-6 py-8">
+        <div className="lg:hidden px-6 py-8" style={{ background: mobileGradient }}>
           <Link href="/" className="flex items-center gap-2.5 mb-4">
-            <div className="w-9 h-9 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
-              <IconStethoscope className="w-5 h-5 text-white" />
-            </div>
-            <span className="text-xl font-bold text-white">CANNA</span>
+            {brand.logoUrl ? (
+              // eslint-disable-next-line @next/next/no-img-element
+              <img src={brand.logoUrl} alt={brand.name} className="w-9 h-9 rounded-lg object-cover bg-white/20" />
+            ) : (
+              <div className="w-9 h-9 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
+                <IconStethoscope className="w-5 h-5 text-white" />
+              </div>
+            )}
+            <span className="text-xl font-bold text-white">{brand.name}</span>
           </Link>
           <h1 className="text-2xl font-bold text-white">{title}</h1>
           {subtitle && <p className="text-blue-100 text-sm mt-1">{subtitle}</p>}
@@ -154,7 +169,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
         {/* Footer */}
         <div className="text-center py-4 px-4 text-xs text-gray-400">
           <p>
-            &copy; {new Date().getFullYear()} CANNA — ייעוץ רפואי מקצועי אונליין
+            &copy; {new Date().getFullYear()} {brand.name} — ייעוץ רפואי מקצועי אונליין
           </p>
           <div className="flex items-center justify-center gap-3 mt-1">
             <Link href="/terms" className="hover:text-gray-600 transition-colors">תנאי שימוש</Link>

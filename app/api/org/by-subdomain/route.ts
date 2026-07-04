@@ -12,7 +12,7 @@ export async function GET(req: NextRequest) {
   const admin = createServiceRole()
   const { data } = await admin
     .from('organizations')
-    .select('id, name, logo_url, primary_color, subdomain')
+    .select('id, name, logo_url, primary_color, secondary_color, contact_email, subdomain')
     .eq('subdomain', subdomain.toLowerCase())
     .maybeSingle()
 
