@@ -300,15 +300,15 @@ export default function BillingPage() {
         <Card>
           <CardContent className="p-6">
             <h3 className="font-bold text-lg mb-4">השוואת תוכניות</h3>
-            <div className="overflow-x-auto">
+            <div className="overflow-auto rounded-2xl border border-slate-100">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="border-b bg-gray-50">
-                    <th className="text-right p-3 font-medium text-gray-600">תוכנית</th>
+                  <tr className="border-b border-slate-200 bg-slate-50/95">
+                    <th className="text-right p-3 text-[11px] font-bold uppercase tracking-wider text-slate-500">תוכנית</th>
                     {PLANS.map(p => (
                       <th key={p.id} className={cn(
-                        'p-3 text-center font-medium',
-                        p.id === org.plan ? 'bg-blue-50 text-blue-700' : 'text-gray-600'
+                        'p-3 text-center font-bold',
+                        p.id === org.plan ? 'bg-blue-50 text-blue-700' : 'text-slate-600'
                       )}>
                         <div>{p.name}</div>
                         <div className="text-xs font-normal mt-0.5">

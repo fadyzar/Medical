@@ -49,9 +49,9 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
     }
 
     const staticVariants = {
-      outline: 'border border-gray-300 bg-white text-gray-700 hover:bg-gray-50',
-      ghost: 'text-gray-600 hover:bg-gray-100 hover:text-gray-900',
-      danger: 'bg-red-600 text-white hover:bg-red-700',
+      outline: 'border border-slate-200 bg-white text-slate-700 hover:bg-slate-50',
+      ghost: 'text-slate-600 hover:bg-slate-100 hover:text-slate-900',
+      danger: 'bg-rose-600 text-white hover:bg-rose-700',
     }
 
     return (
@@ -74,16 +74,16 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
     const inputId = id || label?.replace(/\s+/g, '-').toLowerCase()
     return (
       <div className="space-y-1.5">
-        {label && <label htmlFor={inputId} className="block text-sm font-medium text-gray-700">{label}</label>}
+        {label && <label htmlFor={inputId} className="block text-sm font-medium text-slate-700">{label}</label>}
         <input ref={ref} id={inputId} className={cn(
           'w-full rounded-lg border px-3 py-2.5 text-sm transition-colors',
-          'placeholder:text-gray-400',
+          'placeholder:text-slate-400',
           'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none',
-          error ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white',
+          error ? 'border-red-300 bg-red-50' : 'border-slate-200 bg-white',
           className
         )} aria-invalid={!!error} aria-describedby={error ? `${inputId}-error` : undefined} {...props} />
         {error && <p id={`${inputId}-error`} className="text-sm text-red-600" role="alert">{error}</p>}
-        {hint && !error && <p className="text-xs text-gray-500">{hint}</p>}
+        {hint && !error && <p className="text-xs text-slate-500">{hint}</p>}
       </div>
     )
   }
@@ -100,11 +100,11 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
     const inputId = id || label?.replace(/\s+/g, '-').toLowerCase()
     return (
       <div className="space-y-1.5">
-        {label && <label htmlFor={inputId} className="block text-sm font-medium text-gray-700">{label}</label>}
+        {label && <label htmlFor={inputId} className="block text-sm font-medium text-slate-700">{label}</label>}
         <textarea ref={ref} id={inputId} className={cn(
           'w-full rounded-lg border px-3 py-2.5 text-sm transition-colors resize-y min-h-[80px]',
           'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none',
-          error ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-white',
+          error ? 'border-red-300 bg-red-50' : 'border-slate-200 bg-white',
           className
         )} aria-invalid={!!error} aria-describedby={error ? `${inputId}-error` : undefined} {...props} />
         {error && <p id={`${inputId}-error`} className="text-sm text-red-600" role="alert">{error}</p>}
@@ -126,11 +126,11 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
     const inputId = id || label?.replace(/\s+/g, '-').toLowerCase()
     return (
       <div className="space-y-1.5">
-        {label && <label htmlFor={inputId} className="block text-sm font-medium text-gray-700">{label}</label>}
+        {label && <label htmlFor={inputId} className="block text-sm font-medium text-slate-700">{label}</label>}
         <select ref={ref} id={inputId} className={cn(
           'w-full rounded-lg border px-3 py-2.5 text-sm bg-white transition-colors',
           'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none',
-          error ? 'border-red-300' : 'border-gray-300',
+          error ? 'border-red-300' : 'border-slate-200',
           className
         )} aria-invalid={!!error} aria-describedby={error ? `${inputId}-error` : undefined} {...props}>
           {placeholder && <option value="">{placeholder}</option>}
@@ -144,35 +144,36 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
 Select.displayName = 'Select'
 
 // ==================== CARD ====================
+// Premium healthcare surface — shared by every dashboard section.
 export function Card({ className, children, ...props }: { className?: string; children: ReactNode } & React.HTMLAttributes<HTMLDivElement>) {
-  return <div className={cn('bg-white rounded-xl border border-gray-200 shadow-sm', className)} {...props}>{children}</div>
+  return <div className={cn('bg-white rounded-2xl border border-slate-100 shadow-[0_1px_3px_rgba(15,23,42,0.04),0_8px_24px_-12px_rgba(15,23,42,0.08)]', className)} {...props}>{children}</div>
 }
 
 export function CardHeader({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cn('px-6 py-4 border-b border-gray-100', className)}>{children}</div>
+  return <div className={cn('px-6 py-5 border-b border-slate-100', className)}>{children}</div>
 }
 
 export function CardContent({ className, children }: { className?: string; children: ReactNode }) {
-  return <div className={cn('px-6 py-4', className)}>{children}</div>
+  return <div className={cn('px-6 py-5', className)}>{children}</div>
 }
 
 // ==================== BADGE ====================
 export function Badge({ children, variant = 'default', className }: { children: ReactNode; variant?: 'default' | 'success' | 'warning' | 'danger' | 'info'; className?: string }) {
   const v = {
-    default: 'bg-gray-100 text-gray-700',
-    success: 'bg-green-100 text-green-800',
-    warning: 'bg-yellow-100 text-yellow-800',
-    danger: 'bg-red-100 text-red-800',
-    info: 'bg-blue-100 text-blue-800',
+    default: 'bg-slate-100 text-slate-700',
+    success: 'bg-emerald-50 text-emerald-700',
+    warning: 'bg-amber-50 text-amber-700',
+    danger: 'bg-rose-50 text-rose-700',
+    info: 'bg-blue-50 text-blue-700',
   }
-  return <span className={cn('inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium', v[variant], className)}>{children}</span>
+  return <span className={cn('inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold', v[variant], className)}>{children}</span>
 }
 
 // ==================== SPINNER ====================
 export function Spinner({ size = 'md', className }: { size?: 'sm' | 'md' | 'lg'; className?: string }) {
   const s = { sm: 'h-4 w-4', md: 'h-6 w-6', lg: 'h-10 w-10' }
   return (
-    <div className={cn('animate-spin rounded-full border-2 border-gray-300 border-t-blue-600', s[size], className)} role="status" aria-label="טוען">
+    <div className={cn('animate-spin rounded-full border-2 border-slate-200 border-t-blue-600', s[size], className)} role="status" aria-label="טוען">
       <span className="sr-only">טוען...</span>
     </div>
   )
@@ -193,25 +194,25 @@ export function PageLoading() {
       {/* Stat cards skeleton */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[1, 2, 3, 4].map(i => (
-          <div key={i} className="bg-white rounded-xl border border-gray-200 p-5">
-            <div className="h-4 bg-gray-100 rounded w-20 mb-3" />
-            <div className="h-7 bg-gray-200 rounded w-16" />
+          <div key={i} className="bg-white rounded-2xl border border-slate-100 p-5 shadow-sm">
+            <div className="h-4 bg-slate-100 rounded w-20 mb-3" />
+            <div className="h-7 bg-slate-200 rounded w-16" />
           </div>
         ))}
       </div>
       {/* Card skeleton */}
-      <div className="bg-white rounded-xl border border-gray-200 overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-100">
-          <div className="h-5 bg-gray-200 rounded w-32" />
+      <div className="bg-white rounded-2xl border border-slate-100 overflow-hidden shadow-sm">
+        <div className="px-6 py-5 border-b border-slate-100">
+          <div className="h-5 bg-slate-200 rounded w-32" />
         </div>
-        <div className="divide-y">
+        <div className="divide-y divide-slate-50">
           {[1, 2, 3].map(i => (
             <div key={i} className="px-6 py-4 flex items-center justify-between">
               <div className="space-y-2 flex-1">
-                <div className="h-4 bg-gray-200 rounded w-48" />
-                <div className="h-3 bg-gray-100 rounded w-32" />
+                <div className="h-4 bg-slate-200 rounded w-48" />
+                <div className="h-3 bg-slate-100 rounded w-32" />
               </div>
-              <div className="h-6 bg-gray-100 rounded-full w-16" />
+              <div className="h-6 bg-slate-100 rounded-full w-16" />
             </div>
           ))}
         </div>
@@ -224,10 +225,14 @@ export function PageLoading() {
 export function EmptyState({ icon, title, description, action }: { icon?: ReactNode; title: string; description?: string; action?: ReactNode }) {
   return (
     <div className="text-center py-12 px-4">
-      {icon && <div className="text-4xl mb-3">{icon}</div>}
-      <h3 className="text-lg font-semibold text-gray-900">{title}</h3>
-      {description && <p className="text-sm text-gray-500 mt-1">{description}</p>}
-      {action && <div className="mt-4">{action}</div>}
+      {icon && (
+        <div className="w-14 h-14 rounded-2xl bg-slate-50 ring-8 ring-slate-50/60 flex items-center justify-center mx-auto mb-4 text-slate-300 [&>svg]:w-7 [&>svg]:h-7">
+          {icon}
+        </div>
+      )}
+      <h3 className="text-base font-bold text-slate-800">{title}</h3>
+      {description && <p className="text-sm text-slate-400 mt-1 max-w-sm mx-auto leading-relaxed">{description}</p>}
+      {action && <div className="mt-5">{action}</div>}
     </div>
   )
 }
@@ -236,22 +241,22 @@ export function EmptyState({ icon, title, description, action }: { icon?: ReactN
 export { Breadcrumb } from './Breadcrumb'
 
 export function StatCard({ label, value, icon, color = 'blue' }: { label: string; value: string | number; icon?: ReactNode; color?: 'blue' | 'green' | 'orange' | 'red' | 'purple' }) {
-  const textColors = { blue: 'text-blue-600', green: 'text-green-600', orange: 'text-orange-600', red: 'text-red-600', purple: 'text-purple-600' }
-  const bgColors = { blue: 'bg-blue-50', green: 'bg-green-50', orange: 'bg-orange-50', red: 'bg-red-50', purple: 'bg-purple-50' }
+  const textColors = { blue: 'text-blue-600', green: 'text-emerald-600', orange: 'text-amber-600', red: 'text-rose-600', purple: 'text-violet-600' }
+  const bgColors = { blue: 'bg-blue-50 ring-blue-100', green: 'bg-emerald-50 ring-emerald-100', orange: 'bg-amber-50 ring-amber-100', red: 'bg-rose-50 ring-rose-100', purple: 'bg-violet-50 ring-violet-100' }
   return (
-    <Card className="p-5 hover:shadow-md transition-shadow">
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="text-sm text-gray-500 font-medium">{label}</p>
-          <p className={cn('text-2xl font-bold mt-1', textColors[color])}>{value}</p>
+    <div className="rounded-2xl bg-white border border-slate-100 p-5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all">
+      <div className="flex items-start justify-between gap-3">
+        <div className="min-w-0">
+          <p className="text-sm text-slate-500 font-medium truncate">{label}</p>
+          <p className="text-2xl font-black text-slate-900 mt-1.5 tracking-tight">{value}</p>
         </div>
         {icon && (
-          <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center text-xl', bgColors[color])}>
+          <div className={cn('w-11 h-11 rounded-xl flex items-center justify-center text-xl shrink-0 ring-4', bgColors[color], textColors[color])}>
             {icon}
           </div>
         )}
       </div>
-    </Card>
+    </div>
   )
 }
 
@@ -262,7 +267,7 @@ export { AppointmentTimeline } from './AppointmentTimeline'
 // Consistent appointment-status pill used across every dashboard.
 export function StatusChip({ status, className }: { status: string; className?: string }) {
   const label = STATUS_LABELS[status] || status
-  const color = STATUS_COLORS[status] || 'bg-gray-100 text-gray-700'
+  const color = STATUS_COLORS[status] || 'bg-gray-100 text-slate-700'
   return (
     <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold', color, className)}>
       <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />

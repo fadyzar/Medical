@@ -252,16 +252,13 @@ export default function AuditLogPage() {
           />
         ) : (
           <Card>
-            <div className="overflow-x-auto">
+            <div className="overflow-auto max-h-[70vh] rounded-2xl border border-slate-100">
               <table className="w-full text-sm">
-                <thead>
-                  <tr className="border-b bg-gray-50">
-                    <th className="text-right p-3 font-medium text-gray-600 whitespace-nowrap">זמן</th>
-                    <th className="text-right p-3 font-medium text-gray-600 whitespace-nowrap">משתמש</th>
-                    <th className="text-right p-3 font-medium text-gray-600 whitespace-nowrap">פעולה</th>
-                    <th className="text-right p-3 font-medium text-gray-600 whitespace-nowrap">סוג</th>
-                    <th className="text-right p-3 font-medium text-gray-600">תיאור</th>
-                    <th className="text-right p-3 font-medium text-gray-600 w-16"></th>
+                <thead className="sticky top-0 z-10">
+                  <tr className="bg-slate-50/95 backdrop-blur border-b border-slate-200">
+                    {['זמן', 'משתמש', 'פעולה', 'סוג', 'תיאור', ''].map((h, i) => (
+                      <th key={i} className={cn('text-right p-3 text-[11px] font-bold uppercase tracking-wider text-slate-500', h && 'whitespace-nowrap', i === 5 && 'w-16')}>{h}</th>
+                    ))}
                   </tr>
                 </thead>
                 <tbody>
@@ -330,7 +327,7 @@ function LogRow({ log, userName, expanded, onToggle }: {
 
   return (
     <>
-      <tr className={cn('border-b hover:bg-gray-50 transition-colors', expanded && 'bg-blue-50/50')}>
+      <tr className={cn('border-b border-slate-50 hover:bg-blue-50/40 transition-colors', expanded && 'bg-blue-50/50')}>
         <td className="p-3 whitespace-nowrap text-gray-500 text-xs">
           {formatDateTime(log.created_at)}
         </td>
