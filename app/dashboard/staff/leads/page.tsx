@@ -13,7 +13,7 @@ const STATUS_OPTIONS: { value: LeadStatus; label: string; color: string }[] = [
   { value: 'contacted', label: 'נוצר קשר',    color: 'bg-yellow-100 text-yellow-700' },
   { value: 'qualified', label: 'מוכשר',       color: 'bg-purple-100 text-purple-700' },
   { value: 'converted', label: 'הומר למטופל', color: 'bg-green-100 text-green-700' },
-  { value: 'lost',      label: 'ירד',         color: 'bg-gray-100 text-gray-500' },
+  { value: 'lost',      label: 'ירד',         color: 'bg-slate-100 text-slate-500' },
 ]
 
 export default function StaffLeadsPage() {
@@ -102,7 +102,7 @@ export default function StaffLeadsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">לידים לטיפול</h2>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <p className="text-sm text-slate-500 mt-0.5">
             {leads.filter(l => ['new', 'contacted'].includes(l.status)).length} לידים פעילים
           </p>
         </div>
@@ -116,11 +116,11 @@ export default function StaffLeadsPage() {
             onClick={() => setFilterStatus(filterStatus === s.value ? '' : s.value)}
             className={cn(
               'p-4 rounded-xl border text-right transition-all',
-              filterStatus === s.value ? s.color + ' border-current' : 'bg-white border-gray-200 hover:border-gray-300'
+              filterStatus === s.value ? s.color + ' border-current' : 'bg-white border-slate-200 hover:border-slate-300'
             )}
           >
             <p className="text-2xl font-bold">{myCounts[s.value] || 0}</p>
-            <p className="text-xs text-gray-600 mt-0.5">{s.label}</p>
+            <p className="text-xs text-slate-600 mt-0.5">{s.label}</p>
           </button>
         ))}
       </div>
@@ -144,7 +144,7 @@ export default function StaffLeadsPage() {
         <Card className="max-h-[65vh] overflow-y-auto">
           {filtered.length === 0 ? (
             <EmptyState
-              icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>}
+              icon={<svg className="w-10 h-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>}
               title="אין לידים"
             />
           ) : (
@@ -158,17 +158,17 @@ export default function StaffLeadsPage() {
                     key={lead.id}
                     onClick={() => selectLead(lead)}
                     className={cn(
-                      'w-full px-4 py-3 text-right hover:bg-gray-50 transition-colors',
+                      'w-full px-4 py-3 text-right hover:bg-slate-50 transition-colors',
                       isSelected && 'bg-blue-50 border-r-4 border-blue-600',
                       isOverdue && !isSelected && 'border-r-4 border-orange-400'
                     )}
                   >
                     <div className="flex items-center justify-between">
                       <div className="min-w-0">
-                        <p className="font-semibold text-gray-900">{lead.first_name} {lead.last_name}</p>
-                        <p className="text-xs text-gray-500">{lead.phone || lead.email || '—'}</p>
+                        <p className="font-semibold text-slate-900">{lead.first_name} {lead.last_name}</p>
+                        <p className="text-xs text-slate-500">{lead.phone || lead.email || '—'}</p>
                         {lead.next_follow_up && (
-                          <p className={cn('text-xs mt-0.5', isOverdue ? 'text-orange-600 font-medium' : 'text-gray-400')}>
+                          <p className={cn('text-xs mt-0.5', isOverdue ? 'text-orange-600 font-medium' : 'text-slate-400')}>
                             {isOverdue ? '⚠ ' : ''}מעקב: {formatDate(lead.next_follow_up)}
                           </p>
                         )}
@@ -190,26 +190,26 @@ export default function StaffLeadsPage() {
             <Card>
               <CardHeader>
                 <h3 className="font-bold text-lg">{selected.first_name} {selected.last_name}</h3>
-                <p className="text-sm text-gray-500">{formatDateTime(selected.created_at)}</p>
+                <p className="text-sm text-slate-500">{formatDateTime(selected.created_at)}</p>
               </CardHeader>
               <CardContent className="space-y-4">
                 {/* Contact info */}
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   {selected.phone && (
                     <div>
-                      <p className="text-xs text-gray-400">טלפון</p>
+                      <p className="text-xs text-slate-400">טלפון</p>
                       <a href={`tel:${selected.phone}`} className="font-medium text-blue-600 hover:underline">{selected.phone}</a>
                     </div>
                   )}
                   {selected.email && (
                     <div>
-                      <p className="text-xs text-gray-400">אימייל</p>
+                      <p className="text-xs text-slate-400">אימייל</p>
                       <a href={`mailto:${selected.email}`} className="font-medium text-blue-600 hover:underline truncate block">{selected.email}</a>
                     </div>
                   )}
                   {selected.specialty_interest && (
                     <div>
-                      <p className="text-xs text-gray-400">מבקש</p>
+                      <p className="text-xs text-slate-400">מבקש</p>
                       <p className="font-medium">{selected.specialty_interest}</p>
                     </div>
                   )}
@@ -217,9 +217,9 @@ export default function StaffLeadsPage() {
 
                 {/* Original message */}
                 {selected.message && (
-                  <div className="bg-gray-50 rounded-lg p-3">
-                    <p className="text-xs text-gray-400 mb-1">הודעה</p>
-                    <p className="text-sm text-gray-700">{selected.message}</p>
+                  <div className="bg-slate-50 rounded-lg p-3">
+                    <p className="text-xs text-slate-400 mb-1">הודעה</p>
+                    <p className="text-sm text-slate-700">{selected.message}</p>
                   </div>
                 )}
 
@@ -235,7 +235,7 @@ export default function StaffLeadsPage() {
 
                 {/* Status change */}
                 <div>
-                  <p className="text-xs text-gray-400 mb-2">עדכן סטטוס</p>
+                  <p className="text-xs text-slate-400 mb-2">עדכן סטטוס</p>
                   <div className="flex gap-2 flex-wrap">
                     {STATUS_OPTIONS.filter(s => s.value !== selected.status).slice(0, 3).map(s => (
                       <button
@@ -285,7 +285,7 @@ export default function StaffLeadsPage() {
           ) : (
             <Card>
               <EmptyState
-                icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M15 18l-6-6 6-6"/></svg>}
+                icon={<svg className="w-10 h-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M15 18l-6-6 6-6"/></svg>}
                 title="בחר ליד לטיפול"
               />
             </Card>

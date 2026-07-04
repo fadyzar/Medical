@@ -207,15 +207,15 @@ export default function LoginPage() {
       )}
 
       {/* Method toggle tabs */}
-      <div className="flex rounded-xl bg-gray-100 p-1 mb-6">
+      <div className="flex rounded-xl bg-slate-100 p-1 mb-6">
         <button
           type="button"
           onClick={() => { setLoginMethod('email'); setServerError('') }}
           className={cn(
             'flex-1 py-2.5 text-sm font-medium rounded-lg transition-all duration-200',
             loginMethod === 'email'
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-500 hover:text-slate-700'
           )}
         >
           אימייל וסיסמה
@@ -226,8 +226,8 @@ export default function LoginPage() {
           className={cn(
             'flex-1 py-2.5 text-sm font-medium rounded-lg transition-all duration-200',
             loginMethod === 'otp'
-              ? 'bg-white text-gray-900 shadow-sm'
-              : 'text-gray-500 hover:text-gray-700'
+              ? 'bg-white text-slate-900 shadow-sm'
+              : 'text-slate-500 hover:text-slate-700'
           )}
         >
           קוד SMS
@@ -273,7 +273,7 @@ export default function LoginPage() {
                     'w-4 h-4 rounded border-2 transition-all flex items-center justify-center',
                     rememberMe
                       ? 'bg-blue-600 border-blue-600'
-                      : 'border-gray-300 group-hover:border-blue-400'
+                      : 'border-slate-300 group-hover:border-blue-400'
                   )}>
                     {rememberMe && (
                       <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
@@ -282,7 +282,7 @@ export default function LoginPage() {
                     )}
                   </div>
                 </div>
-                <span className="text-sm text-gray-500">זכור אותי</span>
+                <span className="text-sm text-slate-500">זכור אותי</span>
               </label>
 
               <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors">
@@ -311,7 +311,7 @@ export default function LoginPage() {
                 autoComplete="tel"
                 required
               />
-              <p className="text-xs text-gray-400 -mt-3">נשלח קוד אימות חד-פעמי ב-SMS למספר שלך</p>
+              <p className="text-xs text-slate-400 -mt-3">נשלח קוד אימות חד-פעמי ב-SMS למספר שלך</p>
               <Button
                 type="button"
                 onClick={handleSendOtp}
@@ -325,8 +325,8 @@ export default function LoginPage() {
           ) : (
             <>
               <div className="text-center mb-2">
-                <p className="text-sm text-gray-600">
-                  קוד אימות נשלח למספר <span className="font-semibold text-gray-900 direction-ltr inline-block">{otpPhone}</span>
+                <p className="text-sm text-slate-600">
+                  קוד אימות נשלח למספר <span className="font-semibold text-slate-900 direction-ltr inline-block">{otpPhone}</span>
                 </p>
                 <button
                   type="button"
@@ -338,7 +338,7 @@ export default function LoginPage() {
               </div>
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">קוד אימות</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">קוד אימות</label>
                 <input
                   type="text"
                   inputMode="numeric"
@@ -346,7 +346,7 @@ export default function LoginPage() {
                   value={otpCode}
                   onChange={e => { setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setServerError('') }}
                   placeholder="000000"
-                  className="w-full text-center text-2xl tracking-[0.5em] font-mono py-3 px-4 border border-gray-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="w-full text-center text-2xl tracking-[0.5em] font-mono py-3 px-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
                   autoComplete="one-time-code"
                   dir="ltr"
                 />
@@ -365,7 +365,7 @@ export default function LoginPage() {
 
               <div className="text-center">
                 {otpCooldown > 0 ? (
-                  <p className="text-xs text-gray-400">שלח שוב בעוד {otpCooldown} שניות</p>
+                  <p className="text-xs text-slate-400">שלח שוב בעוד {otpCooldown} שניות</p>
                 ) : (
                   <button
                     type="button"
@@ -383,13 +383,13 @@ export default function LoginPage() {
 
       {/* Divider */}
       <div className="relative my-6">
-        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-gray-200" /></div>
-        <div className="relative flex justify-center"><span className="bg-gray-50/50 px-3 text-xs text-gray-400">או</span></div>
+        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200" /></div>
+        <div className="relative flex justify-center"><span className="bg-slate-50/50 px-3 text-xs text-slate-400">או</span></div>
       </div>
 
       {/* Register link */}
       <div className="text-center">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-slate-500">
           אין לך חשבון?{' '}
           <Link href="/auth/register" className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors">
             הירשם עכשיו — חינם
@@ -398,20 +398,20 @@ export default function LoginPage() {
       </div>
 
       {/* Trust badges */}
-      <div className="flex items-center justify-center gap-6 mt-8 pt-6 border-t border-gray-100">
-        <div className="flex items-center gap-1.5 text-gray-400">
+      <div className="flex items-center justify-center gap-6 mt-8 pt-6 border-t border-slate-100">
+        <div className="flex items-center gap-1.5 text-slate-400">
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" />
           </svg>
           <span className="text-xs">SSL מאובטח</span>
         </div>
-        <div className="flex items-center gap-1.5 text-gray-400">
+        <div className="flex items-center gap-1.5 text-slate-400">
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" />
           </svg>
           <span className="text-xs">תקן HIPAA</span>
         </div>
-        <div className="flex items-center gap-1.5 text-gray-400">
+        <div className="flex items-center gap-1.5 text-slate-400">
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><path d="M9 12l2 2 4-4" />
           </svg>

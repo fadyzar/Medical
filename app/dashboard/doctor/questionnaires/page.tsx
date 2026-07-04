@@ -134,7 +134,7 @@ export default function DoctorQuestionnairesPage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold">תשובות שאלון</h2>
-            <p className="text-gray-500 text-sm">{selectedQuestionnaire.title}</p>
+            <p className="text-slate-500 text-sm">{selectedQuestionnaire.title}</p>
           </div>
           <Button variant="outline" onClick={() => setView(selectedQuestionnaire ? 'responses' : 'list')}>חזור</Button>
         </div>
@@ -148,7 +148,7 @@ export default function DoctorQuestionnairesPage() {
               </div>
               <div>
                 <p className="font-medium">{patient.first_name} {patient.last_name}</p>
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-slate-500">
                   מולא ב-{formatDateTime(selectedResponse.completed_at || selectedResponse.created_at)}
                   {selectedResponse.time_taken_seconds && (
                     <> · {Math.round(selectedResponse.time_taken_seconds / 60)} דקות</>
@@ -174,8 +174,8 @@ export default function DoctorQuestionnairesPage() {
 
               return (
                 <div key={q.id} className="space-y-1.5">
-                  <p className="text-sm font-medium text-gray-700">
-                    <span className="text-gray-400 ml-1">{idx + 1}.</span>
+                  <p className="text-sm font-medium text-slate-700">
+                    <span className="text-slate-400 ml-1">{idx + 1}.</span>
                     {q.text}
                     {q.required && <span className="text-red-500 mr-1">*</span>}
                   </p>
@@ -183,7 +183,7 @@ export default function DoctorQuestionnairesPage() {
                   {hasAnswer ? (
                     <div className="text-sm">
                       {q.type === 'text' && (
-                        <p className="bg-gray-50 p-3 rounded-lg text-gray-800 whitespace-pre-wrap">{answer as string}</p>
+                        <p className="bg-slate-50 p-3 rounded-lg text-slate-800 whitespace-pre-wrap">{answer as string}</p>
                       )}
                       {q.type === 'choice' && (
                         <Badge variant="info">{answer as string}</Badge>
@@ -202,7 +202,7 @@ export default function DoctorQuestionnairesPage() {
                               return (
                                 <div key={i} className={cn(
                                   'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold',
-                                  isSelected ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-400'
+                                  isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'
                                 )}>{val}</div>
                               )
                             })}
@@ -213,11 +213,11 @@ export default function DoctorQuestionnairesPage() {
                         <Badge variant={answer === 'כן' ? 'success' : 'danger'}>{answer as string}</Badge>
                       )}
                       {q.type === 'image' && (
-                        <p className="text-gray-600">תמונה: {answer as string}</p>
+                        <p className="text-slate-600">תמונה: {answer as string}</p>
                       )}
                     </div>
                   ) : (
-                    <p className="text-sm text-gray-400 italic">לא נענתה</p>
+                    <p className="text-sm text-slate-400 italic">לא נענתה</p>
                   )}
                 </div>
               )
@@ -245,13 +245,13 @@ export default function DoctorQuestionnairesPage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold">תשובות</h2>
-            <p className="text-gray-500 text-sm">{selectedQuestionnaire.title}</p>
+            <p className="text-slate-500 text-sm">{selectedQuestionnaire.title}</p>
           </div>
           <Button variant="outline" onClick={() => { setView('list'); setSelectedQuestionnaire(null) }}>חזור</Button>
         </div>
 
         {questResponses.length === 0 ? (
-          <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></svg>} title="אין תשובות עדיין" description="עדיין לא נשלחו תשובות לשאלון זה" />
+          <EmptyState icon={<svg className="w-10 h-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></svg>} title="אין תשובות עדיין" description="עדיין לא נשלחו תשובות לשאלון זה" />
         ) : (
           <div className="space-y-3">
             {questResponses.map(r => {
@@ -260,12 +260,12 @@ export default function DoctorQuestionnairesPage() {
                 <Card key={r.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => viewResponseDetail(r)}>
                   <CardContent className="p-4 flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-600">
+                      <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-sm font-bold text-slate-600">
                         {patient?.first_name?.charAt(0)}{patient?.last_name?.charAt(0)}
                       </div>
                       <div>
                         <p className="font-medium">{patient?.first_name} {patient?.last_name}</p>
-                        <p className="text-xs text-gray-500">{formatDateTime(r.completed_at || r.created_at)}</p>
+                        <p className="text-xs text-slate-500">{formatDateTime(r.completed_at || r.created_at)}</p>
                       </div>
                     </div>
                     <div className="flex items-center gap-2">
@@ -294,7 +294,7 @@ export default function DoctorQuestionnairesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">שאלונים</h2>
-          <p className="text-gray-500 text-sm">צפה בשאלונים ותשובות מטופלים</p>
+          <p className="text-slate-500 text-sm">צפה בשאלונים ותשובות מטופלים</p>
         </div>
       </div>
 
@@ -309,13 +309,13 @@ export default function DoctorQuestionnairesPage() {
       <div className="flex gap-2 border-b" role="tablist">
         <button onClick={() => setTab('my')} role="tab" aria-selected={tab === 'my'} className={cn(
           'px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px',
-          tab === 'my' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+          tab === 'my' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'
         )}>
           שאלונים ({myQuestionnaires.length})
         </button>
         <button onClick={() => setTab('responses')} role="tab" aria-selected={tab === 'responses'} className={cn(
           'px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px',
-          tab === 'responses' ? 'border-blue-600 text-blue-600' : 'border-transparent text-gray-500 hover:text-gray-700'
+          tab === 'responses' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'
         )}>
           תשובות אחרונות ({responses.length})
         </button>
@@ -326,7 +326,7 @@ export default function DoctorQuestionnairesPage() {
         <>
           {myQuestionnaires.length === 0 ? (
             <EmptyState
-              icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>}
+              icon={<svg className="w-10 h-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>}
               title="אין שאלונים זמינים"
               description="שאלונים מנוהלים על ידי מנהל המערכת. פנה למנהל להוספת שאלונים להתמחויות שלך."
             />
@@ -340,14 +340,14 @@ export default function DoctorQuestionnairesPage() {
                       <div className="flex items-start justify-between mb-3">
                         <div className="min-w-0 flex-1">
                           <h3 className="font-bold text-lg truncate">{q.title}</h3>
-                          {q.description && <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{q.description}</p>}
+                          {q.description && <p className="text-sm text-slate-500 mt-0.5 line-clamp-2">{q.description}</p>}
                         </div>
                         <Badge variant={q.is_published ? 'success' : 'warning'}>
                           {q.is_published ? 'פורסם' : 'טיוטה'}
                         </Badge>
                       </div>
 
-                      <div className="flex items-center gap-4 text-xs text-gray-400 mb-3">
+                      <div className="flex items-center gap-4 text-xs text-slate-400 mb-3">
                         <span>{q.questions.length} שאלות</span>
                         <span>{q.times_used} מילויים</span>
                         <span>{responseCount} תשובות</span>
@@ -363,7 +363,7 @@ export default function DoctorQuestionnairesPage() {
                         </div>
                       )}
 
-                      <div className="flex gap-2 pt-3 border-t border-gray-100">
+                      <div className="flex gap-2 pt-3 border-t border-slate-100">
                         {responseCount > 0 && (
                           <Button size="sm" variant="outline" onClick={() => viewResponses(q)}>
                             תשובות ({responseCount})
@@ -387,7 +387,7 @@ export default function DoctorQuestionnairesPage() {
         <>
           {responses.length === 0 ? (
             <EmptyState
-              icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></svg>}
+              icon={<svg className="w-10 h-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></svg>}
               title="אין תשובות עדיין"
               description="כשמטופלים ימלאו שאלונים עבור תורים שלך, התשובות יופיעו כאן."
             />
@@ -400,12 +400,12 @@ export default function DoctorQuestionnairesPage() {
                   <Card key={r.id} className="hover:shadow-md transition-shadow cursor-pointer" onClick={() => viewResponseDetail(r)}>
                     <CardContent className="p-4 flex items-center justify-between">
                       <div className="flex items-center gap-3">
-                        <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-sm font-bold text-gray-600">
+                        <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-sm font-bold text-slate-600">
                           {patient?.first_name?.charAt(0)}{patient?.last_name?.charAt(0)}
                         </div>
                         <div>
                           <p className="font-medium">{patient?.first_name} {patient?.last_name}</p>
-                          <p className="text-xs text-gray-500">
+                          <p className="text-xs text-slate-500">
                             {quest?.title || 'שאלון'} · {formatDateTime(r.completed_at || r.created_at)}
                           </p>
                         </div>

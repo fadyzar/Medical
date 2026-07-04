@@ -292,7 +292,7 @@ export default function StaffAppointmentsPage() {
     <div className="space-y-4">
       <div>
         <h2 className="text-2xl font-bold">ניהול תורים</h2>
-        <p className="text-sm text-gray-500">{appointments.length} תורים במערכת</p>
+        <p className="text-sm text-slate-500">{appointments.length} תורים במערכת</p>
       </div>
 
       {/* Search */}
@@ -312,7 +312,7 @@ export default function StaffAppointmentsPage() {
               'px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
               statusFilter === f
                 ? 'bg-blue-600 text-white'
-                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             )}
           >
             {getFilterLabel(f)} ({getFilterCount(f)})
@@ -326,7 +326,7 @@ export default function StaffAppointmentsPage() {
         <div className="lg:col-span-2">
           <Card className="max-h-[75vh] overflow-y-auto">
             {filtered.length === 0 ? (
-              <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></svg>} title="אין תורים" description="לא נמצאו תורים לפי הסינון" />
+              <EmptyState icon={<svg className="w-10 h-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></svg>} title="אין תורים" description="לא נמצאו תורים לפי הסינון" />
             ) : (
               <div className="divide-y">
                 {filtered.map(apt => {
@@ -336,7 +336,7 @@ export default function StaffAppointmentsPage() {
                       key={apt.id}
                       onClick={() => selectAppointment(apt)}
                       className={cn(
-                        'w-full px-4 py-3 text-right hover:bg-gray-50 transition-colors',
+                        'w-full px-4 py-3 text-right hover:bg-slate-50 transition-colors',
                         isSelected && 'bg-blue-50 border-r-4 border-blue-600'
                       )}
                     >
@@ -347,13 +347,13 @@ export default function StaffAppointmentsPage() {
                               {apt.patient?.first_name} {apt.patient?.last_name}
                             </p>
                             {apt.scheduled_at && (
-                              <span className="text-xs text-gray-400 shrink-0">
+                              <span className="text-xs text-slate-400 shrink-0">
                                 {formatTime(apt.scheduled_at)}
                               </span>
                             )}
                           </div>
-                          <p className="text-sm text-gray-500 truncate">{apt.chief_complaint}</p>
-                          <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-0.5">
+                          <p className="text-sm text-slate-500 truncate">{apt.chief_complaint}</p>
+                          <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-0.5">
                             {apt.doctor ? (
                               <span>ד&quot;ר {apt.doctor.first_name} {apt.doctor.last_name}</span>
                             ) : (
@@ -410,7 +410,7 @@ export default function StaffAppointmentsPage() {
                 onAddNote={handleAddNote}
               />
             ) : (
-              <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>} title="בחר תור מהרשימה" description="לחץ על תור כדי לראות פרטים ולבצע פעולות" />
+              <EmptyState icon={<svg className="w-10 h-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>} title="בחר תור מהרשימה" description="לחץ על תור כדי לראות פרטים ולבצע פעולות" />
             )}
           </Card>
         </div>
@@ -464,7 +464,7 @@ function DetailPanel({
           )}
           <div>
             <h3 className="font-bold text-lg">{patient?.first_name} {patient?.last_name}</h3>
-            <div className="flex items-center gap-2 text-sm text-gray-500">
+            <div className="flex items-center gap-2 text-sm text-slate-500">
               {patient?.phone && <span>טל׳: {patient.phone}</span>}
               {patient?.email && <span>{patient.email}</span>}
             </div>
@@ -478,14 +478,14 @@ function DetailPanel({
       {/* Patient details */}
       <div className="grid grid-cols-2 gap-3 text-sm">
         {patient?.date_of_birth && (
-          <div className="bg-gray-50 rounded-lg px-3 py-2">
-            <p className="text-xs text-gray-400">תאריך לידה</p>
+          <div className="bg-slate-50 rounded-lg px-3 py-2">
+            <p className="text-xs text-slate-400">תאריך לידה</p>
             <p className="font-medium">{new Date(patient.date_of_birth).toLocaleDateString('he-IL')}</p>
           </div>
         )}
         {patient?.gender && (
-          <div className="bg-gray-50 rounded-lg px-3 py-2">
-            <p className="text-xs text-gray-400">מגדר</p>
+          <div className="bg-slate-50 rounded-lg px-3 py-2">
+            <p className="text-xs text-slate-400">מגדר</p>
             <p className="font-medium">{patient.gender === 'male' ? 'זכר' : patient.gender === 'female' ? 'נקבה' : 'אחר'}</p>
           </div>
         )}
@@ -516,14 +516,14 @@ function DetailPanel({
       )}
 
       {/* Complaint */}
-      <div className="bg-gray-50 rounded-lg p-3">
-        <p className="text-xs text-gray-400 font-medium mb-1">תלונה</p>
-        <p className="text-sm font-medium text-gray-900">{apt.chief_complaint}</p>
+      <div className="bg-slate-50 rounded-lg p-3">
+        <p className="text-xs text-slate-400 font-medium mb-1">תלונה</p>
+        <p className="text-sm font-medium text-slate-900">{apt.chief_complaint}</p>
         {apt.complaint_description && (
-          <p className="text-sm text-gray-600 mt-1">{apt.complaint_description}</p>
+          <p className="text-sm text-slate-600 mt-1">{apt.complaint_description}</p>
         )}
         {apt.requested_specialty && (
-          <p className="text-xs text-gray-500 mt-1">
+          <p className="text-xs text-slate-500 mt-1">
             התמחות: {SPECIALTIES.find(s => s.id === apt.requested_specialty)?.label || apt.requested_specialty}
           </p>
         )}
@@ -548,13 +548,13 @@ function DetailPanel({
       )}
 
       {/* Doctor assignment */}
-      <div className="border border-gray-200 rounded-lg p-3 space-y-2">
-        <p className="text-sm font-medium text-gray-700">שיוך רופא</p>
+      <div className="border border-slate-200 rounded-lg p-3 space-y-2">
+        <p className="text-sm font-medium text-slate-700">שיוך רופא</p>
         {doctor ? (
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-slate-600">
             ד&quot;ר {doctor.first_name} {doctor.last_name}
             {doctor.specialties && doctor.specialties.length > 0 && (
-              <span className="text-gray-400"> — {doctor.specialties.map(s => SPECIALTIES.find(sp => sp.id === s)?.label || s).join(', ')}</span>
+              <span className="text-slate-400"> — {doctor.specialties.map(s => SPECIALTIES.find(sp => sp.id === s)?.label || s).join(', ')}</span>
             )}
           </p>
         ) : (
@@ -564,7 +564,7 @@ function DetailPanel({
           <select
             value={assignDoctor}
             onChange={e => setAssignDoctor(e.target.value)}
-            className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+            className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
           >
             <option value="">בחר רופא...</option>
             {doctors.map(d => (
@@ -587,10 +587,10 @@ function DetailPanel({
       </div>
 
       {/* Scheduling */}
-      <div className="border border-gray-200 rounded-lg p-3 space-y-2">
-        <p className="text-sm font-medium text-gray-700">תזמון תור</p>
+      <div className="border border-slate-200 rounded-lg p-3 space-y-2">
+        <p className="text-sm font-medium text-slate-700">תזמון תור</p>
         {apt.scheduled_at && (
-          <p className="text-sm text-gray-600">
+          <p className="text-sm text-slate-600">
             מתוזמן ל: <span className="font-medium">{formatDateTime(apt.scheduled_at)}</span>
           </p>
         )}
@@ -621,13 +621,13 @@ function DetailPanel({
 
       {/* Payment info */}
       {apt.payment_amount != null && apt.payment_amount > 0 && (
-        <div className="flex items-center gap-2 text-sm bg-gray-50 rounded-lg p-3">
-          <span className="text-gray-500">תשלום:</span>
+        <div className="flex items-center gap-2 text-sm bg-slate-50 rounded-lg p-3">
+          <span className="text-slate-500">תשלום:</span>
           <Badge variant={apt.payment_status === 'completed' ? 'success' : 'warning'}>
             {apt.payment_status === 'completed' ? 'שולם' : 'ממתין'} — {apt.payment_amount} ₪
           </Badge>
           {apt.payment_completed_at && (
-            <span className="text-xs text-gray-400">({new Date(apt.payment_completed_at).toLocaleDateString('he-IL')})</span>
+            <span className="text-xs text-slate-400">({new Date(apt.payment_completed_at).toLocaleDateString('he-IL')})</span>
           )}
         </div>
       )}
@@ -651,10 +651,10 @@ function DetailPanel({
       )}
 
       {/* Internal notes */}
-      <div className="border border-gray-200 rounded-lg p-3 space-y-2">
-        <p className="text-sm font-medium text-gray-700">הערות פנימיות</p>
+      <div className="border border-slate-200 rounded-lg p-3 space-y-2">
+        <p className="text-sm font-medium text-slate-700">הערות פנימיות</p>
         {apt.doctor_notes && (
-          <div className="bg-yellow-50 rounded-lg p-2.5 text-sm text-gray-700 whitespace-pre-wrap max-h-32 overflow-y-auto">
+          <div className="bg-yellow-50 rounded-lg p-2.5 text-sm text-slate-700 whitespace-pre-wrap max-h-32 overflow-y-auto">
             {apt.doctor_notes}
           </div>
         )}
@@ -664,7 +664,7 @@ function DetailPanel({
             onChange={e => setStaffNote(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && staffNote.trim()) { e.preventDefault(); onAddNote() } }}
             placeholder="הוסף הערה פנימית..."
-            className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+            className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
           />
           <Button
             size="sm"
@@ -680,7 +680,7 @@ function DetailPanel({
 
       {/* Status actions */}
       {actions.length > 0 && (
-        <div className="flex gap-2 pt-2 border-t border-gray-100">
+        <div className="flex gap-2 pt-2 border-t border-slate-100">
           {actions.map(action => (
             <Button
               key={action.next}

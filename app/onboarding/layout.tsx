@@ -12,7 +12,7 @@ export default function OnboardingLayout({ children }: { children: React.ReactNo
       <div className="max-w-4xl mx-auto px-4 py-8">
         <div className="text-center mb-8">
           <Link href="/" className="text-3xl font-black text-blue-600 hover:text-blue-700 transition-colors">CANNA</Link>
-          <p className="text-gray-500 mt-1">הקמת מרפאה חדשה</p>
+          <p className="text-slate-500 mt-1">הקמת מרפאה חדשה</p>
         </div>
         {children}
       </div>

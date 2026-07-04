@@ -83,13 +83,13 @@ export default function AccessibilityPage() {
     <div className="min-h-screen bg-white" dir="rtl">
 
       {/* ── Navbar ── */}
-      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-gray-100 shadow-sm" role="navigation" aria-label="ניווט ראשי">
+      <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 shadow-sm" role="navigation" aria-label="ניווט ראשי">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
           <Link href="/" className="text-xl font-black text-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 rounded" aria-label="CANNA — עמוד הבית">
             CANNA
           </Link>
           <div className="flex items-center gap-4">
-            <Link href="/" className="text-sm text-gray-600 hover:text-gray-900 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 rounded px-1">
+            <Link href="/" className="text-sm text-slate-600 hover:text-slate-900 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 rounded px-1">
               חזרה לאתר
             </Link>
           </div>
@@ -109,8 +109,8 @@ export default function AccessibilityPage() {
             </svg>
             הצהרת נגישות
           </div>
-          <h1 className="text-4xl font-black text-gray-900 mb-3">נגישות דיגיטלית לכולם</h1>
-          <p className="text-gray-500 text-sm">עדכון אחרון: {lastReview} · תקן: ת&quot;י 5568 / WCAG 2.1 AA</p>
+          <h1 className="text-4xl font-black text-slate-900 mb-3">נגישות דיגיטלית לכולם</h1>
+          <p className="text-slate-500 text-sm">עדכון אחרון: {lastReview} · תקן: ת&quot;י 5568 / WCAG 2.1 AA</p>
         </div>
 
         {/* Intro */}
@@ -126,10 +126,10 @@ export default function AccessibilityPage() {
 
         {/* Features */}
         <section className="mb-10" aria-labelledby="features-heading">
-          <h2 id="features-heading" className="text-2xl font-black text-gray-900 mb-6">פעולות הנגשה שביצענו</h2>
+          <h2 id="features-heading" className="text-2xl font-black text-slate-900 mb-6">פעולות הנגשה שביצענו</h2>
           <div className="space-y-3">
             {FEATURES.map(f => (
-              <div key={f.title} className="flex items-start gap-4 bg-gray-50 border border-gray-100 rounded-xl p-4 hover:border-blue-200 transition-colors">
+              <div key={f.title} className="flex items-start gap-4 bg-slate-50 border border-slate-100 rounded-xl p-4 hover:border-blue-200 transition-colors">
                 <div className="w-6 h-6 rounded-full bg-green-100 border border-green-200 flex items-center justify-center shrink-0 mt-0.5" aria-hidden="true">
                   <svg className="w-3.5 h-3.5 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12"/>
@@ -137,14 +137,14 @@ export default function AccessibilityPage() {
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center gap-2 flex-wrap">
-                    <h3 className="font-bold text-gray-900 text-sm">{f.title}</h3>
+                    <h3 className="font-bold text-slate-900 text-sm">{f.title}</h3>
                     {f.wcag !== '—' && (
                       <span className="text-[10px] bg-blue-100 text-blue-700 font-mono px-1.5 py-0.5 rounded border border-blue-200">
                         WCAG {f.wcag}
                       </span>
                     )}
                   </div>
-                  <p className="text-gray-600 text-xs mt-1 leading-relaxed">{f.desc}</p>
+                  <p className="text-slate-600 text-xs mt-1 leading-relaxed">{f.desc}</p>
                 </div>
               </div>
             ))}
@@ -153,18 +153,18 @@ export default function AccessibilityPage() {
 
         {/* Supported tech */}
         <section className="mb-10" aria-labelledby="tech-heading">
-          <h2 id="tech-heading" className="text-2xl font-black text-gray-900 mb-5">טכנולוגיות עזר נתמכות</h2>
+          <h2 id="tech-heading" className="text-2xl font-black text-slate-900 mb-5">טכנולוגיות עזר נתמכות</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {[
               { label: 'קוראי מסך', items: ['NVDA (Windows)', 'JAWS (Windows)', 'VoiceOver (macOS/iOS)', 'TalkBack (Android)'] },
               { label: 'דפדפנים', items: ['Chrome 110+', 'Firefox 110+', 'Edge 110+', 'Safari 16+'] },
               { label: 'מכשירים', items: ['Windows 10/11', 'macOS 12+', 'iOS 16+', 'Android 12+'] },
             ].map(cat => (
-              <div key={cat.label} className="bg-gray-50 rounded-xl border border-gray-100 p-4">
-                <h3 className="font-bold text-gray-800 text-sm mb-3">{cat.label}</h3>
+              <div key={cat.label} className="bg-slate-50 rounded-xl border border-slate-100 p-4">
+                <h3 className="font-bold text-slate-800 text-sm mb-3">{cat.label}</h3>
                 <ul className="space-y-1" role="list">
                   {cat.items.map(item => (
-                    <li key={item} className="text-gray-600 text-xs flex items-center gap-2">
+                    <li key={item} className="text-slate-600 text-xs flex items-center gap-2">
                       <span className="w-1 h-1 rounded-full bg-blue-400 shrink-0" aria-hidden="true"/>
                       {item}
                     </li>
@@ -177,7 +177,7 @@ export default function AccessibilityPage() {
 
         {/* Known gaps */}
         <section className="mb-10" aria-labelledby="gaps-heading">
-          <h2 id="gaps-heading" className="text-2xl font-black text-gray-900 mb-5">מגבלות ידועות</h2>
+          <h2 id="gaps-heading" className="text-2xl font-black text-slate-900 mb-5">מגבלות ידועות</h2>
           <div className="bg-amber-50 border border-amber-200 rounded-2xl p-5">
             <ul className="space-y-2.5" role="list">
               {GAPS.map(g => (
@@ -194,9 +194,9 @@ export default function AccessibilityPage() {
 
         {/* Contact */}
         <section className="mb-10" aria-labelledby="contact-heading">
-          <h2 id="contact-heading" className="text-2xl font-black text-gray-900 mb-5">משוב ופניות נגישות</h2>
-          <div className="bg-gray-50 border border-gray-200 rounded-2xl p-6 space-y-4">
-            <p className="text-gray-700 text-sm leading-relaxed">
+          <h2 id="contact-heading" className="text-2xl font-black text-slate-900 mb-5">משוב ופניות נגישות</h2>
+          <div className="bg-slate-50 border border-slate-200 rounded-2xl p-6 space-y-4">
+            <p className="text-slate-700 text-sm leading-relaxed">
               נתקלת בבעיית נגישות? יש לך הצעה לשיפור?
               אנו מתחייבים לטפל בכל פנייה תוך <strong>5 ימי עסקים</strong>.
             </p>
@@ -205,8 +205,8 @@ export default function AccessibilityPage() {
                 { label: 'אימייל', value: 'accessibility@cannaforyou.net', href: 'mailto:accessibility@cannaforyou.net' },
                 { label: 'טלפון', value: '*5500 (א׳–ה׳, 09:00–17:00)', href: 'tel:*5500' },
               ].map(c => (
-                <div key={c.label} className="bg-white rounded-xl border border-gray-100 p-4">
-                  <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-1">{c.label}</p>
+                <div key={c.label} className="bg-white rounded-xl border border-slate-100 p-4">
+                  <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{c.label}</p>
                   <a
                     href={c.href}
                     className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 rounded"
@@ -233,7 +233,7 @@ export default function AccessibilityPage() {
 
         {/* Standards */}
         <section className="mb-10" aria-labelledby="standards-heading">
-          <h2 id="standards-heading" className="text-2xl font-black text-gray-900 mb-5">תקנים ובסיס חוקי</h2>
+          <h2 id="standards-heading" className="text-2xl font-black text-slate-900 mb-5">תקנים ובסיס חוקי</h2>
           <div className="space-y-2">
             {[
               { label: 'תקן ישראלי', value: 'ת"י 5568 — נגישות לאינטרנט (מבוסס WCAG 2.1)' },
@@ -242,22 +242,22 @@ export default function AccessibilityPage() {
               { label: 'תקנות', value: 'תקנות שוויון זכויות לאנשים עם מוגבלות (התאמות נגישות לשירות), תשע"ג-2013' },
             ].map(s => (
               <div key={s.label} className="flex items-start gap-4 text-sm">
-                <span className="text-gray-500 font-semibold shrink-0 w-28">{s.label}:</span>
-                <span className="text-gray-800">{s.value}</span>
+                <span className="text-slate-500 font-semibold shrink-0 w-28">{s.label}:</span>
+                <span className="text-slate-800">{s.value}</span>
               </div>
             ))}
           </div>
         </section>
 
         {/* Review date */}
-        <div className="text-center py-6 border-t border-gray-100">
-          <p className="text-gray-400 text-sm">הצהרה זו עודכנה לאחרונה ב-{lastReview}</p>
+        <div className="text-center py-6 border-t border-slate-100">
+          <p className="text-slate-400 text-sm">הצהרה זו עודכנה לאחרונה ב-{lastReview}</p>
         </div>
 
       </main>
 
       {/* Footer */}
-      <footer className="py-8 px-6 bg-gray-900 text-gray-400 text-sm" role="contentinfo">
+      <footer className="py-8 px-6 bg-slate-900 text-slate-400 text-sm" role="contentinfo">
         <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-4">
           <p>© {new Date().getFullYear()} CANNA. כל הזכויות שמורות.</p>
           <nav aria-label="ניווט תחתון" className="flex items-center gap-5">

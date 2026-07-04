@@ -167,8 +167,8 @@ export default function MyDocumentsPage() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">המסמכים שלי</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{docs.length} מסמכים שמורים בצורה מאובטחת</p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">המסמכים שלי</h1>
+          <p className="text-sm text-slate-500 mt-0.5">{docs.length} מסמכים שמורים בצורה מאובטחת</p>
         </div>
         <div className="flex gap-2">
           <input type="file" id="doc-upload" className="hidden" accept="image/*,.pdf,.doc,.docx"
@@ -203,28 +203,28 @@ export default function MyDocumentsPage() {
         <div
           className={cn(
             'rounded-2xl border-2 border-dashed p-12 text-center transition-all cursor-pointer',
-            isDragging ? 'border-blue-500 bg-blue-50' : 'border-gray-300 bg-gray-50 hover:border-blue-400 hover:bg-blue-50/40'
+            isDragging ? 'border-blue-500 bg-blue-50' : 'border-slate-300 bg-slate-50 hover:border-blue-400 hover:bg-blue-50/40'
           )}
           onClick={() => document.getElementById('doc-upload')?.click()}
           onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
           onDragLeave={() => setIsDragging(false)}
           onDrop={e => { e.preventDefault(); setIsDragging(false); handleDropFiles(e.dataTransfer.files) }}
         >
-          <div className="w-16 h-16 rounded-2xl bg-white border border-gray-200 flex items-center justify-center mx-auto mb-4 shadow-sm">
-            <svg className="w-8 h-8 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <div className="w-16 h-16 rounded-2xl bg-white border border-slate-200 flex items-center justify-center mx-auto mb-4 shadow-sm">
+            <svg className="w-8 h-8 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" />
             </svg>
           </div>
-          <h3 className="font-bold text-gray-700 text-lg">גרור מסמכים לכאן</h3>
-          <p className="text-sm text-gray-400 mt-1">או לחץ לבחירת קבצים</p>
-          <p className="text-xs text-gray-400 mt-3">PDF, תמונות, Word · עד 10MB לקובץ</p>
+          <h3 className="font-bold text-slate-700 text-lg">גרור מסמכים לכאן</h3>
+          <p className="text-sm text-slate-400 mt-1">או לחץ לבחירת קבצים</p>
+          <p className="text-xs text-slate-400 mt-3">PDF, תמונות, Word · עד 10MB לקובץ</p>
           <p className="text-xs text-blue-500 mt-2 font-medium">🔒 כל המסמכים מוצפנים ומאובטחים</p>
         </div>
       ) : (
         <>
           {/* ── Search ── */}
           <div className="relative">
-            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+            <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-400">
               <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
               </svg>
@@ -234,7 +234,7 @@ export default function MyDocumentsPage() {
               placeholder="חיפוש לפי שם קובץ..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full rounded-xl border border-gray-200 bg-white py-3 pr-10 pl-4 text-sm shadow-sm placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none"
+              className="w-full rounded-xl border border-slate-200 bg-white py-3 pr-10 pl-4 text-sm shadow-sm placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none"
             />
           </div>
 
@@ -251,12 +251,12 @@ export default function MyDocumentsPage() {
                     'flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all',
                     active
                       ? 'bg-blue-600 text-white shadow-sm'
-                      : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300 hover:text-blue-600'
+                      : 'bg-white text-slate-600 border border-slate-200 hover:border-blue-300 hover:text-blue-600'
                   )}
                 >
                   <span>{cat.icon}</span>
                   {cat.label}
-                  <span className={cn('text-xs tabular-nums px-1.5 py-0.5 rounded-full font-semibold', active ? 'bg-white/25 text-white' : 'bg-gray-100 text-gray-500')}>
+                  <span className={cn('text-xs tabular-nums px-1.5 py-0.5 rounded-full font-semibold', active ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500')}>
                     {count}
                   </span>
                 </button>
@@ -281,15 +281,15 @@ export default function MyDocumentsPage() {
             <Card>
               <CardHeader>
                 <div className="flex items-center justify-between">
-                  <h3 className="font-bold text-gray-900">
+                  <h3 className="font-bold text-slate-900">
                     {filtered.length} מסמכים
-                    {filter !== 'all' && <span className="text-gray-400 font-normal"> · {CATEGORIES.find(c => c.key === filter)?.label}</span>}
+                    {filter !== 'all' && <span className="text-slate-400 font-normal"> · {CATEGORIES.find(c => c.key === filter)?.label}</span>}
                   </h3>
                   {/* Subtle drop target */}
                   <div
                     className={cn(
                       'text-xs px-3 py-1.5 rounded-lg border transition-all cursor-pointer',
-                      isDragging ? 'border-blue-400 bg-blue-50 text-blue-700' : 'border-dashed border-gray-300 text-gray-400 hover:border-blue-300'
+                      isDragging ? 'border-blue-400 bg-blue-50 text-blue-700' : 'border-dashed border-slate-300 text-slate-400 hover:border-blue-300'
                     )}
                     onClick={() => document.getElementById('doc-upload')?.click()}
                     onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
@@ -304,7 +304,7 @@ export default function MyDocumentsPage() {
                 {filtered.map(doc => {
                   const { bg, text } = fileIconColor(doc.file_type)
                   return (
-                    <div key={doc.id} className="px-5 py-4 flex items-center gap-4 hover:bg-gray-50/60 transition-colors">
+                    <div key={doc.id} className="px-5 py-4 flex items-center gap-4 hover:bg-slate-50/60 transition-colors">
                       {/* File icon */}
                       <div className={cn('w-11 h-11 rounded-xl flex flex-col items-center justify-center shrink-0', bg)}>
                         <svg className={cn('w-5 h-5', text)} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
@@ -315,14 +315,14 @@ export default function MyDocumentsPage() {
 
                       {/* Info */}
                       <div className="flex-1 min-w-0">
-                        <p className="font-semibold text-gray-900 text-sm truncate">{doc.file_name}</p>
+                        <p className="font-semibold text-slate-900 text-sm truncate">{doc.file_name}</p>
                         <div className="flex items-center gap-2 mt-0.5 flex-wrap">
-                          <span className="text-xs text-gray-400">{formatDate(doc.created_at)}</span>
-                          <span className="text-gray-200">·</span>
-                          <span className="text-xs text-gray-400">{formatSize(doc.file_size_bytes)}</span>
+                          <span className="text-xs text-slate-400">{formatDate(doc.created_at)}</span>
+                          <span className="text-slate-200">·</span>
+                          <span className="text-xs text-slate-400">{formatSize(doc.file_size_bytes)}</span>
                           {doc.category && (
                             <>
-                              <span className="text-gray-200">·</span>
+                              <span className="text-slate-200">·</span>
                               <span className="text-xs text-blue-600 font-medium">{doc.category}</span>
                             </>
                           )}
@@ -367,7 +367,7 @@ export default function MyDocumentsPage() {
       )}
 
       {/* Security note */}
-      <div className="flex items-center gap-2 text-xs text-gray-400 justify-center pt-2">
+      <div className="flex items-center gap-2 text-xs text-slate-400 justify-center pt-2">
         <svg className="w-3.5 h-3.5 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" />
         </svg>

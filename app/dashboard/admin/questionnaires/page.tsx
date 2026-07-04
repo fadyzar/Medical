@@ -261,14 +261,14 @@ export default function AdminQuestionnairesPage() {
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-2xl font-bold">שאלונים</h2>
-            <p className="text-gray-500 text-sm">צור ונהל שאלונים למטופלים</p>
+            <p className="text-slate-500 text-sm">צור ונהל שאלונים למטופלים</p>
           </div>
           <Button onClick={startNew} size="lg">שאלון חדש</Button>
         </div>
 
         {questionnaires.length === 0 ? (
           <EmptyState
-            icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>}
+            icon={<svg className="w-10 h-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 00-2 2v14a2 2 0 002 2h14a2 2 0 002-2v-7" /><path d="M18.5 2.5a2.121 2.121 0 013 3L12 15l-4 1 1-4 9.5-9.5z" /></svg>}
             title="אין שאלונים עדיין"
             description="צור שאלון ראשון כדי להתחיל לאסוף מידע ממטופלים"
             action={<Button onClick={startNew}>צור שאלון</Button>}
@@ -281,7 +281,7 @@ export default function AdminQuestionnairesPage() {
                   <div className="flex items-start justify-between mb-3">
                     <div className="min-w-0 flex-1">
                       <h3 className="font-bold text-lg truncate">{q.title}</h3>
-                      {q.description && <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{q.description}</p>}
+                      {q.description && <p className="text-sm text-slate-500 mt-0.5 line-clamp-2">{q.description}</p>}
                     </div>
                     <div className="flex gap-1.5 shrink-0 mr-3">
                       <Badge variant={q.is_published ? 'success' : 'warning'}>
@@ -290,7 +290,7 @@ export default function AdminQuestionnairesPage() {
                     </div>
                   </div>
 
-                  <div className="flex items-center gap-4 text-xs text-gray-400 mb-4">
+                  <div className="flex items-center gap-4 text-xs text-slate-400 mb-4">
                     <span>{q.questions.length} שאלות</span>
                     <span>{q.times_used} מילויים</span>
                     <span>{formatDateTime(q.created_at)}</span>
@@ -306,7 +306,7 @@ export default function AdminQuestionnairesPage() {
                     </div>
                   )}
 
-                  <div className="flex gap-2 pt-3 border-t border-gray-100">
+                  <div className="flex gap-2 pt-3 border-t border-slate-100">
                     <Button size="sm" variant="outline" onClick={() => startEdit(q)}>ערוך</Button>
                     <Button size="sm" variant="ghost" onClick={() => { setEditId(null); setTitle(q.title); setDescription(q.description || ''); setQuestions(q.questions); setSpecialties(q.specialties || []); setIsPublished(q.is_published); setView('preview') }}>תצוגה מקדימה</Button>
                     <Button size="sm" variant="ghost" onClick={() => duplicateQuestionnaire(q)}>שכפל</Button>
@@ -364,12 +364,12 @@ export default function AdminQuestionnairesPage() {
             onChange={e => setDescription(e.target.value)} />
 
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-2">התמחויות (אופציונלי)</label>
+            <label className="block text-sm font-medium text-slate-700 mb-2">התמחויות (אופציונלי)</label>
             <div className="flex flex-wrap gap-2">
               {SPECIALTIES.map(s => (
                 <button key={s.id} type="button" onClick={() => setSpecialties(prev => prev.includes(s.id) ? prev.filter(x => x !== s.id) : [...prev, s.id])}
                   className={cn('px-3 py-1.5 rounded-full text-xs font-medium transition-colors border',
-                    specialties.includes(s.id) ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-gray-600 border-gray-200 hover:border-blue-400')}>
+                    specialties.includes(s.id) ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-400')}>
                   {s.label}
                 </button>
               ))}
@@ -378,7 +378,7 @@ export default function AdminQuestionnairesPage() {
 
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={isPublished} onChange={e => setIsPublished(e.target.checked)}
-              className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500" />
+              className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
             <span className="text-sm font-medium">פרסם שאלון (גלוי למטופלים)</span>
           </label>
         </CardContent>
@@ -400,14 +400,14 @@ export default function AdminQuestionnairesPage() {
               onDragStart={() => handleDragStart(idx)}
               onDragOver={e => handleDragOver(e, idx)}
               onDrop={handleDrop}
-              className="border-2 border-gray-200 rounded-xl p-4 bg-white hover:border-blue-300 transition-colors group"
+              className="border-2 border-slate-200 rounded-xl p-4 bg-white hover:border-blue-300 transition-colors group"
             >
               {/* Question header */}
               <div className="flex items-center gap-2 mb-3">
-                <div className="cursor-grab active:cursor-grabbing text-gray-400 hover:text-gray-600 px-1" title="גרור לשינוי סדר">
+                <div className="cursor-grab active:cursor-grabbing text-slate-400 hover:text-slate-600 px-1" title="גרור לשינוי סדר">
                   ⠿
                 </div>
-                <span className="text-sm font-bold text-gray-400 w-6">{idx + 1}</span>
+                <span className="text-sm font-bold text-slate-400 w-6">{idx + 1}</span>
                 <span className="text-lg">{QUESTION_TYPE_ICONS[q.type]}</span>
                 <Select
                   value={q.type}
@@ -423,16 +423,16 @@ export default function AdminQuestionnairesPage() {
                   className="w-40 text-sm"
                 />
                 <div className="flex-1" />
-                <label className="flex items-center gap-1.5 text-xs text-gray-500 cursor-pointer">
+                <label className="flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer">
                   <input type="checkbox" checked={q.required} onChange={e => updateQuestion(q.id, { required: e.target.checked })}
-                    className="w-3.5 h-3.5 rounded border-gray-300 text-blue-600" />
+                    className="w-3.5 h-3.5 rounded border-slate-300 text-blue-600" />
                   חובה
                 </label>
                 {/* Move buttons */}
                 <button type="button" onClick={() => idx > 0 && moveQuestion(idx, idx - 1)} disabled={idx === 0}
-                  className="text-gray-400 hover:text-gray-700 disabled:opacity-30 text-sm px-1" title="הזז למעלה">▲</button>
+                  className="text-slate-400 hover:text-slate-700 disabled:opacity-30 text-sm px-1" title="הזז למעלה">▲</button>
                 <button type="button" onClick={() => idx < questions.length - 1 && moveQuestion(idx, idx + 1)} disabled={idx === questions.length - 1}
-                  className="text-gray-400 hover:text-gray-700 disabled:opacity-30 text-sm px-1" title="הזז למטה">▼</button>
+                  className="text-slate-400 hover:text-slate-700 disabled:opacity-30 text-sm px-1" title="הזז למטה">▼</button>
                 <button type="button" onClick={() => removeQuestion(q.id)}
                   className="text-red-400 hover:text-red-600 text-sm px-1" title="מחק">✕</button>
               </div>
@@ -444,10 +444,10 @@ export default function AdminQuestionnairesPage() {
               {/* Options for choice/multi_choice */}
               {['choice', 'multi_choice'].includes(q.type) && (
                 <div className="mt-3 space-y-2">
-                  <label className="text-xs font-medium text-gray-500">אפשרויות</label>
+                  <label className="text-xs font-medium text-slate-500">אפשרויות</label>
                   {(q.options || []).map((opt, optIdx) => (
                     <div key={optIdx} className="flex items-center gap-2">
-                      <span className="text-xs text-gray-400 w-4">{optIdx + 1}.</span>
+                      <span className="text-xs text-slate-400 w-4">{optIdx + 1}.</span>
                       <Input placeholder={`אפשרות ${optIdx + 1}`} value={opt}
                         onChange={e => updateOption(q.id, optIdx, e.target.value)}
                         className="flex-1" />
@@ -466,7 +466,7 @@ export default function AdminQuestionnairesPage() {
               {q.type === 'scale' && (
                 <div className="mt-3 flex items-center gap-1">
                   {Array.from({ length: 10 }, (_, i) => (
-                    <div key={i} className="w-8 h-8 rounded-full bg-gray-100 flex items-center justify-center text-xs font-medium text-gray-500">
+                    <div key={i} className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-xs font-medium text-slate-500">
                       {i + 1}
                     </div>
                   ))}
@@ -538,14 +538,14 @@ function ConditionalLogicEditor({ question, allQuestions, currentIdx, onUpdate }
   }
 
   return (
-    <div className="mt-3 pt-3 border-t border-gray-100">
-      <label className="flex items-center gap-2 cursor-pointer text-xs text-gray-500">
+    <div className="mt-3 pt-3 border-t border-slate-100">
+      <label className="flex items-center gap-2 cursor-pointer text-xs text-slate-500">
         <input type="checkbox" checked={showCondition}
           onChange={e => {
             setShowCondition(e.target.checked)
             if (!e.target.checked) onUpdate(undefined)
           }}
-          className="w-3.5 h-3.5 rounded border-gray-300 text-purple-600" />
+          className="w-3.5 h-3.5 rounded border-slate-300 text-purple-600" />
         הצג בתנאי (תלוי בתשובה לשאלה קודמת)
       </label>
 
@@ -608,11 +608,11 @@ function PreviewMode({ title, description, questions, onBack }: {
       <Card>
         <CardHeader>
           <h3 className="font-bold text-xl">{title || '(ללא שם)'}</h3>
-          {description && <p className="text-gray-500 text-sm mt-1">{description}</p>}
+          {description && <p className="text-slate-500 text-sm mt-1">{description}</p>}
         </CardHeader>
         <CardContent className="space-y-6">
           {visibleQuestions.length === 0 ? (
-            <p className="text-gray-400 text-center py-8">אין שאלות להצגה</p>
+            <p className="text-slate-400 text-center py-8">אין שאלות להצגה</p>
           ) : (
             visibleQuestions.map((q, idx) => (
               <QuestionRenderer
@@ -646,8 +646,8 @@ function QuestionRenderer({ question, index, value, onChange }: {
 
   return (
     <div className="space-y-2">
-      <label className="block text-sm font-medium text-gray-700">
-        <span className="text-gray-400 ml-1">{index + 1}.</span>
+      <label className="block text-sm font-medium text-slate-700">
+        <span className="text-slate-400 ml-1">{index + 1}.</span>
         {q.text}
         {q.required && <span className="text-red-500 mr-1">*</span>}
       </label>
@@ -665,7 +665,7 @@ function QuestionRenderer({ question, index, value, onChange }: {
           {(q.options || []).filter(o => o.trim()).map((opt, i) => (
             <label key={i} className={cn(
               'flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-colors',
-              value === opt ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'
+              value === opt ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-blue-300'
             )}>
               <input type="radio" name={`q_${q.id}`} value={opt} checked={value === opt}
                 onChange={() => onChange(opt)}
@@ -683,7 +683,7 @@ function QuestionRenderer({ question, index, value, onChange }: {
             return (
               <label key={i} className={cn(
                 'flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-colors',
-                selected ? 'border-blue-500 bg-blue-50' : 'border-gray-200 hover:border-blue-300'
+                selected ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-blue-300'
               )}>
                 <input type="checkbox" value={opt} checked={selected}
                   onChange={e => {
@@ -706,7 +706,7 @@ function QuestionRenderer({ question, index, value, onChange }: {
               <button key={i} type="button" onClick={() => onChange(val)}
                 className={cn(
                   'w-10 h-10 rounded-full text-sm font-bold transition-colors',
-                  value === val ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-blue-100'
+                  value === val ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-blue-100'
                 )}>
                 {val}
               </button>
@@ -719,21 +719,21 @@ function QuestionRenderer({ question, index, value, onChange }: {
         <div className="flex gap-3">
           <button type="button" onClick={() => onChange('כן')}
             className={cn('flex-1 py-3 rounded-xl border-2 font-medium transition-colors',
-              value === 'כן' ? 'border-green-500 bg-green-50 text-green-700' : 'border-gray-200 text-gray-600 hover:border-green-300')}>
+              value === 'כן' ? 'border-green-500 bg-green-50 text-green-700' : 'border-slate-200 text-slate-600 hover:border-green-300')}>
             כן
           </button>
           <button type="button" onClick={() => onChange('לא')}
             className={cn('flex-1 py-3 rounded-xl border-2 font-medium transition-colors',
-              value === 'לא' ? 'border-red-500 bg-red-50 text-red-700' : 'border-gray-200 text-gray-600 hover:border-red-300')}>
+              value === 'לא' ? 'border-red-500 bg-red-50 text-red-700' : 'border-slate-200 text-slate-600 hover:border-red-300')}>
             לא
           </button>
         </div>
       )}
 
       {q.type === 'image' && (
-        <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors">
-          <svg className="w-8 h-8 text-gray-400 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" /><circle cx="12" cy="13" r="4" /></svg>
-          <p className="text-sm text-gray-500">לחץ להעלאת תמונה</p>
+        <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors">
+          <svg className="w-8 h-8 text-slate-400 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" /><circle cx="12" cy="13" r="4" /></svg>
+          <p className="text-sm text-slate-500">לחץ להעלאת תמונה</p>
         </div>
       )}
     </div>

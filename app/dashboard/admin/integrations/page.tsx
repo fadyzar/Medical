@@ -60,7 +60,7 @@ function DomainCard({ orgId, currentSubdomain }: { orgId: string; currentSubdoma
   }
 
   const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-    none:         { label: 'לא הוגדר',      color: 'bg-gray-100 text-gray-600' },
+    none:         { label: 'לא הוגדר',      color: 'bg-slate-100 text-slate-600' },
     pending:      { label: 'מגדיר...',       color: 'bg-yellow-100 text-yellow-700' },
     vercel_added: { label: 'ממתין ל-DNS',    color: 'bg-blue-100 text-blue-700' },
     active:       { label: 'פעיל',           color: 'bg-green-100 text-green-700' },
@@ -74,7 +74,7 @@ function DomainCard({ orgId, currentSubdomain }: { orgId: string; currentSubdoma
       {/* Status badge */}
       <div className="flex items-center gap-3">
         <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusInfo.color}`}>{statusInfo.label}</span>
-        {checking && <span className="text-xs text-gray-400">בודק...</span>}
+        {checking && <span className="text-xs text-slate-400">בודק...</span>}
       </div>
 
       {/* Active */}
@@ -90,27 +90,27 @@ function DomainCard({ orgId, currentSubdomain }: { orgId: string; currentSubdoma
       {/* Input */}
       {canEdit && (
         <div>
-          <label className="block text-sm font-medium text-gray-700 mb-1.5">סאבדומיין</label>
+          <label className="block text-sm font-medium text-slate-700 mb-1.5">סאבדומיין</label>
           <div className="flex items-center gap-0">
             <input
               type="text"
               value={subdomain}
               onChange={e => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
               placeholder="shalom"
-              className="flex-1 rounded-r-xl border border-l-0 border-gray-300 px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-400"
+              className="flex-1 rounded-r-xl border border-l-0 border-slate-300 px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-400"
               dir="ltr"
             />
-            <span className="bg-gray-100 border border-gray-300 rounded-l-xl px-3 py-2.5 text-sm text-gray-500 font-mono whitespace-nowrap">.cannaforyou.net</span>
+            <span className="bg-slate-100 border border-slate-300 rounded-l-xl px-3 py-2.5 text-sm text-slate-500 font-mono whitespace-nowrap">.cannaforyou.net</span>
           </div>
-          <p className="text-xs text-gray-400 mt-1">אותיות קטנות באנגלית, מספרים ומקף בלבד</p>
+          <p className="text-xs text-slate-400 mt-1">אותיות קטנות באנגלית, מספרים ומקף בלבד</p>
         </div>
       )}
 
       {/* Show subdomain when not editing */}
       {!canEdit && subdomain && status !== 'active' && (
-        <div className="flex items-center gap-2 font-mono text-sm bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5">
-          <span className="text-gray-500">URL:</span>
-          <span className="text-gray-800">{subdomain}.cannaforyou.net</span>
+        <div className="flex items-center gap-2 font-mono text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5">
+          <span className="text-slate-500">URL:</span>
+          <span className="text-slate-800">{subdomain}.cannaforyou.net</span>
         </div>
       )}
 
@@ -127,9 +127,9 @@ function DomainCard({ orgId, currentSubdomain }: { orgId: string; currentSubdoma
         <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
           <p className="font-semibold mb-2">הוסף רשומת DNS ידנית בהוסטינגר:</p>
           <div className="font-mono text-xs bg-white border border-amber-200 rounded-lg p-3 space-y-1">
-            <div><span className="text-gray-500">סוג:</span> {result.manualDns.type}</div>
-            <div><span className="text-gray-500">שם:</span> {result.manualDns.name}</div>
-            <div><span className="text-gray-500">ערך:</span> {result.manualDns.value}</div>
+            <div><span className="text-slate-500">סוג:</span> {result.manualDns.type}</div>
+            <div><span className="text-slate-500">שם:</span> {result.manualDns.name}</div>
+            <div><span className="text-slate-500">ערך:</span> {result.manualDns.value}</div>
           </div>
         </div>
       )}
@@ -148,7 +148,7 @@ function DomainCard({ orgId, currentSubdomain }: { orgId: string; currentSubdoma
         <button
           onClick={checkStatus}
           disabled={checking}
-          className="px-4 py-2 rounded-lg border border-gray-300 text-gray-700 text-sm font-medium hover:bg-gray-50 disabled:opacity-50 transition-colors"
+          className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 text-sm font-medium hover:bg-slate-50 disabled:opacity-50 transition-colors"
         >
           {checking ? 'בודק...' : 'בדוק סטטוס'}
         </button>
@@ -192,7 +192,7 @@ function WhatsAppTestPanel({ isConfigured }: { isConfigured: boolean }) {
 
   if (!isConfigured) {
     return (
-      <div className="p-4 bg-gray-50 border border-gray-200 rounded-xl text-sm text-gray-500 text-center">
+      <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl text-sm text-slate-500 text-center">
         שמור את פרטי Green API תחילה כדי לשלוח הודעת טסט
       </div>
     )
@@ -489,7 +489,7 @@ export default function AdminIntegrationsPage() {
     <div className="space-y-6">
       <div>
         <h2 className="text-2xl font-bold">אינטגרציות</h2>
-        <p className="text-sm text-gray-500 mt-1">
+        <p className="text-sm text-slate-500 mt-1">
           חבר את השירותים החיצוניים של המרפאה — כל מרפאה מנהלת את החשבונות והמפתחות שלה באופן עצמאי
         </p>
       </div>
@@ -532,7 +532,7 @@ export default function AdminIntegrationsPage() {
                 'p-5 rounded-xl border text-right transition-all hover:shadow-md',
                 activeKey === integ.key
                   ? 'border-blue-400 bg-blue-50 shadow-md'
-                  : 'bg-white border-gray-200 hover:border-gray-300'
+                  : 'bg-white border-slate-200 hover:border-slate-300'
               )}
             >
               <div className="flex items-start justify-between mb-3">
@@ -545,8 +545,8 @@ export default function AdminIntegrationsPage() {
                   </Badge>
                 )}
               </div>
-              <h3 className="font-bold text-gray-900">{integ.title}</h3>
-              <p className="text-xs text-gray-500 mt-1 leading-relaxed">{integ.description}</p>
+              <h3 className="font-bold text-slate-900">{integ.title}</h3>
+              <p className="text-xs text-slate-500 mt-1 leading-relaxed">{integ.description}</p>
             </button>
           )
         })}
@@ -563,7 +563,7 @@ export default function AdminIntegrationsPage() {
               </div>
               <button
                 onClick={() => setActiveKey(null)}
-                className="text-gray-400 hover:text-gray-600 transition-colors"
+                className="text-slate-400 hover:text-slate-600 transition-colors"
                 aria-label="סגור"
               >
                 <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -623,7 +623,7 @@ export default function AdminIntegrationsPage() {
                 <div className="space-y-4">
                   {activeInteg.fields.map(field => (
                     <div key={field.id} className="space-y-1.5">
-                      <label className="block text-sm font-medium text-gray-700">
+                      <label className="block text-sm font-medium text-slate-700">
                         {field.label}
                         {field.required && <span className="text-red-500 mr-1">*</span>}
                       </label>
@@ -636,14 +636,14 @@ export default function AdminIntegrationsPage() {
                             [activeKey]: { ...prev[activeKey], [field.id]: e.target.value },
                           }))}
                           placeholder={field.placeholder}
-                          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
                           dir="ltr"
                         />
                         {field.type === 'password' && (
                           <button
                             type="button"
                             onClick={() => setShowSecret((prev: Record<string, boolean>) => ({ ...prev, [field.id]: !prev[field.id] }))}
-                            className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                            className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                             aria-label={showSecret[field.id] ? 'הסתר' : 'הצג'}
                           >
                             {showSecret[field.id] ? (
@@ -660,7 +660,7 @@ export default function AdminIntegrationsPage() {
                           </button>
                         )}
                       </div>
-                      {field.hint && <p className="text-xs text-gray-400">{field.hint}</p>}
+                      {field.hint && <p className="text-xs text-slate-400">{field.hint}</p>}
                     </div>
                   ))}
                 </div>

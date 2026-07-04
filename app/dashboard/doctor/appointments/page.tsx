@@ -28,7 +28,7 @@ function DocLink({ doc }: { doc: { id: string; file_name: string; file_type: str
   const isImage = doc.file_type?.startsWith('image/')
 
   return (
-    <div className="flex items-center gap-3 p-2 rounded-lg border border-gray-100 hover:bg-gray-50">
+    <div className="flex items-center gap-3 p-2 rounded-lg border border-slate-100 hover:bg-slate-50">
       <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
         {isImage ? (
           <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -40,14 +40,14 @@ function DocLink({ doc }: { doc: { id: string; file_name: string; file_type: str
           </svg>
         )}
       </div>
-      <span className="text-sm text-gray-700 flex-1 truncate">{doc.file_name}</span>
+      <span className="text-sm text-slate-700 flex-1 truncate">{doc.file_name}</span>
       {url ? (
         <a href={url} target="_blank" rel="noopener noreferrer"
           className="text-xs text-blue-600 hover:underline font-medium shrink-0">
           פתח
         </a>
       ) : (
-        <span className="text-xs text-gray-400 shrink-0">טוען...</span>
+        <span className="text-xs text-slate-400 shrink-0">טוען...</span>
       )}
     </div>
   )
@@ -183,14 +183,14 @@ function SchedulePanel({ apt, onScheduled }: {
           <svg className="w-4 h-4 text-blue-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
-          <span className="text-sm font-semibold text-gray-800">{dateStr}</span>
+          <span className="text-sm font-semibold text-slate-800">{dateStr}</span>
         </div>
         <div>
-          <label className="text-xs font-medium text-gray-600 block mb-1">משך (דקות)</label>
+          <label className="text-xs font-medium text-slate-600 block mb-1">משך (דקות)</label>
           <select
             value={duration}
             onChange={e => setDuration(Number(e.target.value))}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white"
           >
             {[15, 20, 30, 45, 60, 90].map(m => (
               <option key={m} value={m}>{m} דקות</option>
@@ -221,20 +221,20 @@ function SchedulePanel({ apt, onScheduled }: {
       </p>
       <div className="grid grid-cols-2 gap-3">
         <div>
-          <label className="text-xs font-medium text-gray-600 block mb-1">תאריך ושעה</label>
+          <label className="text-xs font-medium text-slate-600 block mb-1">תאריך ושעה</label>
           <input
             type="datetime-local"
             value={altDate}
             onChange={e => setAltDate(e.target.value)}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
           />
         </div>
         <div>
-          <label className="text-xs font-medium text-gray-600 block mb-1">משך (דקות)</label>
+          <label className="text-xs font-medium text-slate-600 block mb-1">משך (דקות)</label>
           <select
             value={duration}
             onChange={e => setDuration(Number(e.target.value))}
-            className="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white"
           >
             {[15, 20, 30, 45, 60, 90].map(m => (
               <option key={m} value={m}>{m} דקות</option>
@@ -362,9 +362,9 @@ function AISummaryCard({
         {!showJson && (
           <div className="space-y-3">
             {sections.map((sec, i) => (
-              <div key={i} className={cn('rounded-lg p-3', sec.warning ? 'bg-amber-50 border border-amber-200' : 'bg-gray-50 border border-gray-100')}>
+              <div key={i} className={cn('rounded-lg p-3', sec.warning ? 'bg-amber-50 border border-amber-200' : 'bg-slate-50 border border-slate-100')}>
                 <p className={cn('text-xs font-bold uppercase tracking-wide mb-1', sec.warning ? 'text-amber-700' : 'text-blue-600')}>{sec.label}</p>
-                <p className={cn('text-sm leading-relaxed', sec.warning ? 'text-amber-900' : 'text-gray-800')}>{sec.value}</p>
+                <p className={cn('text-sm leading-relaxed', sec.warning ? 'text-amber-900' : 'text-slate-800')}>{sec.value}</p>
               </div>
             ))}
           </div>
@@ -372,14 +372,14 @@ function AISummaryCard({
 
         {/* JSON view */}
         {showJson && structured && (
-          <pre className="text-xs text-gray-600 bg-gray-50 rounded-xl p-3 overflow-auto max-h-60 border border-gray-200">
+          <pre className="text-xs text-slate-600 bg-slate-50 rounded-xl p-3 overflow-auto max-h-60 border border-slate-200">
             {JSON.stringify(structured, null, 2)}
           </pre>
         )}
 
         {/* Send summary to patient */}
         <div className="pt-3 border-t border-blue-100 space-y-2">
-          <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">שלח סיכום למטופל</p>
+          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">שלח סיכום למטופל</p>
           <div className="grid grid-cols-3 gap-2">
             {[
               { channel: 'in_app' as const, label: 'בעמוד', icon: '🔔', cls: 'bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200' },
@@ -401,7 +401,7 @@ function AISummaryCard({
             ))}
           </div>
           {sending && (
-            <div className="flex items-center gap-2 text-xs text-gray-500">
+            <div className="flex items-center gap-2 text-xs text-slate-500">
               <Spinner size="sm" /> שולח...
             </div>
           )}
@@ -751,8 +751,8 @@ export default function DoctorAppointmentsPage() {
       {/* ── page header ── */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">ניהול תורים</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{appointments.length} תורים בסך הכל</p>
+          <h1 className="text-2xl font-bold text-slate-900">ניהול תורים</h1>
+          <p className="text-sm text-slate-500 mt-0.5">{appointments.length} תורים בסך הכל</p>
         </div>
       </div>
 
@@ -777,7 +777,7 @@ export default function DoctorAppointmentsPage() {
 
           {/* search */}
           <div className="relative">
-            <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
             </svg>
             <input
@@ -785,7 +785,7 @@ export default function DoctorAppointmentsPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="חיפוש לפי שם מטופל או תלונה..."
-              className="w-full rounded-xl border border-gray-300 bg-white py-2.5 pr-9 pl-4 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none placeholder:text-gray-400"
+              className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pr-9 pl-4 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none placeholder:text-slate-400"
             />
           </div>
 
@@ -802,13 +802,13 @@ export default function DoctorAppointmentsPage() {
                     'px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5',
                     filter === f.value
                       ? 'bg-blue-600 text-white shadow-sm'
-                      : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                      : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   )}
                 >
                   {f.label}
                   <span className={cn(
                     'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
-                    filter === f.value ? 'bg-blue-500 text-white' : 'bg-gray-200 text-gray-600'
+                    filter === f.value ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-600'
                   )}>
                     {count}
                   </span>
@@ -822,7 +822,7 @@ export default function DoctorAppointmentsPage() {
             {filtered.length === 0 ? (
               <EmptyState
                 icon={
-                  <svg className="w-10 h-10 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="w-10 h-10 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
                   </svg>
                 }
@@ -844,22 +844,22 @@ export default function DoctorAppointmentsPage() {
                         'w-full px-4 py-3.5 text-right flex gap-3 items-start transition-colors',
                         isSelected
                           ? 'bg-blue-50 border-r-4 border-blue-600'
-                          : 'hover:bg-gray-50 border-r-4 border-transparent'
+                          : 'hover:bg-slate-50 border-r-4 border-transparent'
                       )}
                     >
                       <PatientAvatar first={patient?.first_name || ''} last={patient?.last_name || ''} size="sm" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1">
-                          <p className={cn('font-semibold text-sm truncate', isSelected ? 'text-blue-900' : 'text-gray-900')}>
+                          <p className={cn('font-semibold text-sm truncate', isSelected ? 'text-blue-900' : 'text-slate-900')}>
                             {patient?.first_name} {patient?.last_name}
                           </p>
                           <Badge variant={statusBadgeVariant(apt.status)} className="text-[10px] shrink-0">
                             {STATUS_LABELS[apt.status]}
                           </Badge>
                         </div>
-                        <p className="text-xs text-gray-500 truncate mt-0.5">{apt.chief_complaint}</p>
+                        <p className="text-xs text-slate-500 truncate mt-0.5">{apt.chief_complaint}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          <p className="text-[10px] text-gray-400">
+                          <p className="text-[10px] text-slate-400">
                             {formatDateTime(apt.scheduled_at || apt.created_at)}
                           </p>
                           {apt.ai_triage_score != null && (
@@ -893,7 +893,7 @@ export default function DoctorAppointmentsPage() {
             <div className="min-h-[60vh] flex items-center justify-center">
               <EmptyState
                 icon={
-                  <svg className="w-14 h-14 text-gray-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="w-14 h-14 text-slate-200" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
                     <line x1="12" y1="11" x2="12" y2="17" /><line x1="9" y1="14" x2="15" y2="14" />
                   </svg>
@@ -906,16 +906,16 @@ export default function DoctorAppointmentsPage() {
             <div className="max-h-[85vh] overflow-y-auto">
 
               {/* ── patient hero header ── */}
-              <div className="px-6 py-5 border-b border-gray-100 bg-gradient-to-l from-slate-50 to-white">
+              <div className="px-6 py-5 border-b border-slate-100 bg-gradient-to-l from-slate-50 to-white">
                 <div className="flex items-start gap-4">
                   <PatientAvatar first={selectedPatient?.first_name || ''} last={selectedPatient?.last_name || ''} size="lg" />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-start justify-between gap-2 flex-wrap">
                       <div>
-                        <h2 className="text-xl font-bold text-gray-900">
+                        <h2 className="text-xl font-bold text-slate-900">
                           {selectedPatient?.first_name} {selectedPatient?.last_name}
                         </h2>
-                        <div className="flex items-center gap-3 mt-1 flex-wrap text-sm text-gray-500">
+                        <div className="flex items-center gap-3 mt-1 flex-wrap text-sm text-slate-500">
                           {selectedPatient?.phone && (
                             <span className="flex items-center gap-1">
                               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 9.13 19.79 19.79 0 01.13 4.5 2 2 0 012.09 2.32h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 9.41A16 16 0 0013.73 17l.47-.47a2 2 0 012.11-.45 12.84 12.84 0 002.81.7 2 2 0 011.72 2.02z" /></svg>
@@ -968,14 +968,14 @@ export default function DoctorAppointmentsPage() {
               <div className="p-6 space-y-6">
 
                 {/* ── chief complaint card ── */}
-                <Card className="border-gray-200">
-                  <CardHeader className="py-3 px-4 bg-gray-50">
-                    <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">תלונה עיקרית</p>
+                <Card className="border-slate-200">
+                  <CardHeader className="py-3 px-4 bg-slate-50">
+                    <p className="text-xs font-semibold text-slate-500 uppercase tracking-wider">תלונה עיקרית</p>
                   </CardHeader>
                   <CardContent className="py-3 px-4">
-                    <p className="font-semibold text-gray-900">{selected.chief_complaint}</p>
+                    <p className="font-semibold text-slate-900">{selected.chief_complaint}</p>
                     {selected.complaint_description && (
-                      <p className="text-sm text-gray-600 mt-1.5 leading-relaxed">{selected.complaint_description}</p>
+                      <p className="text-sm text-slate-600 mt-1.5 leading-relaxed">{selected.complaint_description}</p>
                     )}
                     {selected.ai_triage_score != null && (
                       <div className="mt-3 flex items-center gap-2 flex-wrap">
@@ -988,7 +988,7 @@ export default function DoctorAppointmentsPage() {
                           דחיפות AI: {selected.ai_triage_score}/10
                         </span>
                         {selected.ai_triage_category && (
-                          <span className="text-xs text-gray-500 bg-gray-100 px-2.5 py-1 rounded-full">{selected.ai_triage_category}</span>
+                          <span className="text-xs text-slate-500 bg-slate-100 px-2.5 py-1 rounded-full">{selected.ai_triage_category}</span>
                         )}
                       </div>
                     )}
@@ -1050,12 +1050,12 @@ export default function DoctorAppointmentsPage() {
                                   const hasAnswer = answer && (Array.isArray(answer) ? answer.length > 0 : String(answer).trim().length > 0)
                                   if (!hasAnswer) return null
                                   return (
-                                    <div key={q.id} className="rounded-lg border border-gray-100 overflow-hidden">
-                                      <div className="px-3 py-2 bg-gray-50">
-                                        <p className="text-xs text-gray-600 font-medium">{idx + 1}. {q.text}</p>
+                                    <div key={q.id} className="rounded-lg border border-slate-100 overflow-hidden">
+                                      <div className="px-3 py-2 bg-slate-50">
+                                        <p className="text-xs text-slate-600 font-medium">{idx + 1}. {q.text}</p>
                                       </div>
                                       <div className="px-3 py-2">
-                                        <p className="text-sm text-gray-800 font-medium">
+                                        <p className="text-sm text-slate-800 font-medium">
                                           {Array.isArray(answer) ? answer.join(', ') : String(answer)}
                                         </p>
                                       </div>
@@ -1073,18 +1073,18 @@ export default function DoctorAppointmentsPage() {
 
                 {/* ── Patient Documents ── */}
                 {(docsLoading || patientDocs.length > 0) && (
-                  <Card className="border-gray-200">
-                    <CardHeader className="py-3 px-4 bg-gray-50 border-b border-gray-100">
+                  <Card className="border-slate-200">
+                    <CardHeader className="py-3 px-4 bg-slate-50 border-b border-slate-100">
                       <div className="flex items-center gap-2">
-                        <svg className="w-4 h-4 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                        <svg className="w-4 h-4 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
                         </svg>
-                        <p className="text-xs font-semibold text-gray-600 uppercase tracking-wide">מסמכים שצורפו ע"י המטופל</p>
+                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">מסמכים שצורפו ע"י המטופל</p>
                       </div>
                     </CardHeader>
                     <CardContent className="py-3 px-4">
                       {docsLoading ? (
-                        <div className="flex items-center gap-2 text-sm text-gray-400"><Spinner size="sm" /> טוען מסמכים...</div>
+                        <div className="flex items-center gap-2 text-sm text-slate-400"><Spinner size="sm" /> טוען מסמכים...</div>
                       ) : (
                         <div className="space-y-2">
                           {patientDocs.map(doc => (
@@ -1125,11 +1125,11 @@ export default function DoctorAppointmentsPage() {
                       </div>
                     ) : brief ? (
                       <CardContent className="py-4 px-4">
-                        <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{brief}</p>
+                        <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{brief}</p>
                       </CardContent>
                     ) : (
                       <CardContent className="py-3 px-4">
-                        <p className="text-xs text-gray-400 leading-relaxed">
+                        <p className="text-xs text-slate-400 leading-relaxed">
                           לחץ "צור בריף" לקבלת סיכום AI של המטופל לפני הביקור — תלונה, היסטוריה, תשובות לשאלון ואזהרות דחיפות.
                         </p>
                       </CardContent>
@@ -1148,22 +1148,22 @@ export default function DoctorAppointmentsPage() {
                         )}>{l}</span>
                       ))}
                     </div>
-                    <h3 className="font-bold text-gray-900">הערות SOAP</h3>
-                    <span className="text-xs text-gray-400 bg-gray-100 px-2 py-0.5 rounded-full">
+                    <h3 className="font-bold text-slate-900">הערות SOAP</h3>
+                    <span className="text-xs text-slate-400 bg-slate-100 px-2 py-0.5 rounded-full">
                       סובייקטיבי · אובייקטיבי · הערכה · תוכנית
                     </span>
                   </div>
 
                   <div className="space-y-3">
                     {SOAP_FIELDS.map(field => (
-                      <div key={field.key} className="rounded-xl border border-gray-200 overflow-hidden">
-                        <div className="flex items-center gap-3 px-4 py-2.5 bg-gray-50 border-b border-gray-200">
+                      <div key={field.key} className="rounded-xl border border-slate-200 overflow-hidden">
+                        <div className="flex items-center gap-3 px-4 py-2.5 bg-slate-50 border-b border-slate-200">
                           <span className={cn('w-7 h-7 rounded-lg text-white text-xs font-bold flex items-center justify-center shrink-0', field.color)}>
                             {field.letter}
                           </span>
                           <div>
-                            <p className="text-sm font-semibold text-gray-800">{field.label}</p>
-                            <p className="text-[10px] text-gray-400">{field.sublabel}</p>
+                            <p className="text-sm font-semibold text-slate-800">{field.label}</p>
+                            <p className="text-[10px] text-slate-400">{field.sublabel}</p>
                           </div>
                         </div>
                         <textarea
@@ -1171,7 +1171,7 @@ export default function DoctorAppointmentsPage() {
                           value={soapForm[field.key]}
                           onChange={e => setSoapForm(p => ({ ...p, [field.key]: e.target.value }))}
                           placeholder={`${field.label}...`}
-                          className="w-full px-4 py-3 text-sm text-gray-800 placeholder:text-gray-300 focus:outline-none resize-y bg-white leading-relaxed"
+                          className="w-full px-4 py-3 text-sm text-slate-800 placeholder:text-slate-300 focus:outline-none resize-y bg-white leading-relaxed"
                         />
                       </div>
                     ))}
@@ -1185,13 +1185,13 @@ export default function DoctorAppointmentsPage() {
                         placeholder="למשל: יתר לחץ דם, URTI..."
                       />
                       <div className="space-y-1.5">
-                        <label className="block text-sm font-medium text-gray-700">הוראות מעקב</label>
+                        <label className="block text-sm font-medium text-slate-700">הוראות מעקב</label>
                         <textarea
                           rows={2}
                           value={soapForm.follow_up_instructions}
                           onChange={e => setSoapForm(p => ({ ...p, follow_up_instructions: e.target.value }))}
                           placeholder="הוראות מעקב למטופל..."
-                          className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none resize-none placeholder:text-gray-400"
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none resize-none placeholder:text-slate-400"
                         />
                       </div>
                     </div>
@@ -1199,7 +1199,7 @@ export default function DoctorAppointmentsPage() {
                 </div>
 
                 {/* ── action buttons ── */}
-                <div className="flex gap-2 flex-wrap pt-1 border-t border-gray-100">
+                <div className="flex gap-2 flex-wrap pt-1 border-t border-slate-100">
                   <Button onClick={saveSOAP} loading={saving} variant="outline" className="gap-2">
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M19 21H5a2 2 0 01-2-2V5a2 2 0 012-2h11l5 5v11a2 2 0 01-2 2z" /><polyline points="17 21 17 13 7 13 7 21" /><polyline points="7 3 7 8 15 8" />
@@ -1251,15 +1251,15 @@ export default function DoctorAppointmentsPage() {
                 </div>
 
                 {/* ── document generation ── */}
-                <Card className="border-gray-200 overflow-hidden">
-                  <CardHeader className="bg-gray-50 py-3 px-4 border-b border-gray-200">
+                <Card className="border-slate-200 overflow-hidden">
+                  <CardHeader className="bg-slate-50 py-3 px-4 border-b border-slate-200">
                     <div className="flex items-center gap-2">
-                      <svg className="w-4 h-4 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <svg className="w-4 h-4 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="12" y1="18" x2="12" y2="12" /><line x1="9" y1="15" x2="15" y2="15" />
                       </svg>
                       <div>
-                        <p className="text-sm font-semibold text-gray-800">הפקת מסמך רפואי</p>
-                        <p className="text-[10px] text-gray-400">AI יצור מסמך מותאם ויישמר בתיק המטופל</p>
+                        <p className="text-sm font-semibold text-slate-800">הפקת מסמך רפואי</p>
+                        <p className="text-[10px] text-slate-400">AI יצור מסמך מותאם ויישמר בתיק המטופל</p>
                       </div>
                     </div>
                   </CardHeader>
@@ -1268,7 +1268,7 @@ export default function DoctorAppointmentsPage() {
                       <select
                         value={docType}
                         onChange={e => setDocType(e.target.value)}
-                        className="flex-1 rounded-lg border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none bg-white"
+                        className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none bg-white"
                       >
                         {DOC_TYPES.map(d => (
                           <option key={d.value} value={d.value}>{d.label}</option>
@@ -1290,16 +1290,16 @@ export default function DoctorAppointmentsPage() {
 
                     {/* document preview */}
                     {docLoading && (
-                      <div className="rounded-xl border border-gray-200 py-8 flex items-center justify-center gap-3 text-gray-500 text-sm bg-gray-50">
+                      <div className="rounded-xl border border-slate-200 py-8 flex items-center justify-center gap-3 text-slate-500 text-sm bg-slate-50">
                         <Spinner size="sm" />
                         <span>AI מייצר את המסמך...</span>
                       </div>
                     )}
 
                     {generatedDoc && !docLoading && (
-                      <div className="rounded-xl border border-gray-200 overflow-hidden">
+                      <div className="rounded-xl border border-slate-200 overflow-hidden">
                         {/* doc header */}
-                        <div className="px-4 py-3 bg-slate-50 border-b border-gray-200 flex items-center justify-between">
+                        <div className="px-4 py-3 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                           <div className="flex items-center gap-2">
                             <svg className="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
@@ -1322,7 +1322,7 @@ export default function DoctorAppointmentsPage() {
                         </div>
                         {/* doc body */}
                         <div className="p-5 max-h-72 overflow-y-auto">
-                          <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed font-mono">{generatedDoc.content}</p>
+                          <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed font-mono">{generatedDoc.content}</p>
                         </div>
                       </div>
                     )}

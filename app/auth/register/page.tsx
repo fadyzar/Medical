@@ -51,7 +51,7 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
           <div key={step} className="flex items-center gap-3 flex-1">
             <div className={cn(
               'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 shrink-0',
-              isDone ? 'bg-green-500 text-white' : isActive ? 'bg-blue-600 text-white ring-4 ring-blue-100' : 'bg-gray-200 text-gray-500'
+              isDone ? 'bg-green-500 text-white' : isActive ? 'bg-blue-600 text-white ring-4 ring-blue-100' : 'bg-slate-200 text-slate-500'
             )}>
               {isDone ? (
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -60,7 +60,7 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
               ) : step}
             </div>
             {step < total && (
-              <div className={cn('flex-1 h-0.5 rounded-full transition-colors duration-300', isDone ? 'bg-green-500' : 'bg-gray-200')} />
+              <div className={cn('flex-1 h-0.5 rounded-full transition-colors duration-300', isDone ? 'bg-green-500' : 'bg-slate-200')} />
             )}
           </div>
         )
@@ -223,9 +223,9 @@ export default function RegisterPage() {
               <rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,7 12,13 2,7"/>
             </svg>
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">בדוק את תיבת הדואר</h3>
-          <p className="text-gray-500 text-sm leading-relaxed mb-2">שלחנו קישור אימות לכתובת:</p>
-          <p className="font-medium text-gray-900 mb-6">{form.email}</p>
+          <h3 className="text-lg font-bold text-slate-900 mb-2">בדוק את תיבת הדואר</h3>
+          <p className="text-slate-500 text-sm leading-relaxed mb-2">שלחנו קישור אימות לכתובת:</p>
+          <p className="font-medium text-slate-900 mb-6">{form.email}</p>
           <Link href="/auth/login" className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium">
             עבור להתחברות
           </Link>
@@ -263,8 +263,8 @@ export default function RegisterPage() {
         {/* ── Step 1: Personal details ─────────────────────────── */}
         <div className={step === 1 ? 'block' : 'hidden'}>
           <div className="space-y-4">
-            <h2 className="text-lg font-bold text-gray-900">פרטים אישיים</h2>
-            <p className="text-sm text-gray-500 -mt-2">מלא את הפרטים הבסיסיים להרשמה</p>
+            <h2 className="text-lg font-bold text-slate-900">פרטים אישיים</h2>
+            <p className="text-sm text-slate-500 -mt-2">מלא את הפרטים הבסיסיים להרשמה</p>
 
             <div className="grid grid-cols-2 gap-3">
               <Input
@@ -318,8 +318,8 @@ export default function RegisterPage() {
         {/* ── Step 2: Password + optional details ──────────────── */}
         <div className={step === 2 ? 'block' : 'hidden'}>
           <div className="space-y-4">
-            <h2 className="text-lg font-bold text-gray-900">אבטחה ופרטים נוספים</h2>
-            <p className="text-sm text-gray-500 -mt-2">הגדר סיסמה והשלם את הפרופיל</p>
+            <h2 className="text-lg font-bold text-slate-900">אבטחה ופרטים נוספים</h2>
+            <p className="text-sm text-slate-500 -mt-2">הגדר סיסמה והשלם את הפרופיל</p>
 
             {/* Password */}
             <div>
@@ -336,7 +336,7 @@ export default function RegisterPage() {
                 <button
                   type="button"
                   onClick={() => setShowPassword(!showPassword)}
-                  className="absolute left-3 top-[38px] text-gray-400 hover:text-gray-600 transition-colors"
+                  className="absolute left-3 top-[38px] text-slate-400 hover:text-slate-600 transition-colors"
                   aria-label={showPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
                 >
                   {showPassword ? (
@@ -356,7 +356,7 @@ export default function RegisterPage() {
                 <div className="mt-2.5 space-y-2">
                   <div className="flex gap-1">
                     {[1, 2, 3, 4].map(i => (
-                      <div key={i} className={cn('h-1.5 flex-1 rounded-full transition-all duration-300', i <= passwordStrength.score ? passwordStrength.color : 'bg-gray-200')} />
+                      <div key={i} className={cn('h-1.5 flex-1 rounded-full transition-all duration-300', i <= passwordStrength.score ? passwordStrength.color : 'bg-slate-200')} />
                     ))}
                   </div>
                   <div className="grid grid-cols-2 gap-x-3 gap-y-1">
@@ -365,9 +365,9 @@ export default function RegisterPage() {
                         {check.met ? (
                           <svg className="w-3.5 h-3.5 text-green-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
                         ) : (
-                          <svg className="w-3.5 h-3.5 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/></svg>
+                          <svg className="w-3.5 h-3.5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/></svg>
                         )}
-                        <span className={cn('text-xs', check.met ? 'text-green-600' : 'text-gray-400')}>{check.label}</span>
+                        <span className={cn('text-xs', check.met ? 'text-green-600' : 'text-slate-400')}>{check.label}</span>
                       </div>
                     ))}
                   </div>
@@ -386,8 +386,8 @@ export default function RegisterPage() {
             />
 
             {/* Optional fields */}
-            <div className="border-t border-gray-100 pt-4">
-              <p className="text-xs text-gray-400 mb-3">שדות אופציונליים — ניתן להשלים אחר כך</p>
+            <div className="border-t border-slate-100 pt-4">
+              <p className="text-xs text-slate-400 mb-3">שדות אופציונליים — ניתן להשלים אחר כך</p>
               <div className="grid grid-cols-2 gap-3">
                 <Input
                   label="תעודת זהות"
@@ -429,7 +429,7 @@ export default function RegisterPage() {
                 />
                 <div className={cn(
                   'w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center',
-                  form.agree_terms ? 'bg-blue-600 border-blue-600' : 'border-gray-300 group-hover:border-blue-400',
+                  form.agree_terms ? 'bg-blue-600 border-blue-600' : 'border-slate-300 group-hover:border-blue-400',
                   errors.agree_terms && 'border-red-400'
                 )}>
                   {form.agree_terms && (
@@ -439,7 +439,7 @@ export default function RegisterPage() {
                   )}
                 </div>
               </div>
-              <span className="text-sm text-gray-600 leading-relaxed">
+              <span className="text-sm text-slate-600 leading-relaxed">
                 אני מסכים/ה ל<Link href="/terms" className="text-blue-600 font-medium hover:underline" target="_blank">תנאי השימוש</Link>{' '}
                 ול<Link href="/privacy" className="text-blue-600 font-medium hover:underline" target="_blank">מדיניות הפרטיות</Link>
               </span>
@@ -455,13 +455,13 @@ export default function RegisterPage() {
       </form>
 
       <div className="text-center mt-6">
-        <p className="text-sm text-gray-500">
+        <p className="text-sm text-slate-500">
           כבר יש לך חשבון?{' '}
           <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors">התחבר</Link>
         </p>
-        <p className="text-xs text-gray-400 mt-3">
+        <p className="text-xs text-slate-400 mt-3">
           רופא או צוות רפואי?{' '}
-          <span className="text-gray-500">ההצטרפות מתבצעת דרך הזמנה בלבד מהמנהל.</span>
+          <span className="text-slate-500">ההצטרפות מתבצעת דרך הזמנה בלבד מהמנהל.</span>
         </p>
       </div>
     </AuthLayout>

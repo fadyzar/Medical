@@ -17,10 +17,10 @@ export default function PrivacyPage() {
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="text-2xl font-black text-blue-600">CANNA</Link>
           <div className="flex items-center gap-4">
-            <Link href="/specialties" className="text-sm text-gray-600 hover:text-gray-900">התמחויות</Link>
-            <Link href="/doctors" className="text-sm text-gray-600 hover:text-gray-900">הרופאים שלנו</Link>
-            <Link href="/blog" className="text-sm text-gray-600 hover:text-gray-900">בלוג</Link>
-            <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900">התחברות</Link>
+            <Link href="/specialties" className="text-sm text-slate-600 hover:text-slate-900">התמחויות</Link>
+            <Link href="/doctors" className="text-sm text-slate-600 hover:text-slate-900">הרופאים שלנו</Link>
+            <Link href="/blog" className="text-sm text-slate-600 hover:text-slate-900">בלוג</Link>
+            <Link href="/auth/login" className="text-sm text-slate-600 hover:text-slate-900">התחברות</Link>
             <Link href="/auth/register" className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">הרשמה חינם</Link>
           </div>
         </div>
@@ -28,8 +28,8 @@ export default function PrivacyPage() {
 
       {/* Content */}
       <article className="max-w-3xl mx-auto px-4 py-12 prose prose-lg prose-gray">
-        <h1 className="text-3xl font-black text-gray-900 mb-2">מדיניות פרטיות</h1>
-        <p className="text-sm text-gray-400 mb-8">עדכון אחרון: פברואר 2026</p>
+        <h1 className="text-3xl font-black text-slate-900 mb-2">מדיניות פרטיות</h1>
+        <p className="text-sm text-slate-400 mb-8">עדכון אחרון: פברואר 2026</p>
 
         <h2>1. מבוא</h2>
         <p>
@@ -150,7 +150,7 @@ export default function PrivacyPage() {
       </article>
 
       {/* Footer */}
-      <footer className="py-8 px-4 bg-gray-900 text-gray-400 text-center text-sm">
+      <footer className="py-8 px-4 bg-slate-900 text-slate-400 text-center text-sm">
         <div className="max-w-6xl mx-auto flex flex-wrap justify-center gap-6 mb-4">
           <Link href="/terms" className="hover:text-white">תנאי שימוש</Link>
           <Link href="/privacy" className="text-white font-medium">מדיניות פרטיות</Link>

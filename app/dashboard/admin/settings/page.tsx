@@ -94,7 +94,7 @@ function DomainCard({ orgId, currentSubdomain }: { orgId: string; currentSubdoma
   }
 
   const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-    none:        { label: 'לא הוגדר', color: 'bg-gray-100 text-gray-600' },
+    none:        { label: 'לא הוגדר', color: 'bg-slate-100 text-slate-600' },
     pending:     { label: 'מוגדר...', color: 'bg-yellow-100 text-yellow-700' },
     vercel_added:{ label: 'ממתין ל-DNS', color: 'bg-blue-100 text-blue-700' },
     active:      { label: 'פעיל', color: 'bg-green-100 text-green-700' },
@@ -118,8 +118,8 @@ function DomainCard({ orgId, currentSubdomain }: { orgId: string; currentSubdoma
             {statusInfo.label}
           </span>
         </div>
-        <p className="text-sm text-gray-500 mt-1">
-          הגדר כתובת ייחודית למרפאה: <code className="text-xs bg-gray-100 px-1.5 py-0.5 rounded">שם.cannaforyou.net</code>
+        <p className="text-sm text-slate-500 mt-1">
+          הגדר כתובת ייחודית למרפאה: <code className="text-xs bg-slate-100 px-1.5 py-0.5 rounded">שם.cannaforyou.net</code>
         </p>
       </CardHeader>
       <CardContent>
@@ -144,29 +144,29 @@ function DomainCard({ orgId, currentSubdomain }: { orgId: string; currentSubdoma
           {/* Subdomain input */}
           {canEdit && (
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5">סאבדומיין</label>
+              <label className="block text-sm font-medium text-slate-700 mb-1.5">סאבדומיין</label>
               <div className="flex items-center gap-0">
                 <input
                   type="text"
                   value={subdomain}
                   onChange={e => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
                   placeholder="shalom"
-                  className="flex-1 rounded-r-xl border border-l-0 border-gray-300 px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-400"
+                  className="flex-1 rounded-r-xl border border-l-0 border-slate-300 px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-400"
                   dir="ltr"
                 />
-                <span className="bg-gray-100 border border-gray-300 rounded-l-xl px-3 py-2.5 text-sm text-gray-500 font-mono whitespace-nowrap">
+                <span className="bg-slate-100 border border-slate-300 rounded-l-xl px-3 py-2.5 text-sm text-slate-500 font-mono whitespace-nowrap">
                   .cannaforyou.net
                 </span>
               </div>
-              <p className="text-xs text-gray-400 mt-1">אותיות קטנות באנגלית, מספרים ומקף בלבד</p>
+              <p className="text-xs text-slate-400 mt-1">אותיות קטנות באנגלית, מספרים ומקף בלבד</p>
             </div>
           )}
 
           {/* Show current subdomain when not editing */}
           {!canEdit && subdomain && status !== 'active' && (
-            <div className="flex items-center gap-2 font-mono text-sm bg-gray-50 border border-gray-200 rounded-xl px-4 py-2.5">
-              <span className="text-gray-500">URL:</span>
-              <span className="text-gray-800">{subdomain}.cannaforyou.net</span>
+            <div className="flex items-center gap-2 font-mono text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5">
+              <span className="text-slate-500">URL:</span>
+              <span className="text-slate-800">{subdomain}.cannaforyou.net</span>
             </div>
           )}
 
@@ -189,20 +189,20 @@ function DomainCard({ orgId, currentSubdomain }: { orgId: string; currentSubdoma
               </div>
               <div className="bg-white border border-amber-200 rounded-lg p-3 font-mono text-xs space-y-1">
                 <div className="flex gap-4">
-                  <span className="text-gray-400 w-16 shrink-0">Type:</span>
-                  <span className="text-gray-900 font-semibold">{result.manualDns.type}</span>
+                  <span className="text-slate-400 w-16 shrink-0">Type:</span>
+                  <span className="text-slate-900 font-semibold">{result.manualDns.type}</span>
                 </div>
                 <div className="flex gap-4">
-                  <span className="text-gray-400 w-16 shrink-0">Name:</span>
-                  <span className="text-gray-900 font-semibold">{result.manualDns.name}</span>
+                  <span className="text-slate-400 w-16 shrink-0">Name:</span>
+                  <span className="text-slate-900 font-semibold">{result.manualDns.name}</span>
                 </div>
                 <div className="flex gap-4">
-                  <span className="text-gray-400 w-16 shrink-0">Value:</span>
-                  <span className="text-gray-900 font-semibold break-all">{result.manualDns.value}</span>
+                  <span className="text-slate-400 w-16 shrink-0">Value:</span>
+                  <span className="text-slate-900 font-semibold break-all">{result.manualDns.value}</span>
                 </div>
                 <div className="flex gap-4">
-                  <span className="text-gray-400 w-16 shrink-0">TTL:</span>
-                  <span className="text-gray-900">3600</span>
+                  <span className="text-slate-400 w-16 shrink-0">TTL:</span>
+                  <span className="text-slate-900">3600</span>
                 </div>
               </div>
               <button
@@ -241,7 +241,7 @@ function DomainCard({ orgId, currentSubdomain }: { orgId: string; currentSubdoma
           </div>
 
           {result?.lastChecked && (
-            <p className="text-xs text-gray-400 text-center">
+            <p className="text-xs text-slate-400 text-center">
               בדיקה אחרונה: {new Date(result.lastChecked).toLocaleTimeString('he-IL')}
             </p>
           )}
@@ -445,11 +445,11 @@ export default function AdminSettingsPage() {
             {/* Subdomain link — primary */}
             {subdomainUrl && (
               <div className="space-y-1.5">
-                <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+                <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                   קישור מרפאה (מומלץ)
                 </p>
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-white border border-blue-200 rounded-xl px-4 py-2.5 text-sm font-mono text-gray-700 truncate select-all">
+                  <div className="flex-1 bg-white border border-blue-200 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-700 truncate select-all">
                     {subdomainUrl}
                   </div>
                   <button
@@ -473,22 +473,22 @@ export default function AdminSettingsPage() {
                     WhatsApp
                   </button>
                 </div>
-                <p className="text-xs text-gray-400">מטופלים שנרשמים דרך קישור זה מקבלים ישירות את חווית המרפאה שלך</p>
+                <p className="text-xs text-slate-400">מטופלים שנרשמים דרך קישור זה מקבלים ישירות את חווית המרפאה שלך</p>
               </div>
             )}
 
             {/* Fallback / universal link */}
             <div className="space-y-1.5">
-              <p className="text-xs font-semibold text-gray-500 uppercase tracking-wide">
+              <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">
                 {subdomainUrl ? 'קישור חלופי (ללא subdomain)' : 'קישור הרשמת מטופלים'}
               </p>
               <div className="flex items-center gap-2">
-                <div className="flex-1 bg-white border border-gray-200 rounded-xl px-4 py-2.5 text-sm font-mono text-gray-700 truncate select-all">
+                <div className="flex-1 bg-white border border-slate-200 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-700 truncate select-all">
                   {orgLinkUrl}
                 </div>
                 <button
                   onClick={() => copyLink(orgLinkUrl)}
-                  className="shrink-0 px-3 py-2.5 rounded-xl bg-gray-700 text-white text-sm font-medium hover:bg-gray-800 transition-colors flex items-center gap-1.5"
+                  className="shrink-0 px-3 py-2.5 rounded-xl bg-slate-700 text-white text-sm font-medium hover:bg-slate-800 transition-colors flex items-center gap-1.5"
                   title="העתק קישור"
                 >
                   <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -527,22 +527,22 @@ export default function AdminSettingsPage() {
               <Input label="טלפון" type="tel" value={contactPhone} onChange={e => { setContactPhone(e.target.value); setFieldErrors(p => { const n = { ...p }; delete n.contact_phone; return n }) }} error={fieldErrors.contact_phone} placeholder="03-1234567" />
             </div>
             <div className="space-y-3">
-              <label className="block text-sm font-medium text-gray-700">לוגו המרפאה</label>
+              <label className="block text-sm font-medium text-slate-700">לוגו המרפאה</label>
               <div className="flex items-center gap-4">
                 {logoUrl ? (
                   <div className="relative">
                     {/* eslint-disable-next-line @next/next/no-img-element */}
-                    <img src={logoUrl} alt="לוגו" className="h-16 w-auto rounded-lg border border-gray-200" onError={e => (e.currentTarget.style.display = 'none')} />
+                    <img src={logoUrl} alt="לוגו" className="h-16 w-auto rounded-lg border border-slate-200" onError={e => (e.currentTarget.style.display = 'none')} />
                   </div>
                 ) : (
-                  <div className="h-16 w-16 rounded-lg border-2 border-dashed border-gray-300 flex items-center justify-center text-gray-400">
+                  <div className="h-16 w-16 rounded-lg border-2 border-dashed border-slate-300 flex items-center justify-center text-slate-400">
                     <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d="M3 21h18" /><path d="M5 21V7l8-4v18" /><path d="M19 21V11l-6-4" /><path d="M9 9h1" /><path d="M9 13h1" /><path d="M9 17h1" />
                     </svg>
                   </div>
                 )}
                 <div className="flex flex-col gap-2">
-                  <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-gray-300 bg-white text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors">
+                  <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 rounded-lg border border-slate-300 bg-white text-sm font-medium text-slate-700 hover:bg-slate-50 transition-colors">
                     {uploadingLogo ? <Spinner size="sm" /> : <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" /><polyline points="17 8 12 3 7 8" /><line x1="12" y1="3" x2="12" y2="15" /></svg>}
                     {uploadingLogo ? 'מעלה...' : 'העלה לוגו'}
                     <input
@@ -553,7 +553,7 @@ export default function AdminSettingsPage() {
                       disabled={uploadingLogo}
                     />
                   </label>
-                  <p className="text-xs text-gray-400">PNG, JPG, SVG או WebP — עד 2MB</p>
+                  <p className="text-xs text-slate-400">PNG, JPG, SVG או WebP — עד 2MB</p>
                 </div>
                 {logoUrl && (
                   <Button variant="ghost" size="sm" onClick={() => setLogoUrl('')}>הסר</Button>
@@ -577,36 +577,36 @@ export default function AdminSettingsPage() {
         <CardContent>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1.5">
-              <label htmlFor="primary-color" className="block text-sm font-medium text-gray-700">צבע ראשי</label>
+              <label htmlFor="primary-color" className="block text-sm font-medium text-slate-700">צבע ראשי</label>
               <div className="flex items-center gap-3">
                 <input
                   id="primary-color"
                   type="color"
                   value={primaryColor}
                   onChange={e => setPrimaryColor(e.target.value)}
-                  className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
+                  className="w-10 h-10 rounded border border-slate-300 cursor-pointer"
                   aria-label="צבע ראשי"
                 />
                 <Input value={primaryColor} onChange={e => { setPrimaryColor(e.target.value); setFieldErrors(p => { const n = { ...p }; delete n.primary_color; return n }) }} error={fieldErrors.primary_color} className="flex-1" aria-label="קוד צבע ראשי" />
               </div>
             </div>
             <div className="space-y-1.5">
-              <label htmlFor="secondary-color" className="block text-sm font-medium text-gray-700">צבע משני</label>
+              <label htmlFor="secondary-color" className="block text-sm font-medium text-slate-700">צבע משני</label>
               <div className="flex items-center gap-3">
                 <input
                   id="secondary-color"
                   type="color"
                   value={secondaryColor}
                   onChange={e => setSecondaryColor(e.target.value)}
-                  className="w-10 h-10 rounded border border-gray-300 cursor-pointer"
+                  className="w-10 h-10 rounded border border-slate-300 cursor-pointer"
                   aria-label="צבע משני"
                 />
                 <Input value={secondaryColor} onChange={e => { setSecondaryColor(e.target.value); setFieldErrors(p => { const n = { ...p }; delete n.secondary_color; return n }) }} error={fieldErrors.secondary_color} className="flex-1" aria-label="קוד צבע משני" />
               </div>
             </div>
           </div>
-          <div className="mt-4 p-4 rounded-lg border border-gray-200" style={{ background: `linear-gradient(135deg, ${primaryColor}15, ${secondaryColor}15)` }}>
-            <p className="text-sm text-gray-600">תצוגה מקדימה של הצבעים:</p>
+          <div className="mt-4 p-4 rounded-lg border border-slate-200" style={{ background: `linear-gradient(135deg, ${primaryColor}15, ${secondaryColor}15)` }}>
+            <p className="text-sm text-slate-600">תצוגה מקדימה של הצבעים:</p>
             <div className="flex gap-3 mt-2">
               <div className="px-4 py-2 rounded-lg text-white text-sm font-medium" style={{ backgroundColor: primaryColor }}>כפתור ראשי</div>
               <div className="px-4 py-2 rounded-lg text-white text-sm font-medium" style={{ backgroundColor: secondaryColor }}>כפתור משני</div>
@@ -627,7 +627,7 @@ export default function AdminSettingsPage() {
                     type="checkbox"
                     checked={h.enabled}
                     onChange={e => updateHour(i, 'enabled', e.target.checked)}
-                    className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                   />
                   <span className="text-sm font-medium">{h.label}</span>
                 </label>
@@ -637,18 +637,18 @@ export default function AdminSettingsPage() {
                       type="time"
                       value={h.start}
                       onChange={e => updateHour(i, 'start', e.target.value)}
-                      className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                      className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
                     />
-                    <span className="text-gray-400">—</span>
+                    <span className="text-slate-400">—</span>
                     <input
                       type="time"
                       value={h.end}
                       onChange={e => updateHour(i, 'end', e.target.value)}
-                      className="rounded-lg border border-gray-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                      className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
                     />
                   </div>
                 ) : (
-                  <span className="text-sm text-gray-400">סגור</span>
+                  <span className="text-sm text-slate-400">סגור</span>
                 )}
               </div>
             ))}
@@ -702,11 +702,11 @@ export default function AdminSettingsPage() {
                 type="checkbox"
                 checked={emailNotifications}
                 onChange={e => setEmailNotifications(e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
+                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
               />
               <div>
                 <span className="text-sm font-medium">התראות אימייל</span>
-                <p className="text-xs text-gray-500">שליחת אימייל אישור, תזכורות וסיכומים</p>
+                <p className="text-xs text-slate-500">שליחת אימייל אישור, תזכורות וסיכומים</p>
               </div>
             </label>
             <label className="flex items-center gap-3 cursor-pointer">
@@ -714,11 +714,11 @@ export default function AdminSettingsPage() {
                 type="checkbox"
                 checked={autoReminder24h}
                 onChange={e => setAutoReminder24h(e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
+                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
               />
               <div>
                 <span className="text-sm font-medium">תזכורת 24 שעות לפני תור</span>
-                <p className="text-xs text-gray-500">שליחת תזכורת אוטומטית יום לפני התור</p>
+                <p className="text-xs text-slate-500">שליחת תזכורת אוטומטית יום לפני התור</p>
               </div>
             </label>
             <label className="flex items-center gap-3 cursor-pointer">
@@ -726,11 +726,11 @@ export default function AdminSettingsPage() {
                 type="checkbox"
                 checked={autoReminder1h}
                 onChange={e => setAutoReminder1h(e.target.checked)}
-                className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
+                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
               />
               <div>
                 <span className="text-sm font-medium">תזכורת שעה לפני תור</span>
-                <p className="text-xs text-gray-500">שליחת תזכורת אוטומטית עם קישור וידאו</p>
+                <p className="text-xs text-slate-500">שליחת תזכורת אוטומטית עם קישור וידאו</p>
               </div>
             </label>
           </div>
@@ -744,19 +744,19 @@ export default function AdminSettingsPage() {
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
               <div>
-                <p className="text-gray-500">תוכנית</p>
+                <p className="text-slate-500">תוכנית</p>
                 <p className="font-bold text-lg capitalize">{org.plan}</p>
               </div>
               <div>
-                <p className="text-gray-500">סטטוס מנוי</p>
+                <p className="text-slate-500">סטטוס מנוי</p>
                 <p className="font-bold text-lg">{org.subscription_status === 'active' ? 'פעיל' : org.subscription_status}</p>
               </div>
               <div>
-                <p className="text-gray-500">מקסימום רופאים</p>
+                <p className="text-slate-500">מקסימום רופאים</p>
                 <p className="font-bold text-lg">{org.max_doctors}</p>
               </div>
               <div>
-                <p className="text-gray-500">מקסימום תורים/חודש</p>
+                <p className="text-slate-500">מקסימום תורים/חודש</p>
                 <p className="font-bold text-lg">{org.max_appointments_per_month}</p>
               </div>
             </div>

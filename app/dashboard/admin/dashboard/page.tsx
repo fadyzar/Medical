@@ -60,7 +60,7 @@ const getAuditDotColor = (action: string) => {
   if (action.toLowerCase().includes('delete') || action.toLowerCase().includes('cancel')) return 'bg-red-400'
   if (action.toLowerCase().includes('create') || action.toLowerCase().includes('add')) return 'bg-green-400'
   if (action.toLowerCase().includes('update') || action.toLowerCase().includes('edit')) return 'bg-blue-400'
-  return 'bg-gray-400'
+  return 'bg-slate-400'
 }
 
 const PLAN_LABELS: Record<string, string> = {
@@ -292,7 +292,7 @@ export default function AdminDashboard() {
                 <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
               </svg>
             </div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{org?.name || 'ניהול מרפאה'}</h1>
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{org?.name || 'ניהול מרפאה'}</h1>
             {org?.plan && (
               <span className={cn(
                 'text-xs font-semibold px-2 py-0.5 rounded-full',
@@ -302,7 +302,7 @@ export default function AdminDashboard() {
               </span>
             )}
           </div>
-          <p className="text-sm text-gray-500 pr-10">{todayDateStr}</p>
+          <p className="text-sm text-slate-500 pr-10">{todayDateStr}</p>
         </div>
         <div className="flex items-center gap-2 pr-10 sm:pr-0">
           <Button variant="outline" size="sm" onClick={() => router.push('/dashboard/admin/users')}>
@@ -467,7 +467,7 @@ export default function AdminDashboard() {
                   <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
                     <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
                   </div>
-                  <h3 className="font-bold text-gray-900">פעילות היום</h3>
+                  <h3 className="font-bold text-slate-900">פעילות היום</h3>
                   {todayApts.length > 0 && (
                     <span className="bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">{todayApts.length}</span>
                   )}
@@ -480,8 +480,8 @@ export default function AdminDashboard() {
             {todayApts.length === 0 ? (
               <EmptyState
                 icon={
-                  <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto">
-                    <svg className="w-7 h-7 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+                  <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto">
+                    <svg className="w-7 h-7 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
                   </div>
                 }
                 title="אין תורים להיום"
@@ -490,7 +490,7 @@ export default function AdminDashboard() {
             ) : (
               <div className="divide-y max-h-72 overflow-y-auto">
                 {todayApts.map(apt => (
-                  <div key={apt.id} className="px-5 py-3.5 flex items-center justify-between gap-3 hover:bg-gray-50/70 transition-colors group">
+                  <div key={apt.id} className="px-5 py-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/70 transition-colors group">
                     <div className="flex items-center gap-3 min-w-0">
                       <div className={cn(
                         'w-1.5 h-8 rounded-full shrink-0',
@@ -501,10 +501,10 @@ export default function AdminDashboard() {
                         'bg-indigo-400'
                       )} />
                       <div className="min-w-0">
-                        <p className="font-semibold text-sm text-gray-900 truncate">
+                        <p className="font-semibold text-sm text-slate-900 truncate">
                           {apt.patient?.first_name} {apt.patient?.last_name}
                         </p>
-                        <p className="text-xs text-gray-400 truncate mt-0.5">
+                        <p className="text-xs text-slate-400 truncate mt-0.5">
                           {apt.doctor ? `ד"ר ${apt.doctor.first_name} ${apt.doctor.last_name}` : 'ממתין לשיבוץ רופא'}
                           {apt.scheduled_at && (
                             <span className="text-blue-500 font-medium mr-1.5">
@@ -546,7 +546,7 @@ export default function AdminDashboard() {
                     <div className="w-7 h-7 rounded-lg bg-indigo-50 flex items-center justify-center">
                       <svg className="w-4 h-4 text-indigo-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 20V10M12 20V4M6 20v-6" /></svg>
                     </div>
-                    <h3 className="font-bold text-gray-900">שימוש בתוכנית</h3>
+                    <h3 className="font-bold text-slate-900">שימוש בתוכנית</h3>
                   </div>
                   <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/admin/billing')}>
                     פרטים
@@ -576,10 +576,10 @@ export default function AdminDashboard() {
                 ].map(item => (
                   <div key={item.label}>
                     <div className="flex justify-between items-center mb-2">
-                      <span className="text-sm text-gray-600 font-medium">{item.label}</span>
+                      <span className="text-sm text-slate-600 font-medium">{item.label}</span>
                       <span className={cn(
                         'text-xs font-semibold tabular-nums',
-                        item.percent >= 90 ? 'text-red-600' : item.percent >= 70 ? 'text-amber-600' : 'text-gray-500'
+                        item.percent >= 90 ? 'text-red-600' : item.percent >= 70 ? 'text-amber-600' : 'text-slate-500'
                       )}>
                         {typeof item.current === 'number' && item.current % 1 !== 0
                           ? item.current.toFixed(1)
@@ -590,7 +590,7 @@ export default function AdminDashboard() {
                         }
                       </span>
                     </div>
-                    <div className="h-2 bg-gray-100 rounded-full overflow-hidden">
+                    <div className="h-2 bg-slate-100 rounded-full overflow-hidden">
                       <div
                         className={cn(
                           'h-full rounded-full transition-all duration-500',
@@ -621,8 +621,8 @@ export default function AdminDashboard() {
                 <div className="w-7 h-7 rounded-lg bg-purple-50 flex items-center justify-center">
                   <svg className="w-4 h-4 text-purple-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M4.8 2.3A.3.3 0 105 2H4a2 2 0 00-2 2v5a6 6 0 006 6 6 6 0 006-6V4a2 2 0 00-2-2h-1" /><path d="M8 15v1a6 6 0 006 6 6 6 0 006-6v-4" /><circle cx="20" cy="10" r="2" /></svg>
                 </div>
-                <h3 className="font-bold text-gray-900">רופאים פעילים</h3>
-                <span className="text-xs text-gray-400">({doctors.length})</span>
+                <h3 className="font-bold text-slate-900">רופאים פעילים</h3>
+                <span className="text-xs text-slate-400">({doctors.length})</span>
               </div>
               <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/admin/users')}>
                 ניהול
@@ -647,20 +647,20 @@ export default function AdminDashboard() {
           ) : (
             <div className="divide-y max-h-80 overflow-y-auto">
               {doctors.map(doc => (
-                <div key={doc.id} className="px-5 py-3.5 flex items-center justify-between gap-3 hover:bg-gray-50/70 transition-colors group">
+                <div key={doc.id} className="px-5 py-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/70 transition-colors group">
                   <div className="flex items-center gap-3 min-w-0">
                     {doc.avatar_url ? (
                       // eslint-disable-next-line @next/next/no-img-element
-                      <img src={doc.avatar_url} alt="" className="w-10 h-10 rounded-xl object-cover shrink-0 ring-2 ring-gray-100" />
+                      <img src={doc.avatar_url} alt="" className="w-10 h-10 rounded-xl object-cover shrink-0 ring-2 ring-slate-100" />
                     ) : (
                       <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-purple-100 to-indigo-100 flex items-center justify-center text-sm font-bold text-purple-700 shrink-0">
                         {getInitials(doc.first_name, doc.last_name)}
                       </div>
                     )}
                     <div className="min-w-0">
-                      <p className="font-semibold text-sm text-gray-900 truncate">ד&quot;ר {doc.first_name} {doc.last_name}</p>
+                      <p className="font-semibold text-sm text-slate-900 truncate">ד&quot;ר {doc.first_name} {doc.last_name}</p>
                       {doc.specialties && doc.specialties.length > 0 && (
-                        <p className="text-xs text-gray-400 truncate mt-0.5">{doc.specialties.join(' · ')}</p>
+                        <p className="text-xs text-slate-400 truncate mt-0.5">{doc.specialties.join(' · ')}</p>
                       )}
                     </div>
                   </div>
@@ -674,7 +674,7 @@ export default function AdminDashboard() {
                         )}
                       </div>
                     ) : (
-                      <span className="text-xs text-gray-300 bg-gray-50 px-2 py-1 rounded-lg">אין דירוג</span>
+                      <span className="text-xs text-slate-300 bg-slate-50 px-2 py-1 rounded-lg">אין דירוג</span>
                     )}
                     {!doc.is_active && (
                       <Badge variant="danger">לא פעיל</Badge>
@@ -691,10 +691,10 @@ export default function AdminDashboard() {
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="w-7 h-7 rounded-lg bg-gray-50 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
+                <div className="w-7 h-7 rounded-lg bg-slate-50 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
                 </div>
-                <h3 className="font-bold text-gray-900">יומן פעילות</h3>
+                <h3 className="font-bold text-slate-900">יומן פעילות</h3>
               </div>
               <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/admin/audit-log')}>
                 יומן מלא
@@ -704,8 +704,8 @@ export default function AdminDashboard() {
           {auditLog.length === 0 ? (
             <EmptyState
               icon={
-                <div className="w-14 h-14 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto">
-                  <svg className="w-7 h-7 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+                <div className="w-14 h-14 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto">
+                  <svg className="w-7 h-7 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
                 </div>
               }
               title="אין פעילות ביומן"
@@ -723,15 +723,15 @@ export default function AdminDashboard() {
                       {getAuditIcon(entry.action)}
                     </div>
                     {idx < auditLog.length - 1 && (
-                      <div className="w-px flex-1 bg-gray-100 my-1" />
+                      <div className="w-px flex-1 bg-slate-100 my-1" />
                     )}
                   </div>
                   {/* Content */}
                   <div className="pb-4 min-w-0 flex-1">
-                    <p className="text-sm text-gray-700 font-medium leading-snug">
+                    <p className="text-sm text-slate-700 font-medium leading-snug">
                       {entry.description || entry.action}
                     </p>
-                    <p className="text-xs text-gray-400 mt-0.5">{formatDateTime(entry.created_at)}</p>
+                    <p className="text-xs text-slate-400 mt-0.5">{formatDateTime(entry.created_at)}</p>
                   </div>
                 </div>
               ))}
@@ -748,7 +748,7 @@ export default function AdminDashboard() {
               <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
                 <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
               </div>
-              <h3 className="font-bold text-gray-900">פעילות אחרונה</h3>
+              <h3 className="font-bold text-slate-900">פעילות אחרונה</h3>
             </div>
             <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/admin/appointments')}>
               כל התורים
@@ -757,22 +757,22 @@ export default function AdminDashboard() {
         </CardHeader>
         <div className="divide-y">
           {recentApts.slice(0, 8).map(apt => (
-            <div key={apt.id} className="px-5 py-3.5 flex items-center justify-between gap-3 hover:bg-gray-50/70 transition-colors">
+            <div key={apt.id} className="px-5 py-3.5 flex items-center justify-between gap-3 hover:bg-slate-50/70 transition-colors">
               <div className="flex items-center gap-3 min-w-0">
-                <div className="w-8 h-8 rounded-lg bg-gray-50 flex items-center justify-center shrink-0 text-xs font-bold text-gray-500">
+                <div className="w-8 h-8 rounded-lg bg-slate-50 flex items-center justify-center shrink-0 text-xs font-bold text-slate-500">
                   {apt.patient ? getInitials(apt.patient.first_name, apt.patient.last_name) : '?'}
                 </div>
                 <div className="min-w-0">
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <span className="font-semibold text-sm text-gray-900">
+                    <span className="font-semibold text-sm text-slate-900">
                       {apt.patient?.first_name} {apt.patient?.last_name}
                     </span>
-                    <svg className="w-3 h-3 text-gray-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
-                    <span className="text-sm text-gray-500">
+                    <svg className="w-3 h-3 text-slate-300 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M5 12h14M12 5l7 7-7 7" /></svg>
+                    <span className="text-sm text-slate-500">
                       {apt.doctor ? `ד"ר ${apt.doctor.first_name} ${apt.doctor.last_name}` : 'ממתין לשיבוץ'}
                     </span>
                   </div>
-                  <p className="text-xs text-gray-400 mt-0.5 truncate">
+                  <p className="text-xs text-slate-400 mt-0.5 truncate">
                     {apt.chief_complaint}
                     <span className="mx-1.5">·</span>
                     {formatDateTime(apt.created_at)}
@@ -806,7 +806,7 @@ export default function AdminDashboard() {
 
       {/* ── Quick actions ────────────────────────────── */}
       <div>
-        <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider mb-3">פעולות מהירות</p>
+        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider mb-3">פעולות מהירות</p>
         <div className="grid grid-cols-3 sm:grid-cols-6 gap-3">
           {[
             {
@@ -837,7 +837,7 @@ export default function AdminDashboard() {
               label: 'הגדרות מרפאה',
               icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" /></svg>,
               href: '/dashboard/admin/settings',
-              color: 'text-gray-600 bg-gray-50 hover:bg-gray-100',
+              color: 'text-slate-600 bg-slate-50 hover:bg-slate-100',
             },
             {
               label: 'חיוב ומנוי',
@@ -851,7 +851,7 @@ export default function AdminDashboard() {
               onClick={() => router.push(item.href)}
               className={cn(
                 'flex flex-col items-center gap-2.5 p-4 rounded-xl border border-transparent transition-all text-center',
-                'hover:border-gray-200 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-blue-500',
+                'hover:border-slate-200 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-blue-500',
                 item.color
               )}
             >

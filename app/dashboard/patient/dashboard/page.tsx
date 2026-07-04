@@ -39,7 +39,7 @@ function getProfileCompletion(p: User): { percent: number; missing: string[] } {
 }
 
 function DoctorAvatar({ doc }: { doc: DoctorInfo | null }) {
-  if (!doc) return <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xs text-gray-400 shrink-0">?</div>
+  if (!doc) return <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-xs text-slate-400 shrink-0">?</div>
   if (doc.avatar_url) return (
     // eslint-disable-next-line @next/next/no-img-element
     <img src={doc.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0 ring-2 ring-white" />
@@ -61,7 +61,7 @@ function QuickActionCard({ icon, label, description, onClick, color }: {
     blue:    'bg-blue-50 border-blue-200 hover:border-blue-400 text-blue-700 hover:bg-blue-100',
     purple:  'bg-purple-50 border-purple-200 hover:border-purple-400 text-purple-700 hover:bg-purple-100',
     emerald: 'bg-emerald-50 border-emerald-200 hover:border-emerald-400 text-emerald-700 hover:bg-emerald-100',
-    gray:    'bg-gray-50 border-gray-200 hover:border-gray-400 text-gray-700 hover:bg-gray-100',
+    gray:    'bg-slate-50 border-slate-200 hover:border-slate-400 text-slate-700 hover:bg-slate-100',
   }
   return (
     <button onClick={onClick} className={cn('rounded-xl border p-4 text-right transition-all hover:shadow-sm active:scale-[0.98]', colors[color])}>
@@ -99,8 +99,8 @@ function NotificationsBanner({
               onClick={() => setExpanded(prev => prev === n.id ? null : n.id)}
             >
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-800">{n.title || 'הודעה חדשה'}</p>
-                <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">
+                <p className="text-sm font-semibold text-slate-800">{n.title || 'הודעה חדשה'}</p>
+                <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">
                   {n.content?.split('\n')[0] || ''}
                 </p>
               </div>
@@ -111,7 +111,7 @@ function NotificationsBanner({
             {expanded === n.id && (
               <div className="mt-3 space-y-3">
                 <div className="rounded-xl bg-white border border-blue-100 p-3">
-                  <p className="text-sm text-gray-700 whitespace-pre-wrap leading-relaxed">{n.content}</p>
+                  <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{n.content}</p>
                 </div>
                 <button
                   onClick={() => onMarkRead(n.id)}
@@ -221,10 +221,10 @@ export default function PatientDashboard() {
             }
           </div>
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 tracking-tight">
+            <h1 className="text-2xl font-bold text-slate-900 tracking-tight">
               {greeting}{firstName ? `, ${firstName}` : ''}
             </h1>
-            <p className="text-sm text-gray-500 mt-0.5">
+            <p className="text-sm text-slate-500 mt-0.5">
               {new Intl.DateTimeFormat('he-IL', { weekday: 'long', day: 'numeric', month: 'long' }).format(now)}
             </p>
           </div>
@@ -332,7 +332,7 @@ export default function PatientDashboard() {
             {needsAction.map(apt => (
               <div key={apt.id} className="flex items-center justify-between bg-white rounded-xl px-4 py-3 border border-orange-100">
                 <div>
-                  <p className="font-medium text-gray-900 text-sm">{apt.chief_complaint}</p>
+                  <p className="font-medium text-slate-900 text-sm">{apt.chief_complaint}</p>
                   <p className="text-xs text-orange-600 mt-0.5">{apt.payment_status === 'failed' ? 'התשלום נכשל — יש לנסות שוב' : 'ממתין לתשלום'}</p>
                 </div>
                 <Button size="sm" className={apt.payment_status === 'failed' ? 'bg-red-600 hover:bg-red-700' : 'bg-orange-600 hover:bg-orange-700'}
@@ -391,8 +391,8 @@ export default function PatientDashboard() {
               <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-blue-700">{profilePercent}%</span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-gray-900">השלם את הפרופיל הרפואי שלך</p>
-              <p className="text-sm text-gray-500 mt-0.5">
+              <p className="font-bold text-slate-900">השלם את הפרופיל הרפואי שלך</p>
+              <p className="text-sm text-slate-500 mt-0.5">
                 חסר: {profileMissing.slice(0, 3).join(', ')}{profileMissing.length > 3 ? ` ועוד ${profileMissing.length - 3}` : ''}
               </p>
             </div>
@@ -431,15 +431,15 @@ export default function PatientDashboard() {
                 <div className="min-w-0">
                   {nextApt.doctor ? (
                     <>
-                      <p className="font-semibold text-gray-900 text-sm">
+                      <p className="font-semibold text-slate-900 text-sm">
                         ד&quot;ר {(nextApt.doctor as DoctorInfo).first_name} {(nextApt.doctor as DoctorInfo).last_name}
                       </p>
                       {(nextApt.doctor as DoctorInfo).specialties?.length && (
-                        <p className="text-xs text-gray-500">{(nextApt.doctor as DoctorInfo).specialties!.slice(0,2).join(', ')}</p>
+                        <p className="text-xs text-slate-500">{(nextApt.doctor as DoctorInfo).specialties!.slice(0,2).join(', ')}</p>
                       )}
                     </>
                   ) : (
-                    <p className="text-sm text-gray-500">ממתין לשיוך רופא</p>
+                    <p className="text-sm text-slate-500">ממתין לשיוך רופא</p>
                   )}
                 </div>
               </div>
@@ -481,11 +481,11 @@ export default function PatientDashboard() {
           </CardHeader>
           <div className="divide-y">
             {upcoming.slice(1).map(apt => (
-              <div key={apt.id} className="px-5 py-3.5 flex items-center gap-3 hover:bg-gray-50 transition-colors">
+              <div key={apt.id} className="px-5 py-3.5 flex items-center gap-3 hover:bg-slate-50 transition-colors">
                 <DoctorAvatar doc={apt.doctor as DoctorInfo | null} />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm truncate">{apt.chief_complaint}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-slate-400 mt-0.5">
                     {apt.doctor ? `ד"ר ${(apt.doctor as DoctorInfo).first_name} ${(apt.doctor as DoctorInfo).last_name}` : 'ממתין לרופא'}
                     {' · '}{formatDateTime(apt.scheduled_at!)}
                   </p>
@@ -508,14 +508,14 @@ export default function PatientDashboard() {
           </CardHeader>
           <div className="divide-y">
             {active.filter(a => !a.scheduled_at || new Date(a.scheduled_at) <= now).map(apt => (
-              <div key={apt.id} className="px-5 py-3.5 flex items-center gap-3 hover:bg-gray-50 transition-colors">
+              <div key={apt.id} className="px-5 py-3.5 flex items-center gap-3 hover:bg-slate-50 transition-colors">
                 <div className={cn('w-2 h-8 rounded-full shrink-0',
                   apt.status === 'pending' ? 'bg-amber-400' :
                   apt.status === 'doctor_confirmed' ? 'bg-blue-400' : 'bg-indigo-400'
                 )} />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm truncate">{apt.chief_complaint}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-slate-400 mt-0.5">
                     {apt.doctor ? `ד"ר ${(apt.doctor as DoctorInfo).first_name} ${(apt.doctor as DoctorInfo).last_name}` : 'ממתין לשיוך רופא'}
                     {' · '}{formatDate(apt.created_at)}
                   </p>
@@ -541,7 +541,7 @@ export default function PatientDashboard() {
               <div key={apt.id} className="px-5 py-4 flex items-center justify-between gap-4">
                 <div className="min-w-0">
                   <p className="font-medium text-sm">{apt.chief_complaint}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">
+                  <p className="text-xs text-slate-400 mt-0.5">
                     {apt.doctor ? `ד"ר ${(apt.doctor as DoctorInfo).first_name} ${(apt.doctor as DoctorInfo).last_name}` : ''}
                     {apt.completed_at ? ` · ${formatDate(apt.completed_at)}` : ''}
                   </p>
@@ -566,7 +566,7 @@ export default function PatientDashboard() {
           </CardHeader>
           <div className="divide-y">
             {completed.slice(0, 4).map(apt => (
-              <div key={apt.id} className="px-5 py-4 hover:bg-gray-50 transition-colors">
+              <div key={apt.id} className="px-5 py-4 hover:bg-slate-50 transition-colors">
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-start gap-3 min-w-0">
                     <div className="w-8 h-8 rounded-lg bg-emerald-50 flex items-center justify-center shrink-0 mt-0.5">
@@ -575,13 +575,13 @@ export default function PatientDashboard() {
                       </svg>
                     </div>
                     <div className="min-w-0">
-                      <p className="font-semibold text-sm text-gray-900 truncate">{apt.chief_complaint}</p>
-                      <p className="text-xs text-gray-400 mt-0.5">
+                      <p className="font-semibold text-sm text-slate-900 truncate">{apt.chief_complaint}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">
                         {apt.doctor ? `ד"ר ${(apt.doctor as DoctorInfo).first_name} ${(apt.doctor as DoctorInfo).last_name}` : ''}
                         {apt.completed_at ? ` · ${formatDate(apt.completed_at)}` : ''}
                       </p>
                       {apt.diagnosis && (
-                        <p className="text-xs text-gray-600 mt-1 line-clamp-1">
+                        <p className="text-xs text-slate-600 mt-1 line-clamp-1">
                           <span className="font-medium">אבחנה:</span> {apt.diagnosis}
                         </p>
                       )}
@@ -592,7 +592,7 @@ export default function PatientDashboard() {
                     {apt.patient_rating && (
                       <div className="flex gap-0.5">
                         {[1,2,3,4,5].map(s => (
-                          <span key={s} className={cn('text-sm', s <= apt.patient_rating! ? 'text-yellow-400' : 'text-gray-200')}>★</span>
+                          <span key={s} className={cn('text-sm', s <= apt.patient_rating! ? 'text-yellow-400' : 'text-slate-200')}>★</span>
                         ))}
                       </div>
                     )}
@@ -617,18 +617,18 @@ export default function PatientDashboard() {
           </CardHeader>
           <div className="divide-y">
             {recentDocs.map(doc => (
-              <div key={doc.id} className="px-5 py-3 flex items-center gap-3 hover:bg-gray-50 transition-colors">
+              <div key={doc.id} className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors">
                 <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0',
                   doc.file_type?.startsWith('image/') ? 'bg-purple-50' :
                   doc.file_type === 'application/pdf' ? 'bg-red-50' : 'bg-blue-50'
                 )}>
-                  <svg className="w-4 h-4 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
                   </svg>
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium truncate">{doc.file_name}</p>
-                  <p className="text-xs text-gray-400">{formatDate(doc.created_at)}</p>
+                  <p className="text-xs text-slate-400">{formatDate(doc.created_at)}</p>
                 </div>
               </div>
             ))}
@@ -698,7 +698,7 @@ export default function PatientDashboard() {
           label="הפרופיל שלי"
           description="נתונים רפואיים"
           onClick={() => router.push('/dashboard/patient/profile')}
-          icon={<svg className="w-6 h-6 text-gray-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>}
+          icon={<svg className="w-6 h-6 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /></svg>}
         />
       </div>
     </div>
@@ -729,7 +729,7 @@ function RateButtons({ appointmentId, onRated }: { appointmentId: string; onRate
           key={s}
           disabled={submitting}
           onClick={() => rate(s)}
-          className="text-xl text-gray-300 hover:text-yellow-400 transition-colors disabled:opacity-50"
+          className="text-xl text-slate-300 hover:text-yellow-400 transition-colors disabled:opacity-50"
           aria-label={`דרג ${s} כוכבים`}
         >★</button>
       ))}

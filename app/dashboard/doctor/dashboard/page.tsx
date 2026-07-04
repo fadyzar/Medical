@@ -62,33 +62,33 @@ function TimelineItem({ apt, isLast }: { apt: Appointment; isLast: boolean }) {
   return (
     <div className="flex gap-3 relative">
       {/* timeline spine */}
-      {!isLast && <div className="absolute right-[18px] top-10 bottom-0 w-px bg-gray-200" />}
+      {!isLast && <div className="absolute right-[18px] top-10 bottom-0 w-px bg-slate-200" />}
 
       {/* dot */}
       <div className={cn(
         'relative z-10 mt-1 w-9 h-9 rounded-full border-2 flex items-center justify-center shrink-0 text-xs font-bold',
         isActive ? 'bg-green-500 border-green-500 text-white animate-pulse' :
         isReady  ? 'bg-blue-500 border-blue-500 text-white' :
-                   'bg-white border-gray-300 text-gray-500'
+                   'bg-white border-slate-300 text-slate-500'
       )}>
         {apt.scheduled_at ? formatTime(apt.scheduled_at).split(':')[0] : '—'}
       </div>
 
       <div className={cn(
         'flex-1 mb-4 rounded-xl border p-3 bg-white transition-shadow hover:shadow-sm',
-        isActive ? 'border-green-300 bg-green-50' : isReady ? 'border-blue-200' : 'border-gray-200'
+        isActive ? 'border-green-300 bg-green-50' : isReady ? 'border-blue-200' : 'border-slate-200'
       )}>
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
             <PatientAvatar first={patient?.first_name || ''} last={patient?.last_name || ''} size="sm" />
             <div className="min-w-0">
               <p className="font-medium text-sm truncate">{patient?.first_name} {patient?.last_name}</p>
-              <p className="text-xs text-gray-500 truncate">{apt.chief_complaint}</p>
+              <p className="text-xs text-slate-500 truncate">{apt.chief_complaint}</p>
             </div>
           </div>
           <div className="shrink-0 flex flex-col items-end gap-1">
             <Badge variant={isActive ? 'success' : isReady ? 'info' : 'default'}>{STATUS_LABELS[apt.status]}</Badge>
-            {apt.scheduled_at && <span className="text-xs text-gray-400">{formatTime(apt.scheduled_at)}</span>}
+            {apt.scheduled_at && <span className="text-xs text-slate-400">{formatTime(apt.scheduled_at)}</span>}
           </div>
         </div>
       </div>
@@ -128,8 +128,8 @@ function NotificationsBanner({ notifications, onMarkRead }: { notifications: Not
             {!n.read_at && <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-1.5" />}
             {n.read_at && <span className="w-2 h-2 shrink-0" />}
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-gray-900">{n.title}</p>
-              <p className="text-xs text-gray-500 mt-0.5 line-clamp-2">{n.content}</p>
+              <p className="text-sm font-semibold text-slate-900">{n.title}</p>
+              <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{n.content}</p>
             </div>
             {!n.read_at && (
               <button onClick={() => onMarkRead(n.id)} className="text-xs text-blue-600 hover:underline shrink-0 mt-0.5">
@@ -261,8 +261,8 @@ export default function DoctorDashboard() {
       {/* ── hero greeting ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">{greeting}{doctorName ? `, ${doctorName}` : ''}</h1>
-          <p className="text-sm text-gray-500 mt-0.5">
+          <h1 className="text-2xl font-bold text-slate-900">{greeting}{doctorName ? `, ${doctorName}` : ''}</h1>
+          <p className="text-sm text-slate-500 mt-0.5">
             {profile?.specialties?.length ? profile.specialties.join(' · ') : 'לוח בקרה רופא'}
             {' · '}
             {new Intl.DateTimeFormat('he-IL', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())}
@@ -406,13 +406,13 @@ export default function DoctorDashboard() {
             <div className="w-2 h-2 rounded-full bg-blue-500" />
             <h3 className="font-bold text-base">לוח הזמנים להיום</h3>
           </div>
-          <span className="text-xs text-gray-400 bg-gray-100 px-2.5 py-1 rounded-full font-medium">{today.length} ביקורים</span>
+          <span className="text-xs text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full font-medium">{today.length} ביקורים</span>
         </CardHeader>
         <CardContent className="pt-5">
           {todaySorted.length === 0 ? (
             <EmptyState
               icon={
-                <svg className="w-10 h-10 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                <svg className="w-10 h-10 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
               }
@@ -461,18 +461,18 @@ export default function DoctorDashboard() {
                     <PatientAvatar first={patient?.first_name || ''} last={patient?.last_name || ''} />
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-semibold text-gray-900">{patient?.first_name} {patient?.last_name}</p>
+                        <p className="font-semibold text-slate-900">{patient?.first_name} {patient?.last_name}</p>
                         {apt.ai_triage_score != null && <TriageBadge score={apt.ai_triage_score} />}
                       </div>
-                      <p className="text-sm text-gray-700 mt-0.5 font-medium">{apt.chief_complaint}</p>
+                      <p className="text-sm text-slate-700 mt-0.5 font-medium">{apt.chief_complaint}</p>
                       {apt.complaint_description && (
-                        <p className="text-xs text-gray-400 mt-0.5 line-clamp-2">{apt.complaint_description}</p>
+                        <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">{apt.complaint_description}</p>
                       )}
                       <div className="flex items-center gap-3 mt-1.5 flex-wrap">
                         {apt.ai_triage_category && (
-                          <span className="text-xs text-gray-500 bg-gray-100 px-2 py-0.5 rounded-full">{apt.ai_triage_category}</span>
+                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{apt.ai_triage_category}</span>
                         )}
-                        <span className="text-xs text-gray-400">התקבל {formatDateTime(apt.created_at)}</span>
+                        <span className="text-xs text-slate-400">התקבל {formatDateTime(apt.created_at)}</span>
                       </div>
                     </div>
                     <div className="flex flex-col gap-2 shrink-0">
@@ -516,7 +516,7 @@ export default function DoctorDashboard() {
         {active.length === 0 ? (
           <EmptyState
             icon={
-              <svg className="w-10 h-10 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <svg className="w-10 h-10 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
               </svg>
             }
@@ -534,14 +534,14 @@ export default function DoctorDashboard() {
                 <div
                   key={apt.id}
                   className={cn(
-                    'px-5 py-4 flex items-center gap-3 hover:bg-gray-50 transition-colors',
+                    'px-5 py-4 flex items-center gap-3 hover:bg-slate-50 transition-colors',
                     isInProgress && 'bg-green-50 hover:bg-green-50'
                   )}
                 >
                   <PatientAvatar first={patient?.first_name || ''} last={patient?.last_name || ''} />
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap">
-                      <p className="font-semibold text-gray-900">{patient?.first_name} {patient?.last_name}</p>
+                      <p className="font-semibold text-slate-900">{patient?.first_name} {patient?.last_name}</p>
                       {isInProgress && (
                         <span className="flex items-center gap-1 text-xs text-green-700 bg-green-100 px-2 py-0.5 rounded-full font-medium">
                           <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
@@ -549,9 +549,9 @@ export default function DoctorDashboard() {
                         </span>
                       )}
                     </div>
-                    <p className="text-sm text-gray-600 truncate mt-0.5">{apt.chief_complaint}</p>
+                    <p className="text-sm text-slate-600 truncate mt-0.5">{apt.chief_complaint}</p>
                     {apt.scheduled_at && (
-                      <p className="text-xs text-gray-400 mt-0.5">
+                      <p className="text-xs text-slate-400 mt-0.5">
                         {new Intl.DateTimeFormat('he-IL', { weekday: 'short', day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }).format(new Date(apt.scheduled_at))}
                       </p>
                     )}
@@ -610,10 +610,10 @@ export default function DoctorDashboard() {
                 <div key={apt.id} className="px-5 py-4 flex items-center gap-3 hover:bg-purple-50/40 transition-colors">
                   <PatientAvatar first={patient?.first_name || ''} last={patient?.last_name || ''} />
                   <div className="flex-1 min-w-0">
-                    <p className="font-semibold text-gray-900">{patient?.first_name} {patient?.last_name}</p>
-                    <p className="text-sm text-gray-500 truncate">{apt.chief_complaint}</p>
+                    <p className="font-semibold text-slate-900">{patient?.first_name} {patient?.last_name}</p>
+                    <p className="text-sm text-slate-500 truncate">{apt.chief_complaint}</p>
                     {apt.completed_at && (
-                      <p className="text-xs text-gray-400 mt-0.5">הסתיים {formatDateTime(apt.completed_at)}</p>
+                      <p className="text-xs text-slate-400 mt-0.5">הסתיים {formatDateTime(apt.completed_at)}</p>
                     )}
                   </div>
                   <div className="flex gap-2 shrink-0">
@@ -634,7 +634,7 @@ export default function DoctorDashboard() {
                         <Button
                           size="sm"
                           variant="ghost"
-                          className="text-xs text-gray-500"
+                          className="text-xs text-slate-500"
                           onClick={() => router.push(`/dashboard/doctor/appointments?id=${apt.id}`)}
                         >
                           פרטים

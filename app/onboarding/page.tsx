@@ -295,16 +295,16 @@ export default function OnboardingPage() {
             <div className={cn(
               'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-colors',
               i < currentIdx ? 'bg-green-500 text-white' :
-              i === currentIdx ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-500'
+              i === currentIdx ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'
             )}>
               {i < currentIdx ? '✓' : s.num}
             </div>
             <span className={cn(
               'text-xs mr-1.5 hidden sm:block',
-              i <= currentIdx ? 'text-blue-600 font-medium' : 'text-gray-400'
+              i <= currentIdx ? 'text-blue-600 font-medium' : 'text-slate-400'
             )}>{s.label}</span>
             {i < STEPS.length - 1 && (
-              <div className={cn('h-0.5 flex-1 mx-2 transition-colors', i < currentIdx ? 'bg-green-500' : 'bg-gray-200')} />
+              <div className={cn('h-0.5 flex-1 mx-2 transition-colors', i < currentIdx ? 'bg-green-500' : 'bg-slate-200')} />
             )}
           </div>
         ))}
@@ -317,7 +317,7 @@ export default function OnboardingPage() {
             <div className="space-y-6">
               <div>
                 <h3 className="font-bold text-lg">פרטי המרפאה</h3>
-                <p className="text-sm text-gray-500">ספרו לנו על המרפאה ועל מנהל המערכת</p>
+                <p className="text-sm text-slate-500">ספרו לנו על המרפאה ועל מנהל המערכת</p>
               </div>
 
               {/* Clinic info */}
@@ -360,7 +360,7 @@ export default function OnboardingPage() {
                   {form.subdomain.length >= 3 && (
                     <div className="flex items-center gap-2 text-sm">
                       {checkingSubdomain ? (
-                        <><Spinner size="sm" /><span className="text-gray-400">בודק זמינות...</span></>
+                        <><Spinner size="sm" /><span className="text-slate-400">בודק זמינות...</span></>
                       ) : subdomainAvailable === true ? (
                         <span className="text-green-600 font-medium">{form.subdomain}.cannaforyou.net — זמין ✓</span>
                       ) : subdomainAvailable === false ? (
@@ -374,7 +374,7 @@ export default function OnboardingPage() {
               {/* Divider */}
               <div className="border-t pt-6">
                 <h4 className="font-bold text-base mb-1">פרטי מנהל המרפאה</h4>
-                <p className="text-sm text-gray-500 mb-4">פרטי ההתחברות שלך למערכת</p>
+                <p className="text-sm text-slate-500 mb-4">פרטי ההתחברות שלך למערכת</p>
 
                 <div className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
@@ -430,7 +430,7 @@ export default function OnboardingPage() {
             <div className="space-y-6">
               <div>
                 <h3 className="font-bold text-lg">בחרו תוכנית</h3>
-                <p className="text-sm text-gray-500">כל התוכניות כוללות 14 ימי ניסיון חינם</p>
+                <p className="text-sm text-slate-500">כל התוכניות כוללות 14 ימי ניסיון חינם</p>
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -442,21 +442,21 @@ export default function OnboardingPage() {
                       'p-5 rounded-xl border-2 text-right transition-all relative',
                       form.plan === plan.id
                         ? 'border-blue-500 bg-blue-50 shadow-md'
-                        : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50',
+                        : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50',
                     )}
                   >
                     {plan.highlighted && (
                       <Badge variant="info" className="absolute top-3 left-3">מומלץ</Badge>
                     )}
                     <h4 className="font-bold text-lg">{plan.name}</h4>
-                    <p className="text-sm text-gray-500 mt-1">{plan.description}</p>
+                    <p className="text-sm text-slate-500 mt-1">{plan.description}</p>
                     <div className="mt-3">
                       <span className="text-2xl font-black text-blue-600">
                         {plan.price_monthly === 0 ? 'חינם' : formatPrice(plan.price_monthly)}
                       </span>
-                      {plan.price_monthly > 0 && <span className="text-sm text-gray-400 mr-1">/חודש</span>}
+                      {plan.price_monthly > 0 && <span className="text-sm text-slate-400 mr-1">/חודש</span>}
                     </div>
-                    <div className="mt-3 space-y-1 text-sm text-gray-600">
+                    <div className="mt-3 space-y-1 text-sm text-slate-600">
                       <p>עד {plan.max_doctors} רופאים</p>
                       <p>עד {plan.max_appointments_per_month.toLocaleString()} תורים/חודש</p>
                       <p>{plan.max_storage_gb} GB אחסון</p>
@@ -469,12 +469,12 @@ export default function OnboardingPage() {
               <div className="border rounded-xl overflow-hidden">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-gray-50 border-b">
-                      <th className="text-right p-3 font-medium text-gray-700">יכולת</th>
+                    <tr className="bg-slate-50 border-b">
+                      <th className="text-right p-3 font-medium text-slate-700">יכולת</th>
                       {PLANS.map(p => (
                         <th key={p.id} className={cn(
                           'p-3 text-center font-medium',
-                          form.plan === p.id ? 'text-blue-700 bg-blue-50' : 'text-gray-700'
+                          form.plan === p.id ? 'text-blue-700 bg-blue-50' : 'text-slate-700'
                         )}>{p.name}</th>
                       ))}
                     </tr>
@@ -482,7 +482,7 @@ export default function OnboardingPage() {
                   <tbody>
                     {Object.entries(FEATURE_LABELS).map(([key, label]) => (
                       <tr key={key} className="border-b last:border-b-0">
-                        <td className="p-3 text-gray-600">{label}</td>
+                        <td className="p-3 text-slate-600">{label}</td>
                         {PLANS.map(p => (
                           <td key={p.id} className={cn(
                             'p-3 text-center',
@@ -491,7 +491,7 @@ export default function OnboardingPage() {
                             {p.features[key] ? (
                               <span className="text-green-600 font-bold">✓</span>
                             ) : (
-                              <span className="text-gray-300">—</span>
+                              <span className="text-slate-300">—</span>
                             )}
                           </td>
                         ))}
@@ -513,20 +513,20 @@ export default function OnboardingPage() {
             <div className="space-y-6">
               <div>
                 <h3 className="font-bold text-lg">מיתוג המרפאה</h3>
-                <p className="text-sm text-gray-500">התאימו את המראה של המערכת למרפאה שלכם</p>
+                <p className="text-sm text-slate-500">התאימו את המראה של המערכת למרפאה שלכם</p>
               </div>
 
               {/* Logo upload */}
               <div className="space-y-2">
-                <label className="block text-sm font-medium text-gray-700">לוגו המרפאה</label>
+                <label className="block text-sm font-medium text-slate-700">לוגו המרפאה</label>
                 {logoPreview ? (
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-6 bg-gray-50">
+                  <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 bg-slate-50">
                     <div className="flex items-center gap-4">
                       {/* eslint-disable-next-line @next/next/no-img-element */}
                       <img src={logoPreview} alt="לוגו" className="h-20 w-20 object-contain rounded-lg bg-white p-2 border" />
                       <div className="flex-1 min-w-0">
-                        <p className="text-sm font-medium text-gray-900 truncate">{logoFile?.name}</p>
-                        <p className="text-xs text-gray-500">
+                        <p className="text-sm font-medium text-slate-900 truncate">{logoFile?.name}</p>
+                        <p className="text-xs text-slate-500">
                           {logoFile && (logoFile.size / 1024).toFixed(0)} KB
                           {uploadingLogo && ' — מעלה...'}
                           {!uploadingLogo && form.logo_url && ' — הועלה בהצלחה ✓'}
@@ -547,7 +547,7 @@ export default function OnboardingPage() {
                     className={cn(
                       'border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors',
                       'hover:border-blue-400 hover:bg-blue-50/50',
-                      errors.logo ? 'border-red-300 bg-red-50' : 'border-gray-300 bg-gray-50'
+                      errors.logo ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-slate-50'
                     )}
                     onClick={() => fileInputRef.current?.click()}
                     onDragOver={e => e.preventDefault()}
@@ -558,8 +558,8 @@ export default function OnboardingPage() {
                     aria-label="העלאת לוגו"
                   >
                     <div className="text-4xl mb-2">🖼️</div>
-                    <p className="text-sm font-medium text-gray-700">גררו תמונה לכאן או לחצו לבחירה</p>
-                    <p className="text-xs text-gray-500 mt-1">PNG, JPG, SVG — עד 2MB</p>
+                    <p className="text-sm font-medium text-slate-700">גררו תמונה לכאן או לחצו לבחירה</p>
+                    <p className="text-xs text-slate-500 mt-1">PNG, JPG, SVG — עד 2MB</p>
                   </div>
                 )}
                 <input
@@ -573,19 +573,19 @@ export default function OnboardingPage() {
                   }}
                 />
                 {errors.logo && <p className="text-sm text-red-600">{errors.logo}</p>}
-                <p className="text-xs text-gray-500">אופציונלי — ניתן להוסיף גם מאוחר יותר</p>
+                <p className="text-xs text-slate-500">אופציונלי — ניתן להוסיף גם מאוחר יותר</p>
               </div>
 
               {/* Colors */}
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">צבע ראשי</label>
+                  <label className="block text-sm font-medium text-slate-700">צבע ראשי</label>
                   <div className="flex items-center gap-3">
                     <input
                       type="color"
                       value={form.primary_color}
                       onChange={e => updateForm('primary_color', e.target.value)}
-                      className="w-12 h-12 rounded-lg border-2 border-gray-200 cursor-pointer"
+                      className="w-12 h-12 rounded-lg border-2 border-slate-200 cursor-pointer"
                     />
                     <Input
                       value={form.primary_color}
@@ -596,13 +596,13 @@ export default function OnboardingPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="block text-sm font-medium text-gray-700">צבע משני</label>
+                  <label className="block text-sm font-medium text-slate-700">צבע משני</label>
                   <div className="flex items-center gap-3">
                     <input
                       type="color"
                       value={form.secondary_color}
                       onChange={e => updateForm('secondary_color', e.target.value)}
-                      className="w-12 h-12 rounded-lg border-2 border-gray-200 cursor-pointer"
+                      className="w-12 h-12 rounded-lg border-2 border-slate-200 cursor-pointer"
                     />
                     <Input
                       value={form.secondary_color}
@@ -616,7 +616,7 @@ export default function OnboardingPage() {
 
               {/* Live preview */}
               <div className="border rounded-xl overflow-hidden">
-                <p className="text-xs text-gray-500 p-3 bg-gray-50 border-b">תצוגה מקדימה</p>
+                <p className="text-xs text-slate-500 p-3 bg-slate-50 border-b">תצוגה מקדימה</p>
                 <div className="p-4 space-y-4">
                   {/* Header preview */}
                   <div
@@ -665,7 +665,7 @@ export default function OnboardingPage() {
             <div className="space-y-6">
               <div>
                 <h3 className="font-bold text-lg">הזמנת רופא ראשון</h3>
-                <p className="text-sm text-gray-500">
+                <p className="text-sm text-slate-500">
                   הזמינו רופא להצטרף למערכת. הזמנה תישלח באימייל לאחר הגדרת המרפאה.
                 </p>
               </div>
@@ -692,7 +692,7 @@ export default function OnboardingPage() {
               </div>
 
               {selectedPlan && (
-                <p className="text-xs text-gray-500">
+                <p className="text-xs text-slate-500">
                   התוכנית שבחרת ({selectedPlan.name}) מאפשרת עד {selectedPlan.max_doctors} רופאים. ניתן להזמין רופאים נוספים מהגדרות המרפאה.
                 </p>
               )}
@@ -728,33 +728,33 @@ export default function OnboardingPage() {
           {step === 'complete' && (
             <div className="text-center space-y-6 py-8">
               <div className="text-6xl">🎉</div>
-              <h3 className="text-2xl font-bold text-gray-900">המרפאה נוצרה בהצלחה!</h3>
-              <p className="text-gray-500">
+              <h3 className="text-2xl font-bold text-slate-900">המרפאה נוצרה בהצלחה!</h3>
+              <p className="text-slate-500">
                 {form.name} מוכנה לשימוש.
                 {form.plan !== 'free' && ' מעבירים אתכם לדף התשלום...'}
                 {form.plan === 'free' && ' מעבירים אתכם לדף ההתחברות...'}
               </p>
 
-              <div className="bg-gray-50 rounded-xl p-5 max-w-sm mx-auto space-y-3 text-sm text-right">
+              <div className="bg-slate-50 rounded-xl p-5 max-w-sm mx-auto space-y-3 text-sm text-right">
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-500">מרפאה</span>
+                  <span className="text-slate-500">מרפאה</span>
                   <span className="font-medium">{form.name}</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-500">תוכנית</span>
+                  <span className="text-slate-500">תוכנית</span>
                   <Badge variant="info">{selectedPlan?.name}</Badge>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-500">דומיין</span>
+                  <span className="text-slate-500">דומיין</span>
                   <span className="font-medium text-blue-600">{form.subdomain}.cannaforyou.net</span>
                 </div>
                 <div className="flex justify-between items-center">
-                  <span className="text-gray-500">מנהל</span>
+                  <span className="text-slate-500">מנהל</span>
                   <span className="font-medium">{form.first_name} {form.last_name}</span>
                 </div>
                 {doctorEmail.trim() && (
                   <div className="flex justify-between items-center">
-                    <span className="text-gray-500">הזמנה נשלחה ל</span>
+                    <span className="text-slate-500">הזמנה נשלחה ל</span>
                     <span className="font-medium">{doctorEmail}</span>
                   </div>
                 )}

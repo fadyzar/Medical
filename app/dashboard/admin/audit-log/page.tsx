@@ -186,7 +186,7 @@ export default function AuditLogPage() {
         {/* Header */}
         <div>
           <h2 className="text-2xl font-bold">יומן פעילות</h2>
-          <p className="text-gray-500 text-sm">צפה בכל הפעולות שבוצעו במערכת</p>
+          <p className="text-slate-500 text-sm">צפה בכל הפעולות שבוצעו במערכת</p>
         </div>
 
         {/* Filters */}
@@ -233,7 +233,7 @@ export default function AuditLogPage() {
         </Card>
 
         {/* Results count */}
-        <div className="flex items-center justify-between text-sm text-gray-500">
+        <div className="flex items-center justify-between text-sm text-slate-500">
           <span>{totalCount} רשומות{hasFilters ? ' (מסונן)' : ''}</span>
           {totalPages > 1 && (
             <span>עמוד {page + 1} מתוך {totalPages}</span>
@@ -245,7 +245,7 @@ export default function AuditLogPage() {
           <PageLoading />
         ) : logs.length === 0 ? (
           <EmptyState
-            icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>}
+            icon={<svg className="w-10 h-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>}
             title="אין רשומות"
             description={hasFilters ? 'נסה לשנות את הסינון' : 'עדיין אין פעילות ביומן'}
             action={hasFilters ? <Button variant="outline" onClick={resetFilters}>איפוס סינון</Button> : undefined}
@@ -288,7 +288,7 @@ export default function AuditLogPage() {
             >
               → הקודם
             </Button>
-            <span className="text-sm text-gray-500 px-3">
+            <span className="text-sm text-slate-500 px-3">
               {page + 1} / {totalPages}
             </span>
             <Button
@@ -328,14 +328,14 @@ function LogRow({ log, userName, expanded, onToggle }: {
   return (
     <>
       <tr className={cn('border-b border-slate-50 hover:bg-blue-50/40 transition-colors', expanded && 'bg-blue-50/50')}>
-        <td className="p-3 whitespace-nowrap text-gray-500 text-xs">
+        <td className="p-3 whitespace-nowrap text-slate-500 text-xs">
           {formatDateTime(log.created_at)}
         </td>
         <td className="p-3 whitespace-nowrap">
           {userName ? (
-            <span className="font-medium text-gray-800">{userName}</span>
+            <span className="font-medium text-slate-800">{userName}</span>
           ) : (
-            <span className="text-gray-400">מערכת</span>
+            <span className="text-slate-400">מערכת</span>
           )}
         </td>
         <td className="p-3 whitespace-nowrap">
@@ -343,10 +343,10 @@ function LogRow({ log, userName, expanded, onToggle }: {
             {actionLabel}
           </Badge>
         </td>
-        <td className="p-3 whitespace-nowrap text-gray-600">
+        <td className="p-3 whitespace-nowrap text-slate-600">
           {resourceLabel}
         </td>
-        <td className="p-3 text-gray-600 max-w-xs truncate">
+        <td className="p-3 text-slate-600 max-w-xs truncate">
           {log.description || '—'}
         </td>
         <td className="p-3">
@@ -363,17 +363,17 @@ function LogRow({ log, userName, expanded, onToggle }: {
         </td>
       </tr>
       {expanded && hasMetadata && (
-        <tr className="bg-gray-50">
+        <tr className="bg-slate-50">
           <td colSpan={6} className="p-4">
             <div className="bg-white rounded-lg border p-3 overflow-x-auto">
-              <p className="text-xs font-medium text-gray-500 mb-2">מטא-דאטה:</p>
+              <p className="text-xs font-medium text-slate-500 mb-2">מטא-דאטה:</p>
               {log.resource_id && (
-                <p className="text-xs text-gray-500 mb-2">
+                <p className="text-xs text-slate-500 mb-2">
                   <span className="font-medium">מזהה משאב:</span>{' '}
-                  <code className="bg-gray-100 px-1.5 py-0.5 rounded text-gray-700">{log.resource_id}</code>
+                  <code className="bg-slate-100 px-1.5 py-0.5 rounded text-slate-700">{log.resource_id}</code>
                 </p>
               )}
-              <pre className="text-xs text-gray-700 whitespace-pre-wrap font-mono leading-relaxed" dir="ltr">
+              <pre className="text-xs text-slate-700 whitespace-pre-wrap font-mono leading-relaxed" dir="ltr">
                 {JSON.stringify(log.metadata, null, 2)}
               </pre>
             </div>

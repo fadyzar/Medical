@@ -153,10 +153,10 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="text-2xl font-black text-blue-600">CANNA</Link>
           <div className="flex items-center gap-4">
-            <Link href="/specialties" className="text-sm text-gray-600 hover:text-gray-900">התמחויות</Link>
-            <Link href="/doctors" className="text-sm text-gray-600 hover:text-gray-900">הרופאים שלנו</Link>
-            <Link href="/blog" className="text-sm text-gray-600 hover:text-gray-900">בלוג</Link>
-            <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900">התחברות</Link>
+            <Link href="/specialties" className="text-sm text-slate-600 hover:text-slate-900">התמחויות</Link>
+            <Link href="/doctors" className="text-sm text-slate-600 hover:text-slate-900">הרופאים שלנו</Link>
+            <Link href="/blog" className="text-sm text-slate-600 hover:text-slate-900">בלוג</Link>
+            <Link href="/auth/login" className="text-sm text-slate-600 hover:text-slate-900">התחברות</Link>
             <Link href="/auth/register" className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">הרשמה חינם</Link>
           </div>
         </div>
@@ -171,7 +171,7 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
           { label: `ד"ר ${doc.first_name} ${doc.last_name}` },
         ]} />
         {/* Header Card */}
-        <div className="bg-gradient-to-l from-blue-50 to-white rounded-2xl border border-gray-100 p-8 mb-8">
+        <div className="bg-gradient-to-l from-blue-50 to-white rounded-2xl border border-slate-100 p-8 mb-8">
           <div className="flex flex-col sm:flex-row items-start gap-6">
             {/* Avatar */}
             <div className="shrink-0">
@@ -192,7 +192,7 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
 
             {/* Info */}
             <div className="flex-1">
-              <h1 className="text-3xl font-black text-gray-900 mb-2">
+              <h1 className="text-3xl font-black text-slate-900 mb-2">
                 ד&quot;ר {doc.first_name} {doc.last_name}
               </h1>
 
@@ -206,11 +206,11 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
                 </div>
               )}
 
-              <div className="flex flex-wrap items-center gap-4 text-sm text-gray-500">
+              <div className="flex flex-wrap items-center gap-4 text-sm text-slate-500">
                 {doc.average_rating && (
                   <span className="flex items-center gap-1">
                     <span className="text-yellow-400 text-lg">★</span>
-                    <span className="font-bold text-gray-900">{doc.average_rating.toFixed(1)}</span>
+                    <span className="font-bold text-slate-900">{doc.average_rating.toFixed(1)}</span>
                     <span>({doc.total_ratings} דירוגים)</span>
                   </span>
                 )}
@@ -228,11 +228,11 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
               {doc.consultation_price ? (
                 <div className="mb-3">
                   <span className="text-3xl font-black text-green-700">{formatPrice(doc.consultation_price)}</span>
-                  <span className="text-sm text-gray-400 block">לייעוץ</span>
+                  <span className="text-sm text-slate-400 block">לייעוץ</span>
                 </div>
               ) : (
                 <div className="mb-3">
-                  <span className="text-sm text-gray-400">מחיר לפי הסדר</span>
+                  <span className="text-sm text-slate-400">מחיר לפי הסדר</span>
                 </div>
               )}
               <Link
@@ -251,46 +251,46 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
             {/* Bio */}
             {doc.bio && (
               <section>
-                <h2 className="text-xl font-bold text-gray-900 mb-3">אודות הרופא</h2>
-                <p className="text-gray-600 leading-relaxed whitespace-pre-line">{doc.bio}</p>
+                <h2 className="text-xl font-bold text-slate-900 mb-3">אודות הרופא</h2>
+                <p className="text-slate-600 leading-relaxed whitespace-pre-line">{doc.bio}</p>
               </section>
             )}
 
             {/* Reviews */}
             <section>
-              <h2 className="text-xl font-bold text-gray-900 mb-4">
+              <h2 className="text-xl font-bold text-slate-900 mb-4">
                 ביקורות מטופלים
                 {doc.total_ratings > 0 && (
-                  <span className="text-sm font-normal text-gray-500 mr-2">({doc.total_ratings})</span>
+                  <span className="text-sm font-normal text-slate-500 mr-2">({doc.total_ratings})</span>
                 )}
               </h2>
 
               {reviews.length === 0 ? (
-                <div className="text-center py-10 bg-gray-50 rounded-xl">
-                  <p className="text-gray-400 text-lg mb-1">⭐</p>
-                  <p className="text-gray-500 text-sm">אין עדיין ביקורות</p>
+                <div className="text-center py-10 bg-slate-50 rounded-xl">
+                  <p className="text-slate-400 text-lg mb-1">⭐</p>
+                  <p className="text-slate-500 text-sm">אין עדיין ביקורות</p>
                 </div>
               ) : (
                 <div className="space-y-4">
                   {reviews.map((review, i) => (
-                    <div key={i} className="bg-gray-50 rounded-xl p-5">
+                    <div key={i} className="bg-slate-50 rounded-xl p-5">
                       <div className="flex items-center justify-between mb-2">
                         <div className="flex items-center gap-2">
-                          <span className="font-medium text-gray-900">{review.name}</span>
+                          <span className="font-medium text-slate-900">{review.name}</span>
                           <div className="flex gap-0.5">
                             {[1, 2, 3, 4, 5].map(star => (
-                              <span key={star} className={star <= review.rating ? 'text-yellow-400' : 'text-gray-200'}>
+                              <span key={star} className={star <= review.rating ? 'text-yellow-400' : 'text-slate-200'}>
                                 ★
                               </span>
                             ))}
                           </div>
                         </div>
-                        <span className="text-xs text-gray-400">
+                        <span className="text-xs text-slate-400">
                           {new Date(review.date).toLocaleDateString('he-IL')}
                         </span>
                       </div>
                       {review.feedback && (
-                        <p className="text-sm text-gray-600">{review.feedback}</p>
+                        <p className="text-sm text-slate-600">{review.feedback}</p>
                       )}
                     </div>
                   ))}
@@ -302,33 +302,33 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
           {/* Sidebar */}
           <aside className="space-y-6">
             {/* Quick Info Card */}
-            <div className="bg-white rounded-xl border border-gray-200 p-5 space-y-4 sticky top-20">
-              <h3 className="font-bold text-gray-900">פרטים</h3>
+            <div className="bg-white rounded-xl border border-slate-200 p-5 space-y-4 sticky top-20">
+              <h3 className="font-bold text-slate-900">פרטים</h3>
 
               {specialtyLabels.length > 0 && (
                 <div>
-                  <p className="text-xs text-gray-400 mb-1">התמחויות</p>
+                  <p className="text-xs text-slate-400 mb-1">התמחויות</p>
                   <p className="text-sm font-medium">{specialtyLabels.join(', ')}</p>
                 </div>
               )}
 
               {doc.languages?.length > 0 && (
                 <div>
-                  <p className="text-xs text-gray-400 mb-1">שפות</p>
+                  <p className="text-xs text-slate-400 mb-1">שפות</p>
                   <p className="text-sm font-medium">{doc.languages.join(', ')}</p>
                 </div>
               )}
 
               {doc.consultation_price && (
                 <div>
-                  <p className="text-xs text-gray-400 mb-1">מחיר ייעוץ</p>
+                  <p className="text-xs text-slate-400 mb-1">מחיר ייעוץ</p>
                   <p className="text-sm font-bold text-green-700">{formatPrice(doc.consultation_price)}</p>
                 </div>
               )}
 
               {doc.total_appointments > 0 && (
                 <div>
-                  <p className="text-xs text-gray-400 mb-1">ייעוצים שבוצעו</p>
+                  <p className="text-xs text-slate-400 mb-1">ייעוצים שבוצעו</p>
                   <p className="text-sm font-medium">{doc.total_appointments.toLocaleString()}</p>
                 </div>
               )}
@@ -358,7 +358,7 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 bg-gray-900 text-gray-400">
+      <footer className="py-12 px-4 bg-slate-900 text-slate-400">
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
           <div>
             <h5 className="font-bold text-white mb-3">CANNA</h5>
@@ -384,7 +384,7 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
             <p><Link href="/accessibility" className="hover:text-white">נגישות</Link></p>
           </div>
         </div>
-        <div className="max-w-6xl mx-auto mt-8 pt-8 border-t border-gray-800 text-center text-xs">
+        <div className="max-w-6xl mx-auto mt-8 pt-8 border-t border-slate-800 text-center text-xs">
           &copy; {new Date().getFullYear()} CANNA. כל הזכויות שמורות.
         </div>
       </footer>

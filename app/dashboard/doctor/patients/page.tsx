@@ -157,7 +157,7 @@ export default function DoctorPatientsPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">המטופלים שלי</h2>
-          <p className="text-sm text-gray-500">{patients.length} מטופלים</p>
+          <p className="text-sm text-slate-500">{patients.length} מטופלים</p>
         </div>
       </div>
 
@@ -170,7 +170,7 @@ export default function DoctorPatientsPage() {
 
       {patients.length === 0 ? (
         <EmptyState
-          icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></svg>}
+          icon={<svg className="w-10 h-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M23 21v-2a4 4 0 00-3-3.87" /><path d="M16 3.13a4 4 0 010 7.75" /></svg>}
           title="אין מטופלים עדיין"
           description="כשמטופלים יקבעו תורים, הם יופיעו כאן."
         />
@@ -180,7 +180,7 @@ export default function DoctorPatientsPage() {
           <div className="lg:col-span-2">
             <Card className="max-h-[75vh] overflow-y-auto">
               {filtered.length === 0 ? (
-                <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>} title="לא נמצאו תוצאות" description="נסה לחפש מחדש" />
+                <EmptyState icon={<svg className="w-10 h-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>} title="לא נמצאו תוצאות" description="נסה לחפש מחדש" />
               ) : (
                 <div className="divide-y">
                   {filtered.map(patient => {
@@ -190,7 +190,7 @@ export default function DoctorPatientsPage() {
                         key={patient.id}
                         onClick={() => selectPatient(patient)}
                         className={cn(
-                          'w-full px-4 py-3 text-right hover:bg-gray-50 transition-colors',
+                          'w-full px-4 py-3 text-right hover:bg-slate-50 transition-colors',
                           isSelected && 'bg-blue-50 border-r-4 border-blue-600'
                         )}
                       >
@@ -206,7 +206,7 @@ export default function DoctorPatientsPage() {
                           )}
                           <div className="min-w-0 flex-1">
                             <p className="font-medium truncate">{patient.first_name} {patient.last_name}</p>
-                            <div className="flex items-center gap-2 text-xs text-gray-400 mt-0.5">
+                            <div className="flex items-center gap-2 text-xs text-slate-400 mt-0.5">
                               <span>{patient.appointment_count} תורים</span>
                               {patient.last_visit && (
                                 <>
@@ -234,7 +234,7 @@ export default function DoctorPatientsPage() {
               {selected ? (
                 <div>
                   {/* Patient header */}
-                  <div className="px-6 py-5 border-b border-gray-100">
+                  <div className="px-6 py-5 border-b border-slate-100">
                     <div className="flex items-center gap-4">
                       {selected.avatar_url ? (
                         // eslint-disable-next-line @next/next/no-img-element
@@ -246,7 +246,7 @@ export default function DoctorPatientsPage() {
                       )}
                       <div className="flex-1 min-w-0">
                         <h3 className="font-bold text-lg">{selected.first_name} {selected.last_name}</h3>
-                        <div className="flex flex-wrap items-center gap-3 text-sm text-gray-500">
+                        <div className="flex flex-wrap items-center gap-3 text-sm text-slate-500">
                           {selected.email && <span>{selected.email}</span>}
                           {selected.phone && <span>טל׳: {selected.phone}</span>}
                         </div>
@@ -261,7 +261,7 @@ export default function DoctorPatientsPage() {
                   </div>
 
                   {/* Tabs */}
-                  <div className="flex border-b border-gray-100">
+                  <div className="flex border-b border-slate-100">
                     {([
                       { key: 'info' as const, label: 'פרטים', count: null },
                       { key: 'visits' as const, label: 'היסטוריית ביקורים', count: visits.length },
@@ -274,12 +274,12 @@ export default function DoctorPatientsPage() {
                           'px-5 py-3 text-sm font-medium border-b-2 transition-colors',
                           detailTab === tab.key
                             ? 'border-blue-600 text-blue-600'
-                            : 'border-transparent text-gray-500 hover:text-gray-700'
+                            : 'border-transparent text-slate-500 hover:text-slate-700'
                         )}
                       >
                         {tab.label}
                         {tab.count !== null && tab.count > 0 && (
-                          <span className="mr-1 text-xs bg-gray-100 text-gray-600 px-1.5 py-0.5 rounded-full">{tab.count}</span>
+                          <span className="mr-1 text-xs bg-slate-100 text-slate-600 px-1.5 py-0.5 rounded-full">{tab.count}</span>
                         )}
                       </button>
                     ))}
@@ -289,7 +289,7 @@ export default function DoctorPatientsPage() {
                   <div className="p-6">
                     {detailLoading ? (
                       <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full border-2 border-gray-300 border-t-blue-600 h-6 w-6" />
+                        <div className="animate-spin rounded-full border-2 border-slate-300 border-t-blue-600 h-6 w-6" />
                       </div>
                     ) : (
                       <>
@@ -301,7 +301,7 @@ export default function DoctorPatientsPage() {
                   </div>
                 </div>
               ) : (
-                <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>} title="בחר מטופל מהרשימה" description="לחץ על מטופל כדי לראות את הפרטים שלו" />
+                <EmptyState icon={<svg className="w-10 h-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6" /></svg>} title="בחר מטופל מהרשימה" description="לחץ על מטופל כדי לראות את הפרטים שלו" />
               )}
             </Card>
           </div>
@@ -321,7 +321,7 @@ function PatientInfo({ patient }: { patient: PatientWithStats }) {
     <div className="space-y-6">
       {/* Personal Details */}
       <section>
-        <h4 className="font-bold text-gray-900 mb-3">פרטים אישיים</h4>
+        <h4 className="font-bold text-slate-900 mb-3">פרטים אישיים</h4>
         <div className="grid grid-cols-2 gap-3 text-sm">
           <InfoRow label="שם מלא" value={`${patient.first_name} ${patient.last_name}`} />
           <InfoRow label="אימייל" value={patient.email} />
@@ -334,7 +334,7 @@ function PatientInfo({ patient }: { patient: PatientWithStats }) {
 
       {/* Medical History */}
       <section>
-        <h4 className="font-bold text-gray-900 mb-3">היסטוריה רפואית</h4>
+        <h4 className="font-bold text-slate-900 mb-3">היסטוריה רפואית</h4>
         <div className="space-y-3">
           <MedicalList
             label="אלרגיות"
@@ -362,7 +362,7 @@ function PatientInfo({ patient }: { patient: PatientWithStats }) {
       {/* Insurance */}
       {insurance.provider && (
         <section>
-          <h4 className="font-bold text-gray-900 mb-3">ביטוח בריאות</h4>
+          <h4 className="font-bold text-slate-900 mb-3">ביטוח בריאות</h4>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <InfoRow label="קופה/חברה" value={insurance.provider} />
             <InfoRow label="מספר פוליסה" value={insurance.policy_number} />
@@ -372,23 +372,23 @@ function PatientInfo({ patient }: { patient: PatientWithStats }) {
 
       {/* Stats */}
       <section>
-        <h4 className="font-bold text-gray-900 mb-3">סטטיסטיקות</h4>
+        <h4 className="font-bold text-slate-900 mb-3">סטטיסטיקות</h4>
         <div className="grid grid-cols-3 gap-3">
           <div className="bg-blue-50 rounded-lg p-3 text-center">
             <p className="text-2xl font-bold text-blue-600">{patient.appointment_count}</p>
-            <p className="text-xs text-gray-500">תורים</p>
+            <p className="text-xs text-slate-500">תורים</p>
           </div>
           <div className="bg-green-50 rounded-lg p-3 text-center">
             <p className="text-sm font-bold text-green-600">
               {patient.last_visit ? new Date(patient.last_visit).toLocaleDateString('he-IL') : '—'}
             </p>
-            <p className="text-xs text-gray-500">ביקור אחרון</p>
+            <p className="text-xs text-slate-500">ביקור אחרון</p>
           </div>
           <div className="bg-purple-50 rounded-lg p-3 text-center">
             <p className="text-sm font-bold text-purple-600">
               {patient.next_visit ? new Date(patient.next_visit).toLocaleDateString('he-IL') : '—'}
             </p>
-            <p className="text-xs text-gray-500">תור הבא</p>
+            <p className="text-xs text-slate-500">תור הבא</p>
           </div>
         </div>
       </section>
@@ -400,18 +400,18 @@ function PatientInfo({ patient }: { patient: PatientWithStats }) {
 
 function PatientVisits({ visits }: { visits: PatientAppointment[] }) {
   if (visits.length === 0) {
-    return <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></svg>} title="אין ביקורים" description="טרם נקבעו תורים עם מטופל זה" />
+    return <EmptyState icon={<svg className="w-10 h-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></svg>} title="אין ביקורים" description="טרם נקבעו תורים עם מטופל זה" />
   }
 
   return (
     <div className="space-y-3">
       {visits.map(visit => (
-        <div key={visit.id} className="border border-gray-100 rounded-lg p-4 hover:bg-gray-50 transition-colors">
+        <div key={visit.id} className="border border-slate-100 rounded-lg p-4 hover:bg-slate-50 transition-colors">
           <div className="flex items-start justify-between mb-2">
             <div>
-              <p className="font-medium text-gray-900">{visit.chief_complaint}</p>
+              <p className="font-medium text-slate-900">{visit.chief_complaint}</p>
               {visit.complaint_description && (
-                <p className="text-sm text-gray-500 mt-0.5 line-clamp-2">{visit.complaint_description}</p>
+                <p className="text-sm text-slate-500 mt-0.5 line-clamp-2">{visit.complaint_description}</p>
               )}
             </div>
             <div className="flex items-center gap-2 shrink-0">
@@ -421,12 +421,12 @@ function PatientVisits({ visits }: { visits: PatientAppointment[] }) {
             </div>
           </div>
 
-          <div className="flex flex-wrap items-center gap-3 text-xs text-gray-400">
+          <div className="flex flex-wrap items-center gap-3 text-xs text-slate-400">
             <span>{formatDateTime(visit.scheduled_at || visit.created_at)}</span>
             {visit.diagnosis && (
               <>
                 <span>·</span>
-                <span className="text-gray-600">אבחנה: {visit.diagnosis}</span>
+                <span className="text-slate-600">אבחנה: {visit.diagnosis}</span>
               </>
             )}
             {visit.ai_triage_score != null && (
@@ -444,15 +444,15 @@ function PatientVisits({ visits }: { visits: PatientAppointment[] }) {
 
           {/* SOAP summary for completed visits */}
           {visit.status === 'completed' && (visit.assessment || visit.plan || visit.follow_up_instructions) && (
-            <div className="mt-3 pt-3 border-t border-gray-100 space-y-1.5">
+            <div className="mt-3 pt-3 border-t border-slate-100 space-y-1.5">
               {visit.assessment && (
-                <p className="text-sm"><span className="font-medium text-gray-700">הערכה:</span> <span className="text-gray-600">{visit.assessment}</span></p>
+                <p className="text-sm"><span className="font-medium text-slate-700">הערכה:</span> <span className="text-slate-600">{visit.assessment}</span></p>
               )}
               {visit.plan && (
-                <p className="text-sm"><span className="font-medium text-gray-700">תוכנית:</span> <span className="text-gray-600">{visit.plan}</span></p>
+                <p className="text-sm"><span className="font-medium text-slate-700">תוכנית:</span> <span className="text-slate-600">{visit.plan}</span></p>
               )}
               {visit.follow_up_instructions && (
-                <p className="text-sm"><span className="font-medium text-gray-700">מעקב:</span> <span className="text-gray-600">{visit.follow_up_instructions}</span></p>
+                <p className="text-sm"><span className="font-medium text-slate-700">מעקב:</span> <span className="text-slate-600">{visit.follow_up_instructions}</span></p>
               )}
             </div>
           )}
@@ -498,7 +498,7 @@ function PatientDocuments({ documents, supabase }: { documents: Document[]; supa
   }
 
   if (documents.length === 0) {
-    return <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>} title="אין מסמכים" description="למטופל זה אין מסמכים" />
+    return <EmptyState icon={<svg className="w-10 h-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>} title="אין מסמכים" description="למטופל זה אין מסמכים" />
   }
 
   const formatFileSize = (bytes: number) => {
@@ -513,14 +513,14 @@ function PatientDocuments({ documents, supabase }: { documents: Document[]; supa
         <div className="p-3 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700" role="alert">{downloadError}</div>
       )}
       {documents.map(doc => (
-        <div key={doc.id} className="flex items-center justify-between border border-gray-100 rounded-lg px-4 py-3 hover:bg-gray-50 transition-colors">
+        <div key={doc.id} className="flex items-center justify-between border border-slate-100 rounded-lg px-4 py-3 hover:bg-slate-50 transition-colors">
           <div className="flex items-center gap-3 min-w-0">
             <span className="shrink-0">
-              <svg className="w-5 h-5 text-gray-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+              <svg className="w-5 h-5 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
             </span>
             <div className="min-w-0">
               <p className="text-sm font-medium truncate">{doc.file_name}</p>
-              <div className="flex items-center gap-2 text-xs text-gray-400">
+              <div className="flex items-center gap-2 text-xs text-slate-400">
                 <span>{formatFileSize(doc.file_size_bytes)}</span>
                 {doc.category && (
                   <>
@@ -551,9 +551,9 @@ function PatientDocuments({ documents, supabase }: { documents: Document[]; supa
 
 function InfoRow({ label, value }: { label: string; value: string | null | undefined }) {
   return (
-    <div className="bg-gray-50 rounded-lg px-3 py-2">
-      <p className="text-xs text-gray-400">{label}</p>
-      <p className="font-medium text-gray-900">{value || '—'}</p>
+    <div className="bg-slate-50 rounded-lg px-3 py-2">
+      <p className="text-xs text-slate-400">{label}</p>
+      <p className="font-medium text-slate-900">{value || '—'}</p>
     </div>
   )
 }
@@ -564,14 +564,14 @@ function MedicalList({ label, items, variant }: { label: string; items: string[]
     warning: 'bg-yellow-50 text-yellow-700',
     danger: 'bg-red-50 text-red-700',
     info: 'bg-blue-50 text-blue-700',
-    default: 'bg-gray-50 text-gray-700',
+    default: 'bg-slate-50 text-slate-700',
   }
 
   return (
     <div>
-      <p className="text-sm font-medium text-gray-600 mb-1">{label}</p>
+      <p className="text-sm font-medium text-slate-600 mb-1">{label}</p>
       {items.length === 0 ? (
-        <p className="text-sm text-gray-400">לא דווח</p>
+        <p className="text-sm text-slate-400">לא דווח</p>
       ) : (
         <div className="flex flex-wrap gap-1.5">
           {items.map((item, i) => (

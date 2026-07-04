@@ -186,10 +186,10 @@ export function PageLoading() {
       {/* Header skeleton */}
       <div className="flex items-center justify-between">
         <div className="space-y-2">
-          <div className="h-6 bg-gray-200 rounded-lg w-40" />
-          <div className="h-4 bg-gray-100 rounded-lg w-24" />
+          <div className="h-6 bg-slate-200 rounded-lg w-40" />
+          <div className="h-4 bg-slate-100 rounded-lg w-24" />
         </div>
-        <div className="h-10 bg-gray-200 rounded-lg w-32" />
+        <div className="h-10 bg-slate-200 rounded-lg w-32" />
       </div>
       {/* Stat cards skeleton */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
@@ -267,7 +267,7 @@ export { AppointmentTimeline } from './AppointmentTimeline'
 // Consistent appointment-status pill used across every dashboard.
 export function StatusChip({ status, className }: { status: string; className?: string }) {
   const label = STATUS_LABELS[status] || status
-  const color = STATUS_COLORS[status] || 'bg-gray-100 text-slate-700'
+  const color = STATUS_COLORS[status] || 'bg-slate-100 text-slate-700'
   return (
     <span className={cn('inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-xs font-semibold', color, className)}>
       <span className="w-1.5 h-1.5 rounded-full bg-current opacity-70" />
@@ -278,12 +278,12 @@ export function StatusChip({ status, className }: { status: string; className?: 
 
 // ==================== SKELETON ====================
 export function Skeleton({ className }: { className?: string }) {
-  return <div className={cn('animate-pulse rounded-lg bg-gray-100', className)} />
+  return <div className={cn('animate-pulse rounded-lg bg-slate-100', className)} />
 }
 
 export function SkeletonCard() {
   return (
-    <div className="rounded-2xl border border-gray-100 bg-white p-5 shadow-sm">
+    <div className="rounded-2xl border border-slate-100 bg-white p-5 shadow-sm">
       <div className="flex items-center justify-between">
         <div className="space-y-2">
           <Skeleton className="h-3 w-24" />
@@ -307,7 +307,7 @@ export function DashboardSkeleton() {
         {Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)}
       </div>
       <div className="grid lg:grid-cols-3 gap-6">
-        <div className="lg:col-span-2 rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
+        <div className="lg:col-span-2 rounded-2xl border border-slate-100 bg-white p-6 shadow-sm space-y-4">
           <Skeleton className="h-5 w-40" />
           {Array.from({ length: 4 }).map((_, i) => (
             <div key={i} className="flex items-center gap-3">
@@ -320,7 +320,7 @@ export function DashboardSkeleton() {
             </div>
           ))}
         </div>
-        <div className="rounded-2xl border border-gray-100 bg-white p-6 shadow-sm space-y-4">
+        <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm space-y-4">
           <Skeleton className="h-5 w-32" />
           {Array.from({ length: 3 }).map((_, i) => <Skeleton key={i} className="h-16 w-full rounded-xl" />)}
         </div>

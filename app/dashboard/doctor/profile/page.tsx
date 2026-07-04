@@ -31,14 +31,14 @@ function TagInput({ label, tags, onChange, placeholder }: {
 
   return (
     <div className="space-y-1.5">
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <label className="block text-sm font-medium text-slate-700">{label}</label>
       <div className="flex gap-2">
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }}
           placeholder={placeholder}
-          className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+          className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
         />
         <Button variant="outline" size="sm" type="button" onClick={addTag} disabled={!input.trim()}>
           הוסף
@@ -268,10 +268,10 @@ export default function DoctorProfilePage() {
                 <img
                   src={avatarUrl}
                   alt="תמונת פרופיל"
-                  className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+                  className="w-20 h-20 rounded-full object-cover border-2 border-slate-200"
                 />
               ) : (
-                <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-2xl font-bold text-blue-700 border-2 border-gray-200">
+                <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-2xl font-bold text-blue-700 border-2 border-slate-200">
                   {getInitials(profile.first_name, profile.last_name)}
                 </div>
               )}
@@ -295,8 +295,8 @@ export default function DoctorProfilePage() {
               />
             </div>
             <div>
-              <p className="text-xl font-bold text-gray-900">ד&quot;ר {profile.first_name} {profile.last_name}</p>
-              <p className="text-sm text-gray-500">{profile.email}</p>
+              <p className="text-xl font-bold text-slate-900">ד&quot;ר {profile.first_name} {profile.last_name}</p>
+              <p className="text-sm text-slate-500">{profile.email}</p>
               <div className="flex items-center gap-2 mt-1.5">
                 {profile.average_rating ? (
                   <Badge variant="success">
@@ -312,7 +312,7 @@ export default function DoctorProfilePage() {
           {errors.avatar && (
             <p className="text-sm text-red-600 mt-2" role="alert">{errors.avatar}</p>
           )}
-          <p className="text-xs text-gray-400 mt-3">PNG, JPG או WebP, עד 2MB</p>
+          <p className="text-xs text-slate-400 mt-3">PNG, JPG או WebP, עד 2MB</p>
         </CardContent>
       </Card>
 
@@ -320,7 +320,7 @@ export default function DoctorProfilePage() {
       <Card>
         <CardHeader>
           <h3 className="font-bold text-lg">סוגי ייעוץ זמינים</h3>
-          <p className="text-sm text-gray-500 mt-0.5">קבע אילו סוגי ייעוץ אתה מציע למטופלים</p>
+          <p className="text-sm text-slate-500 mt-0.5">קבע אילו סוגי ייעוץ אתה מציע למטופלים</p>
         </CardHeader>
         <CardContent className="space-y-3">
           {([
@@ -345,7 +345,7 @@ export default function DoctorProfilePage() {
               key={opt.key}
               className={cn(
                 'flex items-center justify-between gap-4 rounded-xl border-2 p-4 transition-all cursor-pointer',
-                opt.value ? 'border-blue-400 bg-blue-50' : 'border-gray-200 bg-white hover:border-gray-300'
+                opt.value ? 'border-blue-400 bg-blue-50' : 'border-slate-200 bg-white hover:border-slate-300'
               )}
               onClick={() => opt.onChange(!opt.value)}
               role="checkbox"
@@ -356,13 +356,13 @@ export default function DoctorProfilePage() {
               <div className="flex items-center gap-3">
                 <span className="text-xl">{opt.icon}</span>
                 <div>
-                  <p className={cn('font-semibold text-sm', opt.value ? 'text-blue-800' : 'text-gray-700')}>{opt.label}</p>
-                  <p className="text-xs text-gray-400 mt-0.5">{opt.desc}</p>
+                  <p className={cn('font-semibold text-sm', opt.value ? 'text-blue-800' : 'text-slate-700')}>{opt.label}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{opt.desc}</p>
                 </div>
               </div>
               <div className={cn(
                 'w-12 h-6 rounded-full relative transition-colors shrink-0',
-                opt.value ? 'bg-blue-500' : 'bg-gray-200'
+                opt.value ? 'bg-blue-500' : 'bg-slate-200'
               )}>
                 <div className={cn(
                   'absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform',
@@ -426,7 +426,7 @@ export default function DoctorProfilePage() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <h3 className="font-bold text-lg">התמחויות</h3>
-            <span className="text-sm text-gray-500">{selectedSpecialties.length} נבחרו</span>
+            <span className="text-sm text-slate-500">{selectedSpecialties.length} נבחרו</span>
           </div>
         </CardHeader>
         <CardContent>
@@ -448,7 +448,7 @@ export default function DoctorProfilePage() {
                     'px-3 py-1.5 rounded-full text-sm font-medium border transition-colors',
                     isSelected
                       ? 'bg-blue-600 text-white border-blue-600'
-                      : 'bg-white text-gray-600 border-gray-300 hover:bg-gray-50'
+                      : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50'
                   )}
                 >
                   {s.label}
@@ -487,13 +487,13 @@ export default function DoctorProfilePage() {
                     {[1, 2, 3, 4, 5].map(star => (
                       <span key={star} className={cn(
                         'text-lg',
-                        star <= Math.round(profile.average_rating || 0) ? 'text-yellow-400' : 'text-gray-200'
+                        star <= Math.round(profile.average_rating || 0) ? 'text-yellow-400' : 'text-slate-200'
                       )}>
                         ★
                       </span>
                     ))}
                   </div>
-                  <p className="text-xs text-gray-500">{profile.total_ratings} דירוגים</p>
+                  <p className="text-xs text-slate-500">{profile.total_ratings} דירוגים</p>
                 </div>
               </div>
             )}
@@ -501,11 +501,11 @@ export default function DoctorProfilePage() {
         </CardHeader>
         <CardContent>
           {reviews.length === 0 ? (
-            <p className="text-sm text-gray-500 text-center py-6">אין עדיין ביקורות</p>
+            <p className="text-sm text-slate-500 text-center py-6">אין עדיין ביקורות</p>
           ) : (
             <div className="space-y-4">
               {reviews.map((review, i) => (
-                <div key={i} className="border-b border-gray-100 pb-4 last:border-b-0 last:pb-0">
+                <div key={i} className="border-b border-slate-100 pb-4 last:border-b-0 last:pb-0">
                   <div className="flex items-center justify-between mb-1">
                     <div className="flex items-center gap-2">
                       <span className="text-sm font-medium">{review.patient_name}</span>
@@ -513,19 +513,19 @@ export default function DoctorProfilePage() {
                         {[1, 2, 3, 4, 5].map(star => (
                           <span key={star} className={cn(
                             'text-sm',
-                            star <= review.rating ? 'text-yellow-400' : 'text-gray-200'
+                            star <= review.rating ? 'text-yellow-400' : 'text-slate-200'
                           )}>
                             ★
                           </span>
                         ))}
                       </div>
                     </div>
-                    <span className="text-xs text-gray-400">
+                    <span className="text-xs text-slate-400">
                       {new Date(review.date).toLocaleDateString('he-IL')}
                     </span>
                   </div>
                   {review.feedback && (
-                    <p className="text-sm text-gray-600">{review.feedback}</p>
+                    <p className="text-sm text-slate-600">{review.feedback}</p>
                   )}
                 </div>
               ))}

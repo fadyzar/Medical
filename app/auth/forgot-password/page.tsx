@@ -60,8 +60,8 @@ export default function ForgotPasswordPage() {
             </svg>
           </div>
 
-          <h3 className="text-lg font-bold text-gray-900 mb-2">נשלח בהצלחה!</h3>
-          <p className="text-gray-500 text-sm leading-relaxed mb-2">
+          <h3 className="text-lg font-bold text-slate-900 mb-2">נשלח בהצלחה!</h3>
+          <p className="text-slate-500 text-sm leading-relaxed mb-2">
             שלחנו קישור לאיפוס סיסמה אל:
           </p>
           <p className="text-blue-600 font-medium text-sm mb-6 ltr" dir="ltr">{email}</p>
@@ -84,7 +84,7 @@ export default function ForgotPasswordPage() {
 
           <Link
             href="/auth/login"
-            className="inline-flex items-center gap-2 text-sm text-gray-600 hover:text-gray-900 font-medium transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-slate-600 hover:text-slate-900 font-medium transition-colors"
           >
             <svg className="w-4 h-4 rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />
@@ -137,7 +137,7 @@ export default function ForgotPasswordPage() {
         <div className="text-center mt-6">
           <Link
             href="/auth/login"
-            className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 transition-colors"
           >
             <svg className="w-4 h-4 rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />

@@ -44,7 +44,7 @@ function statusBar(s: string) {
 
 function DoctorAvatar({ doc }: { doc: AptWithDoctor['doctor'] }) {
   if (!doc) return (
-    <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-xs text-gray-400 shrink-0">?</div>
+    <div className="w-10 h-10 rounded-full bg-slate-100 flex items-center justify-center text-xs text-slate-400 shrink-0">?</div>
   )
   if (doc.avatar_url) return (
     // eslint-disable-next-line @next/next/no-img-element
@@ -72,7 +72,7 @@ function StarRating({ rating, onRate }: { rating: number | null; onRate?: (r: nu
           className={cn(
             'text-xl leading-none transition-colors',
             !onRate ? 'cursor-default' : 'cursor-pointer',
-            s <= (hover || rating || 0) ? 'text-yellow-400' : 'text-gray-200'
+            s <= (hover || rating || 0) ? 'text-yellow-400' : 'text-slate-200'
           )}
           aria-label={`${s} כוכבים`}
         >★</button>
@@ -238,8 +238,8 @@ export default function PatientAppointmentsPage() {
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">התורים שלי</h1>
-          <p className="text-sm text-gray-500 mt-0.5">היסטוריה מלאה של כל הביקורים והייעוצים</p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">התורים שלי</h1>
+          <p className="text-sm text-slate-500 mt-0.5">היסטוריה מלאה של כל הביקורים והייעוצים</p>
         </div>
         <Button onClick={() => router.push('/dashboard/patient/new-appointment')}>
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -251,7 +251,7 @@ export default function PatientAppointmentsPage() {
 
       {/* ── Search ── */}
       <div className="relative">
-        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-400">
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" />
           </svg>
@@ -261,11 +261,11 @@ export default function PatientAppointmentsPage() {
           placeholder="חיפוש לפי תלונה או שם רופא..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="w-full rounded-xl border border-gray-200 bg-white py-3 pr-10 pl-4 text-sm shadow-sm placeholder:text-gray-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none"
+          className="w-full rounded-xl border border-slate-200 bg-white py-3 pr-10 pl-4 text-sm shadow-sm placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none"
           aria-label="חיפוש תורים"
         />
         {search && (
-          <button onClick={() => setSearch('')} className="absolute inset-y-0 left-3 flex items-center text-gray-400 hover:text-gray-600" aria-label="נקה חיפוש">
+          <button onClick={() => setSearch('')} className="absolute inset-y-0 left-3 flex items-center text-slate-400 hover:text-slate-600" aria-label="נקה חיפוש">
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
           </button>
         )}
@@ -286,11 +286,11 @@ export default function PatientAppointmentsPage() {
                 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all',
                 active
                   ? 'bg-blue-600 text-white shadow-sm'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300 hover:text-blue-600'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:border-blue-300 hover:text-blue-600'
               )}
             >
               {f.label}
-              <span className={cn('text-xs tabular-nums px-1.5 py-0.5 rounded-full font-semibold', active ? 'bg-white/25 text-white' : 'bg-gray-100 text-gray-500')}>
+              <span className={cn('text-xs tabular-nums px-1.5 py-0.5 rounded-full font-semibold', active ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500')}>
                 {count}
               </span>
             </button>
@@ -303,8 +303,8 @@ export default function PatientAppointmentsPage() {
         <Card>
           <EmptyState
             icon={
-              <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto">
-                <svg className="w-8 h-8 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto">
+                <svg className="w-8 h-8 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
                 </svg>
               </div>
@@ -340,7 +340,7 @@ export default function PatientAppointmentsPage() {
               const doctorProposedPending = !!apt.doctor_proposed_at && !apt.patient_confirmed_proposed_at
 
               return (
-                <div key={apt.id} className="hover:bg-gray-50/60 transition-colors">
+                <div key={apt.id} className="hover:bg-slate-50/60 transition-colors">
 
                   {/* Main row */}
                   <button
@@ -358,7 +358,7 @@ export default function PatientAppointmentsPage() {
                       {/* Info */}
                       <div className="flex-1 min-w-0 text-right">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-semibold text-gray-900 text-sm">{apt.chief_complaint}</p>
+                          <p className="font-semibold text-slate-900 text-sm">{apt.chief_complaint}</p>
                           {apt.status === 'in_progress' && (
                             <span className="flex items-center gap-1 text-xs bg-green-100 text-green-700 px-2 py-0.5 rounded-full font-medium">
                               <span className="w-1.5 h-1.5 rounded-full bg-green-500 animate-pulse" />
@@ -366,7 +366,7 @@ export default function PatientAppointmentsPage() {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-xs text-slate-500 mt-0.5">
                           {doc ? `ד"ר ${doc.first_name} ${doc.last_name}` : 'ממתין לשיוך רופא'}
                           {' · '}
                           {apt.scheduled_at ? formatDateTime(apt.scheduled_at) : formatDate(apt.created_at)}
@@ -374,7 +374,7 @@ export default function PatientAppointmentsPage() {
                         {isCompleted && apt.patient_rating && (
                           <div className="flex gap-0.5 mt-1">
                             {[1,2,3,4,5].map(s => (
-                              <span key={s} className={cn('text-sm', s <= apt.patient_rating! ? 'text-yellow-400' : 'text-gray-200')}>★</span>
+                              <span key={s} className={cn('text-sm', s <= apt.patient_rating! ? 'text-yellow-400' : 'text-slate-200')}>★</span>
                             ))}
                           </div>
                         )}
@@ -383,7 +383,7 @@ export default function PatientAppointmentsPage() {
                       {/* Right side */}
                       <div className="flex items-center gap-2 shrink-0">
                         <Badge variant={statusBadgeVariant(apt.status)}>{STATUS_LABELS[apt.status]}</Badge>
-                        <svg className={cn('w-4 h-4 text-gray-400 transition-transform duration-200', isExpanded && 'rotate-180')} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                        <svg className={cn('w-4 h-4 text-slate-400 transition-transform duration-200', isExpanded && 'rotate-180')} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                           <polyline points="6 9 12 15 18 9" />
                         </svg>
                       </div>
@@ -393,7 +393,7 @@ export default function PatientAppointmentsPage() {
                   {/* Expanded panel */}
                   {isExpanded && (
                     <div className="px-5 pb-5 space-y-4">
-                      <div className="h-px bg-gray-100" />
+                      <div className="h-px bg-slate-100" />
 
                       {/* Doctor proposed alternative time banner */}
                       {doctorProposedPending && apt.scheduled_at && (
@@ -438,34 +438,34 @@ export default function PatientAppointmentsPage() {
                       {/* Details grid */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                         {/* Appointment info */}
-                        <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 space-y-1.5">
-                          <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">פרטי הביקור</p>
-                          <div className="space-y-1 text-gray-700">
+                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-1.5">
+                          <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">פרטי הביקור</p>
+                          <div className="space-y-1 text-slate-700">
                             {apt.requested_specialty && (
-                              <p><span className="text-gray-400 text-xs">התמחות:</span> <span className="font-medium">{apt.requested_specialty}</span></p>
+                              <p><span className="text-slate-400 text-xs">התמחות:</span> <span className="font-medium">{apt.requested_specialty}</span></p>
                             )}
                             {apt.scheduled_at && (
-                              <p><span className="text-gray-400 text-xs">מועד:</span> <span className="font-medium">{formatDateTime(apt.scheduled_at)}</span></p>
+                              <p><span className="text-slate-400 text-xs">מועד:</span> <span className="font-medium">{formatDateTime(apt.scheduled_at)}</span></p>
                             )}
                             {apt.complaint_description && (
-                              <p><span className="text-gray-400 text-xs">תיאור:</span> <span className="text-gray-600">{apt.complaint_description}</span></p>
+                              <p><span className="text-slate-400 text-xs">תיאור:</span> <span className="text-slate-600">{apt.complaint_description}</span></p>
                             )}
                             {apt.payment_amount && (
-                              <p><span className="text-gray-400 text-xs">עלות:</span> <span className="font-medium text-green-700">{apt.payment_amount} ₪</span></p>
+                              <p><span className="text-slate-400 text-xs">עלות:</span> <span className="font-medium text-green-700">{apt.payment_amount} ₪</span></p>
                             )}
                           </div>
                         </div>
 
                         {/* Doctor info */}
                         {doc && (
-                          <div className="bg-gray-50 rounded-xl p-4 border border-gray-100 space-y-1.5">
-                            <p className="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">הרופא המטפל</p>
+                          <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 space-y-1.5">
+                            <p className="text-xs font-semibold text-slate-400 uppercase tracking-wide mb-2">הרופא המטפל</p>
                             <div className="flex items-center gap-2">
                               <DoctorAvatar doc={doc} />
                               <div>
-                                <p className="font-semibold text-gray-900">ד&quot;ר {doc.first_name} {doc.last_name}</p>
+                                <p className="font-semibold text-slate-900">ד&quot;ר {doc.first_name} {doc.last_name}</p>
                                 {doc.specialties?.length && (
-                                  <p className="text-xs text-gray-500">{doc.specialties.slice(0, 2).join(', ')}</p>
+                                  <p className="text-xs text-slate-500">{doc.specialties.slice(0, 2).join(', ')}</p>
                                 )}
                               </div>
                             </div>
@@ -511,7 +511,7 @@ export default function PatientAppointmentsPage() {
                         </div>
                       )}
                       {isCompleted && apt.patient_rating != null && (
-                        <div className="flex items-center gap-2 text-sm text-gray-500 px-1">
+                        <div className="flex items-center gap-2 text-sm text-slate-500 px-1">
                           <svg className="w-4 h-4 text-yellow-400" viewBox="0 0 24 24" fill="currentColor"><polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" /></svg>
                           דירגת ביקור זה: {apt.patient_rating}/5
                         </div>

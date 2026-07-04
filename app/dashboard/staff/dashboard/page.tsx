@@ -223,8 +223,8 @@ export default function StaffDashboard() {
       {/* ── Header ──────────────────────────────────── */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900 tracking-tight">{greeting} 👋</h1>
-          <p className="text-sm text-gray-500 mt-0.5">{todayStr} · פאנל שירות ותפעול</p>
+          <h1 className="text-2xl font-bold text-slate-900 tracking-tight">{greeting} 👋</h1>
+          <p className="text-sm text-slate-500 mt-0.5">{todayStr} · פאנל שירות ותפעול</p>
         </div>
         <div className="flex items-center gap-2">
           <Button variant="outline" size="sm" onClick={loadData}>
@@ -282,7 +282,7 @@ export default function StaffDashboard() {
 
       {/* ── Search ──────────────────────────────────── */}
       <div className="relative">
-        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-gray-400">
+        <div className="absolute inset-y-0 right-3 flex items-center pointer-events-none text-slate-400">
           <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8" /><line x1="21" y1="21" x2="16.65" y2="16.65" /></svg>
         </div>
         <input
@@ -291,8 +291,8 @@ export default function StaffDashboard() {
           value={search}
           onChange={e => setSearch(e.target.value)}
           className={cn(
-            'w-full rounded-xl border border-gray-200 bg-white py-3 pr-10 pl-4 text-sm transition-all',
-            'placeholder:text-gray-400 shadow-sm',
+            'w-full rounded-xl border border-slate-200 bg-white py-3 pr-10 pl-4 text-sm transition-all',
+            'placeholder:text-slate-400 shadow-sm',
             'focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none'
           )}
           aria-label="חיפוש תורים"
@@ -300,7 +300,7 @@ export default function StaffDashboard() {
         {search && (
           <button
             onClick={() => setSearch('')}
-            className="absolute inset-y-0 left-3 flex items-center text-gray-400 hover:text-gray-600"
+            className="absolute inset-y-0 left-3 flex items-center text-slate-400 hover:text-slate-600"
             aria-label="נקה חיפוש"
           >
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
@@ -331,13 +331,13 @@ export default function StaffDashboard() {
                 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all',
                 isActive
                   ? 'bg-blue-600 text-white shadow-sm'
-                  : 'bg-white text-gray-600 border border-gray-200 hover:border-blue-300 hover:text-blue-600'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:border-blue-300 hover:text-blue-600'
               )}
             >
               {tab.label}
               <span className={cn(
                 'text-xs tabular-nums px-1.5 py-0.5 rounded-full font-semibold',
-                isActive ? 'bg-white/25 text-white' : 'bg-gray-100 text-gray-500'
+                isActive ? 'bg-white/25 text-white' : 'bg-slate-100 text-slate-500'
               )}>
                 {count}
               </span>
@@ -354,15 +354,15 @@ export default function StaffDashboard() {
               <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
                 <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" /></svg>
               </div>
-              <h3 className="font-bold text-gray-900">
+              <h3 className="font-bold text-slate-900">
                 רשימת תורים
                 {filtered.length > 0 && (
-                  <span className="text-gray-400 font-normal mr-1.5 text-sm">({filtered.length})</span>
+                  <span className="text-slate-400 font-normal mr-1.5 text-sm">({filtered.length})</span>
                 )}
               </h3>
             </div>
             {search && (
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-slate-400">
                 מוצגים {filtered.length} תוצאות עבור &quot;{search}&quot;
               </p>
             )}
@@ -372,8 +372,8 @@ export default function StaffDashboard() {
         {filtered.length === 0 ? (
           <EmptyState
             icon={
-              <div className="w-16 h-16 rounded-2xl bg-gray-50 flex items-center justify-center mx-auto">
-                <svg className="w-8 h-8 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <div className="w-16 h-16 rounded-2xl bg-slate-50 flex items-center justify-center mx-auto">
+                <svg className="w-8 h-8 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" />
                 </svg>
               </div>
@@ -391,7 +391,7 @@ export default function StaffDashboard() {
               const actions = STAFF_ACTIONS[apt.status] || []
 
               return (
-                <div key={apt.id} className="hover:bg-gray-50/60 transition-colors">
+                <div key={apt.id} className="hover:bg-slate-50/60 transition-colors">
                   {/* Main row */}
                   <button
                     onClick={() => setExpanded(isExpanded ? null : apt.id)}
@@ -403,14 +403,14 @@ export default function StaffDashboard() {
                       <div className={statusBar(apt.status)} />
 
                       {/* Avatar initials */}
-                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-gray-100 to-gray-50 flex items-center justify-center text-xs font-bold text-gray-500 shrink-0 border border-gray-100">
+                      <div className="w-9 h-9 rounded-xl bg-gradient-to-br from-slate-100 to-slate-50 flex items-center justify-center text-xs font-bold text-slate-500 shrink-0 border border-slate-100">
                         {apt.patient ? getInitials(apt.patient.first_name, apt.patient.last_name) : '?'}
                       </div>
 
                       {/* Patient + details */}
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2 flex-wrap">
-                          <p className="font-semibold text-gray-900 text-sm">
+                          <p className="font-semibold text-slate-900 text-sm">
                             {apt.patient?.first_name} {apt.patient?.last_name}
                           </p>
                           {apt.scheduled_at && isToday(apt) && (
@@ -425,19 +425,19 @@ export default function StaffDashboard() {
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500 truncate mt-0.5">{apt.chief_complaint}</p>
-                        <div className="flex items-center gap-1.5 text-xs text-gray-400 mt-0.5 flex-wrap">
+                        <p className="text-xs text-slate-500 truncate mt-0.5">{apt.chief_complaint}</p>
+                        <div className="flex items-center gap-1.5 text-xs text-slate-400 mt-0.5 flex-wrap">
                           {apt.doctor ? (
-                            <span className="font-medium text-gray-500">ד&quot;ר {apt.doctor.first_name} {apt.doctor.last_name}</span>
+                            <span className="font-medium text-slate-500">ד&quot;ר {apt.doctor.first_name} {apt.doctor.last_name}</span>
                           ) : (
                             <span className="text-amber-500 font-medium">ללא שיבוץ רופא</span>
                           )}
-                          <span className="text-gray-200">·</span>
+                          <span className="text-slate-200">·</span>
                           <span>{formatDateTime(apt.scheduled_at || apt.created_at)}</span>
                           {apt.patient?.phone && (
                             <>
-                              <span className="text-gray-200">·</span>
-                              <span className="font-medium text-gray-500">{apt.patient.phone}</span>
+                              <span className="text-slate-200">·</span>
+                              <span className="font-medium text-slate-500">{apt.patient.phone}</span>
                             </>
                           )}
                         </div>
@@ -453,7 +453,7 @@ export default function StaffDashboard() {
                         </Badge>
                         <svg
                           className={cn(
-                            'w-4 h-4 text-gray-400 transition-transform duration-200',
+                            'w-4 h-4 text-slate-400 transition-transform duration-200',
                             isExpanded && 'rotate-180'
                           )}
                           viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"
@@ -467,22 +467,22 @@ export default function StaffDashboard() {
                   {/* Expanded panel */}
                   {isExpanded && (
                     <div className="px-5 pb-5 space-y-3">
-                      <div className="h-px bg-gray-100 mb-4" />
+                      <div className="h-px bg-slate-100 mb-4" />
 
                       {/* Info grid */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
                         {/* Patient info */}
-                        <div className="bg-gray-50 rounded-xl p-4 space-y-1.5 border border-gray-100">
-                          <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-2">פרטי מטופל</p>
-                          <p className="font-semibold text-gray-900">{apt.patient?.first_name} {apt.patient?.last_name}</p>
+                        <div className="bg-slate-50 rounded-xl p-4 space-y-1.5 border border-slate-100">
+                          <p className="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-2">פרטי מטופל</p>
+                          <p className="font-semibold text-slate-900">{apt.patient?.first_name} {apt.patient?.last_name}</p>
                           {apt.patient?.phone && (
-                            <div className="flex items-center gap-1.5 text-gray-500">
+                            <div className="flex items-center gap-1.5 text-slate-500">
                               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07A19.5 19.5 0 013.07 7.18a19.79 19.79 0 01-3.07-8.67A2 2 0 012 .5h3a2 2 0 012 1.72c.127.96.361 1.903.7 2.81a2 2 0 01-.45 2.11L6.91 8a16 16 0 006.09 6.09l1.27-.63a2 2 0 012.11-.45c.907.339 1.85.573 2.81.7A2 2 0 0121.5 16c.082.482.082.968 0 1.45l.5-.53z" /></svg>
                               <span>{apt.patient.phone}</span>
                             </div>
                           )}
                           {apt.patient?.email && (
-                            <div className="flex items-center gap-1.5 text-gray-500">
+                            <div className="flex items-center gap-1.5 text-slate-500">
                               <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" /><polyline points="22,6 12,13 2,6" /></svg>
                               <span className="truncate text-xs">{apt.patient.email}</span>
                             </div>
@@ -490,18 +490,18 @@ export default function StaffDashboard() {
                         </div>
 
                         {/* Appointment info */}
-                        <div className="bg-gray-50 rounded-xl p-4 space-y-1.5 border border-gray-100">
-                          <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-2">פרטי תור</p>
-                          <div className="space-y-1.5 text-gray-600">
-                            <p><span className="text-gray-400 text-xs">תלונה:</span> <span className="font-medium text-gray-800">{apt.chief_complaint}</span></p>
+                        <div className="bg-slate-50 rounded-xl p-4 space-y-1.5 border border-slate-100">
+                          <p className="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-2">פרטי תור</p>
+                          <div className="space-y-1.5 text-slate-600">
+                            <p><span className="text-slate-400 text-xs">תלונה:</span> <span className="font-medium text-slate-800">{apt.chief_complaint}</span></p>
                             {apt.requested_specialty && (
-                              <p><span className="text-gray-400 text-xs">התמחות:</span> <span>{apt.requested_specialty}</span></p>
+                              <p><span className="text-slate-400 text-xs">התמחות:</span> <span>{apt.requested_specialty}</span></p>
                             )}
                             {apt.scheduled_at && (
-                              <p><span className="text-gray-400 text-xs">מועד:</span> <span className="font-medium">{formatDateTime(apt.scheduled_at)}</span></p>
+                              <p><span className="text-slate-400 text-xs">מועד:</span> <span className="font-medium">{formatDateTime(apt.scheduled_at)}</span></p>
                             )}
                             {apt.doctor && (
-                              <p><span className="text-gray-400 text-xs">רופא:</span> <span className="font-medium">ד&quot;ר {apt.doctor.first_name} {apt.doctor.last_name}</span></p>
+                              <p><span className="text-slate-400 text-xs">רופא:</span> <span className="font-medium">ד&quot;ר {apt.doctor.first_name} {apt.doctor.last_name}</span></p>
                             )}
                           </div>
                         </div>
@@ -509,9 +509,9 @@ export default function StaffDashboard() {
 
                       {/* Complaint description */}
                       {apt.complaint_description && (
-                        <div className="bg-gray-50 rounded-xl p-4 border border-gray-100">
-                          <p className="text-xs text-gray-400 font-semibold uppercase tracking-wide mb-2">תיאור התלונה</p>
-                          <p className="text-sm text-gray-700 leading-relaxed">{apt.complaint_description}</p>
+                        <div className="bg-slate-50 rounded-xl p-4 border border-slate-100">
+                          <p className="text-xs text-slate-400 font-semibold uppercase tracking-wide mb-2">תיאור התלונה</p>
+                          <p className="text-sm text-slate-700 leading-relaxed">{apt.complaint_description}</p>
                         </div>
                       )}
 
@@ -532,8 +532,8 @@ export default function StaffDashboard() {
                       {/* Payment info */}
                       {apt.payment_amount != null && apt.payment_amount > 0 && (
                         <div className="flex items-center gap-2.5">
-                          <svg className="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>
-                          <span className="text-sm text-gray-600">תשלום:</span>
+                          <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><rect x="1" y="4" width="22" height="16" rx="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>
+                          <span className="text-sm text-slate-600">תשלום:</span>
                           <Badge variant={apt.payment_status === 'completed' ? 'success' : 'warning'}>
                             {apt.payment_status === 'completed' ? 'שולם' : 'ממתין לתשלום'} — {apt.payment_amount} ₪
                           </Badge>

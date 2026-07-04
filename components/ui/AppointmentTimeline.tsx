@@ -94,9 +94,9 @@ export function AppointmentTimeline({
             ? 'bg-blue-500 border-blue-500 ring-4 ring-blue-100'
             : step.status === 'skipped'
             ? 'bg-red-500 border-red-500'
-            : 'bg-gray-200 border-gray-300'
+            : 'bg-slate-200 border-slate-300'
 
-        const lineColor = step.status === 'completed' ? 'bg-green-500' : 'bg-gray-200'
+        const lineColor = step.status === 'completed' ? 'bg-green-500' : 'bg-slate-200'
 
         return (
           <div key={idx} className="relative flex gap-4 pb-8 last:pb-0" role="listitem">
@@ -168,21 +168,21 @@ export function AppointmentTimeline({
                 className={cn(
                   'text-sm font-medium transition-colors',
                   step.status === 'completed'
-                    ? 'text-gray-900'
+                    ? 'text-slate-900'
                     : step.status === 'current'
                     ? 'text-blue-600 font-bold'
                     : step.status === 'skipped'
                     ? 'text-red-600'
-                    : 'text-gray-400'
+                    : 'text-slate-400'
                 )}
               >
                 {step.label}
               </p>
               {step.description && (
-                <p className="text-xs text-gray-500 mt-0.5">{step.description}</p>
+                <p className="text-xs text-slate-500 mt-0.5">{step.description}</p>
               )}
               {step.date && (
-                <p className="text-xs text-gray-400 mt-1">
+                <p className="text-xs text-slate-400 mt-1">
                   {new Date(step.date).toLocaleString('he-IL', {
                     dateStyle: 'short',
                     timeStyle: 'short',

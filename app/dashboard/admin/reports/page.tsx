@@ -202,7 +202,7 @@ export default function AdminReportsPage() {
 
       {loading ? (
         <div className="flex justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-300 border-t-blue-600" />
         </div>
       ) : (
         <>
@@ -211,7 +211,7 @@ export default function AdminReportsPage() {
             <CardHeader><h3 className="font-bold">הכנסות לפי תאריך</h3></CardHeader>
             <CardContent>
               {revenueData.length === 0 ? (
-                <p className="text-center text-gray-400 py-8">אין נתוני הכנסות לתקופה זו</p>
+                <p className="text-center text-slate-400 py-8">אין נתוני הכנסות לתקופה זו</p>
               ) : (
                 <ResponsiveContainer width="100%" height={300}>
                   <LineChart data={revenueData}>
@@ -235,7 +235,7 @@ export default function AdminReportsPage() {
               <CardHeader><h3 className="font-bold">תורים לפי תאריך</h3></CardHeader>
               <CardContent>
                 {appointmentData.length === 0 ? (
-                  <p className="text-center text-gray-400 py-8">אין נתוני תורים לתקופה זו</p>
+                  <p className="text-center text-slate-400 py-8">אין נתוני תורים לתקופה זו</p>
                 ) : (
                   <ResponsiveContainer width="100%" height={280}>
                     <BarChart data={appointmentData}>
@@ -258,7 +258,7 @@ export default function AdminReportsPage() {
               <CardHeader><h3 className="font-bold">התפלגות סטטוסים</h3></CardHeader>
               <CardContent>
                 {statusData.length === 0 ? (
-                  <p className="text-center text-gray-400 py-8">אין נתונים</p>
+                  <p className="text-center text-slate-400 py-8">אין נתונים</p>
                 ) : (
                   <ResponsiveContainer width="100%" height={280}>
                     <PieChart>
@@ -294,7 +294,7 @@ export default function AdminReportsPage() {
               <CardHeader><h3 className="font-bold">שימוש ב-AI לפי סוג</h3></CardHeader>
               <CardContent>
                 {aiData.length === 0 ? (
-                  <p className="text-center text-gray-400 py-8">אין נתוני AI לתקופה זו</p>
+                  <p className="text-center text-slate-400 py-8">אין נתוני AI לתקופה זו</p>
                 ) : (
                   <ResponsiveContainer width="100%" height={280}>
                     <PieChart>
@@ -324,7 +324,7 @@ export default function AdminReportsPage() {
               <CardHeader><h3 className="font-bold">צריכת טוקנים (AI)</h3></CardHeader>
               <CardContent>
                 {aiTokensData.length === 0 ? (
-                  <p className="text-center text-gray-400 py-8">אין נתוני טוקנים לתקופה זו</p>
+                  <p className="text-center text-slate-400 py-8">אין נתוני טוקנים לתקופה זו</p>
                 ) : (
                   <ResponsiveContainer width="100%" height={280}>
                     <LineChart data={aiTokensData}>

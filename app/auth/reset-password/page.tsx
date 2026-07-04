@@ -109,8 +109,8 @@ export default function ResetPasswordPage() {
               <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
             </svg>
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">הקישור פג תוקף</h3>
-          <p className="text-gray-500 text-sm leading-relaxed mb-6">
+          <h3 className="text-lg font-bold text-slate-900 mb-2">הקישור פג תוקף</h3>
+          <p className="text-slate-500 text-sm leading-relaxed mb-6">
             קישורי איפוס סיסמה תקפים לזמן מוגבל. בקש קישור חדש.
           </p>
           <Link
@@ -120,7 +120,7 @@ export default function ResetPasswordPage() {
             בקש קישור חדש
           </Link>
           <div className="mt-4">
-            <Link href="/auth/login" className="text-sm text-gray-500 hover:text-gray-700 transition-colors">
+            <Link href="/auth/login" className="text-sm text-slate-500 hover:text-slate-700 transition-colors">
               חזרה להתחברות
             </Link>
           </div>
@@ -139,8 +139,8 @@ export default function ResetPasswordPage() {
               <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
             </svg>
           </div>
-          <h3 className="text-lg font-bold text-gray-900 mb-2">סיסמה עודכנה!</h3>
-          <p className="text-gray-500 text-sm leading-relaxed mb-6">
+          <h3 className="text-lg font-bold text-slate-900 mb-2">סיסמה עודכנה!</h3>
+          <p className="text-slate-500 text-sm leading-relaxed mb-6">
             הסיסמה שלך שונתה בהצלחה. מעביר אותך לדשבורד...
           </p>
           <Link
@@ -159,7 +159,7 @@ export default function ResetPasswordPage() {
     return (
       <AuthLayout title="איפוס סיסמה" subtitle="מאמת את הקישור...">
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-gray-300 border-t-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-300 border-t-blue-600" />
         </div>
       </AuthLayout>
     )
@@ -200,7 +200,7 @@ export default function ResetPasswordPage() {
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute left-3 top-[38px] text-gray-400 hover:text-gray-600 transition-colors"
+            className="absolute left-3 top-[38px] text-slate-400 hover:text-slate-600 transition-colors"
             aria-label={showPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
           >
             {showPassword ? (
@@ -232,11 +232,11 @@ export default function ResetPasswordPage() {
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 ) : (
-                  <svg className="w-3.5 h-3.5 text-gray-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <svg className="w-3.5 h-3.5 text-slate-300" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <circle cx="12" cy="12" r="10" />
                   </svg>
                 )}
-                <span className={cn('text-xs', check.met ? 'text-green-600' : 'text-gray-400')}>
+                <span className={cn('text-xs', check.met ? 'text-green-600' : 'text-slate-400')}>
                   {check.label}
                 </span>
               </div>
@@ -263,7 +263,7 @@ export default function ResetPasswordPage() {
       <div className="text-center mt-6">
         <Link
           href="/auth/login"
-          className="inline-flex items-center gap-2 text-sm text-gray-500 hover:text-gray-700 transition-colors"
+          className="inline-flex items-center gap-2 text-sm text-slate-500 hover:text-slate-700 transition-colors"
         >
           <svg className="w-4 h-4 rotate-180" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <line x1="5" y1="12" x2="19" y2="12" /><polyline points="12 5 19 12 12 19" />

@@ -174,7 +174,7 @@ export default function BillingPage() {
         {/* Header */}
         <div>
           <h2 className="text-2xl font-bold">חיוב ומנוי</h2>
-          <p className="text-gray-500 text-sm">ניהול התוכנית, תשלומים והזמנת רופאים</p>
+          <p className="text-slate-500 text-sm">ניהול התוכנית, תשלומים והזמנת רופאים</p>
         </div>
 
         {/* Messages */}
@@ -211,7 +211,7 @@ export default function BillingPage() {
               <div className="flex items-start justify-between">
                 <div>
                   <h3 className="font-bold text-lg">התוכנית שלך</h3>
-                  <p className="text-gray-500 text-sm">{currentPlan?.description}</p>
+                  <p className="text-slate-500 text-sm">{currentPlan?.description}</p>
                 </div>
                 <Badge variant={STATUS_VARIANTS[org.subscription_status] || 'default'}>
                   {STATUS_LABELS[org.subscription_status] || org.subscription_status}
@@ -223,7 +223,7 @@ export default function BillingPage() {
                   {currentPlan?.price_monthly === 0 ? 'חינם' : formatPrice(currentPlan?.price_monthly || 0)}
                 </span>
                 {(currentPlan?.price_monthly || 0) > 0 && (
-                  <span className="text-gray-400 text-sm">/חודש</span>
+                  <span className="text-slate-400 text-sm">/חודש</span>
                 )}
               </div>
 
@@ -254,10 +254,10 @@ export default function BillingPage() {
               {/* Doctors */}
               <div>
                 <div className="flex justify-between text-sm mb-1.5">
-                  <span className="text-gray-600">רופאים</span>
+                  <span className="text-slate-600">רופאים</span>
                   <span className="font-medium">{org.current_doctors} / {org.max_doctors}</span>
                 </div>
-                <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
                   <div
                     className={cn('h-full rounded-full transition-all', getUsageColor(doctorsPercent))}
                     style={{ width: `${doctorsPercent}%` }}
@@ -268,10 +268,10 @@ export default function BillingPage() {
               {/* Appointments */}
               <div>
                 <div className="flex justify-between text-sm mb-1.5">
-                  <span className="text-gray-600">תורים החודש</span>
+                  <span className="text-slate-600">תורים החודש</span>
                   <span className="font-medium">{org.current_month_appointments.toLocaleString()} / {org.max_appointments_per_month.toLocaleString()}</span>
                 </div>
-                <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
                   <div
                     className={cn('h-full rounded-full transition-all', getUsageColor(appointmentsPercent))}
                     style={{ width: `${appointmentsPercent}%` }}
@@ -282,10 +282,10 @@ export default function BillingPage() {
               {/* Storage */}
               <div>
                 <div className="flex justify-between text-sm mb-1.5">
-                  <span className="text-gray-600">אחסון</span>
+                  <span className="text-slate-600">אחסון</span>
                   <span className="font-medium">{org.current_storage_gb} GB / {org.max_storage_gb} GB</span>
                 </div>
-                <div className="h-2.5 bg-gray-100 rounded-full overflow-hidden">
+                <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
                   <div
                     className={cn('h-full rounded-full transition-all', getUsageColor(storagePercent))}
                     style={{ width: `${storagePercent}%` }}
@@ -323,7 +323,7 @@ export default function BillingPage() {
                 </thead>
                 <tbody>
                   <tr className="border-b">
-                    <td className="p-3 text-gray-600">מקסימום רופאים</td>
+                    <td className="p-3 text-slate-600">מקסימום רופאים</td>
                     {PLANS.map(p => (
                       <td key={p.id} className={cn('p-3 text-center', p.id === org.plan && 'bg-blue-50/50')}>
                         {p.max_doctors}
@@ -331,7 +331,7 @@ export default function BillingPage() {
                     ))}
                   </tr>
                   <tr className="border-b">
-                    <td className="p-3 text-gray-600">תורים/חודש</td>
+                    <td className="p-3 text-slate-600">תורים/חודש</td>
                     {PLANS.map(p => (
                       <td key={p.id} className={cn('p-3 text-center', p.id === org.plan && 'bg-blue-50/50')}>
                         {p.max_appointments_per_month.toLocaleString()}
@@ -339,7 +339,7 @@ export default function BillingPage() {
                     ))}
                   </tr>
                   <tr className="border-b">
-                    <td className="p-3 text-gray-600">אחסון</td>
+                    <td className="p-3 text-slate-600">אחסון</td>
                     {PLANS.map(p => (
                       <td key={p.id} className={cn('p-3 text-center', p.id === org.plan && 'bg-blue-50/50')}>
                         {p.max_storage_gb} GB
@@ -348,13 +348,13 @@ export default function BillingPage() {
                   </tr>
                   {Object.entries(FEATURE_LABELS).map(([key, label]) => (
                     <tr key={key} className="border-b last:border-b-0">
-                      <td className="p-3 text-gray-600">{label}</td>
+                      <td className="p-3 text-slate-600">{label}</td>
                       {PLANS.map(p => (
                         <td key={p.id} className={cn('p-3 text-center', p.id === org.plan && 'bg-blue-50/50')}>
                           {p.features[key] ? (
                             <svg className="w-5 h-5 text-green-600 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                           ) : (
-                            <span className="text-gray-300">—</span>
+                            <span className="text-slate-300">—</span>
                           )}
                         </td>
                       ))}
@@ -366,7 +366,7 @@ export default function BillingPage() {
                     {PLANS.map(p => (
                       <td key={p.id} className={cn('p-3 text-center', p.id === org.plan && 'bg-blue-50/50')}>
                         {p.id === org.plan ? (
-                          <span className="text-xs text-gray-400">התוכנית הנוכחית</span>
+                          <span className="text-xs text-slate-400">התוכנית הנוכחית</span>
                         ) : p.id === 'free' ? null : (
                           <Button
                             size="sm"
@@ -393,9 +393,9 @@ export default function BillingPage() {
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-bold text-lg">הזמנת רופאים</h3>
-                <p className="text-gray-500 text-sm">שלחו הזמנה לרופאים להצטרף למרפאה</p>
+                <p className="text-slate-500 text-sm">שלחו הזמנה לרופאים להצטרף למרפאה</p>
               </div>
-              <span className="text-sm text-gray-500">
+              <span className="text-sm text-slate-500">
                 {org.current_doctors} / {org.max_doctors} רופאים
               </span>
             </div>
@@ -445,13 +445,13 @@ export default function BillingPage() {
             {/* Pending Invites List */}
             {pendingInvites.length > 0 && (
               <div>
-                <p className="text-sm font-medium text-gray-600 mb-2">הזמנות ממתינות ({pendingInvites.length})</p>
+                <p className="text-sm font-medium text-slate-600 mb-2">הזמנות ממתינות ({pendingInvites.length})</p>
                 <div className="space-y-2">
                   {pendingInvites.map((inv, i) => (
-                    <div key={i} className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2.5">
+                    <div key={i} className="flex items-center justify-between bg-slate-50 rounded-lg px-4 py-2.5">
                       <div>
                         <span className="text-sm font-medium">{inv.name}</span>
-                        <span className="text-sm text-gray-500 mr-2">{inv.email}</span>
+                        <span className="text-sm text-slate-500 mr-2">{inv.email}</span>
                       </div>
                       <Badge variant="warning">ממתין</Badge>
                     </div>

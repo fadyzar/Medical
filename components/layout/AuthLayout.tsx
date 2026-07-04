@@ -135,7 +135,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
       </div>
 
       {/* ─── Form Panel ────────────────────────────────── */}
-      <div className="flex-1 flex flex-col min-h-screen bg-gray-50/50">
+      <div className="flex-1 flex flex-col min-h-screen bg-slate-50/50">
         {/* Mobile header */}
         <div className="lg:hidden px-6 py-8" style={{ background: mobileGradient }}>
           <Link href="/" className="flex items-center gap-2.5 mb-4">
@@ -158,8 +158,8 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
           <div className="w-full max-w-md">
             {/* Desktop title */}
             <div className="hidden lg:block mb-8">
-              <h1 className="text-2xl font-bold text-gray-900">{title}</h1>
-              {subtitle && <p className="text-gray-500 mt-1">{subtitle}</p>}
+              <h1 className="text-2xl font-bold text-slate-900">{title}</h1>
+              {subtitle && <p className="text-slate-500 mt-1">{subtitle}</p>}
             </div>
 
             {children}
@@ -167,14 +167,14 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
         </div>
 
         {/* Footer */}
-        <div className="text-center py-4 px-4 text-xs text-gray-400">
+        <div className="text-center py-4 px-4 text-xs text-slate-400">
           <p>
             &copy; {new Date().getFullYear()} {brand.name} — ייעוץ רפואי מקצועי אונליין
           </p>
           <div className="flex items-center justify-center gap-3 mt-1">
-            <Link href="/terms" className="hover:text-gray-600 transition-colors">תנאי שימוש</Link>
+            <Link href="/terms" className="hover:text-slate-600 transition-colors">תנאי שימוש</Link>
             <span>&middot;</span>
-            <Link href="/privacy" className="hover:text-gray-600 transition-colors">מדיניות פרטיות</Link>
+            <Link href="/privacy" className="hover:text-slate-600 transition-colors">מדיניות פרטיות</Link>
           </div>
         </div>
       </div>

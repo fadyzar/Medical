@@ -54,7 +54,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           "inLanguage": "he",
         })}} />
       </head>
-      <body className="font-sans antialiased bg-gray-50 text-gray-900 min-h-screen">
+      <body className="font-sans antialiased bg-slate-50 text-slate-900 min-h-screen">
         {/* Skip to main content — WCAG 2.4.1, תקן ת"י 5568 */}
         <a href="#main-content" className="skip-to-content">
           דלג לתוכן הראשי

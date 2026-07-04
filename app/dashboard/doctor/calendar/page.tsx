@@ -263,7 +263,7 @@ export default function DoctorCalendarPage() {
               aria-pressed={tab === t}
               className={cn(
                 'px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
-                tab === t ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                tab === t ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               )}
             >
               {t === 'calendar' ? 'לוח שנה' : t === 'availability' ? 'שעות פעילות' : 'ימי חופשה'}
@@ -275,23 +275,23 @@ export default function DoctorCalendarPage() {
       {tab === 'calendar' && (
         <>
           {/* Stats bar */}
-          <div className="flex items-center gap-6 text-sm text-gray-600 bg-white rounded-lg border border-gray-200 px-4 py-2.5">
+          <div className="flex items-center gap-6 text-sm text-slate-600 bg-white rounded-lg border border-slate-200 px-4 py-2.5">
             <div>
-              <span className="font-medium text-gray-900">{stats.total}</span>{' '}
+              <span className="font-medium text-slate-900">{stats.total}</span>{' '}
               {viewMode === 'week' ? 'תורים השבוע' : 'תורים היום'}
             </div>
             {stats.todayWorking && (
               <div>
-                שעות עבודה היום: <span className="font-medium text-gray-900">{stats.todayWorking}</span>
+                שעות עבודה היום: <span className="font-medium text-slate-900">{stats.todayWorking}</span>
               </div>
             )}
             {stats.nextApt && stats.nextApt.scheduled_at && (
               <div>
-                תור הבא: <span className="font-medium text-gray-900">
+                תור הבא: <span className="font-medium text-slate-900">
                   {format(parseISO(stats.nextApt.scheduled_at), 'HH:mm')}
                 </span>
                 {' '}
-                <span className="text-gray-400">
+                <span className="text-slate-400">
                   ({(stats.nextApt.patient as unknown as User)?.first_name})
                 </span>
               </div>
@@ -317,14 +317,14 @@ export default function DoctorCalendarPage() {
                 }
               </h3>
             </div>
-            <div className="flex gap-1 bg-gray-100 rounded-lg p-0.5">
+            <div className="flex gap-1 bg-slate-100 rounded-lg p-0.5">
               {(['week', 'day'] as ViewMode[]).map(v => (
                 <button
                   key={v}
                   onClick={() => setViewMode(v)}
                   className={cn(
                     'px-3 py-1 rounded-md text-sm font-medium transition-colors',
-                    viewMode === v ? 'bg-white shadow-sm text-gray-900' : 'text-gray-500 hover:text-gray-700'
+                    viewMode === v ? 'bg-white shadow-sm text-slate-900' : 'text-slate-500 hover:text-slate-700'
                   )}
                 >
                   {v === 'week' ? 'שבועי' : 'יומי'}
@@ -417,8 +417,8 @@ function WeekTimeGrid({
   return (
     <Card className="overflow-hidden">
       {/* Day headers */}
-      <div className="grid grid-cols-[56px_repeat(7,1fr)] border-b border-gray-200 sticky top-0 bg-white z-10">
-        <div className="border-l border-gray-200" />
+      <div className="grid grid-cols-[56px_repeat(7,1fr)] border-b border-slate-200 sticky top-0 bg-white z-10">
+        <div className="border-l border-slate-200" />
         {weekDays.map((day, i) => {
           const avail = getDayAvailability(day)
           const isVac = isVacationDay(day)
@@ -429,14 +429,14 @@ function WeekTimeGrid({
               key={i}
               onClick={() => { setCurrentDate(day); setViewMode('day') }}
               className={cn(
-                'border-l border-gray-200 px-1 py-2 text-center hover:bg-gray-50 transition-colors',
+                'border-l border-slate-200 px-1 py-2 text-center hover:bg-slate-50 transition-colors',
                 today && 'bg-blue-50/60'
               )}
             >
-              <p className="text-xs text-gray-500">{DAY_NAMES[i]}</p>
+              <p className="text-xs text-slate-500">{DAY_NAMES[i]}</p>
               <p className={cn(
                 'text-lg font-bold mt-0.5',
-                today ? 'text-blue-600' : 'text-gray-900'
+                today ? 'text-blue-600' : 'text-slate-900'
               )}>
                 {format(day, 'd')}
               </p>
@@ -453,11 +453,11 @@ function WeekTimeGrid({
       <div ref={gridRef} className="overflow-y-auto max-h-[calc(100vh-300px)]">
         <div className="grid grid-cols-[56px_repeat(7,1fr)]" style={{ height: totalHeight }}>
           {/* Time labels column */}
-          <div className="relative border-l border-gray-200">
+          <div className="relative border-l border-slate-200">
             {HOURS.map(hour => (
               <div
                 key={hour}
-                className="absolute w-full text-left px-1.5 text-[11px] text-gray-400 -translate-y-1/2"
+                className="absolute w-full text-left px-1.5 text-[11px] text-slate-400 -translate-y-1/2"
                 style={{ top: (hour - START_HOUR) * HOUR_HEIGHT }}
               >
                 {`${hour.toString().padStart(2, '0')}:00`}
@@ -477,7 +477,7 @@ function WeekTimeGrid({
               <div
                 key={dayIdx}
                 className={cn(
-                  'relative border-l border-gray-200',
+                  'relative border-l border-slate-200',
                   isPast && 'opacity-60',
                   isVac && 'bg-orange-50/40',
                   today && !isVac && 'bg-blue-50/30'
@@ -491,8 +491,8 @@ function WeekTimeGrid({
                     <div
                       key={hour}
                       className={cn(
-                        'absolute w-full border-t border-gray-100',
-                        isWorking ? 'bg-white' : 'bg-gray-50/50'
+                        'absolute w-full border-t border-slate-100',
+                        isWorking ? 'bg-white' : 'bg-slate-50/50'
                       )}
                       style={{ top: (hour - START_HOUR) * HOUR_HEIGHT, height: HOUR_HEIGHT }}
                     />
@@ -505,7 +505,7 @@ function WeekTimeGrid({
                   const mins = minutesFromStart(apt.scheduled_at)
                   if (mins < 0) return null
                   const patient = apt.patient as unknown as User | undefined
-                  const statusColor = STATUS_COLORS[apt.status] || 'bg-gray-100 text-gray-800'
+                  const statusColor = STATUS_COLORS[apt.status] || 'bg-slate-100 text-slate-800'
                   const top = topPx(mins)
                   const height = heightPx(apt.duration_minutes || 30)
 
@@ -580,7 +580,7 @@ function DayTimeGrid({
         </div>
       )}
       {!availability && !isVacation && (
-        <div className="bg-gray-50 border-b border-gray-200 px-4 py-2 text-sm text-gray-500">
+        <div className="bg-slate-50 border-b border-slate-200 px-4 py-2 text-sm text-slate-500">
           לא הוגדרו שעות פעילות ליום זה
         </div>
       )}
@@ -588,11 +588,11 @@ function DayTimeGrid({
       <div ref={gridRef} className="overflow-y-auto max-h-[calc(100vh-320px)]">
         <div className="grid grid-cols-[56px_1fr]" style={{ height: totalHeight }}>
           {/* Time labels */}
-          <div className="relative border-l border-gray-200">
+          <div className="relative border-l border-slate-200">
             {HOURS.map(hour => (
               <div
                 key={hour}
-                className="absolute w-full text-left px-1.5 text-[11px] text-gray-400 -translate-y-1/2"
+                className="absolute w-full text-left px-1.5 text-[11px] text-slate-400 -translate-y-1/2"
                 style={{ top: (hour - START_HOUR) * HOUR_HEIGHT }}
               >
                 {`${hour.toString().padStart(2, '0')}:00`}
@@ -601,7 +601,7 @@ function DayTimeGrid({
           </div>
 
           {/* Main column */}
-          <div className={cn('relative border-l border-gray-200', isVacation && 'bg-orange-50/40')}>
+          <div className={cn('relative border-l border-slate-200', isVacation && 'bg-orange-50/40')}>
             {/* Hour gridlines */}
             {HOURS.map(hour => {
               const hourStr = `${hour.toString().padStart(2, '0')}:00`
@@ -610,8 +610,8 @@ function DayTimeGrid({
                 <div
                   key={hour}
                   className={cn(
-                    'absolute w-full border-t border-gray-100',
-                    isWorking ? 'bg-white' : 'bg-gray-50/50'
+                    'absolute w-full border-t border-slate-100',
+                    isWorking ? 'bg-white' : 'bg-slate-50/50'
                   )}
                   style={{ top: (hour - START_HOUR) * HOUR_HEIGHT, height: HOUR_HEIGHT }}
                 />
@@ -624,7 +624,7 @@ function DayTimeGrid({
               const mins = minutesFromStart(apt.scheduled_at)
               if (mins < 0) return null
               const patient = apt.patient as unknown as User | undefined
-              const statusColor = STATUS_COLORS[apt.status] || 'bg-gray-100 text-gray-800'
+              const statusColor = STATUS_COLORS[apt.status] || 'bg-slate-100 text-slate-800'
               const top = topPx(mins)
               const height = heightPx(apt.duration_minutes || 30)
 
@@ -651,7 +651,7 @@ function DayTimeGrid({
                       <Badge variant={apt.status === 'completed' ? 'success' : apt.status === 'in_progress' ? 'info' : 'default'}>
                         {STATUS_LABELS[apt.status]}
                       </Badge>
-                      <span className="text-xs text-gray-500">
+                      <span className="text-xs text-slate-500">
                         {format(parseISO(apt.scheduled_at), 'HH:mm')}
                       </span>
                     </div>
@@ -676,7 +676,7 @@ function DayTimeGrid({
         </div>
 
         {appointments.length === 0 && (
-          <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>} title="אין תורים ליום זה" />
+          <EmptyState icon={<svg className="w-10 h-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>} title="אין תורים ליום זה" />
         )}
       </div>
     </Card>
@@ -702,16 +702,16 @@ function AvailabilityEditor({
         </div>
       </CardHeader>
       <CardContent className="space-y-3">
-        <p className="text-sm text-gray-500">הגדר את הימים והשעות בהם אתה זמין לייעוץ</p>
+        <p className="text-sm text-slate-500">הגדר את הימים והשעות בהם אתה זמין לייעוץ</p>
         {DAY_NAMES.map((name, i) => {
           const slot = availability.find(s => s.day === i)
           return (
-            <div key={i} className="flex items-center gap-3 py-2 border-b border-gray-100 last:border-0">
+            <div key={i} className="flex items-center gap-3 py-2 border-b border-slate-100 last:border-0">
               <button
                 onClick={() => toggleDayAvailability(i)}
                 className={cn(
                   'w-10 h-6 rounded-full transition-colors relative',
-                  slot ? 'bg-blue-600' : 'bg-gray-300'
+                  slot ? 'bg-blue-600' : 'bg-slate-300'
                 )}
                 role="switch"
                 aria-checked={!!slot}
@@ -722,7 +722,7 @@ function AvailabilityEditor({
                   slot ? 'right-0.5' : 'left-0.5'
                 )} />
               </button>
-              <span className={cn('w-16 text-sm font-medium', slot ? 'text-gray-900' : 'text-gray-400')}>
+              <span className={cn('w-16 text-sm font-medium', slot ? 'text-slate-900' : 'text-slate-400')}>
                 {name}
               </span>
               {slot ? (
@@ -731,20 +731,20 @@ function AvailabilityEditor({
                     type="time"
                     value={slot.start}
                     onChange={e => updateSlotTime(i, 'start', e.target.value)}
-                    className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm"
+                    className="border border-slate-300 rounded-lg px-2 py-1.5 text-sm"
                     aria-label={`שעת התחלה - ${name}`}
                   />
-                  <span className="text-gray-400">—</span>
+                  <span className="text-slate-400">—</span>
                   <input
                     type="time"
                     value={slot.end}
                     onChange={e => updateSlotTime(i, 'end', e.target.value)}
-                    className="border border-gray-300 rounded-lg px-2 py-1.5 text-sm"
+                    className="border border-slate-300 rounded-lg px-2 py-1.5 text-sm"
                     aria-label={`שעת סיום - ${name}`}
                   />
                 </div>
               ) : (
-                <span className="text-sm text-gray-400">לא פעיל</span>
+                <span className="text-sm text-slate-400">לא פעיל</span>
               )}
             </div>
           )
@@ -823,7 +823,7 @@ function VacationManager({
           <h3 className="font-bold text-lg">ימי חופשה מתוכננים ({vacations.length})</h3>
         </CardHeader>
         {vacations.length === 0 ? (
-          <EmptyState icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>} title="אין ימי חופשה מתוכננים" />
+          <EmptyState icon={<svg className="w-10 h-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>} title="אין ימי חופשה מתוכננים" />
         ) : (
           <div className="divide-y">
             {vacations.map((vac, i) => {
@@ -836,7 +836,7 @@ function VacationManager({
                     <p className="text-sm font-medium">
                       {format(start, 'd MMMM', { locale: he })} — {format(end, 'd MMMM yyyy', { locale: he })}
                     </p>
-                    {vac.note && <p className="text-xs text-gray-500 mt-0.5">{vac.note}</p>}
+                    {vac.note && <p className="text-xs text-slate-500 mt-0.5">{vac.note}</p>}
                     {isPast && <Badge variant="default" className="mt-1">עבר</Badge>}
                   </div>
                   <Button variant="ghost" size="sm" onClick={() => removeVacation(i)} aria-label="מחק חופשה">

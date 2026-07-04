@@ -23,18 +23,18 @@ export default function ContactPage() {
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="text-2xl font-black text-blue-600">CANNA</Link>
           <div className="flex items-center gap-4">
-            <Link href="/specialties" className="text-sm text-gray-600 hover:text-gray-900">התמחויות</Link>
-            <Link href="/doctors" className="text-sm text-gray-600 hover:text-gray-900">הרופאים שלנו</Link>
-            <Link href="/for-clinics" className="text-sm text-gray-600 hover:text-gray-900">למרפאות</Link>
-            <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900">התחברות</Link>
+            <Link href="/specialties" className="text-sm text-slate-600 hover:text-slate-900">התמחויות</Link>
+            <Link href="/doctors" className="text-sm text-slate-600 hover:text-slate-900">הרופאים שלנו</Link>
+            <Link href="/for-clinics" className="text-sm text-slate-600 hover:text-slate-900">למרפאות</Link>
+            <Link href="/auth/login" className="text-sm text-slate-600 hover:text-slate-900">התחברות</Link>
           </div>
         </div>
       </nav>
 
       <section className="py-20 px-4 bg-gradient-to-b from-blue-50 to-white">
         <div className="max-w-2xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-4">דברו איתנו</h1>
-          <p className="text-lg text-gray-500">
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">דברו איתנו</h1>
+          <p className="text-lg text-slate-500">
             יש לכם שאלה על הקמת מרפאה דיגיטלית, תמחור או הטמעה? צוות CANNA כאן בשבילכם.
           </p>
         </div>
@@ -44,11 +44,11 @@ export default function ContactPage() {
         <div className="max-w-2xl mx-auto grid gap-4">
           {CONTACTS.map(c => (
             <a key={c.label} href={c.href}
-              className="flex items-center gap-4 rounded-2xl border border-gray-100 shadow-sm p-5 hover:shadow-md hover:border-blue-200 transition-all">
+              className="flex items-center gap-4 rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md hover:border-blue-200 transition-all">
               <span className="text-3xl shrink-0">{c.icon}</span>
               <div>
-                <p className="text-xs text-gray-400">{c.label}</p>
-                <p className="font-bold text-gray-900">{c.value}</p>
+                <p className="text-xs text-slate-400">{c.label}</p>
+                <p className="font-bold text-slate-900">{c.value}</p>
               </div>
             </a>
           ))}
@@ -60,7 +60,7 @@ export default function ContactPage() {
         </div>
       </section>
 
-      <footer className="py-12 px-4 bg-gray-900 text-gray-400 mt-12">
+      <footer className="py-12 px-4 bg-slate-900 text-slate-400 mt-12">
         <div className="max-w-6xl mx-auto text-center text-xs">
           &copy; {new Date().getFullYear()} CANNA. כל הזכויות שמורות.
         </div>

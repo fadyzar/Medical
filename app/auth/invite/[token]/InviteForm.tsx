@@ -141,7 +141,7 @@ export default function InviteForm({ token, email, role, orgName, orgId }: Props
   return (
     <div className="w-full">
       {/* Invite badge */}
-      <div className={`inline-flex items-center gap-2 border text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full mb-6 ${ROLE_COLORS[role] ?? 'bg-gray-100 text-gray-600 border-gray-200'}`}>
+      <div className={`inline-flex items-center gap-2 border text-xs font-bold uppercase tracking-wider px-3 py-1.5 rounded-full mb-6 ${ROLE_COLORS[role] ?? 'bg-slate-100 text-slate-600 border-slate-200'}`}>
         <span className="w-1.5 h-1.5 rounded-full bg-current opacity-60" />
         {ROLE_LABELS[role] ?? role} — {orgName}
       </div>
@@ -185,7 +185,7 @@ export default function InviteForm({ token, email, role, orgName, orgId }: Props
           <button
             type="button"
             onClick={() => setShowPassword(!showPassword)}
-            className="absolute left-3 top-[38px] text-gray-400 hover:text-gray-600"
+            className="absolute left-3 top-[38px] text-slate-400 hover:text-slate-600"
             aria-label={showPassword ? 'הסתר סיסמה' : 'הצג סיסמה'}
           >
             {showPassword ? (
@@ -215,7 +215,7 @@ export default function InviteForm({ token, email, role, orgName, orgId }: Props
         </Button>
       </form>
 
-      <p className="text-center text-sm text-gray-500 mt-6">
+      <p className="text-center text-sm text-slate-500 mt-6">
         כבר יש לך חשבון?{' '}
         <Link href="/auth/login" className="text-blue-600 font-semibold hover:underline">התחבר</Link>
       </p>

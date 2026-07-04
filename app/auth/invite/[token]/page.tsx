@@ -40,7 +40,7 @@ export default async function InvitePage({ params }: Props) {
               <circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/>
             </svg>
           </div>
-          <p className="text-gray-600 mb-6">קישור ההזמנה לא תקף. ייתכן שפג תוקפו או שהוא שגוי.</p>
+          <p className="text-slate-600 mb-6">קישור ההזמנה לא תקף. ייתכן שפג תוקפו או שהוא שגוי.</p>
           <Link href="/auth/login" className="text-blue-600 font-semibold hover:underline text-sm">
             חזור לדף הכניסה
           </Link>
@@ -60,7 +60,7 @@ export default async function InvitePage({ params }: Props) {
               <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
             </svg>
           </div>
-          <p className="text-gray-600 mb-6">הזמנה זו כבר נוצלה. אם נתקלת בבעיה, פנה למנהל המרפאה.</p>
+          <p className="text-slate-600 mb-6">הזמנה זו כבר נוצלה. אם נתקלת בבעיה, פנה למנהל המרפאה.</p>
           <Link href="/auth/login" className="text-blue-600 font-semibold hover:underline text-sm">
             כניסה לחשבון קיים
           </Link>
@@ -74,12 +74,12 @@ export default async function InvitePage({ params }: Props) {
     return (
       <AuthLayout title="הזמנה פגה" subtitle="תוקף הקישור פג">
         <div className="text-center py-6">
-          <div className="mx-auto w-16 h-16 bg-gray-100 rounded-full flex items-center justify-center mb-5">
-            <svg className="w-8 h-8 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <div className="mx-auto w-16 h-16 bg-slate-100 rounded-full flex items-center justify-center mb-5">
+            <svg className="w-8 h-8 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
             </svg>
           </div>
-          <p className="text-gray-600 mb-6">תוקף ההזמנה פג. בקש ממנהל המרפאה לשלוח הזמנה חדשה.</p>
+          <p className="text-slate-600 mb-6">תוקף ההזמנה פג. בקש ממנהל המרפאה לשלוח הזמנה חדשה.</p>
           <Link href="/auth/login" className="text-blue-600 font-semibold hover:underline text-sm">
             חזור לדף הכניסה
           </Link>

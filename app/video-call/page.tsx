@@ -207,7 +207,7 @@ export default function VideoCallPage() {
   // Connected state with LiveKit room
   if (state === 'connected' && token && livekitUrl) {
     return (
-      <div className="min-h-screen bg-gray-900" dir="rtl">
+      <div className="min-h-screen bg-slate-900" dir="rtl">
         <LiveKitRoom
           serverUrl={livekitUrl}
           token={token}
@@ -236,11 +236,11 @@ export default function VideoCallPage() {
 
   // All other states
   return (
-    <div className="min-h-screen bg-gray-900 text-white flex flex-col" dir="rtl">
-      <header className="bg-gray-800 px-4 py-3 flex items-center justify-between">
+    <div className="min-h-screen bg-slate-900 text-white flex flex-col" dir="rtl">
+      <header className="bg-slate-800 px-4 py-3 flex items-center justify-between">
         <div>
           <h1 className="font-bold">{otherParty || 'שיחת וידאו'}</h1>
-          <p className="text-gray-400 text-xs">{appointment?.chief_complaint}</p>
+          <p className="text-slate-400 text-xs">{appointment?.chief_complaint}</p>
         </div>
       </header>
       <main className="flex-1 flex items-center justify-center p-4">
@@ -252,24 +252,24 @@ export default function VideoCallPage() {
         )}
 
         {state === 'payment_required' && (
-          <Card className="max-w-md w-full bg-gray-800 border-gray-700">
+          <Card className="max-w-md w-full bg-slate-800 border-slate-700">
             <CardContent className="p-6 text-center space-y-4">
               <div className="flex justify-center">
                 <svg className="w-10 h-10 text-yellow-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="1" y="4" width="22" height="16" rx="2" ry="2" /><line x1="1" y1="10" x2="23" y2="10" /></svg>
               </div>
               <h2 className="text-xl font-bold">נדרש תשלום</h2>
-              <p className="text-gray-400">יש לבצע תשלום לפני הצטרפות לשיחת הווידאו</p>
+              <p className="text-slate-400">יש לבצע תשלום לפני הצטרפות לשיחת הווידאו</p>
               <Button onClick={() => router.push(`/dashboard/patient/payment?id=${id}`)} size="lg" className="w-full">
                 עבור לתשלום
               </Button>
               <Button
                 onClick={() => { setState('checking'); if (id) init(id) }}
                 variant="outline"
-                className="w-full border-gray-600 text-white"
+                className="w-full border-slate-600 text-white"
               >
                 כבר שילמתי — נסה שוב
               </Button>
-              <Button onClick={() => router.push('/dashboard/patient/dashboard')} variant="outline" className="w-full border-gray-600 text-gray-400 text-sm">
+              <Button onClick={() => router.push('/dashboard/patient/dashboard')} variant="outline" className="w-full border-slate-600 text-slate-400 text-sm">
                 חזור לדשבורד
               </Button>
             </CardContent>
@@ -277,13 +277,13 @@ export default function VideoCallPage() {
         )}
 
         {state === 'waiting' && (
-          <Card className="max-w-md w-full bg-gray-800 border-gray-700">
+          <Card className="max-w-md w-full bg-slate-800 border-slate-700">
             <CardContent className="p-6 text-center space-y-4">
               <h2 className="text-xl font-bold">חדר המתנה</h2>
-              <p className="text-gray-400">בדיקת חומרה — לחצו ״הצטרף לשיחה״ כשתהיו מוכנים</p>
+              <p className="text-slate-400">בדיקת חומרה — לחצו ״הצטרף לשיחה״ כשתהיו מוכנים</p>
 
               {/* Preview */}
-              <div className="relative bg-gray-900 rounded-xl overflow-hidden aspect-video">
+              <div className="relative bg-slate-900 rounded-xl overflow-hidden aspect-video">
                 {previewStream && hasCamera ? (
                   <video
                     autoPlay
@@ -293,9 +293,9 @@ export default function VideoCallPage() {
                     ref={(el) => { if (el && previewStream) el.srcObject = previewStream }}
                   />
                 ) : (
-                  <div className="absolute inset-0 flex items-center justify-center text-gray-500">
+                  <div className="absolute inset-0 flex items-center justify-center text-slate-500">
                     <div className="text-center">
-                      <svg className="w-10 h-10 text-gray-500 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="1" y1="1" x2="23" y2="23" /><path d="M21 21H3a2 2 0 01-2-2V8a2 2 0 012-2h3l2-3h6l2 3h3a2 2 0 012 2v9.34" /><path d="M14.12 14.12A3 3 0 009.88 9.88" /></svg>
+                      <svg className="w-10 h-10 text-slate-500 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><line x1="1" y1="1" x2="23" y2="23" /><path d="M21 21H3a2 2 0 01-2-2V8a2 2 0 012-2h3l2-3h6l2 3h3a2 2 0 012 2v9.34" /><path d="M14.12 14.12A3 3 0 009.88 9.88" /></svg>
                       <p>אין מצלמה זמינה</p>
                     </div>
                   </div>
@@ -339,20 +339,20 @@ export default function VideoCallPage() {
           /* ── Doctor post-call screen ── */
           <div className="max-w-lg w-full space-y-4">
             {/* Header */}
-            <Card className="bg-gray-800 border-gray-700">
+            <Card className="bg-slate-800 border-slate-700">
               <CardContent className="p-5 flex items-center gap-4">
                 <div className="w-12 h-12 rounded-full bg-green-500/20 flex items-center justify-center shrink-0">
                   <svg className="w-6 h-6 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                 </div>
                 <div>
                   <h2 className="text-lg font-bold text-white">הייעוץ הסתיים</h2>
-                  <p className="text-gray-400 text-sm">עם {otherParty} — {appointment?.chief_complaint}</p>
+                  <p className="text-slate-400 text-sm">עם {otherParty} — {appointment?.chief_complaint}</p>
                 </div>
               </CardContent>
             </Card>
 
             {/* AI Summary */}
-            <Card className="bg-gray-800 border-gray-700">
+            <Card className="bg-slate-800 border-slate-700">
               <CardContent className="p-5 space-y-3">
                 <div className="flex items-center gap-2">
                   <svg className="w-4 h-4 text-blue-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
@@ -360,20 +360,20 @@ export default function VideoCallPage() {
                 </div>
 
                 {summaryLoading && (
-                  <div className="flex items-center gap-3 py-3 text-gray-400">
+                  <div className="flex items-center gap-3 py-3 text-slate-400">
                     <Spinner size="sm" />
                     <span className="text-sm">מייצר סיכום אוטומטי...</span>
                   </div>
                 )}
 
                 {aiSummary && !summaryLoading && (
-                  <div className="bg-gray-900 rounded-xl p-4 text-sm text-gray-200 leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap">
+                  <div className="bg-slate-900 rounded-xl p-4 text-sm text-slate-200 leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap">
                     {aiSummary}
                   </div>
                 )}
 
                 {!summaryLoading && !aiSummary && (
-                  <p className="text-sm text-gray-500">הסיכום לא נוצר אוטומטית — ניתן לייצר ידנית מדף התורים.</p>
+                  <p className="text-sm text-slate-500">הסיכום לא נוצר אוטומטית — ניתן לייצר ידנית מדף התורים.</p>
                 )}
               </CardContent>
             </Card>
@@ -391,7 +391,7 @@ export default function VideoCallPage() {
               <Button
                 onClick={() => router.push('/dashboard/doctor/dashboard')}
                 variant="outline"
-                className="w-full border-gray-600 text-white hover:bg-gray-700"
+                className="w-full border-slate-600 text-white hover:bg-slate-700"
               >
                 חזור לדשבורד
               </Button>
@@ -403,31 +403,31 @@ export default function VideoCallPage() {
           /* ── Patient post-call screen ── */
           <div className="max-w-lg w-full space-y-4">
             {/* Header */}
-            <Card className="bg-gray-800 border-gray-700">
+            <Card className="bg-slate-800 border-slate-700">
               <CardContent className="p-5 text-center space-y-2">
                 <div className="w-14 h-14 rounded-full bg-green-500/20 flex items-center justify-center mx-auto">
                   <svg className="w-7 h-7 text-green-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 11.08V12a10 10 0 11-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
                 </div>
                 <h2 className="text-xl font-bold text-white">הייעוץ הסתיים</h2>
-                <p className="text-gray-400 text-sm">תודה שהשתמשת בשירותנו</p>
+                <p className="text-slate-400 text-sm">תודה שהשתמשת בשירותנו</p>
               </CardContent>
             </Card>
 
             {/* Summary coming */}
-            <Card className="bg-gray-800 border-gray-700">
+            <Card className="bg-slate-800 border-slate-700">
               <CardContent className="p-4 flex items-start gap-3">
                 <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0 mt-0.5">
                   <svg className="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-white">סיכום הייעוץ בדרך</p>
-                  <p className="text-xs text-gray-400 mt-0.5">הרופא יכין סיכום ותשלח אליך הודעה. תוכל לראות אותו גם ב״המסמכים שלי״.</p>
+                  <p className="text-xs text-slate-400 mt-0.5">הרופא יכין סיכום ותשלח אליך הודעה. תוכל לראות אותו גם ב״המסמכים שלי״.</p>
                 </div>
               </CardContent>
             </Card>
 
             {/* Rating */}
-            <Card className="bg-gray-800 border-gray-700">
+            <Card className="bg-slate-800 border-slate-700">
               <CardContent className="p-5 text-center space-y-3">
                 {!rated ? (
                   <>
@@ -444,7 +444,7 @@ export default function VideoCallPage() {
                         </button>
                       ))}
                     </div>
-                    <p className="text-xs text-gray-500">הדירוג עוזר לשפר את השירות</p>
+                    <p className="text-xs text-slate-500">הדירוג עוזר לשפר את השירות</p>
                   </>
                 ) : (
                   <div className="flex items-center justify-center gap-2 text-green-400">
@@ -460,7 +460,7 @@ export default function VideoCallPage() {
               <Button
                 onClick={() => router.push('/dashboard/patient/new-appointment')}
                 variant="outline"
-                className="border-gray-600 text-white hover:bg-gray-700"
+                className="border-slate-600 text-white hover:bg-slate-700"
               >
                 קבע תור המשך
               </Button>
@@ -475,14 +475,14 @@ export default function VideoCallPage() {
         )}
 
         {state === 'error' && (
-          <Card className="max-w-md w-full bg-gray-800 border-gray-700">
+          <Card className="max-w-md w-full bg-slate-800 border-slate-700">
             <CardContent className="p-6 text-center space-y-4">
               <div className="flex justify-center">
                 <svg className="w-10 h-10 text-red-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" /></svg>
               </div>
               <h2 className="text-xl font-bold">שגיאה</h2>
-              <p className="text-gray-400">{error}</p>
-              <Button onClick={() => router.back()} variant="outline" className="border-gray-600 text-white">
+              <p className="text-slate-400">{error}</p>
+              <Button onClick={() => router.back()} variant="outline" className="border-slate-600 text-white">
                 חזור
               </Button>
             </CardContent>
@@ -725,16 +725,16 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
     if (fileType.startsWith('image/')) return <svg className={`${cls} text-purple-400`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
     if (fileType === 'application/pdf') return <svg className={`${cls} text-red-400`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
     if (fileType.includes('word') || fileType.includes('document')) return <svg className={`${cls} text-blue-400`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
-    return <svg className={`${cls} text-gray-400`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
+    return <svg className={`${cls} text-slate-400`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
   }
 
   return (
-    <div className="h-screen flex flex-col bg-gray-900 text-white" dir="rtl">
+    <div className="h-screen flex flex-col bg-slate-900 text-white" dir="rtl">
       {/* Header */}
-      <header className="bg-gray-800/80 backdrop-blur-sm px-4 py-2 flex items-center justify-between z-10 border-b border-gray-700/50">
+      <header className="bg-slate-800/80 backdrop-blur-sm px-4 py-2 flex items-center justify-between z-10 border-b border-slate-700/50">
         <div className="flex items-center gap-3">
           <h1 className="font-bold text-sm">{otherParty || 'שיחת וידאו'}</h1>
-          <span className="text-gray-400 text-xs hidden sm:inline">{complaint}</span>
+          <span className="text-slate-400 text-xs hidden sm:inline">{complaint}</span>
         </div>
         <div className="flex items-center gap-3">
           {recording && (
@@ -747,7 +747,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
           <span className="bg-red-600/90 px-2.5 py-1 rounded-md text-xs font-mono animate-pulse">
             {formatTime(elapsed)}
           </span>
-          <span className="text-xs text-gray-400">
+          <span className="text-xs text-slate-400">
             {remoteParticipants.length + 1} משתתפים
           </span>
         </div>
@@ -776,9 +776,9 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
           {/* Participant overlay info */}
           {remoteParticipants.length === 0 && !reconnecting && (
             <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-              <div className="bg-gray-800/80 backdrop-blur-sm rounded-xl px-6 py-4 text-center max-w-sm">
+              <div className="bg-slate-800/80 backdrop-blur-sm rounded-xl px-6 py-4 text-center max-w-sm">
                 <Spinner size="md" className="mx-auto mb-2" />
-                <p className="text-gray-300 text-sm">ממתין ל{otherParty || 'משתתף נוסף'}...</p>
+                <p className="text-slate-300 text-sm">ממתין ל{otherParty || 'משתתף נוסף'}...</p>
                 {waitTimeout && (
                   <div className="mt-3 text-yellow-400 text-xs space-y-1">
                     <p className="font-medium">ההמתנה ארכה יותר מ-10 דקות</p>
@@ -792,12 +792,12 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
 
         {/* Chat Side Panel */}
         {chatOpen && (
-          <div className="w-80 max-sm:absolute max-sm:inset-0 max-sm:w-full bg-gray-800 border-r border-gray-700/50 flex flex-col z-20">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700/50">
+          <div className="w-80 max-sm:absolute max-sm:inset-0 max-sm:w-full bg-slate-800 border-r border-slate-700/50 flex flex-col z-20">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700/50">
               <h3 className="font-bold text-sm">צ&apos;אט</h3>
-              <button onClick={() => setChatOpen(false)} className="text-gray-400 hover:text-white text-lg">✕</button>
+              <button onClick={() => setChatOpen(false)} className="text-slate-400 hover:text-white text-lg">✕</button>
             </div>
-            <div className="flex-1 overflow-hidden [&_.lk-chat]:h-full [&_.lk-chat]:bg-transparent [&_.lk-chat-messages]:text-white [&_.lk-chat-form-input]:bg-gray-700 [&_.lk-chat-form-input]:text-white [&_.lk-chat-form-input]:border-gray-600 [&_.lk-chat-form-button]:bg-blue-600">
+            <div className="flex-1 overflow-hidden [&_.lk-chat]:h-full [&_.lk-chat]:bg-transparent [&_.lk-chat-messages]:text-white [&_.lk-chat-form-input]:bg-slate-700 [&_.lk-chat-form-input]:text-white [&_.lk-chat-form-input]:border-slate-600 [&_.lk-chat-form-button]:bg-blue-600">
               <Chat style={{ height: '100%' }} />
             </div>
           </div>
@@ -805,10 +805,10 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
 
         {/* Documents Side Panel (doctor only) */}
         {docsOpen && isDoctor && (
-          <div className="w-80 max-sm:absolute max-sm:inset-0 max-sm:w-full bg-gray-800 border-r border-gray-700/50 flex flex-col z-20">
-            <div className="flex items-center justify-between px-4 py-3 border-b border-gray-700/50">
+          <div className="w-80 max-sm:absolute max-sm:inset-0 max-sm:w-full bg-slate-800 border-r border-slate-700/50 flex flex-col z-20">
+            <div className="flex items-center justify-between px-4 py-3 border-b border-slate-700/50">
               <h3 className="font-bold text-sm">מסמכי מטופל</h3>
-              <button onClick={() => setDocsOpen(false)} className="text-gray-400 hover:text-white text-lg">✕</button>
+              <button onClick={() => setDocsOpen(false)} className="text-slate-400 hover:text-white text-lg">✕</button>
             </div>
             <div className="flex-1 overflow-y-auto p-3 space-y-2">
               {docsLoading ? (
@@ -816,8 +816,8 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
                   <Spinner size="md" />
                 </div>
               ) : documents.length === 0 ? (
-                <div className="text-center py-8 text-gray-400">
-                  <svg className="w-8 h-8 text-gray-500 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></svg>
+                <div className="text-center py-8 text-slate-400">
+                  <svg className="w-8 h-8 text-slate-500 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" ry="1" /></svg>
                   <p className="text-sm">אין מסמכים למטופל זה</p>
                 </div>
               ) : (
@@ -825,7 +825,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
                   <button
                     key={doc.id}
                     onClick={() => openDocument(doc.storage_path)}
-                    className="w-full text-right bg-gray-700/50 hover:bg-gray-700 rounded-lg p-3 transition-colors"
+                    className="w-full text-right bg-slate-700/50 hover:bg-slate-700 rounded-lg p-3 transition-colors"
                   >
                     <div className="flex items-start gap-3">
                       <span className="shrink-0">{getFileIcon(doc.file_type)}</span>
@@ -835,7 +835,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
                           {doc.category && (
                             <span className="text-xs bg-blue-600/30 text-blue-300 px-2 py-0.5 rounded">{doc.category}</span>
                           )}
-                          <span className="text-xs text-gray-400">
+                          <span className="text-xs text-slate-400">
                             {new Date(doc.created_at).toLocaleDateString('he-IL')}
                           </span>
                         </div>
@@ -852,12 +852,12 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
       {/* Consent Dialog for Recording */}
       {showConsentDialog && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60">
-          <div className="bg-gray-800 rounded-2xl p-6 max-w-sm w-full mx-4 border border-gray-700 text-center space-y-4">
+          <div className="bg-slate-800 rounded-2xl p-6 max-w-sm w-full mx-4 border border-slate-700 text-center space-y-4">
             <div className="flex justify-center">
               <svg className="w-10 h-10 text-red-400" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="8" /></svg>
             </div>
             <h3 className="text-lg font-bold">הקלטת שיחה</h3>
-            <p className="text-gray-300 text-sm">
+            <p className="text-slate-300 text-sm">
               השיחה תוקלט לצורכי תיעוד רפואי. יש לוודא שכל המשתתפים מסכימים להקלטה.
             </p>
             <div className="flex gap-3">
@@ -870,7 +870,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
               <Button
                 onClick={() => setShowConsentDialog(false)}
                 variant="outline"
-                className="flex-1 border-gray-600 text-white"
+                className="flex-1 border-slate-600 text-white"
               >
                 ביטול
               </Button>
@@ -880,18 +880,18 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
       )}
 
       {/* Controls */}
-      <div className="bg-gray-800/80 backdrop-blur-sm border-t border-gray-700/50 px-4 py-3">
+      <div className="bg-slate-800/80 backdrop-blur-sm border-t border-slate-700/50 px-4 py-3">
         <div className="flex items-center justify-center gap-2 sm:gap-3">
           {/* Mic Toggle */}
           <TrackToggle
             source={Track.Source.Microphone}
-            className="lk-button flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all bg-gray-700 hover:bg-gray-600 text-white"
+            className="lk-button flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all bg-slate-700 hover:bg-slate-600 text-white"
           />
 
           {/* Camera Toggle */}
           <TrackToggle
             source={Track.Source.Camera}
-            className="lk-button flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all bg-gray-700 hover:bg-gray-600 text-white"
+            className="lk-button flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all bg-slate-700 hover:bg-slate-600 text-white"
           />
 
           {/* Screen Share */}
@@ -900,7 +900,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
               screenSharing
                 ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                : 'bg-gray-700 hover:bg-gray-600 text-white'
+                : 'bg-slate-700 hover:bg-slate-600 text-white'
             }`}
             title={screenSharing ? 'הפסק שיתוף מסך' : 'שתף מסך'}
           >
@@ -914,7 +914,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
             className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
               chatOpen
                 ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                : 'bg-gray-700 hover:bg-gray-600 text-white'
+                : 'bg-slate-700 hover:bg-slate-600 text-white'
             }`}
             title="צ'אט"
           >
@@ -934,7 +934,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 docsOpen
                   ? 'bg-blue-600 hover:bg-blue-700 text-white'
-                  : 'bg-gray-700 hover:bg-gray-600 text-white'
+                  : 'bg-slate-700 hover:bg-slate-600 text-white'
               }`}
               title="מסמכי מטופל"
             >
@@ -950,7 +950,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 recording
                   ? 'bg-red-600 hover:bg-red-700 text-white'
-                  : 'bg-gray-700 hover:bg-gray-600 text-white'
+                  : 'bg-slate-700 hover:bg-slate-600 text-white'
               }`}
               title={recording ? 'הפסק הקלטה' : 'הקלט שיחה'}
             >
@@ -995,7 +995,7 @@ function RoomConnectionIndicator() {
     [ConnectionQuality.Good]: { label: 'טוב', color: 'text-green-400', bars: 3 },
     [ConnectionQuality.Poor]: { label: 'חלש', color: 'text-yellow-400', bars: 2 },
     [ConnectionQuality.Lost]: { label: 'מנותק', color: 'text-red-400', bars: 0 },
-    [ConnectionQuality.Unknown]: { label: 'מתחבר', color: 'text-gray-400', bars: 1 },
+    [ConnectionQuality.Unknown]: { label: 'מתחבר', color: 'text-slate-400', bars: 1 },
   }
 
   const cfg = qualityConfig[quality]
@@ -1007,7 +1007,7 @@ function RoomConnectionIndicator() {
           <div
             key={bar}
             className={`w-1 rounded-full transition-all ${
-              bar <= cfg.bars ? 'bg-current' : 'bg-gray-600'
+              bar <= cfg.bars ? 'bg-current' : 'bg-slate-600'
             }`}
             style={{ height: `${(bar / 3) * 100}%` }}
           />

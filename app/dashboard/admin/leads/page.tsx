@@ -15,7 +15,7 @@ const STATUS_OPTIONS: { value: LeadStatus; label: string; color: string }[] = [
   { value: 'contacted', label: 'נוצר קשר',    color: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
   { value: 'qualified', label: 'מוכשר',       color: 'bg-purple-100 text-purple-700 border-purple-200' },
   { value: 'converted', label: 'הומר למטופל', color: 'bg-green-100 text-green-700 border-green-200' },
-  { value: 'lost',      label: 'ירד מהפרויקט',color: 'bg-gray-100 text-gray-500 border-gray-200' },
+  { value: 'lost',      label: 'ירד מהפרויקט',color: 'bg-slate-100 text-slate-500 border-slate-200' },
 ]
 
 const PRIORITY_OPTIONS: { value: LeadPriority; label: string }[] = [
@@ -35,7 +35,7 @@ const SOURCE_OPTIONS: { value: LeadSource; label: string }[] = [
 ]
 
 const PRIORITY_BADGE: Record<LeadPriority, string> = {
-  low:    'bg-gray-100 text-gray-500',
+  low:    'bg-slate-100 text-slate-500',
   normal: 'bg-blue-50 text-blue-600',
   high:   'bg-orange-100 text-orange-700',
   urgent: 'bg-red-100 text-red-700',
@@ -248,7 +248,7 @@ export default function AdminLeadsPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold">ניהול לידים</h2>
-          <p className="text-sm text-gray-500 mt-0.5">{leads.length} לידים סה"כ</p>
+          <p className="text-sm text-slate-500 mt-0.5">{leads.length} לידים סה"כ</p>
         </div>
         <Button onClick={openNew}>+ ליד חדש</Button>
       </div>
@@ -261,11 +261,11 @@ export default function AdminLeadsPage() {
             onClick={() => setFilterStatus(filterStatus === s.value ? '' : s.value)}
             className={cn(
               'p-4 rounded-xl border text-right transition-all hover:shadow-sm',
-              filterStatus === s.value ? s.color + ' shadow-sm' : 'bg-white border-gray-200'
+              filterStatus === s.value ? s.color + ' shadow-sm' : 'bg-white border-slate-200'
             )}
           >
             <p className="text-2xl font-bold">{counts[s.value] || 0}</p>
-            <p className="text-xs font-medium mt-0.5 text-gray-600">{s.label}</p>
+            <p className="text-xs font-medium mt-0.5 text-slate-600">{s.label}</p>
           </button>
         ))}
       </div>
@@ -290,7 +290,7 @@ export default function AdminLeadsPage() {
         <Card className="max-h-[70vh] overflow-y-auto">
           {filtered.length === 0 ? (
             <EmptyState
-              icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>}
+              icon={<svg className="w-10 h-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>}
               title={leads.length === 0 ? 'אין לידים עדיין' : 'לא נמצאו לידים'}
               description={leads.length === 0 ? 'הוסף ליד ראשון למערכת' : 'נסה לשנות את מסנני החיפוש'}
               action={leads.length === 0 ? <Button onClick={openNew}>הוסף ליד</Button> : undefined}
@@ -305,30 +305,30 @@ export default function AdminLeadsPage() {
                     key={lead.id}
                     onClick={() => setSelected(isSelected ? null : lead)}
                     className={cn(
-                      'w-full px-4 py-3 text-right hover:bg-gray-50 transition-colors',
+                      'w-full px-4 py-3 text-right hover:bg-slate-50 transition-colors',
                       isSelected && 'bg-blue-50 border-r-4 border-blue-600'
                     )}
                   >
                     <div className="flex items-center justify-between">
                       <div className="min-w-0">
                         <div className="flex items-center gap-2">
-                          <p className="font-semibold text-gray-900">{lead.first_name} {lead.last_name}</p>
+                          <p className="font-semibold text-slate-900">{lead.first_name} {lead.last_name}</p>
                           {lead.ai_score != null && (
                             <span className={cn(
                               'text-xs px-1.5 py-0.5 rounded font-bold',
                               lead.ai_score >= 7 ? 'bg-green-100 text-green-700' :
                               lead.ai_score >= 4 ? 'bg-yellow-100 text-yellow-700' :
-                              'bg-gray-100 text-gray-500'
+                              'bg-slate-100 text-slate-500'
                             )}>
                               AI {lead.ai_score}/10
                             </span>
                           )}
                         </div>
-                        <p className="text-xs text-gray-500 mt-0.5">
+                        <p className="text-xs text-slate-500 mt-0.5">
                           {lead.phone || lead.email || '—'}
                           {lead.specialty_interest && ` · ${lead.specialty_interest}`}
                         </p>
-                        <p className="text-xs text-gray-400">
+                        <p className="text-xs text-slate-400">
                           {formatDate(lead.created_at)}
                           {lead.assignee && ` · ${lead.assignee.first_name} ${lead.assignee.last_name}`}
                         </p>
@@ -359,7 +359,7 @@ export default function AdminLeadsPage() {
                   <div className="flex items-start justify-between">
                     <div>
                       <h3 className="text-lg font-bold">{selected.first_name} {selected.last_name}</h3>
-                      <p className="text-sm text-gray-500 mt-0.5">
+                      <p className="text-sm text-slate-500 mt-0.5">
                         נוסף {formatDateTime(selected.created_at)}
                       </p>
                     </div>
@@ -374,35 +374,35 @@ export default function AdminLeadsPage() {
                   <div className="grid grid-cols-2 gap-3 text-sm">
                     {selected.phone && (
                       <div>
-                        <p className="text-gray-400 text-xs">טלפון</p>
+                        <p className="text-slate-400 text-xs">טלפון</p>
                         <a href={`tel:${selected.phone}`} className="font-medium text-blue-600 hover:underline">{selected.phone}</a>
                       </div>
                     )}
                     {selected.email && (
                       <div>
-                        <p className="text-gray-400 text-xs">אימייל</p>
+                        <p className="text-slate-400 text-xs">אימייל</p>
                         <a href={`mailto:${selected.email}`} className="font-medium text-blue-600 hover:underline">{selected.email}</a>
                       </div>
                     )}
                     <div>
-                      <p className="text-gray-400 text-xs">מקור</p>
+                      <p className="text-slate-400 text-xs">מקור</p>
                       <p className="font-medium">{SOURCE_OPTIONS.find(s => s.value === selected.source)?.label}</p>
                     </div>
                     {selected.specialty_interest && (
                       <div>
-                        <p className="text-gray-400 text-xs">התמחות מבוקשת</p>
+                        <p className="text-slate-400 text-xs">התמחות מבוקשת</p>
                         <p className="font-medium">{selected.specialty_interest}</p>
                       </div>
                     )}
                     {selected.next_follow_up && (
                       <div>
-                        <p className="text-gray-400 text-xs">מעקב הבא</p>
+                        <p className="text-slate-400 text-xs">מעקב הבא</p>
                         <p className="font-medium">{formatDate(selected.next_follow_up)}</p>
                       </div>
                     )}
                     {selected.assignee && (
                       <div>
-                        <p className="text-gray-400 text-xs">מטפל</p>
+                        <p className="text-slate-400 text-xs">מטפל</p>
                         <p className="font-medium">{selected.assignee.first_name} {selected.assignee.last_name}</p>
                       </div>
                     )}
@@ -410,9 +410,9 @@ export default function AdminLeadsPage() {
 
                   {/* Message */}
                   {selected.message && (
-                    <div className="bg-gray-50 rounded-lg p-3">
-                      <p className="text-xs text-gray-400 mb-1">הודעת הליד</p>
-                      <p className="text-sm text-gray-700">{selected.message}</p>
+                    <div className="bg-slate-50 rounded-lg p-3">
+                      <p className="text-xs text-slate-400 mb-1">הודעת הליד</p>
+                      <p className="text-sm text-slate-700">{selected.message}</p>
                     </div>
                   )}
 
@@ -426,7 +426,7 @@ export default function AdminLeadsPage() {
                             'text-xs font-bold px-2 py-0.5 rounded',
                             selected.ai_score >= 7 ? 'bg-green-100 text-green-700' :
                             selected.ai_score >= 4 ? 'bg-yellow-100 text-yellow-700' :
-                            'bg-gray-100 text-gray-500'
+                            'bg-slate-100 text-slate-500'
                           )}>
                             ציון {selected.ai_score}/10
                           </span>
@@ -444,8 +444,8 @@ export default function AdminLeadsPage() {
                   {/* Notes */}
                   {selected.notes && (
                     <div className="bg-yellow-50 rounded-lg p-3">
-                      <p className="text-xs text-gray-400 mb-1">הערות פנימיות</p>
-                      <p className="text-sm text-gray-700 whitespace-pre-wrap">{selected.notes}</p>
+                      <p className="text-xs text-slate-400 mb-1">הערות פנימיות</p>
+                      <p className="text-sm text-slate-700 whitespace-pre-wrap">{selected.notes}</p>
                     </div>
                   )}
 
@@ -453,7 +453,7 @@ export default function AdminLeadsPage() {
                   <div className="space-y-3 pt-1">
                     {/* Status pipeline */}
                     <div>
-                      <p className="text-xs text-gray-400 mb-2">שינוי סטטוס</p>
+                      <p className="text-xs text-slate-400 mb-2">שינוי סטטוס</p>
                       <div className="flex gap-2 flex-wrap">
                         {STATUS_OPTIONS.filter(s => s.value !== selected.status).map(s => (
                           <button
@@ -498,7 +498,7 @@ export default function AdminLeadsPage() {
           ) : (
             <Card>
               <EmptyState
-                icon={<svg className="w-10 h-10 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>}
+                icon={<svg className="w-10 h-10 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M15 18l-6-6 6-6"/></svg>}
                 title="בחר ליד לפרטים"
                 description="לחץ על ליד מהרשימה להצגת פרטים ופעולות"
               />
@@ -555,9 +555,9 @@ export default function AdminLeadsPage() {
 
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">התמחות מבוקשת</label>
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">התמחות מבוקשת</label>
                 <select
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
                   value={form.specialty_interest}
                   onChange={e => setForm(p => ({ ...p, specialty_interest: e.target.value }))}
                 >

@@ -26,7 +26,7 @@ function Stars({ v }: { v: number }) {
   return (
     <span className="flex gap-0.5">
       {[1,2,3,4,5].map(i => (
-        <svg key={i} className={`w-3.5 h-3.5 ${i <= Math.round(v) ? 'text-amber-400' : 'text-gray-200'}`} fill="currentColor" viewBox="0 0 20 20">
+        <svg key={i} className={`w-3.5 h-3.5 ${i <= Math.round(v) ? 'text-amber-400' : 'text-slate-200'}`} fill="currentColor" viewBox="0 0 20 20">
           <path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"/>
         </svg>
       ))}
@@ -138,19 +138,19 @@ export default async function DoctorsPage() {
       </div>
 
       {/* ── Specialty filter ── */}
-      <div id="doctors-grid" className="sticky top-16 z-40 bg-white border-b border-gray-100 shadow-sm py-4 px-4">
+      <div id="doctors-grid" className="sticky top-16 z-40 bg-white border-b border-slate-100 shadow-sm py-4 px-4">
         <div className="max-w-6xl mx-auto">
           <div className="flex flex-wrap justify-center gap-2">
-            <span className="text-xs font-bold text-gray-400 self-center ml-2 uppercase tracking-widest">סנן:</span>
+            <span className="text-xs font-bold text-slate-400 self-center ml-2 uppercase tracking-widest">סנן:</span>
             {SPECIALTIES.filter(s => specialtyCounts[s.id]).map(s => (
               <Link key={s.id} href={`/specialties/${s.id}`}
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold text-gray-600 bg-gray-100 border border-transparent hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition-all">
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold text-slate-600 bg-slate-100 border border-transparent hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition-all">
                 {s.label}
-                <span className="text-xs text-gray-400 font-normal">({specialtyCounts[s.id]})</span>
+                <span className="text-xs text-slate-400 font-normal">({specialtyCounts[s.id]})</span>
               </Link>
             ))}
             {Object.keys(specialtyCounts).length === 0 && (
-              <span className="text-sm text-gray-400">כל ההתמחויות</span>
+              <span className="text-sm text-slate-400">כל ההתמחויות</span>
             )}
           </div>
         </div>
@@ -160,15 +160,15 @@ export default async function DoctorsPage() {
       <section className="py-16 px-4" style={{ background: '#f8fafc' }}>
         <div className="max-w-6xl mx-auto">
           <div className="text-center mb-12">
-            <h2 className="text-4xl font-black text-gray-900 mb-3">הכר את הרופאים שלנו</h2>
-            <p className="text-gray-500 text-lg">מומחים מאומתים, דירוגים אמיתיים — בחר את המתאים לך</p>
+            <h2 className="text-4xl font-black text-slate-900 mb-3">הכר את הרופאים שלנו</h2>
+            <p className="text-slate-500 text-lg">מומחים מאומתים, דירוגים אמיתיים — בחר את המתאים לך</p>
           </div>
 
           {typedDoctors.length === 0 ? (
-            <div className="text-center py-24 bg-white rounded-3xl border border-gray-100 shadow-sm">
+            <div className="text-center py-24 bg-white rounded-3xl border border-slate-100 shadow-sm">
               <div className="text-7xl mb-5">👨‍⚕️</div>
-              <h3 className="text-2xl font-black text-gray-900 mb-2">רופאים יצטרפו בקרוב</h3>
-              <p className="text-gray-500 mb-8 max-w-sm mx-auto">אנחנו בתהליך גיוס מומחים. הירשם ונעדכן אותך.</p>
+              <h3 className="text-2xl font-black text-slate-900 mb-2">רופאים יצטרפו בקרוב</h3>
+              <p className="text-slate-500 mb-8 max-w-sm mx-auto">אנחנו בתהליך גיוס מומחים. הירשם ונעדכן אותך.</p>
               <Link href="/auth/register"
                 className="inline-flex items-center gap-2 text-white font-bold px-8 py-3.5 rounded-xl shadow-lg transition-all hover:scale-105"
                 style={{ background: 'linear-gradient(135deg, #2563eb, #4f46e5)' }}>
@@ -181,7 +181,7 @@ export default async function DoctorsPage() {
                 const [from, to] = AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length]
                 return (
                   <article key={doc.id}
-                    className="group bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-blue-100"
+                    className="group bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-blue-100"
                   >
                     {/* Card top gradient bar */}
                     <div className="h-1.5 w-full" style={{ background: `linear-gradient(90deg, ${from}, ${to})` }} />
@@ -208,7 +208,7 @@ export default async function DoctorsPage() {
 
                         <div className="flex-1 min-w-0">
                           <Link href={`/doctors/${doc.id}`} className="group-hover:text-blue-600 transition-colors">
-                            <h3 className="font-black text-lg text-gray-900 leading-tight">
+                            <h3 className="font-black text-lg text-slate-900 leading-tight">
                               ד&quot;ר {doc.first_name} {doc.last_name}
                             </h3>
                           </Link>
@@ -222,7 +222,7 @@ export default async function DoctorsPage() {
                                 </span>
                               ))}
                               {(doc.specialties.length > 2) && (
-                                <span className="text-xs text-gray-400 self-center">+{doc.specialties.length - 2}</span>
+                                <span className="text-xs text-slate-400 self-center">+{doc.specialties.length - 2}</span>
                               )}
                             </div>
                           )}
@@ -231,13 +231,13 @@ export default async function DoctorsPage() {
 
                       {/* Bio */}
                       {doc.bio && (
-                        <p className="text-sm text-gray-500 line-clamp-2 leading-relaxed mb-4">{doc.bio}</p>
+                        <p className="text-sm text-slate-500 line-clamp-2 leading-relaxed mb-4">{doc.bio}</p>
                       )}
 
                       {/* Languages */}
                       {doc.languages && doc.languages.length > 0 && (
-                        <p className="text-xs text-gray-400 mb-4">
-                          🌐 <span className="font-medium text-gray-500">שפות:</span> {doc.languages.join(' · ')}
+                        <p className="text-xs text-slate-400 mb-4">
+                          🌐 <span className="font-medium text-slate-500">שפות:</span> {doc.languages.join(' · ')}
                         </p>
                       )}
                     </div>
@@ -249,8 +249,8 @@ export default async function DoctorsPage() {
                         {doc.average_rating ? (
                           <div className="flex items-center gap-1.5">
                             <Stars v={doc.average_rating} />
-                            <span className="text-sm font-bold text-gray-700">{doc.average_rating.toFixed(1)}</span>
-                            <span className="text-xs text-gray-400">({doc.total_ratings})</span>
+                            <span className="text-sm font-bold text-slate-700">{doc.average_rating.toFixed(1)}</span>
+                            <span className="text-xs text-slate-400">({doc.total_ratings})</span>
                           </div>
                         ) : (
                           <span className="text-xs font-semibold px-2.5 py-1 rounded-full"
@@ -285,8 +285,8 @@ export default async function DoctorsPage() {
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
             <span className="text-xs font-black tracking-widest uppercase text-blue-600 bg-blue-50 px-4 py-2 rounded-full">תהליך פשוט</span>
-            <h2 className="text-4xl font-black text-gray-900 mt-4 mb-3">מבחירת רופא ועד לייעוץ — 4 צעדים</h2>
-            <p className="text-gray-500 text-lg">ניהול מלא, דיגיטלי ומהיר</p>
+            <h2 className="text-4xl font-black text-slate-900 mt-4 mb-3">מבחירת רופא ועד לייעוץ — 4 צעדים</h2>
+            <p className="text-slate-500 text-lg">ניהול מלא, דיגיטלי ומהיר</p>
           </div>
           <div className="relative grid md:grid-cols-4 gap-8">
             {/* Connecting line */}
@@ -305,8 +305,8 @@ export default async function DoctorsPage() {
                     {step.n}
                   </span>
                 </div>
-                <h3 className="font-black text-gray-900 mb-2">{step.title}</h3>
-                <p className="text-sm text-gray-500 leading-relaxed">{step.desc}</p>
+                <h3 className="font-black text-slate-900 mb-2">{step.title}</h3>
+                <p className="text-sm text-slate-500 leading-relaxed">{step.desc}</p>
               </div>
             ))}
           </div>

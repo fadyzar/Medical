@@ -3,8 +3,8 @@
 @tailwind utilities;
 
 @layer base {
-  * { @apply border-gray-200; }
-  body { @apply text-gray-900; }
+  * { @apply border-slate-200; }
+  body { @apply text-slate-900; }
   /* Accessibility: focus visible */
   *:focus-visible { @apply outline-2 outline-offset-2 outline-blue-500 rounded-sm; }
 }
@@ -12,8 +12,8 @@
 /* Scrollbar */
 ::-webkit-scrollbar { width: 6px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { @apply bg-gray-300 rounded-full; }
-::-webkit-scrollbar-thumb:hover { @apply bg-gray-400; }
+::-webkit-scrollbar-thumb { @apply bg-slate-300 rounded-full; }
+::-webkit-scrollbar-thumb:hover { @apply bg-slate-400; }
 
 /* LiveKit RTL fix */
 [data-lk-theme="default"] { --lk-font-family: system-ui, sans-serif; }

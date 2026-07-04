@@ -302,10 +302,10 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="text-2xl font-black text-blue-600">CANNA</Link>
           <div className="flex items-center gap-4">
-            <Link href="/specialties" className="text-sm text-gray-600 hover:text-gray-900">התמחויות</Link>
-            <Link href="/doctors" className="text-sm text-gray-600 hover:text-gray-900">הרופאים שלנו</Link>
-            <Link href="/blog" className="text-sm text-gray-600 hover:text-gray-900">בלוג</Link>
-            <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900">התחברות</Link>
+            <Link href="/specialties" className="text-sm text-slate-600 hover:text-slate-900">התמחויות</Link>
+            <Link href="/doctors" className="text-sm text-slate-600 hover:text-slate-900">הרופאים שלנו</Link>
+            <Link href="/blog" className="text-sm text-slate-600 hover:text-slate-900">בלוג</Link>
+            <Link href="/auth/login" className="text-sm text-slate-600 hover:text-slate-900">התחברות</Link>
             <Link href="/auth/register" className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">הרשמה חינם</Link>
           </div>
         </div>
@@ -324,17 +324,17 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
       <section className="py-16 px-4 bg-gradient-to-b from-blue-50 to-white">
         <div className="max-w-4xl mx-auto text-center">
           <div className="text-6xl mb-6">{content.icon}</div>
-          <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-4">
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">
             {content.title}
             <br />
             <span className="text-blue-600">ייעוץ אונליין</span>
           </h1>
-          <p className="text-lg text-gray-500 max-w-2xl mx-auto">{content.heroDescription}</p>
+          <p className="text-lg text-slate-500 max-w-2xl mx-auto">{content.heroDescription}</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
             <Link href="/auth/register" className="bg-blue-600 text-white px-8 py-4 rounded-xl text-lg font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/25">
               קבע תור עכשיו
             </Link>
-            <Link href="/doctors" className="border-2 border-gray-300 text-gray-700 px-8 py-4 rounded-xl text-lg font-bold hover:border-gray-400 transition-colors">
+            <Link href="/doctors" className="border-2 border-slate-300 text-slate-700 px-8 py-4 rounded-xl text-lg font-bold hover:border-slate-400 transition-colors">
               ראה רופאים זמינים
             </Link>
           </div>
@@ -345,18 +345,18 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
       <section className="py-16 px-4">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-black mb-6">{content.aboutTitle}</h2>
-          <p className="text-gray-600 text-lg leading-relaxed">{content.aboutText}</p>
+          <p className="text-slate-600 text-lg leading-relaxed">{content.aboutText}</p>
         </div>
       </section>
 
       {/* Common Conditions */}
-      <section className="py-16 px-4 bg-gray-50">
+      <section className="py-16 px-4 bg-slate-50">
         <div className="max-w-4xl mx-auto">
           <h2 className="text-3xl font-black mb-8 text-center">מצבים נפוצים</h2>
           <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
             {content.commonConditions.map(condition => (
-              <div key={condition} className="bg-white rounded-xl p-4 text-center border border-gray-100 shadow-sm">
-                <p className="font-medium text-gray-800">{condition}</p>
+              <div key={condition} className="bg-white rounded-xl p-4 text-center border border-slate-100 shadow-sm">
+                <p className="font-medium text-slate-800">{condition}</p>
               </div>
             ))}
           </div>
@@ -371,7 +371,7 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
             {content.whenToConsult.map((item, i) => (
               <div key={i} className="flex items-start gap-3 bg-blue-50 rounded-xl p-4">
                 <span className="text-blue-600 font-bold text-lg mt-0.5">✓</span>
-                <p className="text-gray-700">{item}</p>
+                <p className="text-slate-700">{item}</p>
               </div>
             ))}
           </div>
@@ -380,23 +380,23 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
 
       {/* Doctors for this specialty */}
       {typedDoctors.length > 0 && (
-        <section className="py-16 px-4 bg-gray-50">
+        <section className="py-16 px-4 bg-slate-50">
           <div className="max-w-6xl mx-auto">
             <h2 className="text-3xl font-black mb-8 text-center">הרופאים שלנו ב{content.title}</h2>
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {typedDoctors.map(doc => (
-                <Link key={doc.id} href={`/doctors/${doc.id}`} className="block bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-md transition-shadow">
+                <Link key={doc.id} href={`/doctors/${doc.id}`} className="block bg-white rounded-2xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-shadow">
                   <div className="flex items-center gap-4 mb-4">
                     <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-xl font-bold text-blue-700 shrink-0">
                       {doc.first_name.charAt(0)}{doc.last_name.charAt(0)}
                     </div>
                     <div>
                       <h3 className="font-bold text-lg">ד&quot;ר {doc.first_name} {doc.last_name}</h3>
-                      <p className="text-sm text-gray-500">{content.title}</p>
+                      <p className="text-sm text-slate-500">{content.title}</p>
                     </div>
                   </div>
-                  {doc.bio && <p className="text-sm text-gray-600 mb-4 line-clamp-2">{doc.bio}</p>}
-                  <div className="flex items-center justify-between pt-3 border-t border-gray-100">
+                  {doc.bio && <p className="text-sm text-slate-600 mb-4 line-clamp-2">{doc.bio}</p>}
+                  <div className="flex items-center justify-between pt-3 border-t border-slate-100">
                     <div className="flex items-center gap-3">
                       {doc.average_rating && (
                         <span className="text-sm text-yellow-700 bg-yellow-50 px-2 py-1 rounded-lg font-medium">
@@ -434,7 +434,7 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
               <div key={s.num} className="text-center">
                 <div className="w-12 h-12 rounded-full bg-blue-600 text-white text-xl font-bold flex items-center justify-center mx-auto">{s.num}</div>
                 <h3 className="font-bold mt-3">{s.title}</h3>
-                <p className="text-gray-500 text-sm mt-1">{s.desc}</p>
+                <p className="text-slate-500 text-sm mt-1">{s.desc}</p>
               </div>
             ))}
           </div>
@@ -442,7 +442,7 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
       </section>
 
       {/* All specialties */}
-      <section className="py-16 px-4 bg-gray-50">
+      <section className="py-16 px-4 bg-slate-50">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-2xl font-black mb-6">כל ההתמחויות</h2>
           <div className="flex flex-wrap justify-center gap-3">
@@ -451,7 +451,7 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   s.id === slug
                     ? 'bg-blue-600 text-white'
-                    : 'bg-white text-gray-700 border border-gray-200 hover:border-blue-400 hover:text-blue-600'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:border-blue-400 hover:text-blue-600'
                 }`}>
                 {s.label}
               </Link>
@@ -461,7 +461,7 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 bg-gray-900 text-gray-400">
+      <footer className="py-12 px-4 bg-slate-900 text-slate-400">
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
           <div>
             <h5 className="font-bold text-white mb-3">CANNA</h5>
@@ -486,7 +486,7 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
             <p><Link href="/accessibility" className="hover:text-white">נגישות</Link></p>
           </div>
         </div>
-        <div className="max-w-6xl mx-auto mt-8 pt-8 border-t border-gray-800 text-center text-xs">
+        <div className="max-w-6xl mx-auto mt-8 pt-8 border-t border-slate-800 text-center text-xs">
           &copy; {new Date().getFullYear()} CANNA. כל הזכויות שמורות.
         </div>
       </footer>

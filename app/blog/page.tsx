@@ -62,10 +62,10 @@ export default function BlogPage() {
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="text-2xl font-black text-blue-600">CANNA</Link>
           <div className="flex items-center gap-4">
-            <Link href="/specialties" className="text-sm text-gray-600 hover:text-gray-900">התמחויות</Link>
-            <Link href="/doctors" className="text-sm text-gray-600 hover:text-gray-900">הרופאים שלנו</Link>
-            <Link href="/blog" className="text-sm text-gray-900 font-medium">בלוג</Link>
-            <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900">התחברות</Link>
+            <Link href="/specialties" className="text-sm text-slate-600 hover:text-slate-900">התמחויות</Link>
+            <Link href="/doctors" className="text-sm text-slate-600 hover:text-slate-900">הרופאים שלנו</Link>
+            <Link href="/blog" className="text-sm text-slate-900 font-medium">בלוג</Link>
+            <Link href="/auth/login" className="text-sm text-slate-600 hover:text-slate-900">התחברות</Link>
             <Link href="/auth/register" className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">הרשמה חינם</Link>
           </div>
         </div>
@@ -74,10 +74,10 @@ export default function BlogPage() {
       {/* Hero */}
       <section className="py-16 px-4 bg-gradient-to-b from-blue-50 to-white">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-4">
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">
             בלוג <span className="text-blue-600">CANNA</span>
           </h1>
-          <p className="text-lg text-gray-500 max-w-2xl mx-auto">
+          <p className="text-lg text-slate-500 max-w-2xl mx-auto">
             מאמרים רפואיים, מדריכים מעשיים וטיפים בנושאי בריאות וטלרפואה — הכל בעברית, הכל מבוסס מקצועי.
           </p>
         </div>
@@ -87,12 +87,12 @@ export default function BlogPage() {
       <BlogPostsGrid posts={posts} categories={categories} />
 
       {/* Specialties */}
-      <section className="py-12 px-4 bg-gray-50">
+      <section className="py-12 px-4 bg-slate-50">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-2xl font-black mb-6">התמחויות</h2>
           <div className="flex flex-wrap justify-center gap-3">
             {SPECIALTIES.map(s => (
-              <Link key={s.id} href={`/specialties/${s.id}`} className="px-4 py-2 bg-white text-gray-700 border border-gray-200 rounded-full text-sm font-medium hover:border-blue-400 hover:text-blue-600 transition-colors">
+              <Link key={s.id} href={`/specialties/${s.id}`} className="px-4 py-2 bg-white text-slate-700 border border-slate-200 rounded-full text-sm font-medium hover:border-blue-400 hover:text-blue-600 transition-colors">
                 {s.label}
               </Link>
             ))}
@@ -112,7 +112,7 @@ export default function BlogPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 bg-gray-900 text-gray-400">
+      <footer className="py-12 px-4 bg-slate-900 text-slate-400">
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
           <div>
             <h5 className="font-bold text-white mb-3">CANNA</h5>
@@ -138,7 +138,7 @@ export default function BlogPage() {
             <p><Link href="/accessibility" className="hover:text-white">נגישות</Link></p>
           </div>
         </div>
-        <div className="max-w-6xl mx-auto mt-8 pt-8 border-t border-gray-800 text-center text-xs">
+        <div className="max-w-6xl mx-auto mt-8 pt-8 border-t border-slate-800 text-center text-xs">
           &copy; {new Date().getFullYear()} CANNA. כל הזכויות שמורות.
         </div>
       </footer>

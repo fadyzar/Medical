@@ -66,9 +66,9 @@ export default function SpecialtiesPage() {
           <Link href="/" className="text-2xl font-black text-blue-600">CANNA</Link>
           <div className="flex items-center gap-4">
             <Link href="/specialties" className="text-sm text-blue-600 font-medium">התמחויות</Link>
-            <Link href="/doctors" className="text-sm text-gray-600 hover:text-gray-900">הרופאים שלנו</Link>
-            <Link href="/blog" className="text-sm text-gray-600 hover:text-gray-900">בלוג</Link>
-            <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900">התחברות</Link>
+            <Link href="/doctors" className="text-sm text-slate-600 hover:text-slate-900">הרופאים שלנו</Link>
+            <Link href="/blog" className="text-sm text-slate-600 hover:text-slate-900">בלוג</Link>
+            <Link href="/auth/login" className="text-sm text-slate-600 hover:text-slate-900">התחברות</Link>
             <Link href="/auth/register" className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">הרשמה חינם</Link>
           </div>
         </div>
@@ -77,12 +77,12 @@ export default function SpecialtiesPage() {
       {/* Hero */}
       <section className="py-16 px-4 bg-gradient-to-b from-blue-50 to-white">
         <div className="max-w-4xl mx-auto text-center">
-          <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-4">
+          <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">
             כל ההתמחויות
             <br />
             <span className="text-blue-600">ייעוץ רפואי אונליין</span>
           </h1>
-          <p className="text-lg text-gray-500 max-w-2xl mx-auto">
+          <p className="text-lg text-slate-500 max-w-2xl mx-auto">
             רופאים מומחים ב-16 התמחויות רפואיות זמינים לך בשיחת וידאו. בחר התמחות וקבע תור עכשיו.
           </p>
         </div>
@@ -98,11 +98,11 @@ export default function SpecialtiesPage() {
                 <Link
                   key={s.id}
                   href={`/specialties/${s.id}`}
-                  className="group bg-white rounded-2xl border border-gray-100 shadow-sm p-6 hover:shadow-lg hover:border-blue-200 transition-all"
+                  className="group bg-white rounded-2xl border border-slate-100 shadow-sm p-6 hover:shadow-lg hover:border-blue-200 transition-all"
                 >
                   <div className="text-4xl mb-4" aria-hidden="true">{details?.icon || '🩺'}</div>
-                  <h2 className="text-lg font-bold text-gray-900 group-hover:text-blue-600 transition-colors">{s.label}</h2>
-                  <p className="text-sm text-gray-500 mt-2 leading-relaxed">{details?.description || 'ייעוץ רפואי אונליין עם מומחים'}</p>
+                  <h2 className="text-lg font-bold text-slate-900 group-hover:text-blue-600 transition-colors">{s.label}</h2>
+                  <p className="text-sm text-slate-500 mt-2 leading-relaxed">{details?.description || 'ייעוץ רפואי אונליין עם מומחים'}</p>
                   <div className="mt-4 text-sm font-medium text-blue-600 group-hover:underline">
                     למידע נוסף ←
                   </div>
@@ -125,7 +125,7 @@ export default function SpecialtiesPage() {
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 bg-gray-900 text-gray-400">
+      <footer className="py-12 px-4 bg-slate-900 text-slate-400">
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
           <div>
             <h5 className="font-bold text-white mb-3">CANNA</h5>
@@ -150,7 +150,7 @@ export default function SpecialtiesPage() {
             <p><Link href="/accessibility" className="hover:text-white">נגישות</Link></p>
           </div>
         </div>
-        <div className="max-w-6xl mx-auto mt-8 pt-8 border-t border-gray-800 text-center text-xs">
+        <div className="max-w-6xl mx-auto mt-8 pt-8 border-t border-slate-800 text-center text-xs">
           &copy; {new Date().getFullYear()} CANNA. כל הזכויות שמורות.
         </div>
       </footer>

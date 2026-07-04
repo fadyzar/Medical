@@ -30,14 +30,14 @@ function TagInput({ label, tags, onChange, placeholder }: {
 
   return (
     <div className="space-y-1.5">
-      <label className="block text-sm font-medium text-gray-700">{label}</label>
+      <label className="block text-sm font-medium text-slate-700">{label}</label>
       <div className="flex gap-2">
         <input
           value={input}
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }}
           placeholder={placeholder}
-          className="flex-1 rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm placeholder:text-gray-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+          className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
         />
         <Button variant="outline" size="sm" type="button" onClick={addTag} disabled={!input.trim()}>
           הוסף
@@ -75,7 +75,7 @@ function Toggle({ checked, onChange, label }: { checked: boolean; onChange: (v: 
       onClick={() => onChange(!checked)}
       className={cn(
         'relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors',
-        checked ? 'bg-green-500' : 'bg-gray-300'
+        checked ? 'bg-green-500' : 'bg-slate-300'
       )}
     >
       <span className={cn(
@@ -386,17 +386,17 @@ export default function PatientProfilePage() {
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="font-bold text-gray-900">
+              <p className="font-bold text-slate-900">
                 {percent === 100 ? 'הפרופיל שלך מלא!' : 'השלם את הפרופיל שלך'}
               </p>
               {missing.length > 0 && (
-                <p className="text-sm text-gray-500 mt-0.5">
+                <p className="text-sm text-slate-500 mt-0.5">
                   חסר: {missing.slice(0, 3).join(', ')}
                   {missing.length > 3 && ` ועוד ${missing.length - 3}`}
                 </p>
               )}
               {/* Progress bar */}
-              <div className="mt-2 h-2 bg-gray-100 rounded-full overflow-hidden">
+              <div className="mt-2 h-2 bg-slate-100 rounded-full overflow-hidden">
                 <div
                   className={cn(
                     'h-full rounded-full transition-all duration-500',
@@ -420,10 +420,10 @@ export default function PatientProfilePage() {
                 <img
                   src={avatarUrl}
                   alt="תמונת פרופיל"
-                  className="w-20 h-20 rounded-full object-cover border-2 border-gray-200"
+                  className="w-20 h-20 rounded-full object-cover border-2 border-slate-200"
                 />
               ) : (
-                <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-2xl font-bold text-blue-700 border-2 border-gray-200">
+                <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-2xl font-bold text-blue-700 border-2 border-slate-200">
                   {getInitials(profile.first_name, profile.last_name)}
                 </div>
               )}
@@ -447,9 +447,9 @@ export default function PatientProfilePage() {
               />
             </div>
             <div>
-              <p className="text-xl font-bold text-gray-900">{profile.first_name} {profile.last_name}</p>
-              <p className="text-sm text-gray-500">{profile.email}</p>
-              {profile.phone && <p className="text-sm text-gray-500">{profile.phone}</p>}
+              <p className="text-xl font-bold text-slate-900">{profile.first_name} {profile.last_name}</p>
+              <p className="text-sm text-slate-500">{profile.email}</p>
+              {profile.phone && <p className="text-sm text-slate-500">{profile.phone}</p>}
               <Badge variant={percent === 100 ? 'success' : 'info'} className="mt-1.5">
                 {percent === 100 ? 'פרופיל מלא' : `${percent}% הושלם`}
               </Badge>
@@ -458,7 +458,7 @@ export default function PatientProfilePage() {
           {errors.avatar && (
             <p className="text-sm text-red-600 mt-2" role="alert">{errors.avatar}</p>
           )}
-          <p className="text-xs text-gray-400 mt-3">PNG, JPG או WebP, עד 2MB</p>
+          <p className="text-xs text-slate-400 mt-3">PNG, JPG או WebP, עד 2MB</p>
         </CardContent>
       </Card>
 
@@ -508,7 +508,7 @@ export default function PatientProfilePage() {
           </div>
 
           <div className="space-y-1.5">
-            <label className="block text-sm font-medium text-gray-700">מגדר</label>
+            <label className="block text-sm font-medium text-slate-700">מגדר</label>
             <div className="flex gap-3">
               {[
                 { value: 'male', label: 'זכר' },
@@ -524,7 +524,7 @@ export default function PatientProfilePage() {
                     'px-4 py-2 rounded-lg border text-sm font-medium transition-colors',
                     form.gender === option.value
                       ? 'border-blue-500 bg-blue-50 text-blue-700'
-                      : 'border-gray-300 text-gray-600 hover:bg-gray-50'
+                      : 'border-slate-300 text-slate-600 hover:bg-slate-50'
                   )}
                 >
                   {option.label}
@@ -533,7 +533,7 @@ export default function PatientProfilePage() {
             </div>
           </div>
 
-          <div className="text-sm text-gray-500">
+          <div className="text-sm text-slate-500">
             <span className="font-medium">אימייל:</span> {profile.email}
           </div>
         </CardContent>
@@ -548,7 +548,7 @@ export default function PatientProfilePage() {
           </div>
         </CardHeader>
         <CardContent className="space-y-5">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-slate-500">
             מידע רפואי עוזר לרופא להתכונן לייעוץ ולהימנע מסיכונים. כל המידע מוצפן ומאובטח.
           </p>
 
@@ -654,10 +654,10 @@ export default function PatientProfilePage() {
           <h3 className="font-bold text-lg">העדפות התראות</h3>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200">
+          <div className="flex items-center justify-between p-4 rounded-lg border border-slate-200">
             <div>
-              <p className="font-medium text-gray-900">התראות WhatsApp</p>
-              <p className="text-sm text-gray-500 mt-0.5">
+              <p className="font-medium text-slate-900">התראות WhatsApp</p>
+              <p className="text-sm text-slate-500 mt-0.5">
                 קבל תזכורות לתורים, קישורי וידאו ואישורי תשלום בוואטסאפ
               </p>
               {!form.phone && whatsappOptIn && (
@@ -681,14 +681,14 @@ export default function PatientProfilePage() {
             </div>
           )}
 
-          <div className="flex items-center justify-between p-4 rounded-lg border border-gray-200">
+          <div className="flex items-center justify-between p-4 rounded-lg border border-slate-200">
             <div>
-              <p className="font-medium text-gray-900">התראות אימייל</p>
-              <p className="text-sm text-gray-500 mt-0.5">
+              <p className="font-medium text-slate-900">התראות אימייל</p>
+              <p className="text-sm text-slate-500 mt-0.5">
                 תזכורות ועדכונים לכתובת האימייל שלך
               </p>
             </div>
-            <div className="text-sm text-gray-400">פעיל תמיד</div>
+            <div className="text-sm text-slate-400">פעיל תמיד</div>
           </div>
         </CardContent>
       </Card>

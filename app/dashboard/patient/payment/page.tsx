@@ -42,7 +42,7 @@ function IconX() {
 }
 function IconLock() {
   return (
-    <svg className="w-4 h-4 text-gray-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <svg className="w-4 h-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0110 0v4" />
     </svg>
   )
@@ -215,7 +215,7 @@ export default function PaymentPage() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center space-y-3">
           <Spinner size="lg" className="mx-auto" />
-          <p className="text-gray-500 text-sm">טוען פרטי תשלום...</p>
+          <p className="text-slate-500 text-sm">טוען פרטי תשלום...</p>
         </div>
       </div>
     )
@@ -227,8 +227,8 @@ export default function PaymentPage() {
         <Card>
           <CardContent className="py-12 text-center space-y-4">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto"><IconX /></div>
-            <h2 className="text-xl font-bold text-gray-900">שגיאה</h2>
-            <p className="text-gray-500">{error}</p>
+            <h2 className="text-xl font-bold text-slate-900">שגיאה</h2>
+            <p className="text-slate-500">{error}</p>
             <Button onClick={() => router.push('/dashboard/patient/dashboard')}>חזור לדשבורד</Button>
           </CardContent>
         </Card>
@@ -247,7 +247,7 @@ export default function PaymentPage() {
               </svg>
             </div>
             <h2 className="text-xl font-bold text-blue-800">תור זה כבר שולם</h2>
-            <p className="text-gray-500">התשלום עבור תור זה כבר בוצע.</p>
+            <p className="text-slate-500">התשלום עבור תור זה כבר בוצע.</p>
             <Button onClick={() => router.push('/dashboard/patient/appointments')}>לתורים שלי</Button>
           </CardContent>
         </Card>
@@ -266,7 +266,7 @@ export default function PaymentPage() {
               </svg>
             </div>
             <h2 className="text-2xl font-bold text-green-800">התשלום בוצע בהצלחה!</h2>
-            <p className="text-gray-500">התור שלך אושר ומוכן. תתחבר לשיחת הווידאו בזמן הנקוב.</p>
+            <p className="text-slate-500">התור שלך אושר ומוכן. תתחבר לשיחת הווידאו בזמן הנקוב.</p>
             {appointment?.payment_amount && (
               <p className="text-xl font-bold text-green-700">{formatPrice(appointment.payment_amount)}</p>
             )}
@@ -302,7 +302,7 @@ export default function PaymentPage() {
           <CardContent className="py-12 text-center space-y-4">
             <div className="w-16 h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto"><IconX /></div>
             <h2 className="text-xl font-bold text-red-800">התשלום נכשל</h2>
-            <p className="text-gray-500">{error || 'אירעה שגיאה בעיבוד התשלום. ניתן לנסות שוב.'}</p>
+            <p className="text-slate-500">{error || 'אירעה שגיאה בעיבוד התשלום. ניתן לנסות שוב.'}</p>
             <div className="flex gap-3 justify-center pt-2">
               <Button onClick={() => { setError(''); setState('summary') }}>נסה שוב</Button>
               <Button variant="outline" onClick={() => router.push('/dashboard/patient/dashboard')}>חזור לדשבורד</Button>
@@ -319,19 +319,19 @@ export default function PaymentPage() {
 
       {/* Page header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">תשלום עבור ייעוץ</h1>
-        <p className="text-sm text-gray-500 mt-1">בצע תשלום מאובטח כדי לאשר את הייעוץ</p>
+        <h1 className="text-2xl font-bold text-slate-900">תשלום עבור ייעוץ</h1>
+        <p className="text-sm text-slate-500 mt-1">בצע תשלום מאובטח כדי לאשר את הייעוץ</p>
       </div>
 
       {/* Appointment summary card */}
       {appointment && (
         <Card>
-          <CardHeader className="border-b border-gray-100">
+          <CardHeader className="border-b border-slate-100">
             <h3 className="font-bold text-base">פרטי הייעוץ</h3>
           </CardHeader>
           <CardContent className="py-4 space-y-3">
             {doctor && (
-              <div className="flex items-center gap-3 pb-3 border-b border-gray-100">
+              <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
                 <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-lg font-bold text-blue-700 shrink-0">
                   {doctor.avatar_url
                     // eslint-disable-next-line @next/next/no-img-element
@@ -340,37 +340,37 @@ export default function PaymentPage() {
                   }
                 </div>
                 <div>
-                  <p className="font-semibold text-gray-900">ד&quot;ר {doctor.first_name} {doctor.last_name}</p>
+                  <p className="font-semibold text-slate-900">ד&quot;ר {doctor.first_name} {doctor.last_name}</p>
                   {doctor.specialties && (
-                    <p className="text-sm text-gray-500">{(doctor.specialties as string[]).join(' · ')}</p>
+                    <p className="text-sm text-slate-500">{(doctor.specialties as string[]).join(' · ')}</p>
                   )}
                 </div>
               </div>
             )}
             <div className="grid grid-cols-2 gap-3 text-sm">
               <div>
-                <p className="text-gray-400 text-xs mb-0.5">תלונה</p>
-                <p className="font-medium text-gray-800">{appointment.chief_complaint}</p>
+                <p className="text-slate-400 text-xs mb-0.5">תלונה</p>
+                <p className="font-medium text-slate-800">{appointment.chief_complaint}</p>
               </div>
               {appointment.requested_specialty && (
                 <div>
-                  <p className="text-gray-400 text-xs mb-0.5">התמחות</p>
-                  <p className="font-medium text-gray-800">{appointment.requested_specialty}</p>
+                  <p className="text-slate-400 text-xs mb-0.5">התמחות</p>
+                  <p className="font-medium text-slate-800">{appointment.requested_specialty}</p>
                 </div>
               )}
               {appointment.scheduled_at && (
                 <div>
-                  <p className="text-gray-400 text-xs mb-0.5">מועד</p>
-                  <p className="font-medium text-gray-800">{formatDateTime(appointment.scheduled_at)}</p>
+                  <p className="text-slate-400 text-xs mb-0.5">מועד</p>
+                  <p className="font-medium text-slate-800">{formatDateTime(appointment.scheduled_at)}</p>
                 </div>
               )}
               <div>
-                <p className="text-gray-400 text-xs mb-0.5">משך</p>
-                <p className="font-medium text-gray-800">{appointment.duration_minutes || 30} דקות</p>
+                <p className="text-slate-400 text-xs mb-0.5">משך</p>
+                <p className="font-medium text-slate-800">{appointment.duration_minutes || 30} דקות</p>
               </div>
             </div>
-            <div className="flex justify-between items-center pt-3 border-t border-gray-100">
-              <span className="font-bold text-gray-900">סה&quot;כ לתשלום</span>
+            <div className="flex justify-between items-center pt-3 border-t border-slate-100">
+              <span className="font-bold text-slate-900">סה&quot;כ לתשלום</span>
               <span className="text-2xl font-bold text-blue-600">
                 {appointment.payment_amount ? formatPrice(appointment.payment_amount) : '—'}
               </span>
@@ -382,12 +382,12 @@ export default function PaymentPage() {
       {/* ── Fake credit card form ── */}
       {USE_FAKE_PAYMENT && (state === 'summary' || state === 'card_form') && (
         <Card>
-          <CardHeader className="border-b border-gray-100">
+          <CardHeader className="border-b border-slate-100">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-base">פרטי כרטיס אשראי</h3>
               <div className="flex items-center gap-1.5">
                 <IconLock />
-                <span className="text-xs text-gray-400">תשלום מאובטח SSL</span>
+                <span className="text-xs text-slate-400">תשלום מאובטח SSL</span>
               </div>
             </div>
           </CardHeader>
@@ -405,7 +405,7 @@ export default function PaymentPage() {
 
             {/* Card number */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5" htmlFor="card-number">
+              <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="card-number">
                 מספר כרטיס
               </label>
               <div className="relative">
@@ -420,7 +420,7 @@ export default function PaymentPage() {
                     'w-full rounded-xl border px-4 py-3 text-sm font-mono tracking-widest focus:outline-none focus:ring-2',
                     cardErrors.number
                       ? 'border-red-300 focus:ring-red-200'
-                      : 'border-gray-300 focus:ring-blue-200 focus:border-blue-400'
+                      : 'border-slate-300 focus:ring-blue-200 focus:border-blue-400'
                   )}
                   aria-describedby={cardErrors.number ? 'card-number-error' : undefined}
                 />
@@ -433,7 +433,7 @@ export default function PaymentPage() {
 
             {/* Cardholder name */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1.5" htmlFor="card-name">
+              <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="card-name">
                 שם בעל הכרטיס
               </label>
               <input
@@ -446,7 +446,7 @@ export default function PaymentPage() {
                   'w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2',
                   cardErrors.name
                     ? 'border-red-300 focus:ring-red-200'
-                    : 'border-gray-300 focus:ring-blue-200 focus:border-blue-400'
+                    : 'border-slate-300 focus:ring-blue-200 focus:border-blue-400'
                 )}
               />
               {cardErrors.name && <p className="mt-1 text-xs text-red-500">{cardErrors.name}</p>}
@@ -455,7 +455,7 @@ export default function PaymentPage() {
             <div className="grid grid-cols-2 gap-4">
               {/* Expiry */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5" htmlFor="card-expiry">
+                <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="card-expiry">
                   תוקף (MM/YY)
                 </label>
                 <input
@@ -469,14 +469,14 @@ export default function PaymentPage() {
                     'w-full rounded-xl border px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2',
                     cardErrors.expiry
                       ? 'border-red-300 focus:ring-red-200'
-                      : 'border-gray-300 focus:ring-blue-200 focus:border-blue-400'
+                      : 'border-slate-300 focus:ring-blue-200 focus:border-blue-400'
                   )}
                 />
                 {cardErrors.expiry && <p className="mt-1 text-xs text-red-500">{cardErrors.expiry}</p>}
               </div>
               {/* CVV */}
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5" htmlFor="card-cvv">
+                <label className="block text-sm font-medium text-slate-700 mb-1.5" htmlFor="card-cvv">
                   CVV
                 </label>
                 <input
@@ -491,7 +491,7 @@ export default function PaymentPage() {
                     'w-full rounded-xl border px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2',
                     cardErrors.cvv
                       ? 'border-red-300 focus:ring-red-200'
-                      : 'border-gray-300 focus:ring-blue-200 focus:border-blue-400'
+                      : 'border-slate-300 focus:ring-blue-200 focus:border-blue-400'
                   )}
                 />
                 {cardErrors.cvv && <p className="mt-1 text-xs text-red-500">{cardErrors.cvv}</p>}
@@ -518,7 +518,7 @@ export default function PaymentPage() {
       {/* ── Real Tranzila flow ── */}
       {!USE_FAKE_PAYMENT && state === 'summary' && (
         <div className="space-y-4">
-          <p className="text-xs text-center text-gray-400">
+          <p className="text-xs text-center text-slate-400">
             התשלום מאובטח ומעובד על ידי Tranzila. פרטי הכרטיס שלך לא נשמרים אצלנו.
           </p>
           <Button onClick={startTranzilaPayment} size="lg" className="w-full">
@@ -529,7 +529,7 @@ export default function PaymentPage() {
 
       {!USE_FAKE_PAYMENT && state === 'tranzila' && iframeUrl && (
         <Card>
-          <CardHeader className="border-b border-gray-100">
+          <CardHeader className="border-b border-slate-100">
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-base">הזן פרטי תשלום</h3>
               <Badge variant="info">מאובטח</Badge>

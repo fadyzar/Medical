@@ -236,7 +236,7 @@ export default function AdminTemplatesPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="text-2xl font-bold">תבניות הודעות</h2>
-          <p className="text-sm text-gray-500 mt-1">הגדר את ההודעות שנשלחות אוטומטית למטופלים</p>
+          <p className="text-sm text-slate-500 mt-1">הגדר את ההודעות שנשלחות אוטומטית למטופלים</p>
         </div>
         <Button onClick={handleSave} loading={saving}>שמור הכל</Button>
       </div>
@@ -258,7 +258,7 @@ export default function AdminTemplatesPage() {
                   'w-full px-4 py-3 rounded-xl text-right transition-all',
                   activeEvent === ev.key
                     ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-white border border-gray-200 text-gray-700 hover:border-blue-200 hover:bg-blue-50'
+                    : 'bg-white border border-slate-200 text-slate-700 hover:border-blue-200 hover:bg-blue-50'
                 )}
               >
                 <div className="flex items-center justify-between">
@@ -267,7 +267,7 @@ export default function AdminTemplatesPage() {
                       <span className="text-base">{ev.icon}</span>
                       <p className="font-medium text-sm truncate">{ev.label}</p>
                     </div>
-                    <p className={cn('text-xs mt-0.5 truncate', activeEvent === ev.key ? 'text-blue-100' : 'text-gray-400')}>
+                    <p className={cn('text-xs mt-0.5 truncate', activeEvent === ev.key ? 'text-blue-100' : 'text-slate-400')}>
                       {ev.description}
                     </p>
                   </div>
@@ -295,7 +295,7 @@ export default function AdminTemplatesPage() {
                 onClick={() => setActiveChannel(ch.key)}
                 className={cn(
                   'px-4 py-2 rounded-lg text-sm font-medium transition-all border',
-                  activeChannel === ch.key ? ch.color + ' shadow-sm' : 'bg-white border-gray-200 text-gray-600 hover:bg-gray-50'
+                  activeChannel === ch.key ? ch.color + ' shadow-sm' : 'bg-white border-slate-200 text-slate-600 hover:bg-slate-50'
                 )}
               >
                 {ch.label}
@@ -309,7 +309,7 @@ export default function AdminTemplatesPage() {
               <div className="flex items-center justify-between">
                 <div>
                   <h3 className="font-bold">{activeEventInfo?.icon} {activeEventInfo?.label}</h3>
-                  <p className="text-xs text-gray-400 mt-0.5">{activeEventInfo?.description}</p>
+                  <p className="text-xs text-slate-400 mt-0.5">{activeEventInfo?.description}</p>
                 </div>
                 <div className="flex items-center gap-3">
                   <label className="flex items-center gap-2 text-sm cursor-pointer">
@@ -317,13 +317,13 @@ export default function AdminTemplatesPage() {
                       type="checkbox"
                       checked={activeTemplate?.enabled ?? true}
                       onChange={e => updateTemplate(activeEvent, activeChannel, 'enabled', e.target.checked)}
-                      className="rounded border-gray-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
                     />
                     <span>פעיל</span>
                   </label>
                   <button
                     onClick={() => resetToDefault(activeEvent, activeChannel)}
-                    className="text-xs text-gray-400 hover:text-gray-600 underline"
+                    className="text-xs text-slate-400 hover:text-slate-600 underline"
                   >
                     אפס לברירת מחדל
                   </button>
@@ -341,28 +341,28 @@ export default function AdminTemplatesPage() {
               )}
 
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1.5">
+                <label className="block text-sm font-medium text-slate-700 mb-1.5">
                   תוכן ההודעה
                 </label>
                 <textarea
                   value={activeTemplate?.body || ''}
                   onChange={e => updateTemplate(activeEvent, activeChannel, 'body', e.target.value)}
                   rows={activeChannel === 'email' ? 10 : 7}
-                  className="w-full rounded-lg border border-gray-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none resize-y"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none resize-y"
                   placeholder="תוכן ההודעה..."
                 />
               </div>
 
               {/* Variables helper */}
               <div>
-                <p className="text-xs font-medium text-gray-500 mb-2">הוסף משתנה דינמי:</p>
+                <p className="text-xs font-medium text-slate-500 mb-2">הוסף משתנה דינמי:</p>
                 <div className="flex flex-wrap gap-1.5">
                   {VARIABLES.map(v => (
                     <button
                       key={v.key}
                       onClick={() => insertVariable(v.key)}
                       title={v.description}
-                      className="text-xs px-2.5 py-1 rounded-full bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700 transition-colors font-mono"
+                      className="text-xs px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-blue-100 hover:text-blue-700 transition-colors font-mono"
                     >
                       {v.key}
                     </button>
@@ -373,12 +373,12 @@ export default function AdminTemplatesPage() {
               {/* Preview */}
               {activeTemplate?.body && (
                 <div>
-                  <p className="text-xs font-medium text-gray-500 mb-2">תצוגה מקדימה (עם נתוני דוגמה):</p>
+                  <p className="text-xs font-medium text-slate-500 mb-2">תצוגה מקדימה (עם נתוני דוגמה):</p>
                   <div className={cn(
                     'rounded-xl p-4 text-sm whitespace-pre-wrap leading-relaxed',
                     activeChannel === 'whatsapp'
-                      ? 'bg-[#dcf8c6] text-gray-800 max-w-sm mr-auto border border-green-200'
-                      : 'bg-gray-50 border border-gray-200 text-gray-700'
+                      ? 'bg-[#dcf8c6] text-slate-800 max-w-sm mr-auto border border-green-200'
+                      : 'bg-slate-50 border border-slate-200 text-slate-700'
                   )}>
                     {activeTemplate.body
                       .replace(/{{patient_name}}/g, 'ישראל ישראלי')

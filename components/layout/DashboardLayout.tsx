@@ -359,7 +359,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
 
   return (
     <div
-      className="min-h-screen bg-gray-50/80"
+      className="min-h-screen bg-slate-50/80"
       dir="rtl"
       style={{
         '--brand-primary': primary,
@@ -368,12 +368,12 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
     >
       {/* ─── Desktop Sidebar ─────────────────────────────── */}
       <aside className={cn(
-        'fixed right-0 top-0 bottom-0 z-40 bg-white border-l border-gray-200/80 transition-all duration-300 hidden lg:flex flex-col',
+        'fixed right-0 top-0 bottom-0 z-40 bg-white border-l border-slate-200/80 transition-all duration-300 hidden lg:flex flex-col',
         sidebarCollapsed ? 'w-[72px]' : 'w-64'
       )}>
         {/* Logo area */}
         <div className={cn(
-          'h-16 flex items-center border-b border-gray-100 shrink-0',
+          'h-16 flex items-center border-b border-slate-100 shrink-0',
           sidebarCollapsed ? 'justify-center px-2' : 'px-5 gap-3'
         )}>
           {org?.logo_url ? (
@@ -405,7 +405,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
                 className={cn(
                   'flex items-center gap-3 rounded-xl text-sm font-medium transition-all duration-200 group relative',
                   sidebarCollapsed ? 'justify-center p-3' : 'px-4 py-3',
-                  active ? 'text-white shadow-md' : 'text-gray-600'
+                  active ? 'text-white shadow-md' : 'text-slate-600'
                 )}
                 style={active
                   ? { background: primary, boxShadow: `0 4px 12px ${primary}40` }
@@ -415,11 +415,11 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
                 onMouseLeave={e => { if (!active) { (e.currentTarget as HTMLElement).style.background = ''; (e.currentTarget as HTMLElement).style.color = '' } }}
                 aria-current={active ? 'page' : undefined}
               >
-                <Icon className={cn('w-5 h-5 shrink-0', active ? 'text-white' : 'text-gray-400')} />
+                <Icon className={cn('w-5 h-5 shrink-0', active ? 'text-white' : 'text-slate-400')} />
                 {!sidebarCollapsed && <span>{item.label}</span>}
                 {/* Tooltip for collapsed mode */}
                 {sidebarCollapsed && (
-                  <span className="absolute right-full mr-2 bg-gray-900 text-white text-xs px-2.5 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-lg z-50">
+                  <span className="absolute right-full mr-2 bg-slate-900 text-white text-xs px-2.5 py-1.5 rounded-lg whitespace-nowrap opacity-0 group-hover:opacity-100 pointer-events-none transition-opacity shadow-lg z-50">
                     {item.label}
                   </span>
                 )}
@@ -431,7 +431,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
         {/* Collapse toggle */}
         <button
           onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
-          className="mx-3 mb-2 p-2 rounded-lg text-gray-400 hover:bg-gray-100 hover:text-gray-600 transition-colors"
+          className="mx-3 mb-2 p-2 rounded-lg text-slate-400 hover:bg-slate-100 hover:text-slate-600 transition-colors"
           aria-label={sidebarCollapsed ? 'הרחב תפריט' : 'כווץ תפריט'}
         >
           <svg className={cn('w-5 h-5 transition-transform duration-300 mx-auto', sidebarCollapsed && 'rotate-180')} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -442,13 +442,13 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
 
         {/* User section at bottom */}
         <div className={cn(
-          'border-t border-gray-100 p-3 shrink-0',
+          'border-t border-slate-100 p-3 shrink-0',
           sidebarCollapsed && 'flex justify-center'
         )}>
           {sidebarCollapsed ? (
             <button
               onClick={handleLogout}
-              className="w-10 h-10 rounded-xl bg-gray-100 flex items-center justify-center text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors"
+              className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-500 hover:bg-red-50 hover:text-red-600 transition-colors"
               aria-label="התנתק"
             >
               <IconLogOut className="w-4 h-4" />
@@ -459,16 +459,16 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
                 {user ? getInitials(user.first_name, user.last_name) : '..'}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-semibold text-gray-900 truncate">
+                <p className="text-sm font-semibold text-slate-900 truncate">
                   {user ? `${user.first_name} ${user.last_name}` : '...'}
                 </p>
-                <p className="text-xs text-gray-400 truncate">
+                <p className="text-xs text-slate-400 truncate">
                   {org ? org.name : ROLE_LABELS[role]}
                 </p>
               </div>
               <button
                 onClick={handleLogout}
-                className="p-2 rounded-lg text-gray-400 hover:bg-red-50 hover:text-red-600 transition-colors shrink-0"
+                className="p-2 rounded-lg text-slate-400 hover:bg-red-50 hover:text-red-600 transition-colors shrink-0"
                 aria-label="התנתק"
               >
                 <IconLogOut className="w-4 h-4" />
@@ -476,14 +476,14 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
             </div>
           )}
           {!sidebarCollapsed && (
-            <p className="text-[10px] text-gray-300 text-center mt-3 tracking-wide">מופעל ע״י CANNA</p>
+            <p className="text-[10px] text-slate-300 text-center mt-3 tracking-wide">מופעל ע״י CANNA</p>
           )}
         </div>
       </aside>
 
       {/* ─── Top Header ──────────────────────────────────── */}
       <header className={cn(
-        'fixed top-0 left-0 z-30 bg-white/80 backdrop-blur-md border-b border-gray-200/60 h-16 transition-all duration-300',
+        'fixed top-0 left-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/60 h-16 transition-all duration-300',
         sidebarCollapsed ? 'lg:right-[72px]' : 'lg:right-64',
         'right-0' // mobile: full width
       )}>
@@ -508,10 +508,10 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
             </div>
             {/* Welcome text - desktop only */}
             <div className="hidden lg:block">
-              <h1 className="text-lg font-bold text-gray-900">
+              <h1 className="text-lg font-bold text-slate-900">
                 {user ? (role === 'doctor' ? `שלום, ד"ר ${user.first_name}` : `שלום, ${user.first_name}`) : 'טוען...'}
               </h1>
-              <p className="text-xs text-gray-400">
+              <p className="text-xs text-slate-400">
                 {new Date().toLocaleDateString('he-IL', { weekday: 'long', year: 'numeric', month: 'long', day: 'numeric' })}
               </p>
             </div>
@@ -521,7 +521,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
           <div className="flex items-center gap-2">
             {/* Notification bell */}
             <button
-              className="relative w-10 h-10 rounded-xl flex items-center justify-center text-gray-500 hover:bg-gray-100 hover:text-gray-700 transition-colors"
+              className="relative w-10 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
               aria-label="התראות"
             >
               <IconBell className="w-5 h-5" />
@@ -533,7 +533,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
             <div className="relative">
               <button
                 onClick={(e) => { e.stopPropagation(); setUserMenuOpen(!userMenuOpen) }}
-                className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-gray-100 transition-colors"
+                className="flex items-center gap-2 p-1.5 rounded-xl hover:bg-slate-100 transition-colors"
                 aria-expanded={userMenuOpen}
                 aria-haspopup="true"
               >
@@ -541,47 +541,47 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
                   {user ? getInitials(user.first_name, user.last_name) : '..'}
                 </div>
                 <div className="hidden sm:block text-right">
-                  <p className="text-sm font-medium text-gray-700 leading-tight">
+                  <p className="text-sm font-medium text-slate-700 leading-tight">
                     {user ? `${user.first_name} ${user.last_name}` : '...'}
                   </p>
-                  <p className="text-xs text-gray-400 leading-tight">{ROLE_LABELS[role]}</p>
+                  <p className="text-xs text-slate-400 leading-tight">{ROLE_LABELS[role]}</p>
                 </div>
                 <IconChevronDown className={cn(
-                  'w-4 h-4 text-gray-400 hidden sm:block transition-transform duration-200',
+                  'w-4 h-4 text-slate-400 hidden sm:block transition-transform duration-200',
                   userMenuOpen && 'rotate-180'
                 )} />
               </button>
 
               {/* Dropdown menu */}
               {userMenuOpen && (
-                <div className="absolute left-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-gray-200/80 py-2 z-50" role="menu">
-                  <div className="px-4 py-2 border-b border-gray-100">
-                    <p className="text-sm font-semibold text-gray-900">
+                <div className="absolute left-0 top-full mt-2 w-56 bg-white rounded-xl shadow-xl border border-slate-200/80 py-2 z-50" role="menu">
+                  <div className="px-4 py-2 border-b border-slate-100">
+                    <p className="text-sm font-semibold text-slate-900">
                       {user ? `${user.first_name} ${user.last_name}` : '...'}
                     </p>
-                    <p className="text-xs text-gray-400">{user?.email}</p>
+                    <p className="text-xs text-slate-400">{user?.email}</p>
                   </div>
                   <Link
                     href={`/dashboard/${role}/profile`}
-                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                    className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                     role="menuitem"
                     onClick={() => setUserMenuOpen(false)}
                   >
-                    <IconUser className="w-4 h-4 text-gray-400" />
+                    <IconUser className="w-4 h-4 text-slate-400" />
                     <span>הפרופיל שלי</span>
                   </Link>
                   {role === 'admin' && (
                     <Link
                       href="/dashboard/admin/settings"
-                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-gray-700 hover:bg-gray-50 transition-colors"
+                      className="flex items-center gap-3 px-4 py-2.5 text-sm text-slate-700 hover:bg-slate-50 transition-colors"
                       role="menuitem"
                       onClick={() => setUserMenuOpen(false)}
                     >
-                      <IconSettings className="w-4 h-4 text-gray-400" />
+                      <IconSettings className="w-4 h-4 text-slate-400" />
                       <span>הגדרות</span>
                     </Link>
                   )}
-                  <div className="border-t border-gray-100 mt-1 pt-1">
+                  <div className="border-t border-slate-100 mt-1 pt-1">
                     <button
                       onClick={handleLogout}
                       className="flex items-center gap-3 px-4 py-2.5 text-sm text-red-600 hover:bg-red-50 transition-colors w-full"
@@ -609,7 +609,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
       </main>
 
       {/* ─── Mobile Bottom Tab Bar ───────────────────────── */}
-      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-gray-200/80 lg:hidden" aria-label="ניווט ראשי">
+      <nav className="fixed bottom-0 left-0 right-0 z-40 bg-white border-t border-slate-200/80 lg:hidden" aria-label="ניווט ראשי">
         <div className="flex items-center justify-around h-16 px-1">
           {mobileItems.map(item => {
             const Icon = ICON_MAP[item.icon] || IconHome
@@ -620,7 +620,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
                 href={item.href}
                 className={cn(
                   'flex flex-col items-center justify-center gap-0.5 flex-1 h-full rounded-xl mx-0.5 transition-colors',
-                  active ? '' : 'text-gray-400 hover:text-gray-600'
+                  active ? '' : 'text-slate-400 hover:text-slate-600'
                 )}
                 style={active ? { color: primary } : undefined}
                 aria-current={active ? 'page' : undefined}

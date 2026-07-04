@@ -46,15 +46,15 @@ export async function generateMetadata({ params }: { params: Promise<{ slug: str
 // ── Markdown Components ───────────────────────────────
 
 const markdownComponents: Components = {
-  h2: (props) => <h2 className="text-2xl font-bold mt-8 mb-4 text-gray-900" {...props} />,
-  h3: (props) => <h3 className="text-xl font-bold mt-6 mb-3 text-gray-900" {...props} />,
-  p: (props) => <p className="text-gray-700 leading-relaxed mb-4" {...props} />,
-  ul: (props) => <ul className="list-disc list-inside space-y-2 mb-4 text-gray-700" {...props} />,
-  ol: (props) => <ol className="list-decimal list-inside space-y-2 mb-4 text-gray-700" {...props} />,
+  h2: (props) => <h2 className="text-2xl font-bold mt-8 mb-4 text-slate-900" {...props} />,
+  h3: (props) => <h3 className="text-xl font-bold mt-6 mb-3 text-slate-900" {...props} />,
+  p: (props) => <p className="text-slate-700 leading-relaxed mb-4" {...props} />,
+  ul: (props) => <ul className="list-disc list-inside space-y-2 mb-4 text-slate-700" {...props} />,
+  ol: (props) => <ol className="list-decimal list-inside space-y-2 mb-4 text-slate-700" {...props} />,
   li: (props) => <li className="leading-relaxed" {...props} />,
-  strong: (props) => <strong className="font-bold text-gray-900" {...props} />,
+  strong: (props) => <strong className="font-bold text-slate-900" {...props} />,
   a: (props) => <a className="text-blue-600 hover:underline" {...props} />,
-  blockquote: (props) => <blockquote className="border-r-4 border-blue-500 pr-4 my-4 text-gray-600 italic" {...props} />,
+  blockquote: (props) => <blockquote className="border-r-4 border-blue-500 pr-4 my-4 text-slate-600 italic" {...props} />,
 }
 
 // ── Page Component ────────────────────────────────────
@@ -101,10 +101,10 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
           <Link href="/" className="text-2xl font-black text-blue-600">CANNA</Link>
           <div className="flex items-center gap-4">
-            <Link href="/specialties" className="text-sm text-gray-600 hover:text-gray-900">התמחויות</Link>
-            <Link href="/doctors" className="text-sm text-gray-600 hover:text-gray-900">הרופאים שלנו</Link>
-            <Link href="/blog" className="text-sm text-gray-600 hover:text-gray-900">בלוג</Link>
-            <Link href="/auth/login" className="text-sm text-gray-600 hover:text-gray-900">התחברות</Link>
+            <Link href="/specialties" className="text-sm text-slate-600 hover:text-slate-900">התמחויות</Link>
+            <Link href="/doctors" className="text-sm text-slate-600 hover:text-slate-900">הרופאים שלנו</Link>
+            <Link href="/blog" className="text-sm text-slate-600 hover:text-slate-900">בלוג</Link>
+            <Link href="/auth/login" className="text-sm text-slate-600 hover:text-slate-900">התחברות</Link>
             <Link href="/auth/register" className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">הרשמה חינם</Link>
           </div>
         </div>
@@ -130,16 +130,16 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             <span className="text-xs font-medium bg-blue-50 text-blue-700 px-3 py-1 rounded-full">
               {post.category}
             </span>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-slate-400">
               {new Date(post.publishedAt).toLocaleDateString('he-IL', { day: 'numeric', month: 'long', year: 'numeric' })}
             </span>
-            <span className="text-xs text-gray-400">
+            <span className="text-xs text-slate-400">
               {post.readingTimeMinutes} דק׳ קריאה
             </span>
           </div>
 
           {/* Title */}
-          <h1 className="text-3xl md:text-4xl font-black text-gray-900 mb-6 leading-tight">
+          <h1 className="text-3xl md:text-4xl font-black text-slate-900 mb-6 leading-tight">
             {post.title}
           </h1>
 
@@ -149,8 +149,8 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
               {post.coverEmoji}
             </div>
             <div>
-              <p className="font-medium text-gray-900 text-sm">{post.author.name}</p>
-              <p className="text-xs text-gray-500">{post.author.role}</p>
+              <p className="font-medium text-slate-900 text-sm">{post.author.name}</p>
+              <p className="text-xs text-slate-500">{post.author.role}</p>
             </div>
           </div>
 
@@ -164,7 +164,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
           {/* Tags */}
           <div className="flex flex-wrap gap-2 mt-8 pt-8 border-t">
             {post.tags.map(tag => (
-              <span key={tag} className="text-xs bg-gray-100 text-gray-600 px-3 py-1 rounded-full">
+              <span key={tag} className="text-xs bg-slate-100 text-slate-600 px-3 py-1 rounded-full">
                 {tag}
               </span>
             ))}
@@ -174,23 +174,23 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
       {/* Related Posts */}
       {related.length > 0 && (
-        <section className="py-12 px-4 bg-gray-50">
+        <section className="py-12 px-4 bg-slate-50">
           <div className="max-w-6xl mx-auto">
             <h2 className="text-2xl font-black text-center mb-8">מאמרים נוספים</h2>
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
               {related.map(r => (
                 <Link key={r.slug} href={`/blog/${r.slug}`} className="group">
-                  <div className="bg-white rounded-2xl border border-gray-100 shadow-sm hover:shadow-md transition-shadow p-6">
+                  <div className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow p-6">
                     <div className="flex items-center gap-3 mb-3">
                       <span className="text-3xl">{r.coverEmoji}</span>
                       <span className="text-xs font-medium bg-blue-50 text-blue-700 px-3 py-1 rounded-full">
                         {r.category}
                       </span>
                     </div>
-                    <h3 className="font-bold text-gray-900 mb-2 group-hover:text-blue-600 transition-colors">
+                    <h3 className="font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
                       {r.title}
                     </h3>
-                    <p className="text-sm text-gray-500 line-clamp-2">{r.description}</p>
+                    <p className="text-sm text-slate-500 line-clamp-2">{r.description}</p>
                   </div>
                 </Link>
               ))}
@@ -211,7 +211,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       </section>
 
       {/* Footer */}
-      <footer className="py-12 px-4 bg-gray-900 text-gray-400">
+      <footer className="py-12 px-4 bg-slate-900 text-slate-400">
         <div className="max-w-6xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-8 text-sm">
           <div>
             <h5 className="font-bold text-white mb-3">CANNA</h5>
@@ -234,7 +234,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             <p>medical@cannaforyou.net</p>
           </div>
         </div>
-        <div className="max-w-6xl mx-auto mt-8 pt-8 border-t border-gray-800 text-center text-xs">
+        <div className="max-w-6xl mx-auto mt-8 pt-8 border-t border-slate-800 text-center text-xs">
           &copy; {new Date().getFullYear()} CANNA. כל הזכויות שמורות.
         </div>
       </footer>

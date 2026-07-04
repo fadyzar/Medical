@@ -197,8 +197,8 @@ export default function PatientQuestionnairePage() {
                 <circle cx="12" cy="12" r="10" /><line x1="15" y1="9" x2="9" y2="15" /><line x1="9" y1="9" x2="15" y2="15" />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-gray-900 mb-2">שגיאה</h2>
-            <p className="text-gray-500 mb-6">{error}</p>
+            <h2 className="text-xl font-bold text-slate-900 mb-2">שגיאה</h2>
+            <p className="text-slate-500 mb-6">{error}</p>
             <Button onClick={() => router.push('/dashboard/patient/dashboard')}>חזור לדשבורד</Button>
           </CardContent>
         </Card>
@@ -211,7 +211,7 @@ export default function PatientQuestionnairePage() {
       <div className="flex items-center justify-center min-h-[60vh]">
         <div className="text-center">
           <Spinner size="lg" className="mx-auto mb-4" />
-          <p className="text-gray-500">שולח את התשובות...</p>
+          <p className="text-slate-500">שולח את התשובות...</p>
         </div>
       </div>
     )
@@ -228,7 +228,7 @@ export default function PatientQuestionnairePage() {
               </svg>
             </div>
             <h2 className="text-xl font-bold text-green-800">השאלון נשלח בהצלחה!</h2>
-            <p className="text-gray-500">תודה על מילוי השאלון. המידע ישמש את הרופא לייעוץ מיטבי.</p>
+            <p className="text-slate-500">תודה על מילוי השאלון. המידע ישמש את הרופא לייעוץ מיטבי.</p>
             <Button onClick={() => router.push('/dashboard/patient/dashboard')}>חזור לדשבורד</Button>
           </CardContent>
         </Card>
@@ -250,20 +250,20 @@ export default function PatientQuestionnairePage() {
       {/* Header */}
       <div>
         <h2 className="text-2xl font-bold">{questionnaire?.title}</h2>
-        {questionnaire?.description && <p className="text-gray-500 text-sm mt-1">{questionnaire.description}</p>}
+        {questionnaire?.description && <p className="text-slate-500 text-sm mt-1">{questionnaire.description}</p>}
       </div>
 
       {/* Progress */}
       <div className="space-y-2">
         <div className="flex items-center justify-between text-sm">
-          <span className="text-gray-500">התקדמות</span>
+          <span className="text-slate-500">התקדמות</span>
           <span className="font-medium text-blue-600">{progress}%</span>
         </div>
-        <div className="w-full h-2 bg-gray-200 rounded-full overflow-hidden">
+        <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
           <div className="h-full bg-blue-600 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
         </div>
         {totalSteps > 1 && (
-          <p className="text-xs text-gray-400 text-center">
+          <p className="text-xs text-slate-400 text-center">
             עמוד {currentStep + 1} מתוך {totalSteps}
           </p>
         )}
@@ -276,8 +276,8 @@ export default function PatientQuestionnairePage() {
             const globalIdx = currentStep * QUESTIONS_PER_STEP + idx
             return (
               <div key={q.id} className="space-y-3">
-                <label className="block font-medium text-gray-800">
-                  <span className="text-gray-400 ml-1">{globalIdx + 1}.</span>
+                <label className="block font-medium text-slate-800">
+                  <span className="text-slate-400 ml-1">{globalIdx + 1}.</span>
                   {q.text}
                   {q.required && <span className="text-red-500 mr-1">*</span>}
                 </label>
@@ -301,11 +301,11 @@ export default function PatientQuestionnairePage() {
                           'flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all w-full text-right',
                           answers[q.id] === opt
                             ? 'border-blue-500 bg-blue-50 shadow-sm'
-                            : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                            : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
                         )}>
                         <div className={cn(
                           'w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0',
-                          answers[q.id] === opt ? 'border-blue-600' : 'border-gray-300'
+                          answers[q.id] === opt ? 'border-blue-600' : 'border-slate-300'
                         )}>
                           {answers[q.id] === opt && <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />}
                         </div>
@@ -334,11 +334,11 @@ export default function PatientQuestionnairePage() {
                             'flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all w-full text-right',
                             selected
                               ? 'border-blue-500 bg-blue-50 shadow-sm'
-                              : 'border-gray-200 hover:border-blue-300 hover:bg-gray-50'
+                              : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
                           )}>
                           <div className={cn(
                             'w-5 h-5 rounded border-2 flex items-center justify-center shrink-0',
-                            selected ? 'border-blue-600 bg-blue-600' : 'border-gray-300'
+                            selected ? 'border-blue-600 bg-blue-600' : 'border-slate-300'
                           )}>
                             {selected && (
                               <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
@@ -366,14 +366,14 @@ export default function PatientQuestionnairePage() {
                               'w-11 h-11 rounded-full text-sm font-bold transition-all',
                               isSelected
                                 ? 'bg-blue-600 text-white shadow-md scale-110'
-                                : 'bg-gray-100 text-gray-600 hover:bg-blue-100 hover:text-blue-700'
+                                : 'bg-slate-100 text-slate-600 hover:bg-blue-100 hover:text-blue-700'
                             )}>
                             {val}
                           </button>
                         )
                       })}
                     </div>
-                    <div className="flex justify-between mt-2 text-xs text-gray-400">
+                    <div className="flex justify-between mt-2 text-xs text-slate-400">
                       <span>נמוך</span>
                       <span>גבוה</span>
                     </div>
@@ -387,14 +387,14 @@ export default function PatientQuestionnairePage() {
                       className={cn('flex-1 py-4 rounded-xl border-2 font-bold text-lg transition-all',
                         answers[q.id] === 'כן'
                           ? 'border-green-500 bg-green-50 text-green-700 shadow-sm'
-                          : 'border-gray-200 text-gray-500 hover:border-green-300')}>
+                          : 'border-slate-200 text-slate-500 hover:border-green-300')}>
                       כן
                     </button>
                     <button type="button" onClick={() => setAnswer(q.id, 'לא')}
                       className={cn('flex-1 py-4 rounded-xl border-2 font-bold text-lg transition-all',
                         answers[q.id] === 'לא'
                           ? 'border-red-500 bg-red-50 text-red-700 shadow-sm'
-                          : 'border-gray-200 text-gray-500 hover:border-red-300')}>
+                          : 'border-slate-200 text-slate-500 hover:border-red-300')}>
                       לא
                     </button>
                   </div>
@@ -402,7 +402,7 @@ export default function PatientQuestionnairePage() {
 
                 {/* Image upload */}
                 {q.type === 'image' && (
-                  <div className="border-2 border-dashed border-gray-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer">
+                  <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer">
                     <input type="file" accept="image/*" className="hidden" id={`img_${q.id}`}
                       onChange={async e => {
                         const file = e.target.files?.[0]
@@ -427,15 +427,15 @@ export default function PatientQuestionnairePage() {
                             <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
                           </svg>
                           <p className="text-sm text-green-700 font-medium">{answers[q.id] as string}</p>
-                          <p className="text-xs text-gray-400 mt-1">לחץ להחלפה</p>
+                          <p className="text-xs text-slate-400 mt-1">לחץ להחלפה</p>
                         </div>
                       ) : (
                         <div>
-                          <svg className="w-10 h-10 text-gray-400 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                          <svg className="w-10 h-10 text-slate-400 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                             <path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" /><circle cx="12" cy="13" r="4" />
                           </svg>
-                          <p className="font-medium text-gray-700">לחץ להעלאת תמונה</p>
-                          <p className="text-xs text-gray-400 mt-1">JPG, PNG — עד 10MB</p>
+                          <p className="font-medium text-slate-700">לחץ להעלאת תמונה</p>
+                          <p className="text-xs text-slate-400 mt-1">JPG, PNG — עד 10MB</p>
                         </div>
                       )}
                     </label>
@@ -467,7 +467,7 @@ export default function PatientQuestionnairePage() {
         </div>
       </div>
 
-      <p className="text-xs text-gray-400 text-center">
+      <p className="text-xs text-slate-400 text-center">
         המידע שתמסור ישמש אך ורק למטרת הייעוץ הרפואי שלך ויישמר בצורה מאובטחת.
       </p>
     </div>

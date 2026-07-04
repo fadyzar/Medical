@@ -64,12 +64,12 @@ function ToggleRow({
   id: string
 }) {
   return (
-    <div className="flex items-center justify-between gap-3 py-2.5 border-b border-gray-100 last:border-0">
+    <div className="flex items-center justify-between gap-3 py-2.5 border-b border-slate-100 last:border-0">
       <div className="flex-1 min-w-0">
-        <label htmlFor={id} className="text-sm font-semibold text-gray-800 cursor-pointer block">
+        <label htmlFor={id} className="text-sm font-semibold text-slate-800 cursor-pointer block">
           {label}
         </label>
-        {desc && <p className="text-xs text-gray-500 mt-0.5">{desc}</p>}
+        {desc && <p className="text-xs text-slate-500 mt-0.5">{desc}</p>}
       </div>
       <button
         id={id}
@@ -80,7 +80,7 @@ function ToggleRow({
           relative inline-flex h-6 w-11 shrink-0 items-center rounded-full
           transition-colors focus-visible:outline focus-visible:outline-2
           focus-visible:outline-offset-2 focus-visible:outline-blue-600
-          ${checked ? 'bg-blue-600' : 'bg-gray-200'}
+          ${checked ? 'bg-blue-600' : 'bg-slate-200'}
         `}
         aria-label={label}
       >
@@ -197,7 +197,7 @@ export default function AccessibilityWidget() {
           {/* Tooltip */}
           <span className="
             absolute left-full mr-3 whitespace-nowrap
-            bg-gray-900 text-white text-xs font-medium px-2.5 py-1.5 rounded-lg
+            bg-slate-900 text-white text-xs font-medium px-2.5 py-1.5 rounded-lg
             opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none
             mr-2
           " style={{ right: '100%', left: 'auto', marginRight: '10px' }}>
@@ -225,13 +225,13 @@ export default function AccessibilityWidget() {
             dir="rtl"
             className="
               fixed bottom-24 left-6 z-[9999]
-              w-80 bg-white rounded-2xl shadow-2xl shadow-gray-400/30
-              border border-gray-200
+              w-80 bg-white rounded-2xl shadow-2xl shadow-slate-400/30
+              border border-slate-200
               animate-fadeIn
             "
           >
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-gray-100">
+            <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
               <div className="flex items-center gap-2">
                 <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center">
                   <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -240,12 +240,12 @@ export default function AccessibilityWidget() {
                     <path d="M8.5 20c-.8-1.5-1-3-1-4.5C7.5 14 9 13 12 13s4.5 1 4.5 2.5c0 1.5-.2 3-1 4.5"/>
                   </svg>
                 </div>
-                <h2 className="font-bold text-gray-900 text-sm">הגדרות נגישות</h2>
+                <h2 className="font-bold text-slate-900 text-sm">הגדרות נגישות</h2>
               </div>
               <button
                 onClick={() => { setOpen(false); triggerRef.current?.focus() }}
                 aria-label="סגור תפריט נגישות"
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-600"
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-600"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                   <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -257,7 +257,7 @@ export default function AccessibilityWidget() {
 
               {/* ── Font size ── */}
               <section aria-labelledby="font-size-label">
-                <p id="font-size-label" className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-3">
+                <p id="font-size-label" className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-3">
                   גודל טקסט
                 </p>
                 <div className="grid grid-cols-4 gap-1.5" role="group" aria-labelledby="font-size-label">
@@ -272,7 +272,7 @@ export default function AccessibilityWidget() {
                         focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-600
                         ${settings.fontSize === i
                           ? 'border-blue-500 bg-blue-50 text-blue-700'
-                          : 'border-gray-200 text-gray-600 hover:border-blue-300 hover:bg-blue-50/50'}
+                          : 'border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-blue-50/50'}
                       `}
                     >
                       <span style={{ fontSize: `${11 + i * 2}px` }} className="font-bold block leading-none">א</span>
@@ -284,7 +284,7 @@ export default function AccessibilityWidget() {
 
               {/* ── Display options ── */}
               <section aria-labelledby="display-label">
-                <p id="display-label" className="text-xs font-bold text-gray-500 uppercase tracking-wide mb-1">
+                <p id="display-label" className="text-xs font-bold text-slate-500 uppercase tracking-wide mb-1">
                   תצוגה
                 </p>
                 <div role="group" aria-labelledby="display-label">
@@ -328,15 +328,15 @@ export default function AccessibilityWidget() {
             </div>
 
             {/* Footer */}
-            <div className="px-5 py-4 border-t border-gray-100 space-y-2">
+            <div className="px-5 py-4 border-t border-slate-100 space-y-2">
               <button
                 onClick={handleReset}
                 disabled={!isModified}
                 className="
                   w-full py-2.5 rounded-xl text-sm font-semibold transition-all
-                  border-2 border-gray-200 text-gray-600
+                  border-2 border-slate-200 text-slate-600
                   hover:border-red-300 hover:text-red-600 hover:bg-red-50
-                  disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-gray-200 disabled:hover:text-gray-600 disabled:hover:bg-transparent
+                  disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-slate-200 disabled:hover:text-slate-600 disabled:hover:bg-transparent
                   focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-600
                 "
               >
