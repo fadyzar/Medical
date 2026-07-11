@@ -24,6 +24,10 @@ export const metadata: Metadata = {
     description: 'ייעוץ רפואי בוידאו עם רופאים מומחים. AI, שאלונים, תשלומים מאובטחים.',
   },
   robots: { index: true, follow: true },
+  icons: {
+    icon: [{ url: '/favicon.png', type: 'image/png' }],
+    apple: [{ url: '/canna-mark.png' }],
+  },
   alternates: {
     canonical: 'https://cannaforyou.net',
     languages: { 'he': 'https://cannaforyou.net' },

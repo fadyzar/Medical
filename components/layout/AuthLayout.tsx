@@ -77,8 +77,10 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
         <div className="relative z-10">
           <Link href="/" className="flex items-center gap-3">
             {brand.logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={brand.logoUrl} alt={brand.name} className="w-11 h-11 rounded-xl object-cover bg-white/20" />
+              <div className="w-12 h-12 rounded-xl bg-white shadow-sm flex items-center justify-center overflow-hidden shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={brand.logoUrl} alt={brand.name} className="w-full h-full object-contain p-1" />
+              </div>
             ) : (
               <div className="w-11 h-11 bg-white/20 backdrop-blur-sm rounded-xl flex items-center justify-center">
                 <IconStethoscope className="w-6 h-6 text-white" />
@@ -140,8 +142,10 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
         <div className="lg:hidden px-6 py-8" style={{ background: mobileGradient }}>
           <Link href="/" className="flex items-center gap-2.5 mb-4">
             {brand.logoUrl ? (
-              // eslint-disable-next-line @next/next/no-img-element
-              <img src={brand.logoUrl} alt={brand.name} className="w-9 h-9 rounded-lg object-cover bg-white/20" />
+              <div className="w-10 h-10 rounded-lg bg-white shadow-sm flex items-center justify-center overflow-hidden shrink-0">
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img src={brand.logoUrl} alt={brand.name} className="w-full h-full object-contain p-0.5" />
+              </div>
             ) : (
               <div className="w-9 h-9 bg-white/20 backdrop-blur-sm rounded-lg flex items-center justify-center">
                 <IconStethoscope className="w-5 h-5 text-white" />

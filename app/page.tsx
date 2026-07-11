@@ -89,12 +89,8 @@ export default function HomePage() {
         <div className="mx-auto max-w-7xl px-6">
           <nav className="mt-4 flex items-center justify-between rounded-2xl bg-white/80 backdrop-blur-md border border-white/60 shadow-sm px-5 h-14">
             <Link href="/" className="flex items-center gap-2 font-bold text-lg text-slate-900">
-              <span className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M4.8 2.3A.3.3 0 105 2H4a2 2 0 00-2 2v5a6 6 0 006 6 6 6 0 006-6V4a2 2 0 00-2-2h-1"/>
-                  <path d="M8 15v1a6 6 0 006 6 6 6 0 006-6v-4"/><circle cx="20" cy="10" r="2"/>
-                </svg>
-              </span>
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/canna-mark.png" alt="CANNA" className="w-9 h-9 object-contain" />
               CANNA
             </Link>
             <div className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">

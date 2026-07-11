@@ -84,7 +84,10 @@ export default async function DoctorsPage() {
         }}
         dir="rtl"
       >
-        <Link href="/" className="text-xl font-black text-white tracking-tight">CANNA</Link>
+        <Link href="/" className="flex items-center gap-2 text-xl font-black text-white tracking-tight">
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img src="/canna-mark.png" alt="" className="w-9 h-9 rounded-lg bg-white object-contain p-0.5" />CANNA
+        </Link>
         <div className="flex items-center gap-5">
           <Link href="/specialties" className="text-sm text-slate-400 hover:text-white transition-colors hidden sm:block">התמחויות</Link>
           <Link href="/doctors" className="text-sm font-semibold text-blue-400 hidden sm:block">הרופאים שלנו</Link>

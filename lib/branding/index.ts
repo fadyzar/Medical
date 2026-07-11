@@ -21,7 +21,7 @@ export const DEFAULT_BRAND: Brand = {
   tagline: 'ייעוץ רפואי אונליין',
   primaryColor: '#2563eb',
   secondaryColor: '#0d9488',
-  logoUrl: null,
+  logoUrl: '/canna-mark.png', // platform mark; clinics override with their own
   supportEmail: 'medical@cannaforyou.net',
 }
 

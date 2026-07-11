@@ -380,8 +380,10 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
             // eslint-disable-next-line @next/next/no-img-element
             <img src={org.logo_url} alt={org.name} className="w-9 h-9 rounded-xl object-cover shrink-0" />
           ) : (
-            <div className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0" style={{ background: `linear-gradient(135deg, ${primary}, ${org?.secondary_color || '#0d9488'})` }}>
-              <IconStethoscope className="w-5 h-5 text-white" />
+            // Platform default (no clinic logo uploaded) — CANNA mark
+            <div className="w-9 h-9 rounded-xl bg-white ring-1 ring-slate-100 flex items-center justify-center shrink-0 overflow-hidden">
+              {/* eslint-disable-next-line @next/next/no-img-element */}
+              <img src="/canna-mark.png" alt="CANNA" className="w-full h-full object-contain p-0.5" />
             </div>
           )}
           {!sidebarCollapsed && (

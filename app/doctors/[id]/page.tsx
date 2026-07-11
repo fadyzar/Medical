@@ -151,7 +151,10 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-black text-blue-600">CANNA</Link>
+          <Link href="/" className="flex items-center gap-2 text-2xl font-black text-blue-600">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img src="/canna-mark.png" alt="" className="w-9 h-9 object-contain" />CANNA
+          </Link>
           <div className="flex items-center gap-4">
             <Link href="/specialties" className="text-sm text-slate-600 hover:text-slate-900">התמחויות</Link>
             <Link href="/doctors" className="text-sm text-slate-600 hover:text-slate-900">הרופאים שלנו</Link>
