@@ -2,7 +2,6 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { createServiceRole } from '@/lib/supabase/server'
 import { SPECIALTIES, formatPrice } from '@/lib/utils'
-import DoctorsHeroCarousel from './DoctorsHeroCarousel'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cannaforyou.net'
 
@@ -64,10 +63,10 @@ export default async function DoctorsPage() {
     medicalSpecialty: 'General',
   }
 
-  /* Gradient palette for avatars — cycles by index */
+  /* CANNA teal avatar palette (predominantly teal, subtle variation) */
   const AVATAR_GRADIENTS = [
-    ['#2FA9A2','#48A28C'],['#10b981','#0891b2'],['#8b5cf6','#ec4899'],
-    ['#f59e0b','#ef4444'],['#06b6d4','#2FA9A2'],['#84cc16','#10b981'],
+    ['#2FA9A2','#157F73'],['#14b8a6','#0d9488'],['#2FA9A2','#0891b2'],
+    ['#48A28C','#157F73'],['#0d9488','#0e7490'],['#2FA9A2','#48A28C'],
   ]
 
   return (
@@ -98,13 +97,34 @@ export default async function DoctorsPage() {
         </div>
       </nav>
 
-      {/* ── HERO ── */}
-      <DoctorsHeroCarousel />
-
-      {/* ── Light mode starts here ── */}
+      {/* ── HERO — bright CANNA layout ── */}
+      <section className="relative overflow-hidden bg-[#F7F9FA] border-b border-slate-100">
+        <div aria-hidden className="pointer-events-none absolute -top-24 -right-20 w-96 h-96 rounded-full bg-teal-100/50 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -bottom-24 left-1/4 w-72 h-72 rounded-full bg-emerald-100/40 blur-3xl" />
+        <div className="relative max-w-3xl mx-auto px-4 pt-16 pb-14 text-center">
+          <div className="inline-flex items-center gap-2 bg-teal-50 border border-teal-100 text-teal-700 text-xs font-semibold tracking-wide uppercase px-4 py-2 rounded-full mb-6">
+            <span className="w-1.5 h-1.5 rounded-full bg-teal-500" />
+            רופאים מומחים מאומתים
+          </div>
+          <h1 className="text-4xl sm:text-5xl font-black tracking-tight leading-[1.1]" style={{ color: '#18232F' }}>
+            הרופא שלך <span className="text-teal-600">בשיחת וידאו</span>
+          </h1>
+          <p className="text-lg text-slate-500 mt-5 max-w-xl mx-auto leading-relaxed">
+            בחר מומחה לפי התמחות, קבע תור וקבל ייעוץ בוידאו — עם מרשם דיגיטלי וסיכום AI אחרי כל פגישה.
+          </p>
+          <div className="flex flex-wrap gap-3 justify-center mt-8">
+            <a href="#doctors-grid" className="inline-flex items-center justify-center bg-teal-600 hover:bg-teal-700 text-white font-bold px-8 py-3.5 rounded-2xl transition-all shadow-lg shadow-teal-600/25 hover:-translate-y-0.5">
+              עיין ברופאים
+            </a>
+            <Link href="/specialties" className="inline-flex items-center justify-center border border-slate-200 bg-white hover:border-slate-300 text-slate-700 font-semibold px-8 py-3.5 rounded-2xl transition-all">
+              לפי התמחות
+            </Link>
+          </div>
+        </div>
+      </section>
 
       {/* Stats strip */}
-      <div className="bg-gradient-to-r from-teal-600 to-indigo-700 py-5 px-4">
+      <div className="bg-gradient-to-r from-teal-600 to-teal-700 py-5 px-4">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center text-white">
           {[
             { v: typedDoctors.length > 0 ? `${typedDoctors.length}` : '—', l: 'רופאים פעילים' },
@@ -311,54 +331,34 @@ export default async function DoctorsPage() {
         </div>
       </section>
 
-      {/* ── CTA ── */}
-      <section className="py-24 px-4 relative overflow-hidden"
-        style={{
-          background: [
-            'radial-gradient(ellipse 60% 70% at 30% 50%, rgba(99,102,241,0.25) 0%, transparent 60%)',
-            'radial-gradient(ellipse 50% 60% at 80% 30%, rgba(59,130,246,0.2) 0%, transparent 60%)',
-            'linear-gradient(160deg, #07090f 0%, #0d1225 100%)',
-          ].join(', '),
-        }}
-      >
-        <div className="pointer-events-none absolute inset-0"
-          style={{
-            opacity: 0.025,
-            backgroundImage: ['linear-gradient(rgba(255,255,255,1) 1px, transparent 1px)', 'linear-gradient(90deg, rgba(255,255,255,1) 1px, transparent 1px)'].join(', '),
-            backgroundSize: '64px 64px',
-          }}
-        />
+      {/* ── CTA — bright ── */}
+      <section className="py-20 px-4 relative overflow-hidden bg-[#F7F9FA]">
+        <div aria-hidden className="pointer-events-none absolute -top-24 right-1/4 w-96 h-96 rounded-full bg-teal-100/50 blur-3xl" />
         <div className="relative max-w-3xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2.5 mb-6 rounded-full border px-5 py-2 text-sm font-bold"
-            style={{ background: 'rgba(59,130,246,0.08)', borderColor: 'rgba(59,130,246,0.25)', color: '#93c5fd' }}>
-            <span className="relative flex h-2.5 w-2.5">
-              <span className="absolute inline-flex h-full w-full rounded-full bg-green-400 opacity-75 animate-ping" />
-              <span className="relative inline-flex h-2.5 w-2.5 rounded-full bg-green-400" />
+          <div className="inline-flex items-center gap-2 mb-6 rounded-full bg-teal-50 border border-teal-100 px-5 py-2 text-sm font-semibold text-teal-700">
+            <span className="relative flex h-2 w-2">
+              <span className="absolute inline-flex h-full w-full rounded-full bg-teal-400 opacity-75 animate-ping" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-teal-500" />
             </span>
             רופאים זמינים עכשיו
           </div>
-          <h2 className="font-black text-white mb-4" style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', lineHeight: 1 }}>
-            מוכן לקבל<br />
-            <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(90deg, #5EC8C0, #48A28C)' }}>
-              ייעוץ מקצועי?
-            </span>
+          <h2 className="font-black mb-4" style={{ color: '#18232F', fontSize: 'clamp(2rem, 5vw, 3.25rem)', lineHeight: 1.05 }}>
+            מוכן לקבל <span className="text-teal-600">ייעוץ מקצועי?</span>
           </h2>
-          <p className="text-lg mb-10" style={{ color: '#94a3b8' }}>
+          <p className="text-lg text-slate-500 mb-9 max-w-xl mx-auto">
             הירשם בחינם וקבע תור עם רופא מומחה — תוך דקות, מכל מקום.
           </p>
-          <div className="flex flex-wrap gap-4 justify-center mb-8">
+          <div className="flex flex-wrap gap-3 justify-center mb-6">
             <Link href="/auth/register"
-              className="inline-flex items-center gap-2 text-white font-black px-9 py-4 rounded-2xl text-lg transition-all hover:scale-105"
-              style={{ background: 'linear-gradient(135deg, #2FA9A2, #157F73)', boxShadow: '0 8px 32px rgba(59,130,246,0.4)' }}>
+              className="inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-bold px-9 py-4 rounded-2xl text-lg transition-all shadow-lg shadow-teal-600/25 hover:-translate-y-0.5">
               הרשמה חינם — קבע תור עכשיו
             </Link>
             <Link href="/auth/login"
-              className="inline-flex items-center gap-2 font-bold px-9 py-4 rounded-2xl text-lg transition-all hover:scale-105"
-              style={{ border: '1.5px solid rgba(255,255,255,0.2)', color: '#e2e8f0', background: 'rgba(255,255,255,0.06)' }}>
+              className="inline-flex items-center gap-2 border border-slate-200 bg-white hover:border-slate-300 text-slate-700 font-semibold px-9 py-4 rounded-2xl text-lg transition-all">
               כבר רשום? התחבר
             </Link>
           </div>
-          <p className="text-sm" style={{ color: '#475569' }}>
+          <p className="text-sm text-slate-400">
             ללא כרטיס אשראי · ביטול בכל עת · GDPR &amp; HIPAA compliant
           </p>
         </div>

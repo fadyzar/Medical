@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import HeroCarousel from '@/components/ui/HeroCarousel'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cannaforyou.net'
 
@@ -110,55 +109,92 @@ export default function HomePage() {
         </div>
       </header>
 
-      {/* ── Hero — carousel with overlay ───────────────────────────────── */}
-      <section className="relative min-h-screen flex items-center overflow-hidden">
-        {/* Carousel images */}
-        <HeroCarousel />
-        {/* Gradient overlay */}
-        <div className="absolute inset-0 bg-gradient-to-l from-slate-950/95 via-slate-900/80 to-slate-900/40 z-10" />
+      {/* ── Hero — bright CANNA layout ─────────────────────────────────── */}
+      <section className="relative overflow-hidden bg-[#F7F9FA]">
+        {/* Soft pale-teal decorative accents */}
+        <div aria-hidden className="pointer-events-none absolute -top-32 -right-24 w-[28rem] h-[28rem] rounded-full bg-teal-100/50 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -bottom-24 left-1/4 w-80 h-80 rounded-full bg-emerald-100/40 blur-3xl" />
 
-        {/* Content */}
-        <div className="relative z-20 max-w-7xl mx-auto px-6 py-32 w-full">
-          <div className="max-w-2xl mr-auto">
-            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white/90 text-xs font-semibold tracking-widest uppercase px-4 py-2 rounded-full mb-8 backdrop-blur-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        <div className="relative max-w-7xl mx-auto px-6 pt-36 pb-20 lg:pt-40 lg:pb-28 grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          {/* Text side */}
+          <div className="order-2 lg:order-1">
+            <div className="inline-flex items-center gap-2 bg-teal-50 border border-teal-100 text-teal-700 text-xs font-semibold tracking-wide uppercase px-4 py-2 rounded-full mb-7">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
               הפלטפורמה הרפואית המתקדמת בישראל
             </div>
 
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.05] tracking-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.08] tracking-tight" style={{ color: '#18232F' }}>
               רופא מומחה
               <br />
-              <span className="text-teal-400">בלחיצה אחת.</span>
+              <span className="text-teal-600">בלחיצה אחת.</span>
             </h1>
 
-            <p className="text-lg text-white/70 mt-6 leading-relaxed max-w-lg">
+            <p className="text-lg text-slate-500 mt-6 leading-relaxed max-w-lg">
               ייעוץ רפואי בוידאו תוך דקות. AI מתקדם שמכין את הרופא לפגישה ומייצר סיכום מלא אחרי כל ייעוץ.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 mt-10">
+            <div className="flex flex-col sm:flex-row gap-3 mt-9">
               <Link
                 href="/auth/register"
-                className="inline-flex items-center justify-center bg-teal-600 hover:bg-teal-500 text-white font-bold text-base px-8 py-4 rounded-2xl transition-all shadow-xl shadow-teal-600/30 hover:shadow-teal-500/40 hover:-translate-y-0.5"
+                className="inline-flex items-center justify-center bg-teal-600 hover:bg-teal-700 text-white font-bold text-base px-8 py-4 rounded-2xl transition-all shadow-lg shadow-teal-600/25 hover:-translate-y-0.5"
               >
                 קבל ייעוץ עכשיו — חינם
               </Link>
               <Link
                 href="/doctors"
-                className="inline-flex items-center justify-center border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 text-white font-semibold text-base px-8 py-4 rounded-2xl transition-all backdrop-blur-sm"
+                className="inline-flex items-center justify-center border border-slate-200 bg-white hover:border-slate-300 text-slate-700 font-semibold text-base px-8 py-4 rounded-2xl transition-all"
               >
                 הכר את הרופאים
               </Link>
             </div>
 
             {/* Trust signals */}
-            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-10">
-              {['✓ ללא תור מוקדם', '✓ סיכום AI מידי', '✓ מאובטח HIPAA', '✓ זמינות 24/7'].map(t => (
-                <span key={t} className="text-sm text-white/60 font-medium">{t}</span>
+            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-9">
+              {['ללא תור מוקדם', 'סיכום AI מידי', 'מאובטח HIPAA', 'זמינות 24/7'].map(t => (
+                <span key={t} className="inline-flex items-center gap-1.5 text-sm text-slate-500 font-medium">
+                  <svg className="w-4 h-4 text-teal-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                  {t}
+                </span>
               ))}
             </div>
           </div>
-        </div>
 
+          {/* Consultation card — clean, no stock photo */}
+          <div className="order-1 lg:order-2 relative">
+            <div className="relative mx-auto max-w-md rounded-3xl bg-white border border-slate-100 shadow-[0_20px_60px_-24px_rgba(15,23,42,0.25)] p-5">
+              {/* Video panel */}
+              <div className="rounded-2xl aspect-video relative overflow-hidden flex items-center justify-center"
+                style={{ background: 'linear-gradient(135deg, #2FA9A2 0%, #157F73 100%)' }}>
+                <div className="absolute inset-0 opacity-[0.15]" style={{ backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
+                <div className="relative w-16 h-16 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center">
+                  <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M23 7l-7 5 7 5V7z" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" /></svg>
+                </div>
+                <span className="absolute top-3 right-3 inline-flex items-center gap-1.5 bg-white/90 text-teal-700 text-[11px] font-bold px-2.5 py-1 rounded-full">
+                  <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" /> וידאו HD
+                </span>
+              </div>
+              {/* Doctor row */}
+              <div className="flex items-center gap-3 mt-4">
+                <div className="w-11 h-11 rounded-xl text-white font-bold flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(135deg, #2FA9A2, #157F73)' }}>ד״ר</div>
+                <div className="min-w-0">
+                  <p className="font-bold text-slate-900 text-sm">רופא/ה מומחה/ית</p>
+                  <p className="text-xs text-slate-400">ייעוץ בוידאו · מרשם דיגיטלי</p>
+                </div>
+                <span className="mr-auto text-xs font-semibold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full">מחובר</span>
+              </div>
+              {/* AI summary chip */}
+              <div className="mt-3 flex items-center gap-2.5 rounded-xl bg-slate-50 border border-slate-100 px-3.5 py-3">
+                <span className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-violet-600 shrink-0">
+                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" /></svg>
+                </span>
+                <div className="min-w-0">
+                  <p className="text-sm font-semibold text-slate-800">סיכום AI נשלח</p>
+                  <p className="text-xs text-slate-400">סיכום SOAP מלא לאחר הייעוץ</p>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* ── Feature sections ────────────────────────────────────────────── */}
@@ -218,11 +254,11 @@ export default function HomePage() {
       </section>
 
       {/* ── How it works — visual timeline ─────────────────────────────── */}
-      <section className="py-24 px-6 bg-slate-950">
+      <section className="py-24 px-6 bg-[#F7F9FA]">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-xs font-bold tracking-widest uppercase text-teal-400 mb-4">תהליך</p>
-            <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">מהרשמה לייעוץ — ארבעה שלבים</h2>
+            <p className="text-xs font-bold tracking-widest uppercase text-teal-600 mb-4">תהליך</p>
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight" style={{ color: '#18232F' }}>מהרשמה לייעוץ — ארבעה שלבים</h2>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
@@ -235,12 +271,12 @@ export default function HomePage() {
               <div key={s.n} className="relative group">
                 {/* Connector */}
                 {i < 3 && (
-                  <div className="hidden lg:block absolute top-7 left-0 w-full h-px bg-white/10 -z-10" />
+                  <div className="hidden lg:block absolute top-7 left-0 w-full h-px bg-slate-200 -z-10" />
                 )}
-                <div className="bg-white/5 hover:bg-white/8 border border-white/10 hover:border-white/20 rounded-2xl p-6 transition-all">
-                  <span className="text-4xl font-black text-white/10 group-hover:text-teal-500/30 transition-colors">{s.n}</span>
-                  <h3 className="text-white font-bold mt-3">{s.title}</h3>
-                  <p className="text-white/50 text-sm mt-1.5 leading-relaxed">{s.desc}</p>
+                <div className="bg-white border border-slate-100 hover:border-teal-200 hover:shadow-md rounded-2xl p-6 transition-all">
+                  <span className="text-4xl font-black text-teal-100 group-hover:text-teal-300 transition-colors">{s.n}</span>
+                  <h3 className="text-slate-900 font-bold mt-3">{s.title}</h3>
+                  <p className="text-slate-500 text-sm mt-1.5 leading-relaxed">{s.desc}</p>
                 </div>
               </div>
             ))}
@@ -248,16 +284,18 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* ── Clinic strip ─────────────────────────────────────────────────── */}
-      <section className="bg-slate-950 py-10 px-6">
-        <div className="max-w-5xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-5">
-          <div>
+      {/* ── Clinic strip — teal band ─────────────────────────────────────── */}
+      <section className="px-6 py-16">
+        <div className="max-w-5xl mx-auto rounded-3xl px-8 py-8 flex flex-col sm:flex-row items-center justify-between gap-5 relative overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, #2FA9A2 0%, #157F73 100%)' }}>
+          <div aria-hidden className="pointer-events-none absolute -top-12 -left-12 w-48 h-48 rounded-full bg-white/10" />
+          <div className="relative">
             <p className="text-white font-bold text-lg">בעל מרפאה?</p>
-            <p className="text-slate-400 text-sm mt-1">הקם קליניקה דיגיטלית תוך 24 שעות — White Label, AI, וידאו, תשלומים.</p>
+            <p className="text-white/80 text-sm mt-1">הקם קליניקה דיגיטלית תוך 24 שעות — White Label, AI, וידאו, תשלומים.</p>
           </div>
           <Link
             href="/for-clinics"
-            className="shrink-0 inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-500 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg shadow-teal-600/20 text-sm"
+            className="relative shrink-0 inline-flex items-center gap-2 bg-white text-teal-700 font-bold px-6 py-3 rounded-xl transition-all shadow-lg hover:-translate-y-0.5 text-sm"
           >
             גלה עוד
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">

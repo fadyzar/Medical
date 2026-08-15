@@ -345,38 +345,37 @@ export default function MarketingPage() {
       {/* ── For Clinics CTA ────────────────────────────────────── */}
       <section className="py-24 px-6">
         <div className="max-w-7xl mx-auto">
-          <div className="bg-slate-900 rounded-3xl overflow-hidden grid lg:grid-cols-2 items-stretch min-h-[360px]">
+          <div className="rounded-3xl overflow-hidden grid lg:grid-cols-2 items-stretch min-h-[360px] relative" style={{ background: 'linear-gradient(135deg, #2FA9A2 0%, #157F73 100%)' }}>
             {/* Text */}
-            <div className="p-12 lg:p-16 flex flex-col justify-center">
-              <span className="text-xs font-bold tracking-widest uppercase text-teal-400 mb-4">SaaS למרפאות</span>
+            <div className="p-12 lg:p-16 flex flex-col justify-center relative">
+              <span className="text-xs font-bold tracking-widest uppercase text-teal-100 mb-4">SaaS למרפאות</span>
               <h2 className="text-3xl sm:text-4xl font-black text-white leading-tight">
                 הקם את הקליניקה
                 <br />
                 הדיגיטלית שלך
               </h2>
-              <p className="text-slate-400 mt-4 text-lg leading-relaxed max-w-md">
+              <p className="text-white/80 mt-4 text-lg leading-relaxed max-w-md">
                 מיתוג אישי, מנוי חודשי גמיש, ממשק ניהול מלא. כולל AI, וידאו, שאלונים ותשלומים — מוכן מהיום הראשון.
               </p>
               <div className="flex flex-col sm:flex-row gap-3 mt-8">
                 <Link
                   href="/onboarding"
-                  className="inline-flex items-center justify-center gap-2 bg-teal-600 text-white font-bold px-7 py-4 rounded-xl hover:bg-teal-500 transition-colors shadow-lg shadow-teal-600/20"
+                  className="inline-flex items-center justify-center gap-2 bg-white text-teal-700 font-bold px-7 py-4 rounded-xl hover:-translate-y-0.5 transition-all shadow-lg"
                 >
                   ניסיון חינם — 14 ימים
                 </Link>
                 <Link
                   href="/auth/login"
-                  className="inline-flex items-center justify-center gap-2 border border-slate-700 text-slate-300 font-semibold px-7 py-4 rounded-xl hover:bg-slate-800 hover:text-white transition-colors"
+                  className="inline-flex items-center justify-center gap-2 border border-white/40 text-white font-semibold px-7 py-4 rounded-xl hover:bg-white/10 transition-colors"
                 >
                   יש לי חשבון
                 </Link>
               </div>
             </div>
-            {/* Visual — branded gradient, no stock photo */}
+            {/* Visual side — subtle grid motif */}
             <div className="hidden lg:block relative">
-              <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #157F73 55%, #0e7490 100%)' }} />
               <div className="absolute inset-0 opacity-[0.12]" style={{ backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-              <div className="absolute inset-0 bg-gradient-to-r from-slate-900 to-transparent" />
+              <div className="absolute inset-0" style={{ background: 'radial-gradient(70% 70% at 70% 30%, rgba(255,255,255,0.15) 0%, transparent 60%)' }} />
             </div>
           </div>
         </div>

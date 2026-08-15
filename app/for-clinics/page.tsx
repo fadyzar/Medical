@@ -1,6 +1,5 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
-import HeroCarousel from './HeroCarousel'
 
 export const metadata: Metadata = {
   title: { absolute: 'CANNA למרפאות — SaaS רפואי ישראלי' },
@@ -108,46 +107,81 @@ export default function ForClinicsPage() {
       </header>
 
       {/* ── Hero — fullscreen carousel ── */}
-      <section className="relative min-h-screen flex items-center overflow-hidden">
-        <HeroCarousel />
-        <div className="absolute inset-0 bg-gradient-to-l from-slate-950/95 via-slate-900/80 to-slate-900/40 z-10" />
+      <section className="relative overflow-hidden bg-[#F7F9FA] border-b border-slate-100">
+        <div aria-hidden className="pointer-events-none absolute -top-32 -left-24 w-[28rem] h-[28rem] rounded-full bg-teal-100/50 blur-3xl" />
+        <div aria-hidden className="pointer-events-none absolute -bottom-24 right-1/4 w-80 h-80 rounded-full bg-emerald-100/40 blur-3xl" />
 
-        <div className="relative z-20 max-w-7xl mx-auto px-6 py-32 w-full">
-          <div className="max-w-2xl mr-auto">
-            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-white/90 text-xs font-semibold tracking-widest uppercase px-4 py-2 rounded-full mb-8 backdrop-blur-sm">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        <div className="relative max-w-7xl mx-auto px-6 pt-36 pb-20 lg:pt-40 lg:pb-24 grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+          <div className="order-2 lg:order-1">
+            <div className="inline-flex items-center gap-2 bg-teal-50 border border-teal-100 text-teal-700 text-xs font-semibold tracking-wide uppercase px-4 py-2 rounded-full mb-7">
+              <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
               פלטפורמת SaaS רפואית White-Label
             </div>
 
-            <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.05] tracking-tight">
+            <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black leading-[1.08] tracking-tight" style={{ color: '#18232F' }}>
               קליניקה דיגיטלית
               <br />
-              <span className="text-teal-400">תוך 24 שעות.</span>
+              <span className="text-teal-600">תוך 24 שעות.</span>
             </h1>
 
-            <p className="text-lg text-white/70 mt-6 leading-relaxed max-w-lg">
+            <p className="text-lg text-slate-500 mt-6 leading-relaxed max-w-lg">
               ניהול תורים, ייעוצי וידאו HD, AI שכותב תיעוד, מיתוג אישי ותמיכה ישראלית — פלטפורמה אחת, פתרון מלא.
             </p>
 
-            <div className="flex flex-col sm:flex-row gap-3 mt-10">
+            <div className="flex flex-col sm:flex-row gap-3 mt-9">
               <Link
                 href="/auth/register?type=clinic"
-                className="inline-flex items-center justify-center bg-teal-600 hover:bg-teal-500 text-white font-bold text-base px-8 py-4 rounded-2xl transition-all shadow-xl shadow-teal-600/30 hover:shadow-teal-500/40 hover:-translate-y-0.5"
+                className="inline-flex items-center justify-center bg-teal-600 hover:bg-teal-700 text-white font-bold text-base px-8 py-4 rounded-2xl transition-all shadow-lg shadow-teal-600/25 hover:-translate-y-0.5"
               >
                 התחל ניסיון חינם — 14 יום
               </Link>
               <Link
                 href="#features"
-                className="inline-flex items-center justify-center border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 text-white font-semibold text-base px-8 py-4 rounded-2xl transition-all backdrop-blur-sm"
+                className="inline-flex items-center justify-center border border-slate-200 bg-white hover:border-slate-300 text-slate-700 font-semibold text-base px-8 py-4 rounded-2xl transition-all"
               >
                 גלה את הפיצ׳רים
               </Link>
             </div>
 
-            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-10">
-              {['✓ הפעלה תוך 24 שעות', '✓ AI שכותב תיעוד', '✓ White-Label מלא', '✓ ביטול בכל עת'].map(t => (
-                <span key={t} className="text-sm text-white/60 font-medium">{t}</span>
+            <div className="flex flex-wrap gap-x-6 gap-y-2 mt-9">
+              {['הפעלה תוך 24 שעות', 'AI שכותב תיעוד', 'White-Label מלא', 'ביטול בכל עת'].map(t => (
+                <span key={t} className="inline-flex items-center gap-1.5 text-sm text-slate-500 font-medium">
+                  <svg className="w-4 h-4 text-teal-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+                  {t}
+                </span>
               ))}
+            </div>
+          </div>
+
+          {/* Clinic dashboard mockup card — clean, no stock photo */}
+          <div className="order-1 lg:order-2 relative">
+            <div className="relative mx-auto max-w-md rounded-3xl bg-white border border-slate-100 shadow-[0_20px_60px_-24px_rgba(15,23,42,0.25)] p-5">
+              <div className="flex items-center gap-2 mb-4">
+                <div className="w-8 h-8 rounded-lg flex items-center justify-center text-white text-xs font-bold" style={{ background: 'linear-gradient(135deg, #2FA9A2, #157F73)' }}>מ</div>
+                <p className="text-sm font-bold text-slate-800">המרפאה שלך</p>
+                <span className="mr-auto text-[11px] font-semibold text-teal-700 bg-teal-50 px-2 py-0.5 rounded-full">White-Label</span>
+              </div>
+              <div className="grid grid-cols-3 gap-2.5 mb-3">
+                {[
+                  { l: 'תורים', tile: 'bg-teal-50', bar: 'bg-teal-300' },
+                  { l: 'הכנסות', tile: 'bg-emerald-50', bar: 'bg-emerald-300' },
+                  { l: 'רופאים', tile: 'bg-violet-50', bar: 'bg-violet-300' },
+                ].map(s => (
+                  <div key={s.l} className={`rounded-xl border border-slate-100 p-3 ${s.tile}`}>
+                    <div className={`h-1.5 w-8 rounded-full mb-2 ${s.bar}`} />
+                    <div className="h-4 w-10 rounded bg-slate-200" />
+                    <p className="text-[10px] text-slate-400 mt-1.5">{s.l}</p>
+                  </div>
+                ))}
+              </div>
+              <div className="rounded-xl border border-slate-100 p-3.5">
+                <div className="flex items-end gap-1.5 h-16">
+                  {[40, 65, 50, 80, 60, 90, 70].map((h, i) => (
+                    <div key={i} className="flex-1 rounded-t" style={{ height: `${h}%`, background: 'linear-gradient(180deg, #2FA9A2, #48A28C)' }} />
+                  ))}
+                </div>
+                <p className="text-[10px] text-slate-400 mt-2">תורים לפי יום</p>
+              </div>
             </div>
           </div>
         </div>
@@ -243,11 +277,11 @@ export default function ForClinicsPage() {
       </section>
 
       {/* ── How it works ── */}
-      <section className="py-24 px-6 bg-slate-950">
+      <section className="py-24 px-6 bg-[#F7F9FA]">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-xs font-bold tracking-widest uppercase text-teal-400 mb-4">תהליך</p>
-            <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">מהרשמה לקליניקה פעילה — 4 שלבים</h2>
+            <p className="text-xs font-bold tracking-widest uppercase text-teal-600 mb-4">תהליך</p>
+            <h2 className="text-3xl sm:text-4xl font-black tracking-tight" style={{ color: '#18232F' }}>מהרשמה לקליניקה פעילה — 4 שלבים</h2>
           </div>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {[
@@ -258,12 +292,12 @@ export default function ForClinicsPage() {
             ].map((s, i) => (
               <div key={s.n} className="relative group">
                 {i < 3 && (
-                  <div className="hidden lg:block absolute top-7 left-0 w-full h-px bg-white/10 -z-10" />
+                  <div className="hidden lg:block absolute top-7 left-0 w-full h-px bg-slate-200 -z-10" />
                 )}
-                <div className="bg-white/5 hover:bg-white/8 border border-white/10 hover:border-white/20 rounded-2xl p-6 transition-all">
-                  <span className="text-4xl font-black text-white/10 group-hover:text-teal-500/30 transition-colors">{s.n}</span>
-                  <h3 className="text-white font-bold mt-3">{s.title}</h3>
-                  <p className="text-white/50 text-sm mt-1.5 leading-relaxed">{s.desc}</p>
+                <div className="bg-white border border-slate-100 hover:border-teal-200 hover:shadow-md rounded-2xl p-6 transition-all">
+                  <span className="text-4xl font-black text-teal-100 group-hover:text-teal-300 transition-colors">{s.n}</span>
+                  <h3 className="text-slate-900 font-bold mt-3">{s.title}</h3>
+                  <p className="text-slate-500 text-sm mt-1.5 leading-relaxed">{s.desc}</p>
                 </div>
               </div>
             ))}
@@ -384,32 +418,36 @@ export default function ForClinicsPage() {
         </div>
       </section>
 
-      {/* ── Final CTA ── */}
-      <section className="bg-slate-950 py-20 px-6">
-        <div className="max-w-5xl mx-auto flex flex-col lg:flex-row items-center justify-between gap-10">
-          <div>
-            <p className="text-xs font-bold tracking-widest uppercase text-teal-400 mb-3">מוכן להתחיל?</p>
-            <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
-              14 ימי ניסיון חינם.<br />
-              <span className="text-teal-400">ללא כרטיס אשראי.</span>
-            </h2>
-            <p className="text-slate-400 mt-4 leading-relaxed max-w-lg">
-              הפעלה תוך 24 שעות, תמיכה בעברית, ביטול בכל עת. נהלו את הקליניקה הדיגיטלית שלכם — תורים, וידאו, AI ומיתוג — במקום אחד עם CANNA.
-            </p>
-          </div>
-          <div className="flex flex-col gap-3 shrink-0">
-            <Link
-              href="/auth/register?type=clinic"
-              className="inline-flex items-center justify-center bg-teal-600 hover:bg-teal-500 text-white font-bold text-base px-8 py-4 rounded-2xl transition-all shadow-xl shadow-teal-600/30 hover:-translate-y-0.5"
-            >
-              התחל ניסיון חינם — 14 יום
-            </Link>
-            <Link
-              href="/contact"
-              className="inline-flex items-center justify-center border border-white/20 hover:border-white/40 bg-white/5 hover:bg-white/10 text-white font-semibold text-sm px-8 py-3 rounded-2xl transition-all"
-            >
-              דבר עם המכירות
-            </Link>
+      {/* ── Final CTA — teal brand band ── */}
+      <section className="px-6 py-16">
+        <div className="max-w-6xl mx-auto rounded-3xl px-8 sm:px-12 py-14 relative overflow-hidden"
+          style={{ background: 'linear-gradient(135deg, #2FA9A2 0%, #157F73 100%)' }}>
+          <div aria-hidden className="pointer-events-none absolute -top-16 -left-16 w-64 h-64 rounded-full bg-white/10" />
+          <div className="relative flex flex-col lg:flex-row items-center justify-between gap-10">
+            <div>
+              <p className="text-xs font-bold tracking-widest uppercase text-teal-100 mb-3">מוכן להתחיל?</p>
+              <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight leading-tight">
+                14 ימי ניסיון חינם.<br />
+                <span className="text-teal-100">ללא כרטיס אשראי.</span>
+              </h2>
+              <p className="text-white/80 mt-4 leading-relaxed max-w-lg">
+                הפעלה תוך 24 שעות, תמיכה בעברית, ביטול בכל עת. נהלו את הקליניקה הדיגיטלית שלכם — תורים, וידאו, AI ומיתוג — במקום אחד עם CANNA.
+              </p>
+            </div>
+            <div className="flex flex-col gap-3 shrink-0">
+              <Link
+                href="/auth/register?type=clinic"
+                className="inline-flex items-center justify-center bg-white text-teal-700 font-bold text-base px-8 py-4 rounded-2xl transition-all shadow-lg hover:-translate-y-0.5"
+              >
+                התחל ניסיון חינם — 14 יום
+              </Link>
+              <Link
+                href="/contact"
+                className="inline-flex items-center justify-center border border-white/40 hover:bg-white/10 text-white font-semibold text-sm px-8 py-3 rounded-2xl transition-all"
+              >
+                דבר עם המכירות
+              </Link>
+            </div>
           </div>
         </div>
       </section>
