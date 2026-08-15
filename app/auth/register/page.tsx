@@ -51,7 +51,7 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
           <div key={step} className="flex items-center gap-3 flex-1">
             <div className={cn(
               'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold transition-all duration-300 shrink-0',
-              isDone ? 'bg-green-500 text-white' : isActive ? 'bg-blue-600 text-white ring-4 ring-blue-100' : 'bg-slate-200 text-slate-500'
+              isDone ? 'bg-green-500 text-white' : isActive ? 'bg-teal-600 text-white ring-4 ring-teal-100' : 'bg-slate-200 text-slate-500'
             )}>
               {isDone ? (
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
@@ -218,15 +218,15 @@ export default function RegisterPage() {
     return (
       <AuthLayout title="בדוק את האימייל" subtitle="שלחנו לך קישור לאימות">
         <div className="text-center py-4">
-          <div className="mx-auto w-20 h-20 bg-blue-100 rounded-full flex items-center justify-center mb-6">
-            <svg className="w-10 h-10 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+          <div className="mx-auto w-20 h-20 bg-teal-100 rounded-full flex items-center justify-center mb-6">
+            <svg className="w-10 h-10 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
               <rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="22,7 12,13 2,7"/>
             </svg>
           </div>
           <h3 className="text-lg font-bold text-slate-900 mb-2">בדוק את תיבת הדואר</h3>
           <p className="text-slate-500 text-sm leading-relaxed mb-2">שלחנו קישור אימות לכתובת:</p>
           <p className="font-medium text-slate-900 mb-6">{form.email}</p>
-          <Link href="/auth/login" className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium">
+          <Link href="/auth/login" className="inline-flex items-center gap-2 text-sm text-teal-600 hover:text-teal-700 font-medium">
             עבור להתחברות
           </Link>
         </div>
@@ -429,7 +429,7 @@ export default function RegisterPage() {
                 />
                 <div className={cn(
                   'w-5 h-5 rounded-md border-2 transition-all flex items-center justify-center',
-                  form.agree_terms ? 'bg-blue-600 border-blue-600' : 'border-slate-300 group-hover:border-blue-400',
+                  form.agree_terms ? 'bg-teal-600 border-teal-600' : 'border-slate-300 group-hover:border-teal-400',
                   errors.agree_terms && 'border-red-400'
                 )}>
                   {form.agree_terms && (
@@ -440,8 +440,8 @@ export default function RegisterPage() {
                 </div>
               </div>
               <span className="text-sm text-slate-600 leading-relaxed">
-                אני מסכים/ה ל<Link href="/terms" className="text-blue-600 font-medium hover:underline" target="_blank">תנאי השימוש</Link>{' '}
-                ול<Link href="/privacy" className="text-blue-600 font-medium hover:underline" target="_blank">מדיניות הפרטיות</Link>
+                אני מסכים/ה ל<Link href="/terms" className="text-teal-600 font-medium hover:underline" target="_blank">תנאי השימוש</Link>{' '}
+                ול<Link href="/privacy" className="text-teal-600 font-medium hover:underline" target="_blank">מדיניות הפרטיות</Link>
               </span>
             </label>
             {errors.agree_terms && <p className="text-sm text-red-600 -mt-2">{errors.agree_terms}</p>}
@@ -457,7 +457,7 @@ export default function RegisterPage() {
       <div className="text-center mt-6">
         <p className="text-sm text-slate-500">
           כבר יש לך חשבון?{' '}
-          <Link href="/auth/login" className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors">התחבר</Link>
+          <Link href="/auth/login" className="text-teal-600 hover:text-teal-700 font-semibold hover:underline transition-colors">התחבר</Link>
         </p>
         <p className="text-xs text-slate-400 mt-3">
           רופא או צוות רפואי?{' '}

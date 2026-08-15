@@ -19,8 +19,8 @@ export type Brand = {
 export const DEFAULT_BRAND: Brand = {
   name: 'CANNA',
   tagline: 'ייעוץ רפואי אונליין',
-  primaryColor: '#2563eb',
-  secondaryColor: '#0d9488',
+  primaryColor: '#2FA9A2', // CANNA teal
+  secondaryColor: '#157F73', // deep teal
   logoUrl: '/canna-mark.png', // platform mark; clinics override with their own
   supportEmail: 'medical@cannaforyou.net',
 }

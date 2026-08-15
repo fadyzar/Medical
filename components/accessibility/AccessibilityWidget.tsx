@@ -79,8 +79,8 @@ function ToggleRow({
         className={`
           relative inline-flex h-6 w-11 shrink-0 items-center rounded-full
           transition-colors focus-visible:outline focus-visible:outline-2
-          focus-visible:outline-offset-2 focus-visible:outline-blue-600
-          ${checked ? 'bg-blue-600' : 'bg-slate-200'}
+          focus-visible:outline-offset-2 focus-visible:outline-teal-600
+          ${checked ? 'bg-teal-600' : 'bg-slate-200'}
         `}
         aria-label={label}
       >
@@ -175,11 +175,11 @@ export default function AccessibilityWidget() {
           aria-controls="a11y-panel"
           className="
             group relative w-14 h-14 rounded-2xl
-            bg-blue-600 hover:bg-blue-700
-            text-white shadow-xl shadow-blue-600/40
+            bg-teal-600 hover:bg-teal-700
+            text-white shadow-xl shadow-teal-600/40
             flex items-center justify-center
-            transition-all hover:-translate-y-0.5 hover:shadow-blue-600/50
-            focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-400
+            transition-all hover:-translate-y-0.5 hover:shadow-teal-600/50
+            focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-400
           "
         >
           {/* Accessibility icon */}
@@ -233,8 +233,8 @@ export default function AccessibilityWidget() {
             {/* Header */}
             <div className="flex items-center justify-between px-5 py-4 border-b border-slate-100">
               <div className="flex items-center gap-2">
-                <div className="w-8 h-8 rounded-xl bg-blue-50 border border-blue-200 flex items-center justify-center">
-                  <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <div className="w-8 h-8 rounded-xl bg-teal-50 border border-teal-200 flex items-center justify-center">
+                  <svg className="w-4 h-4 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
                     <circle cx="12" cy="4" r="1.5" fill="currentColor" stroke="none"/>
                     <path d="M9 9h6M12 9v4M10 20l2-4 2 4"/>
                     <path d="M8.5 20c-.8-1.5-1-3-1-4.5C7.5 14 9 13 12 13s4.5 1 4.5 2.5c0 1.5-.2 3-1 4.5"/>
@@ -245,7 +245,7 @@ export default function AccessibilityWidget() {
               <button
                 onClick={() => { setOpen(false); triggerRef.current?.focus() }}
                 aria-label="סגור תפריט נגישות"
-                className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-600"
+                className="w-7 h-7 rounded-lg flex items-center justify-center text-slate-400 hover:text-slate-600 hover:bg-slate-100 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-600"
               >
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" aria-hidden="true">
                   <line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/>
@@ -269,10 +269,10 @@ export default function AccessibilityWidget() {
                       aria-label={`גודל טקסט ${label}`}
                       className={`
                         py-2 rounded-xl border-2 text-center transition-all
-                        focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-600
+                        focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-600
                         ${settings.fontSize === i
-                          ? 'border-blue-500 bg-blue-50 text-blue-700'
-                          : 'border-slate-200 text-slate-600 hover:border-blue-300 hover:bg-blue-50/50'}
+                          ? 'border-teal-500 bg-teal-50 text-teal-700'
+                          : 'border-slate-200 text-slate-600 hover:border-teal-300 hover:bg-teal-50/50'}
                       `}
                     >
                       <span style={{ fontSize: `${11 + i * 2}px` }} className="font-bold block leading-none">א</span>
@@ -337,7 +337,7 @@ export default function AccessibilityWidget() {
                   border-2 border-slate-200 text-slate-600
                   hover:border-red-300 hover:text-red-600 hover:bg-red-50
                   disabled:opacity-30 disabled:cursor-not-allowed disabled:hover:border-slate-200 disabled:hover:text-slate-600 disabled:hover:bg-transparent
-                  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-600
+                  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-600
                 "
               >
                 איפוס כל ההגדרות
@@ -346,8 +346,8 @@ export default function AccessibilityWidget() {
                 href="/accessibility"
                 className="
                   flex items-center justify-center gap-1.5
-                  text-xs text-blue-600 hover:text-blue-800 font-medium py-1.5
-                  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-600 rounded
+                  text-xs text-teal-600 hover:text-teal-800 font-medium py-1.5
+                  focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-600 rounded
                 "
                 onClick={() => setOpen(false)}
               >

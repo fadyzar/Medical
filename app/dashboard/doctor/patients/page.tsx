@@ -191,7 +191,7 @@ export default function DoctorPatientsPage() {
                         onClick={() => selectPatient(patient)}
                         className={cn(
                           'w-full px-4 py-3 text-right hover:bg-slate-50 transition-colors',
-                          isSelected && 'bg-blue-50 border-r-4 border-blue-600'
+                          isSelected && 'bg-teal-50 border-r-4 border-teal-600'
                         )}
                       >
                         <div className="flex items-center gap-3">
@@ -200,7 +200,7 @@ export default function DoctorPatientsPage() {
                             // eslint-disable-next-line @next/next/no-img-element
                             <img src={patient.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
                           ) : (
-                            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-700 shrink-0">
+                            <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-sm font-bold text-teal-700 shrink-0">
                               {getInitials(patient.first_name, patient.last_name)}
                             </div>
                           )}
@@ -240,7 +240,7 @@ export default function DoctorPatientsPage() {
                         // eslint-disable-next-line @next/next/no-img-element
                         <img src={selected.avatar_url} alt="" className="w-14 h-14 rounded-full object-cover" />
                       ) : (
-                        <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-xl font-bold text-blue-700">
+                        <div className="w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center text-xl font-bold text-teal-700">
                           {getInitials(selected.first_name, selected.last_name)}
                         </div>
                       )}
@@ -273,7 +273,7 @@ export default function DoctorPatientsPage() {
                         className={cn(
                           'px-5 py-3 text-sm font-medium border-b-2 transition-colors',
                           detailTab === tab.key
-                            ? 'border-blue-600 text-blue-600'
+                            ? 'border-teal-600 text-teal-600'
                             : 'border-transparent text-slate-500 hover:text-slate-700'
                         )}
                       >
@@ -289,7 +289,7 @@ export default function DoctorPatientsPage() {
                   <div className="p-6">
                     {detailLoading ? (
                       <div className="flex items-center justify-center py-12">
-                        <div className="animate-spin rounded-full border-2 border-slate-300 border-t-blue-600 h-6 w-6" />
+                        <div className="animate-spin rounded-full border-2 border-slate-300 border-t-teal-600 h-6 w-6" />
                       </div>
                     ) : (
                       <>
@@ -374,8 +374,8 @@ function PatientInfo({ patient }: { patient: PatientWithStats }) {
       <section>
         <h4 className="font-bold text-slate-900 mb-3">סטטיסטיקות</h4>
         <div className="grid grid-cols-3 gap-3">
-          <div className="bg-blue-50 rounded-lg p-3 text-center">
-            <p className="text-2xl font-bold text-blue-600">{patient.appointment_count}</p>
+          <div className="bg-teal-50 rounded-lg p-3 text-center">
+            <p className="text-2xl font-bold text-teal-600">{patient.appointment_count}</p>
             <p className="text-xs text-slate-500">תורים</p>
           </div>
           <div className="bg-green-50 rounded-lg p-3 text-center">
@@ -563,7 +563,7 @@ function MedicalList({ label, items, variant }: { label: string; items: string[]
     success: 'bg-green-50 text-green-700',
     warning: 'bg-yellow-50 text-yellow-700',
     danger: 'bg-red-50 text-red-700',
-    info: 'bg-blue-50 text-blue-700',
+    info: 'bg-teal-50 text-teal-700',
     default: 'bg-slate-50 text-slate-700',
   }
 

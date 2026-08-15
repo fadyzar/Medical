@@ -355,8 +355,8 @@ export default function VideoCallPage() {
             <Card className="bg-slate-800 border-slate-700">
               <CardContent className="p-5 space-y-3">
                 <div className="flex items-center gap-2">
-                  <svg className="w-4 h-4 text-blue-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
-                  <p className="text-sm font-semibold text-blue-300">סיכום AI</p>
+                  <svg className="w-4 h-4 text-teal-400 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+                  <p className="text-sm font-semibold text-teal-300">סיכום AI</p>
                 </div>
 
                 {summaryLoading && (
@@ -383,7 +383,7 @@ export default function VideoCallPage() {
               <Button
                 onClick={() => router.push(`/dashboard/doctor/appointments?id=${id}`)}
                 size="lg"
-                className="w-full bg-blue-600 hover:bg-blue-700"
+                className="w-full bg-teal-600 hover:bg-teal-700"
               >
                 <svg className="w-4 h-4 ml-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
                 השלם רשימות SOAP ושלח למטופל
@@ -416,8 +416,8 @@ export default function VideoCallPage() {
             {/* Summary coming */}
             <Card className="bg-slate-800 border-slate-700">
               <CardContent className="p-4 flex items-start gap-3">
-                <div className="w-8 h-8 rounded-full bg-blue-500/20 flex items-center justify-center shrink-0 mt-0.5">
-                  <svg className="w-4 h-4 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
+                <div className="w-8 h-8 rounded-full bg-teal-500/20 flex items-center justify-center shrink-0 mt-0.5">
+                  <svg className="w-4 h-4 text-teal-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"/><polyline points="22,6 12,13 2,6"/></svg>
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-white">סיכום הייעוץ בדרך</p>
@@ -466,7 +466,7 @@ export default function VideoCallPage() {
               </Button>
               <Button
                 onClick={() => router.push('/dashboard/patient/dashboard')}
-                className="bg-blue-600 hover:bg-blue-700"
+                className="bg-teal-600 hover:bg-teal-700"
               >
                 לדשבורד
               </Button>
@@ -724,7 +724,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
     const cls = 'w-5 h-5'
     if (fileType.startsWith('image/')) return <svg className={`${cls} text-purple-400`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" /></svg>
     if (fileType === 'application/pdf') return <svg className={`${cls} text-red-400`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /></svg>
-    if (fileType.includes('word') || fileType.includes('document')) return <svg className={`${cls} text-blue-400`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
+    if (fileType.includes('word') || fileType.includes('document')) return <svg className={`${cls} text-teal-400`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /><line x1="16" y1="13" x2="8" y2="13" /><line x1="16" y1="17" x2="8" y2="17" /><polyline points="10 9 9 9 8 9" /></svg>
     return <svg className={`${cls} text-slate-400`} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" /></svg>
   }
 
@@ -797,7 +797,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
               <h3 className="font-bold text-sm">צ&apos;אט</h3>
               <button onClick={() => setChatOpen(false)} className="text-slate-400 hover:text-white text-lg">✕</button>
             </div>
-            <div className="flex-1 overflow-hidden [&_.lk-chat]:h-full [&_.lk-chat]:bg-transparent [&_.lk-chat-messages]:text-white [&_.lk-chat-form-input]:bg-slate-700 [&_.lk-chat-form-input]:text-white [&_.lk-chat-form-input]:border-slate-600 [&_.lk-chat-form-button]:bg-blue-600">
+            <div className="flex-1 overflow-hidden [&_.lk-chat]:h-full [&_.lk-chat]:bg-transparent [&_.lk-chat-messages]:text-white [&_.lk-chat-form-input]:bg-slate-700 [&_.lk-chat-form-input]:text-white [&_.lk-chat-form-input]:border-slate-600 [&_.lk-chat-form-button]:bg-teal-600">
               <Chat style={{ height: '100%' }} />
             </div>
           </div>
@@ -833,7 +833,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
                         <p className="text-sm font-medium text-white truncate">{doc.file_name}</p>
                         <div className="flex items-center gap-2 mt-1">
                           {doc.category && (
-                            <span className="text-xs bg-blue-600/30 text-blue-300 px-2 py-0.5 rounded">{doc.category}</span>
+                            <span className="text-xs bg-teal-600/30 text-teal-300 px-2 py-0.5 rounded">{doc.category}</span>
                           )}
                           <span className="text-xs text-slate-400">
                             {new Date(doc.created_at).toLocaleDateString('he-IL')}
@@ -899,7 +899,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
             onClick={handleScreenShare}
             className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
               screenSharing
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                ? 'bg-teal-600 hover:bg-teal-700 text-white'
                 : 'bg-slate-700 hover:bg-slate-600 text-white'
             }`}
             title={screenSharing ? 'הפסק שיתוף מסך' : 'שתף מסך'}
@@ -913,7 +913,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
             onClick={toggleChat}
             className={`relative flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
               chatOpen
-                ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                ? 'bg-teal-600 hover:bg-teal-700 text-white'
                 : 'bg-slate-700 hover:bg-slate-600 text-white'
             }`}
             title="צ'אט"
@@ -933,7 +933,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
               onClick={toggleDocs}
               className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-sm font-medium transition-all ${
                 docsOpen
-                  ? 'bg-blue-600 hover:bg-blue-700 text-white'
+                  ? 'bg-teal-600 hover:bg-teal-700 text-white'
                   : 'bg-slate-700 hover:bg-slate-600 text-white'
               }`}
               title="מסמכי מטופל"

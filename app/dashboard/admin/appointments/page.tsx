@@ -46,7 +46,7 @@ function statusBadge(s: string): 'success' | 'danger' | 'warning' | 'info' | 'de
 
 function statusBar(s: string) {
   if (s === 'completed') return 'bg-emerald-400'
-  if (s === 'in_progress' || s === 'ready') return 'bg-blue-500'
+  if (s === 'in_progress' || s === 'ready') return 'bg-teal-500'
   if (s === 'pending') return 'bg-amber-400'
   if (CANCELLED_STATUSES.includes(s)) return 'bg-red-400'
   return 'bg-indigo-400'
@@ -193,19 +193,19 @@ export default function AdminAppointmentsPage() {
         ].map(s => (
           <div key={s.label} className={cn(
             'rounded-2xl p-4 border',
-            s.color === 'blue'    && 'bg-blue-50 border-blue-100',
+            s.color === 'blue'    && 'bg-teal-50 border-teal-100',
             s.color === 'orange'  && 'bg-orange-50 border-orange-100',
             s.color === 'green'   && 'bg-green-50 border-green-100',
             s.color === 'emerald' && 'bg-emerald-50 border-emerald-100',
           )}>
             <p className={cn('text-xs font-medium mb-1',
-              s.color === 'blue'    && 'text-blue-600',
+              s.color === 'blue'    && 'text-teal-600',
               s.color === 'orange'  && 'text-orange-600',
               s.color === 'green'   && 'text-green-600',
               s.color === 'emerald' && 'text-emerald-600',
             )}>{s.label}</p>
             <p className={cn('text-2xl font-bold',
-              s.color === 'blue'    && 'text-blue-800',
+              s.color === 'blue'    && 'text-teal-800',
               s.color === 'orange'  && 'text-orange-800',
               s.color === 'green'   && 'text-green-800',
               s.color === 'emerald' && 'text-emerald-800',
@@ -226,7 +226,7 @@ export default function AdminAppointmentsPage() {
           placeholder="חיפוש לפי שם מטופל, רופא, טלפון, אימייל או תלונה..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="w-full rounded-xl border border-slate-200 bg-white py-3 pr-10 pl-4 text-sm shadow-sm placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none"
+          className="w-full rounded-xl border border-slate-200 bg-white py-3 pr-10 pl-4 text-sm shadow-sm placeholder:text-slate-400 focus:border-teal-400 focus:ring-2 focus:ring-teal-100 focus:outline-none"
         />
         {search && (
           <button onClick={() => setSearch('')} className="absolute inset-y-0 left-3 flex items-center text-slate-400 hover:text-slate-600">
@@ -249,8 +249,8 @@ export default function AdminAppointmentsPage() {
               className={cn(
                 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all',
                 active
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:border-blue-300 hover:text-blue-600'
+                  ? 'bg-teal-600 text-white shadow-sm'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:border-teal-300 hover:text-teal-600'
               )}
             >
               {f.label}
@@ -320,8 +320,8 @@ export default function AdminAppointmentsPage() {
                             {apt.patient?.first_name} {apt.patient?.last_name}
                           </p>
                           {apt.status === 'in_progress' && (
-                            <span className="flex items-center gap-1 text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
-                              <span className="w-1.5 h-1.5 rounded-full bg-blue-500 animate-pulse" />בשיחה
+                            <span className="flex items-center gap-1 text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-medium">
+                              <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />בשיחה
                             </span>
                           )}
                         </div>

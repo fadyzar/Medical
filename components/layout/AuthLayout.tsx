@@ -97,7 +97,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
               הרפואה של המחר,<br />
               זמינה לך היום
             </h2>
-            <p className="text-blue-100 mt-3 text-lg leading-relaxed">
+            <p className="text-teal-100 mt-3 text-lg leading-relaxed">
               ייעוץ רפואי מקצועי בשיחת וידאו —
               מהבית, בקליק אחד.
             </p>
@@ -130,7 +130,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
             </div>
           </div>
 
-          <p className="text-blue-200 text-xs mt-4 text-center">
+          <p className="text-teal-200 text-xs mt-4 text-center">
             מאובטח בתקן HIPAA &middot; הפרדה מלאה בין מרפאות
           </p>
         </div>
@@ -154,7 +154,7 @@ export function AuthLayout({ children, title, subtitle }: AuthLayoutProps) {
             <span className="text-xl font-bold text-white">{brand.name}</span>
           </Link>
           <h1 className="text-2xl font-bold text-white">{title}</h1>
-          {subtitle && <p className="text-blue-100 text-sm mt-1">{subtitle}</p>}
+          {subtitle && <p className="text-teal-100 text-sm mt-1">{subtitle}</p>}
         </div>
 
         {/* Form content */}

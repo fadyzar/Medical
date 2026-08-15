@@ -11,7 +11,7 @@ import type { Lead, LeadStatus, LeadPriority, LeadSource, User } from '@/types/d
 // ── Constants ──────────────────────────────────────────
 
 const STATUS_OPTIONS: { value: LeadStatus; label: string; color: string }[] = [
-  { value: 'new',       label: 'ליד חדש',     color: 'bg-blue-100 text-blue-700 border-blue-200' },
+  { value: 'new',       label: 'ליד חדש',     color: 'bg-teal-100 text-teal-700 border-teal-200' },
   { value: 'contacted', label: 'נוצר קשר',    color: 'bg-yellow-100 text-yellow-700 border-yellow-200' },
   { value: 'qualified', label: 'מוכשר',       color: 'bg-purple-100 text-purple-700 border-purple-200' },
   { value: 'converted', label: 'הומר למטופל', color: 'bg-green-100 text-green-700 border-green-200' },
@@ -36,7 +36,7 @@ const SOURCE_OPTIONS: { value: LeadSource; label: string }[] = [
 
 const PRIORITY_BADGE: Record<LeadPriority, string> = {
   low:    'bg-slate-100 text-slate-500',
-  normal: 'bg-blue-50 text-blue-600',
+  normal: 'bg-teal-50 text-teal-600',
   high:   'bg-orange-100 text-orange-700',
   urgent: 'bg-red-100 text-red-700',
 }
@@ -306,7 +306,7 @@ export default function AdminLeadsPage() {
                     onClick={() => setSelected(isSelected ? null : lead)}
                     className={cn(
                       'w-full px-4 py-3 text-right hover:bg-slate-50 transition-colors',
-                      isSelected && 'bg-blue-50 border-r-4 border-blue-600'
+                      isSelected && 'bg-teal-50 border-r-4 border-teal-600'
                     )}
                   >
                     <div className="flex items-center justify-between">
@@ -375,13 +375,13 @@ export default function AdminLeadsPage() {
                     {selected.phone && (
                       <div>
                         <p className="text-slate-400 text-xs">טלפון</p>
-                        <a href={`tel:${selected.phone}`} className="font-medium text-blue-600 hover:underline">{selected.phone}</a>
+                        <a href={`tel:${selected.phone}`} className="font-medium text-teal-600 hover:underline">{selected.phone}</a>
                       </div>
                     )}
                     {selected.email && (
                       <div>
                         <p className="text-slate-400 text-xs">אימייל</p>
-                        <a href={`mailto:${selected.email}`} className="font-medium text-blue-600 hover:underline">{selected.email}</a>
+                        <a href={`mailto:${selected.email}`} className="font-medium text-teal-600 hover:underline">{selected.email}</a>
                       </div>
                     )}
                     <div>
@@ -557,7 +557,7 @@ export default function AdminLeadsPage() {
               <div>
                 <label className="block text-sm font-medium text-slate-700 mb-1.5">התמחות מבוקשת</label>
                 <select
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
                   value={form.specialty_interest}
                   onChange={e => setForm(p => ({ ...p, specialty_interest: e.target.value }))}
                 >

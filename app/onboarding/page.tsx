@@ -295,13 +295,13 @@ export default function OnboardingPage() {
             <div className={cn(
               'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold shrink-0 transition-colors',
               i < currentIdx ? 'bg-green-500 text-white' :
-              i === currentIdx ? 'bg-blue-600 text-white' : 'bg-slate-200 text-slate-500'
+              i === currentIdx ? 'bg-teal-600 text-white' : 'bg-slate-200 text-slate-500'
             )}>
               {i < currentIdx ? '✓' : s.num}
             </div>
             <span className={cn(
               'text-xs mr-1.5 hidden sm:block',
-              i <= currentIdx ? 'text-blue-600 font-medium' : 'text-slate-400'
+              i <= currentIdx ? 'text-teal-600 font-medium' : 'text-slate-400'
             )}>{s.label}</span>
             {i < STEPS.length - 1 && (
               <div className={cn('h-0.5 flex-1 mx-2 transition-colors', i < currentIdx ? 'bg-green-500' : 'bg-slate-200')} />
@@ -441,8 +441,8 @@ export default function OnboardingPage() {
                     className={cn(
                       'p-5 rounded-xl border-2 text-right transition-all relative',
                       form.plan === plan.id
-                        ? 'border-blue-500 bg-blue-50 shadow-md'
-                        : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50',
+                        ? 'border-teal-500 bg-teal-50 shadow-md'
+                        : 'border-slate-200 hover:border-teal-300 hover:bg-slate-50',
                     )}
                   >
                     {plan.highlighted && (
@@ -451,7 +451,7 @@ export default function OnboardingPage() {
                     <h4 className="font-bold text-lg">{plan.name}</h4>
                     <p className="text-sm text-slate-500 mt-1">{plan.description}</p>
                     <div className="mt-3">
-                      <span className="text-2xl font-black text-blue-600">
+                      <span className="text-2xl font-black text-teal-600">
                         {plan.price_monthly === 0 ? 'חינם' : formatPrice(plan.price_monthly)}
                       </span>
                       {plan.price_monthly > 0 && <span className="text-sm text-slate-400 mr-1">/חודש</span>}
@@ -474,7 +474,7 @@ export default function OnboardingPage() {
                       {PLANS.map(p => (
                         <th key={p.id} className={cn(
                           'p-3 text-center font-medium',
-                          form.plan === p.id ? 'text-blue-700 bg-blue-50' : 'text-slate-700'
+                          form.plan === p.id ? 'text-teal-700 bg-teal-50' : 'text-slate-700'
                         )}>{p.name}</th>
                       ))}
                     </tr>
@@ -486,7 +486,7 @@ export default function OnboardingPage() {
                         {PLANS.map(p => (
                           <td key={p.id} className={cn(
                             'p-3 text-center',
-                            form.plan === p.id ? 'bg-blue-50/50' : ''
+                            form.plan === p.id ? 'bg-teal-50/50' : ''
                           )}>
                             {p.features[key] ? (
                               <span className="text-green-600 font-bold">✓</span>
@@ -546,7 +546,7 @@ export default function OnboardingPage() {
                   <div
                     className={cn(
                       'border-2 border-dashed rounded-xl p-8 text-center cursor-pointer transition-colors',
-                      'hover:border-blue-400 hover:bg-blue-50/50',
+                      'hover:border-teal-400 hover:bg-teal-50/50',
                       errors.logo ? 'border-red-300 bg-red-50' : 'border-slate-300 bg-slate-50'
                     )}
                     onClick={() => fileInputRef.current?.click()}
@@ -670,8 +670,8 @@ export default function OnboardingPage() {
                 </p>
               </div>
 
-              <div className="bg-blue-50 rounded-xl p-5 space-y-4">
-                <div className="flex items-center gap-3 text-blue-700 mb-2">
+              <div className="bg-teal-50 rounded-xl p-5 space-y-4">
+                <div className="flex items-center gap-3 text-teal-700 mb-2">
                   <span className="text-2xl">👨‍⚕️</span>
                   <span className="font-medium">פרטי הרופא</span>
                 </div>
@@ -716,7 +716,7 @@ export default function OnboardingPage() {
                 <button
                   onClick={() => { setDoctorName(''); setDoctorEmail(''); handleSubmit() }}
                   disabled={loading}
-                  className="text-sm text-blue-600 hover:underline w-full text-center"
+                  className="text-sm text-teal-600 hover:underline w-full text-center"
                 >
                   דלג — אזמין רופאים אחר כך
                 </button>
@@ -746,7 +746,7 @@ export default function OnboardingPage() {
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500">דומיין</span>
-                  <span className="font-medium text-blue-600">{form.subdomain}.cannaforyou.net</span>
+                  <span className="font-medium text-teal-600">{form.subdomain}.cannaforyou.net</span>
                 </div>
                 <div className="flex justify-between items-center">
                   <span className="text-slate-500">מנהל</span>

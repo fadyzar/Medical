@@ -353,7 +353,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
   const isActive = (href: string) => pathname === href || pathname.startsWith(href + '/')
 
   // Brand colors — fall back to blue if org hasn't set colors
-  const primary = org?.primary_color || '#2563eb'
+  const primary = org?.primary_color || '#2FA9A2' // CANNA teal default
   const primaryLight = `${primary}18` // ~10% opacity for hover/active bg
   const primaryMedium = `${primary}30` // ~20% opacity
 
@@ -363,7 +363,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
       dir="rtl"
       style={{
         '--brand-primary': primary,
-        '--brand-secondary': org?.secondary_color || '#6b7280',
+        '--brand-secondary': org?.secondary_color || '#157F73',
       } as React.CSSProperties}
     >
       {/* ─── Desktop Sidebar ─────────────────────────────── */}
@@ -388,7 +388,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
           )}
           {!sidebarCollapsed && (
             <span className="text-lg font-bold truncate" style={org?.primary_color ? { color: org.primary_color } : undefined}>
-              <span className={org?.primary_color ? '' : 'bg-gradient-to-l from-blue-600 to-teal-600 bg-clip-text text-transparent'}>
+              <span className={org?.primary_color ? '' : 'bg-gradient-to-l from-teal-600 to-emerald-500 bg-clip-text text-transparent'}>
                 {org?.name ?? 'CANNA'}
               </span>
             </span>
@@ -503,7 +503,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
                 </div>
               )}
               <span className="text-base font-bold" style={org?.primary_color ? { color: org.primary_color } : undefined}>
-                <span className={org?.primary_color ? '' : 'bg-gradient-to-l from-blue-600 to-teal-600 bg-clip-text text-transparent'}>
+                <span className={org?.primary_color ? '' : 'bg-gradient-to-l from-teal-600 to-emerald-500 bg-clip-text text-transparent'}>
                   {org?.name ?? 'CANNA'}
                 </span>
               </span>

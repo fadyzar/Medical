@@ -38,7 +38,7 @@ function TagInput({ label, tags, onChange, placeholder }: {
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }}
           placeholder={placeholder}
-          className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+          className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
         />
         <Button variant="outline" size="sm" type="button" onClick={addTag} disabled={!input.trim()}>
           הוסף
@@ -47,12 +47,12 @@ function TagInput({ label, tags, onChange, placeholder }: {
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-2">
           {tags.map((tag, i) => (
-            <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-sm">
+            <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 text-sm">
               {tag}
               <button
                 type="button"
                 onClick={() => onChange(tags.filter((_, idx) => idx !== i))}
-                className="hover:text-red-600 text-blue-400 font-bold mr-0.5"
+                className="hover:text-red-600 text-teal-400 font-bold mr-0.5"
                 aria-label={`הסר ${tag}`}
               >
                 x
@@ -271,7 +271,7 @@ export default function DoctorProfilePage() {
                   className="w-20 h-20 rounded-full object-cover border-2 border-slate-200"
                 />
               ) : (
-                <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-2xl font-bold text-blue-700 border-2 border-slate-200">
+                <div className="w-20 h-20 rounded-full bg-teal-100 flex items-center justify-center text-2xl font-bold text-teal-700 border-2 border-slate-200">
                   {getInitials(profile.first_name, profile.last_name)}
                 </div>
               )}
@@ -345,7 +345,7 @@ export default function DoctorProfilePage() {
               key={opt.key}
               className={cn(
                 'flex items-center justify-between gap-4 rounded-xl border-2 p-4 transition-all cursor-pointer',
-                opt.value ? 'border-blue-400 bg-blue-50' : 'border-slate-200 bg-white hover:border-slate-300'
+                opt.value ? 'border-teal-400 bg-teal-50' : 'border-slate-200 bg-white hover:border-slate-300'
               )}
               onClick={() => opt.onChange(!opt.value)}
               role="checkbox"
@@ -356,13 +356,13 @@ export default function DoctorProfilePage() {
               <div className="flex items-center gap-3">
                 <span className="text-xl">{opt.icon}</span>
                 <div>
-                  <p className={cn('font-semibold text-sm', opt.value ? 'text-blue-800' : 'text-slate-700')}>{opt.label}</p>
+                  <p className={cn('font-semibold text-sm', opt.value ? 'text-teal-800' : 'text-slate-700')}>{opt.label}</p>
                   <p className="text-xs text-slate-400 mt-0.5">{opt.desc}</p>
                 </div>
               </div>
               <div className={cn(
                 'w-12 h-6 rounded-full relative transition-colors shrink-0',
-                opt.value ? 'bg-blue-500' : 'bg-slate-200'
+                opt.value ? 'bg-teal-500' : 'bg-slate-200'
               )}>
                 <div className={cn(
                   'absolute top-1 w-4 h-4 rounded-full bg-white shadow transition-transform',
@@ -447,7 +447,7 @@ export default function DoctorProfilePage() {
                   className={cn(
                     'px-3 py-1.5 rounded-full text-sm font-medium border transition-colors',
                     isSelected
-                      ? 'bg-blue-600 text-white border-blue-600'
+                      ? 'bg-teal-600 text-white border-teal-600'
                       : 'bg-white text-slate-600 border-slate-300 hover:bg-slate-50'
                   )}
                 >

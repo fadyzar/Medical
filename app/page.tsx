@@ -102,7 +102,7 @@ export default function HomePage() {
               <Link href="/auth/login" className="hidden sm:block text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-2 transition-colors">
                 כניסה
               </Link>
-              <Link href="/auth/register" className="bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors shadow-sm shadow-blue-600/20">
+              <Link href="/auth/register" className="bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors shadow-sm shadow-teal-600/20">
                 התחל עכשיו
               </Link>
             </div>
@@ -128,7 +128,7 @@ export default function HomePage() {
             <h1 className="text-5xl sm:text-6xl lg:text-7xl font-black text-white leading-[1.05] tracking-tight">
               רופא מומחה
               <br />
-              <span className="text-blue-400">בלחיצה אחת.</span>
+              <span className="text-teal-400">בלחיצה אחת.</span>
             </h1>
 
             <p className="text-lg text-white/70 mt-6 leading-relaxed max-w-lg">
@@ -138,7 +138,7 @@ export default function HomePage() {
             <div className="flex flex-col sm:flex-row gap-3 mt-10">
               <Link
                 href="/auth/register"
-                className="inline-flex items-center justify-center bg-blue-600 hover:bg-blue-500 text-white font-bold text-base px-8 py-4 rounded-2xl transition-all shadow-xl shadow-blue-600/30 hover:shadow-blue-500/40 hover:-translate-y-0.5"
+                className="inline-flex items-center justify-center bg-teal-600 hover:bg-teal-500 text-white font-bold text-base px-8 py-4 rounded-2xl transition-all shadow-xl shadow-teal-600/30 hover:shadow-teal-500/40 hover:-translate-y-0.5"
               >
                 קבל ייעוץ עכשיו — חינם
               </Link>
@@ -170,7 +170,7 @@ export default function HomePage() {
           >
             {/* Text side */}
             <div className={i % 2 === 1 ? 'order-1 lg:order-2' : 'order-1'}>
-              <span className="inline-block bg-blue-100 text-blue-700 text-xs font-bold tracking-widest uppercase px-3 py-1.5 rounded-full mb-5">
+              <span className="inline-block bg-teal-100 text-teal-700 text-xs font-bold tracking-widest uppercase px-3 py-1.5 rounded-full mb-5">
                 {f.tag}
               </span>
               <h2 className="text-3xl sm:text-4xl font-black text-slate-900 leading-tight tracking-tight">
@@ -179,7 +179,7 @@ export default function HomePage() {
               <p className="text-slate-500 mt-5 text-lg leading-relaxed">{f.body}</p>
               <Link
                 href="/auth/register"
-                className="inline-flex items-center gap-2 mt-8 text-blue-600 font-semibold hover:gap-3 transition-all group"
+                className="inline-flex items-center gap-2 mt-8 text-teal-600 font-semibold hover:gap-3 transition-all group"
               >
                 התחל עכשיו
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" className="group-hover:translate-x-[-3px] transition-transform">
@@ -199,7 +199,7 @@ export default function HomePage() {
       {/* ── Specialties pill cloud ──────────────────────────────────────── */}
       <section className="py-24 px-6 bg-white">
         <div className="max-w-5xl mx-auto text-center">
-          <p className="text-xs font-bold tracking-widest uppercase text-blue-600 mb-4">התמחויות</p>
+          <p className="text-xs font-bold tracking-widest uppercase text-teal-600 mb-4">התמחויות</p>
           <h2 className="text-3xl sm:text-4xl font-black text-slate-900 tracking-tight">
             רופאים מומחים בכל תחום
           </h2>
@@ -208,7 +208,7 @@ export default function HomePage() {
               <Link
                 key={s}
                 href={`/specialties/${encodeURIComponent(s)}`}
-                className="bg-slate-100 hover:bg-blue-50 hover:text-blue-700 text-slate-700 font-medium text-sm px-5 py-2.5 rounded-full border border-transparent hover:border-blue-200 transition-all"
+                className="bg-slate-100 hover:bg-teal-50 hover:text-teal-700 text-slate-700 font-medium text-sm px-5 py-2.5 rounded-full border border-transparent hover:border-teal-200 transition-all"
               >
                 {s}
               </Link>
@@ -221,7 +221,7 @@ export default function HomePage() {
       <section className="py-24 px-6 bg-slate-950">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <p className="text-xs font-bold tracking-widest uppercase text-blue-400 mb-4">תהליך</p>
+            <p className="text-xs font-bold tracking-widest uppercase text-teal-400 mb-4">תהליך</p>
             <h2 className="text-3xl sm:text-4xl font-black text-white tracking-tight">מהרשמה לייעוץ — ארבעה שלבים</h2>
           </div>
 
@@ -238,7 +238,7 @@ export default function HomePage() {
                   <div className="hidden lg:block absolute top-7 left-0 w-full h-px bg-white/10 -z-10" />
                 )}
                 <div className="bg-white/5 hover:bg-white/8 border border-white/10 hover:border-white/20 rounded-2xl p-6 transition-all">
-                  <span className="text-4xl font-black text-white/10 group-hover:text-blue-500/30 transition-colors">{s.n}</span>
+                  <span className="text-4xl font-black text-white/10 group-hover:text-teal-500/30 transition-colors">{s.n}</span>
                   <h3 className="text-white font-bold mt-3">{s.title}</h3>
                   <p className="text-white/50 text-sm mt-1.5 leading-relaxed">{s.desc}</p>
                 </div>
@@ -257,7 +257,7 @@ export default function HomePage() {
           </div>
           <Link
             href="/for-clinics"
-            className="shrink-0 inline-flex items-center gap-2 bg-blue-600 hover:bg-blue-500 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg shadow-blue-600/20 text-sm"
+            className="shrink-0 inline-flex items-center gap-2 bg-teal-600 hover:bg-teal-500 text-white font-bold px-6 py-3 rounded-xl transition-all shadow-lg shadow-teal-600/20 text-sm"
           >
             גלה עוד
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
@@ -273,7 +273,7 @@ export default function HomePage() {
           <div className="grid grid-cols-2 md:grid-cols-4 gap-10 text-sm">
             <div className="col-span-2 md:col-span-1">
               <Link href="/" className="flex items-center gap-2 mb-4">
-                <span className="w-7 h-7 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
+                <span className="w-7 h-7 rounded-lg bg-teal-600 flex items-center justify-center shrink-0">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4.8 2.3A.3.3 0 105 2H4a2 2 0 00-2 2v5a6 6 0 006 6 6 6 0 006-6V4a2 2 0 00-2-2h-1"/>
                     <path d="M8 15v1a6 6 0 006 6 6 6 0 006-6v-4"/><circle cx="20" cy="10" r="2"/>

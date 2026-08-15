@@ -71,7 +71,7 @@ const TriageBadge = ({ score }: { score: number }) => (
 const statusBar = (status: string) => cn(
   'w-1 h-9 rounded-full shrink-0',
   status === 'completed' ? 'bg-emerald-400' :
-  status === 'in_progress' ? 'bg-blue-500' :
+  status === 'in_progress' ? 'bg-teal-500' :
   status === 'pending' ? 'bg-amber-400' :
   status.startsWith('cancelled') || status.startsWith('no_show') ? 'bg-red-400' :
   'bg-indigo-400'
@@ -293,7 +293,7 @@ export default function StaffDashboard() {
           className={cn(
             'w-full rounded-xl border border-slate-200 bg-white py-3 pr-10 pl-4 text-sm transition-all',
             'placeholder:text-slate-400 shadow-sm',
-            'focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none'
+            'focus:border-teal-400 focus:ring-2 focus:ring-teal-100 focus:outline-none'
           )}
           aria-label="חיפוש תורים"
         />
@@ -330,8 +330,8 @@ export default function StaffDashboard() {
               className={cn(
                 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all',
                 isActive
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:border-blue-300 hover:text-blue-600'
+                  ? 'bg-teal-600 text-white shadow-sm'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:border-teal-300 hover:text-teal-600'
               )}
             >
               {tab.label}
@@ -351,8 +351,8 @@ export default function StaffDashboard() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
-                <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" /></svg>
+              <div className="w-7 h-7 rounded-lg bg-teal-50 flex items-center justify-center">
+                <svg className="w-4 h-4 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" /><rect x="8" y="2" width="8" height="4" rx="1" /></svg>
               </div>
               <h3 className="font-bold text-slate-900">
                 רשימת תורים
@@ -414,7 +414,7 @@ export default function StaffDashboard() {
                             {apt.patient?.first_name} {apt.patient?.last_name}
                           </p>
                           {apt.scheduled_at && isToday(apt) && (
-                            <span className="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-semibold shrink-0">
+                            <span className="text-xs bg-teal-100 text-teal-700 px-2 py-0.5 rounded-full font-semibold shrink-0">
                               {formatTime(apt.scheduled_at)}
                             </span>
                           )}

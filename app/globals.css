@@ -6,7 +6,7 @@
   * { @apply border-slate-200; }
   body { @apply text-slate-900; }
   /* Accessibility: focus visible */
-  *:focus-visible { @apply outline-2 outline-offset-2 outline-blue-500 rounded-sm; }
+  *:focus-visible { @apply outline-2 outline-offset-2 outline-teal-500 rounded-sm; }
 }
 
 /* Scrollbar */

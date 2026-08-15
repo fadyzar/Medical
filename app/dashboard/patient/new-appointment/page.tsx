@@ -359,7 +359,7 @@ export default function NewAppointmentPage() {
 
       {/* Marketplace badge */}
       {orgCtx.isMarketplace && (
-        <div className="flex items-center gap-2 px-4 py-2.5 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700">
+        <div className="flex items-center gap-2 px-4 py-2.5 bg-teal-50 border border-teal-200 rounded-xl text-sm text-teal-700">
           <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/>
           </svg>
@@ -384,8 +384,8 @@ export default function NewAppointmentPage() {
             <div className="flex flex-col items-center gap-1">
               <div className={cn(
                 'w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold border-2 transition-all',
-                i < currentIdx   ? 'bg-blue-600 border-blue-600 text-white' :
-                i === currentIdx ? 'bg-white border-blue-600 text-blue-600 shadow-md shadow-blue-100' :
+                i < currentIdx   ? 'bg-teal-600 border-teal-600 text-white' :
+                i === currentIdx ? 'bg-white border-teal-600 text-teal-600 shadow-md shadow-teal-100' :
                                    'bg-white border-slate-200 text-slate-400'
               )}>
                 {i < currentIdx
@@ -393,12 +393,12 @@ export default function NewAppointmentPage() {
                   : s.num}
               </div>
               <span className={cn('text-xs hidden sm:block font-medium',
-                i === currentIdx ? 'text-blue-600' : i < currentIdx ? 'text-blue-400' : 'text-slate-400')}>
+                i === currentIdx ? 'text-teal-600' : i < currentIdx ? 'text-teal-400' : 'text-slate-400')}>
                 {s.label}
               </span>
             </div>
             {i < STEPS.length - 1 && (
-              <div className={cn('flex-1 h-0.5 mx-2 mt-[-12px] transition-all', i < currentIdx ? 'bg-blue-500' : 'bg-slate-200')} />
+              <div className={cn('flex-1 h-0.5 mx-2 mt-[-12px] transition-all', i < currentIdx ? 'bg-teal-500' : 'bg-slate-200')} />
             )}
           </div>
         ))}
@@ -422,12 +422,12 @@ export default function NewAppointmentPage() {
                     className={cn(
                       'p-4 rounded-2xl border-2 text-right transition-all hover:shadow-sm active:scale-[0.98]',
                       form.specialty === s.id
-                        ? 'border-blue-500 bg-blue-50 shadow-md shadow-blue-100'
-                        : 'border-slate-200 bg-white hover:border-blue-300 hover:bg-blue-50/30'
+                        ? 'border-teal-500 bg-teal-50 shadow-md shadow-teal-100'
+                        : 'border-slate-200 bg-white hover:border-teal-300 hover:bg-teal-50/30'
                     )}
                   >
                     <div className="text-2xl mb-2">{SPECIALTY_ICONS[s.id] || '🏥'}</div>
-                    <p className={cn('text-sm font-semibold', form.specialty === s.id ? 'text-blue-700' : 'text-slate-800')}>
+                    <p className={cn('text-sm font-semibold', form.specialty === s.id ? 'text-teal-700' : 'text-slate-800')}>
                       {s.label}
                     </p>
                   </button>
@@ -554,13 +554,13 @@ export default function NewAppointmentPage() {
                               className={cn(
                                 'px-3 py-2 rounded-xl border-2 text-sm font-medium transition-all',
                                 selectedSlot === slot.datetime
-                                  ? 'border-blue-500 bg-blue-600 text-white shadow-md shadow-blue-100'
-                                  : 'border-slate-200 bg-white text-slate-700 hover:border-blue-300 hover:bg-blue-50'
+                                  ? 'border-teal-500 bg-teal-600 text-white shadow-md shadow-teal-100'
+                                  : 'border-slate-200 bg-white text-slate-700 hover:border-teal-300 hover:bg-teal-50'
                               )}
                             >
                               {formatTime(slot.datetime)}
                               {!form.doctor_id && (
-                                <span className={cn('block text-[10px] mt-0.5', selectedSlot === slot.datetime ? 'text-blue-100' : 'text-slate-400')}>
+                                <span className={cn('block text-[10px] mt-0.5', selectedSlot === slot.datetime ? 'text-teal-100' : 'text-slate-400')}>
                                   {slot.doctorName.replace('ד"ר ', '')}
                                 </span>
                               )}
@@ -573,7 +573,7 @@ export default function NewAppointmentPage() {
                 )}
 
                 {selectedSlot && (
-                  <div className="flex items-center gap-2 px-4 py-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700">
+                  <div className="flex items-center gap-2 px-4 py-3 bg-teal-50 border border-teal-200 rounded-xl text-sm text-teal-700">
                     <svg className="w-4 h-4 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                       <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
                     </svg>
@@ -581,7 +581,7 @@ export default function NewAppointmentPage() {
                     <button
                       type="button"
                       onClick={() => setSelectedSlot(null)}
-                      className="mr-auto text-blue-400 hover:text-blue-600"
+                      className="mr-auto text-teal-400 hover:text-teal-600"
                       aria-label="בטל בחירה"
                     >
                       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
@@ -624,7 +624,7 @@ export default function NewAppointmentPage() {
                       'w-full rounded-xl border px-4 py-3 text-sm transition-all focus:outline-none focus:ring-2',
                       errors.chief_complaint
                         ? 'border-red-300 focus:border-red-400 focus:ring-red-100'
-                        : 'border-slate-200 focus:border-blue-400 focus:ring-blue-100'
+                        : 'border-slate-200 focus:border-teal-400 focus:ring-teal-100'
                     )}
                     aria-required="true"
                     aria-invalid={!!errors.chief_complaint}
@@ -659,12 +659,12 @@ export default function NewAppointmentPage() {
                         className={cn(
                           'p-4 rounded-2xl border-2 text-right transition-all',
                           form.appointment_type === t.value
-                            ? 'border-blue-500 bg-blue-50 shadow-sm shadow-blue-100'
-                            : 'border-slate-200 bg-white hover:border-blue-300'
+                            ? 'border-teal-500 bg-teal-50 shadow-sm shadow-teal-100'
+                            : 'border-slate-200 bg-white hover:border-teal-300'
                         )}
                       >
                         <div className="text-2xl mb-1.5">{t.icon}</div>
-                        <p className={cn('font-semibold text-sm', form.appointment_type === t.value ? 'text-blue-700' : 'text-slate-800')}>
+                        <p className={cn('font-semibold text-sm', form.appointment_type === t.value ? 'text-teal-700' : 'text-slate-800')}>
                           {t.label}
                         </p>
                         <p className="text-xs text-slate-400 mt-0.5">{t.desc}</p>
@@ -731,13 +731,13 @@ export default function NewAppointmentPage() {
               </div>
 
               <div
-                className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center hover:border-blue-400 hover:bg-blue-50/30 transition-all cursor-pointer"
+                className="border-2 border-dashed border-slate-300 rounded-2xl p-8 text-center hover:border-teal-400 hover:bg-teal-50/30 transition-all cursor-pointer"
                 onClick={() => document.getElementById('apt-file-upload')?.click()}
-                onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-blue-400', 'bg-blue-50') }}
-                onDragLeave={e => { e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50') }}
+                onDragOver={e => { e.preventDefault(); e.currentTarget.classList.add('border-teal-400', 'bg-teal-50') }}
+                onDragLeave={e => { e.currentTarget.classList.remove('border-teal-400', 'bg-teal-50') }}
                 onDrop={e => {
                   e.preventDefault()
-                  e.currentTarget.classList.remove('border-blue-400', 'bg-blue-50')
+                  e.currentTarget.classList.remove('border-teal-400', 'bg-teal-50')
                   const droppedFiles = Array.from(e.dataTransfer.files).filter(f => f.size <= 10 * 1024 * 1024)
                   setFiles(prev => [...prev, ...droppedFiles])
                 }}
@@ -877,12 +877,12 @@ function DoctorCard({
       className={cn(
         'w-full p-4 rounded-2xl border-2 text-right transition-all hover:shadow-sm active:scale-[0.99]',
         selected
-          ? 'border-blue-500 bg-blue-50 shadow-md shadow-blue-100'
-          : 'border-slate-200 bg-white hover:border-blue-300'
+          ? 'border-teal-500 bg-teal-50 shadow-md shadow-teal-100'
+          : 'border-slate-200 bg-white hover:border-teal-300'
       )}
     >
       <div className="flex items-start gap-3">
-        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-blue-400 to-indigo-500 flex items-center justify-center text-xl font-bold text-white shrink-0 overflow-hidden">
+        <div className="w-14 h-14 rounded-2xl bg-gradient-to-br from-teal-400 to-indigo-500 flex items-center justify-center text-xl font-bold text-white shrink-0 overflow-hidden">
           {doc.avatar_url
             // eslint-disable-next-line @next/next/no-img-element
             ? <img src={doc.avatar_url} alt="" className="w-full h-full object-cover" />
@@ -891,7 +891,7 @@ function DoctorCard({
         <div className="flex-1 min-w-0">
           <p className="font-bold text-slate-900">ד&quot;ר {doc.first_name} {doc.last_name}</p>
           {doc.specialties?.length && (
-            <p className="text-xs text-blue-600 font-medium mt-0.5">{doc.specialties.slice(0, 3).join(' · ')}</p>
+            <p className="text-xs text-teal-600 font-medium mt-0.5">{doc.specialties.slice(0, 3).join(' · ')}</p>
           )}
           {showClinic && doc.organization_id && (
             <ClinicName orgId={doc.organization_id} />
@@ -914,7 +914,7 @@ function DoctorCard({
           </div>
         </div>
         {selected && (
-          <div className="w-6 h-6 rounded-full bg-blue-600 flex items-center justify-center shrink-0">
+          <div className="w-6 h-6 rounded-full bg-teal-600 flex items-center justify-center shrink-0">
             <svg className="w-3.5 h-3.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
               <polyline points="20 6 9 17 4 12" />
             </svg>

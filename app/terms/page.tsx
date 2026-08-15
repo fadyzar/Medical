@@ -15,13 +15,13 @@ export default function TermsPage() {
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-black text-blue-600">CANNA</Link>
+          <Link href="/" className="text-2xl font-black text-teal-600">CANNA</Link>
           <div className="flex items-center gap-4">
             <Link href="/specialties" className="text-sm text-slate-600 hover:text-slate-900">התמחויות</Link>
             <Link href="/doctors" className="text-sm text-slate-600 hover:text-slate-900">הרופאים שלנו</Link>
             <Link href="/blog" className="text-sm text-slate-600 hover:text-slate-900">בלוג</Link>
             <Link href="/auth/login" className="text-sm text-slate-600 hover:text-slate-900">התחברות</Link>
-            <Link href="/auth/register" className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">הרשמה חינם</Link>
+            <Link href="/auth/register" className="bg-teal-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors">הרשמה חינם</Link>
           </div>
         </div>
       </nav>
@@ -79,7 +79,7 @@ export default function TermsPage() {
         <h2>7. פרטיות ואבטחה</h2>
         <p>
           המידע הרפואי שלך מוגן בהתאם לחוק הגנת הפרטיות, תשמ&quot;א-1981 ולתקנות אבטחת מידע.
-          לפרטים מלאים, ראה את <Link href="/privacy" className="text-blue-600 hover:underline">מדיניות הפרטיות</Link> שלנו.
+          לפרטים מלאים, ראה את <Link href="/privacy" className="text-teal-600 hover:underline">מדיניות הפרטיות</Link> שלנו.
         </p>
 
         <h2>8. קניין רוחני</h2>

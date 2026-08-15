@@ -151,7 +151,7 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-2xl font-black text-blue-600">
+          <Link href="/" className="flex items-center gap-2 text-2xl font-black text-teal-600">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/canna-mark.png" alt="" className="w-9 h-9 object-contain" />CANNA
           </Link>
@@ -160,7 +160,7 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
             <Link href="/doctors" className="text-sm text-slate-600 hover:text-slate-900">הרופאים שלנו</Link>
             <Link href="/blog" className="text-sm text-slate-600 hover:text-slate-900">בלוג</Link>
             <Link href="/auth/login" className="text-sm text-slate-600 hover:text-slate-900">התחברות</Link>
-            <Link href="/auth/register" className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">הרשמה חינם</Link>
+            <Link href="/auth/register" className="bg-teal-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors">הרשמה חינם</Link>
           </div>
         </div>
       </nav>
@@ -174,7 +174,7 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
           { label: `ד"ר ${doc.first_name} ${doc.last_name}` },
         ]} />
         {/* Header Card */}
-        <div className="bg-gradient-to-l from-blue-50 to-white rounded-2xl border border-slate-100 p-8 mb-8">
+        <div className="bg-gradient-to-l from-teal-50 to-white rounded-2xl border border-slate-100 p-8 mb-8">
           <div className="flex flex-col sm:flex-row items-start gap-6">
             {/* Avatar */}
             <div className="shrink-0">
@@ -187,7 +187,7 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
                   className="w-28 h-28 rounded-full object-cover border-4 border-white shadow-lg"
                 />
               ) : (
-                <div className="w-28 h-28 rounded-full bg-blue-100 flex items-center justify-center text-4xl font-bold text-blue-700 border-4 border-white shadow-lg">
+                <div className="w-28 h-28 rounded-full bg-teal-100 flex items-center justify-center text-4xl font-bold text-teal-700 border-4 border-white shadow-lg">
                   {doc.first_name.charAt(0)}{doc.last_name.charAt(0)}
                 </div>
               )}
@@ -202,7 +202,7 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
               {specialtyLabels.length > 0 && (
                 <div className="flex flex-wrap gap-2 mb-3">
                   {specialtyLabels.map(label => (
-                    <span key={label} className="px-3 py-1 bg-blue-100 text-blue-700 rounded-full text-sm font-medium">
+                    <span key={label} className="px-3 py-1 bg-teal-100 text-teal-700 rounded-full text-sm font-medium">
                       {label}
                     </span>
                   ))}
@@ -240,7 +240,7 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
               )}
               <Link
                 href={`/dashboard/patient/new-appointment?doctor=${doc.id}`}
-                className="inline-block bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors text-center"
+                className="inline-block bg-teal-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-teal-700 transition-colors text-center"
               >
                 קבע תור עכשיו
               </Link>
@@ -338,7 +338,7 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
 
               <Link
                 href={`/dashboard/patient/new-appointment?doctor=${doc.id}`}
-                className="block w-full bg-blue-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors text-center"
+                className="block w-full bg-teal-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-teal-700 transition-colors text-center"
               >
                 קבע תור עכשיו
               </Link>
@@ -348,13 +348,13 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
       </div>
 
       {/* CTA */}
-      <section className="py-16 px-4 bg-blue-600 text-white mt-12">
+      <section className="py-16 px-4 bg-teal-600 text-white mt-12">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-black mb-4">מוכן להתחיל?</h2>
-          <p className="text-xl text-blue-100 mb-8">
+          <p className="text-xl text-teal-100 mb-8">
             הירשם בחינם וקבע תור עם ד&quot;ר {doc.first_name} {doc.last_name} — תוך דקות.
           </p>
-          <Link href="/auth/register" className="bg-white text-blue-600 px-8 py-4 rounded-xl text-lg font-bold hover:bg-blue-50 transition-colors inline-block">
+          <Link href="/auth/register" className="bg-white text-teal-600 px-8 py-4 rounded-xl text-lg font-bold hover:bg-teal-50 transition-colors inline-block">
             הרשמה חינם — קבע תור עכשיו
           </Link>
         </div>

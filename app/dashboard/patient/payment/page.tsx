@@ -239,14 +239,14 @@ export default function PaymentPage() {
   if (state === 'already_paid') {
     return (
       <div className="max-w-lg mx-auto mt-8">
-        <Card className="border-blue-200">
+        <Card className="border-teal-200">
           <CardContent className="py-12 text-center space-y-4">
-            <div className="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto">
-              <svg className="w-8 h-8 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <div className="w-16 h-16 bg-teal-100 rounded-full flex items-center justify-center mx-auto">
+              <svg className="w-8 h-8 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
               </svg>
             </div>
-            <h2 className="text-xl font-bold text-blue-800">תור זה כבר שולם</h2>
+            <h2 className="text-xl font-bold text-teal-800">תור זה כבר שולם</h2>
             <p className="text-slate-500">התשלום עבור תור זה כבר בוצע.</p>
             <Button onClick={() => router.push('/dashboard/patient/appointments')}>לתורים שלי</Button>
           </CardContent>
@@ -272,7 +272,7 @@ export default function PaymentPage() {
             )}
             {invoiceUrl && (
               <a href={invoiceUrl} target="_blank" rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 text-sm text-blue-600 hover:underline font-medium">
+                className="inline-flex items-center gap-2 text-sm text-teal-600 hover:underline font-medium">
                 <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
                 </svg>
@@ -332,7 +332,7 @@ export default function PaymentPage() {
           <CardContent className="py-4 space-y-3">
             {doctor && (
               <div className="flex items-center gap-3 pb-3 border-b border-slate-100">
-                <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-lg font-bold text-blue-700 shrink-0">
+                <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center text-lg font-bold text-teal-700 shrink-0">
                   {doctor.avatar_url
                     // eslint-disable-next-line @next/next/no-img-element
                     ? <img src={doctor.avatar_url} alt="" className="w-full h-full rounded-full object-cover" />
@@ -371,7 +371,7 @@ export default function PaymentPage() {
             </div>
             <div className="flex justify-between items-center pt-3 border-t border-slate-100">
               <span className="font-bold text-slate-900">סה&quot;כ לתשלום</span>
-              <span className="text-2xl font-bold text-blue-600">
+              <span className="text-2xl font-bold text-teal-600">
                 {appointment.payment_amount ? formatPrice(appointment.payment_amount) : '—'}
               </span>
             </div>
@@ -420,7 +420,7 @@ export default function PaymentPage() {
                     'w-full rounded-xl border px-4 py-3 text-sm font-mono tracking-widest focus:outline-none focus:ring-2',
                     cardErrors.number
                       ? 'border-red-300 focus:ring-red-200'
-                      : 'border-slate-300 focus:ring-blue-200 focus:border-blue-400'
+                      : 'border-slate-300 focus:ring-teal-200 focus:border-teal-400'
                   )}
                   aria-describedby={cardErrors.number ? 'card-number-error' : undefined}
                 />
@@ -446,7 +446,7 @@ export default function PaymentPage() {
                   'w-full rounded-xl border px-4 py-3 text-sm focus:outline-none focus:ring-2',
                   cardErrors.name
                     ? 'border-red-300 focus:ring-red-200'
-                    : 'border-slate-300 focus:ring-blue-200 focus:border-blue-400'
+                    : 'border-slate-300 focus:ring-teal-200 focus:border-teal-400'
                 )}
               />
               {cardErrors.name && <p className="mt-1 text-xs text-red-500">{cardErrors.name}</p>}
@@ -469,7 +469,7 @@ export default function PaymentPage() {
                     'w-full rounded-xl border px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2',
                     cardErrors.expiry
                       ? 'border-red-300 focus:ring-red-200'
-                      : 'border-slate-300 focus:ring-blue-200 focus:border-blue-400'
+                      : 'border-slate-300 focus:ring-teal-200 focus:border-teal-400'
                   )}
                 />
                 {cardErrors.expiry && <p className="mt-1 text-xs text-red-500">{cardErrors.expiry}</p>}
@@ -491,7 +491,7 @@ export default function PaymentPage() {
                     'w-full rounded-xl border px-4 py-3 text-sm font-mono focus:outline-none focus:ring-2',
                     cardErrors.cvv
                       ? 'border-red-300 focus:ring-red-200'
-                      : 'border-slate-300 focus:ring-blue-200 focus:border-blue-400'
+                      : 'border-slate-300 focus:ring-teal-200 focus:border-teal-400'
                   )}
                 />
                 {cardErrors.cvv && <p className="mt-1 text-xs text-red-500">{cardErrors.cvv}</p>}

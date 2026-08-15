@@ -85,11 +85,11 @@ export default function AccessibilityPage() {
       {/* ── Navbar ── */}
       <nav className="sticky top-0 z-50 bg-white/90 backdrop-blur-md border-b border-slate-100 shadow-sm" role="navigation" aria-label="ניווט ראשי">
         <div className="max-w-5xl mx-auto px-6 h-16 flex items-center justify-between">
-          <Link href="/" className="text-xl font-black text-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 rounded" aria-label="CANNA — עמוד הבית">
+          <Link href="/" className="text-xl font-black text-teal-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 rounded" aria-label="CANNA — עמוד הבית">
             CANNA
           </Link>
           <div className="flex items-center gap-4">
-            <Link href="/" className="text-sm text-slate-600 hover:text-slate-900 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 rounded px-1">
+            <Link href="/" className="text-sm text-slate-600 hover:text-slate-900 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 rounded px-1">
               חזרה לאתר
             </Link>
           </div>
@@ -101,7 +101,7 @@ export default function AccessibilityPage() {
 
         {/* Header */}
         <div className="mb-10">
-          <div className="inline-flex items-center gap-2 bg-blue-50 border border-blue-200 text-blue-700 text-xs font-bold px-3 py-1.5 rounded-full mb-5">
+          <div className="inline-flex items-center gap-2 bg-teal-50 border border-teal-200 text-teal-700 text-xs font-bold px-3 py-1.5 rounded-full mb-5">
             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
               <circle cx="12" cy="4" r="1.5" fill="currentColor" stroke="none"/>
               <path d="M9 9h6M12 9v4M10 20l2-4 2 4"/>
@@ -114,9 +114,9 @@ export default function AccessibilityPage() {
         </div>
 
         {/* Intro */}
-        <section className="mb-10 bg-blue-50 border border-blue-200 rounded-2xl p-6" aria-labelledby="intro-heading">
-          <h2 id="intro-heading" className="text-lg font-bold text-blue-900 mb-3">מחויבות לנגישות</h2>
-          <p className="text-blue-800 text-sm leading-relaxed">
+        <section className="mb-10 bg-teal-50 border border-teal-200 rounded-2xl p-6" aria-labelledby="intro-heading">
+          <h2 id="intro-heading" className="text-lg font-bold text-teal-900 mb-3">מחויבות לנגישות</h2>
+          <p className="text-teal-800 text-sm leading-relaxed">
             CANNA מחויבת להנגשת הפלטפורמה לכלל האוכלוסייה, לרבות אנשים עם מוגבלויות שונות —
             לקויי ראייה, לקויי שמיעה, לקויי מוטוריקה ולקויי קוגניציה.
             אנו פועלים בהתאם ל<strong>חוק שוויון זכויות לאנשים עם מוגבלות, תשנ&quot;ח-1998</strong> ול<strong>תקנות הנגישות לשירותי אינטרנט</strong>
@@ -129,7 +129,7 @@ export default function AccessibilityPage() {
           <h2 id="features-heading" className="text-2xl font-black text-slate-900 mb-6">פעולות הנגשה שביצענו</h2>
           <div className="space-y-3">
             {FEATURES.map(f => (
-              <div key={f.title} className="flex items-start gap-4 bg-slate-50 border border-slate-100 rounded-xl p-4 hover:border-blue-200 transition-colors">
+              <div key={f.title} className="flex items-start gap-4 bg-slate-50 border border-slate-100 rounded-xl p-4 hover:border-teal-200 transition-colors">
                 <div className="w-6 h-6 rounded-full bg-green-100 border border-green-200 flex items-center justify-center shrink-0 mt-0.5" aria-hidden="true">
                   <svg className="w-3.5 h-3.5 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12"/>
@@ -139,7 +139,7 @@ export default function AccessibilityPage() {
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-bold text-slate-900 text-sm">{f.title}</h3>
                     {f.wcag !== '—' && (
-                      <span className="text-[10px] bg-blue-100 text-blue-700 font-mono px-1.5 py-0.5 rounded border border-blue-200">
+                      <span className="text-[10px] bg-teal-100 text-teal-700 font-mono px-1.5 py-0.5 rounded border border-teal-200">
                         WCAG {f.wcag}
                       </span>
                     )}
@@ -165,7 +165,7 @@ export default function AccessibilityPage() {
                 <ul className="space-y-1" role="list">
                   {cat.items.map(item => (
                     <li key={item} className="text-slate-600 text-xs flex items-center gap-2">
-                      <span className="w-1 h-1 rounded-full bg-blue-400 shrink-0" aria-hidden="true"/>
+                      <span className="w-1 h-1 rounded-full bg-teal-400 shrink-0" aria-hidden="true"/>
                       {item}
                     </li>
                   ))}
@@ -209,7 +209,7 @@ export default function AccessibilityPage() {
                   <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide mb-1">{c.label}</p>
                   <a
                     href={c.href}
-                    className="text-blue-600 hover:text-blue-800 font-medium text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 rounded"
+                    className="text-teal-600 hover:text-teal-800 font-medium text-sm transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-teal-600 rounded"
                   >
                     {c.value}
                   </a>
@@ -220,12 +220,12 @@ export default function AccessibilityPage() {
         </section>
 
         {/* Coordinator */}
-        <section className="mb-10 bg-blue-50 border border-blue-200 rounded-2xl p-6" aria-labelledby="coordinator-heading">
-          <h2 id="coordinator-heading" className="text-lg font-bold text-blue-900 mb-2">רכז נגישות</h2>
-          <p className="text-blue-800 text-sm leading-relaxed">
+        <section className="mb-10 bg-teal-50 border border-teal-200 rounded-2xl p-6" aria-labelledby="coordinator-heading">
+          <h2 id="coordinator-heading" className="text-lg font-bold text-teal-900 mb-2">רכז נגישות</h2>
+          <p className="text-teal-800 text-sm leading-relaxed">
             מונה רכז נגישות לפלטפורמה בהתאם לדרישות חוק שוויון זכויות לאנשים עם מוגבלות.
             לפניות בנושא נגישות:{' '}
-            <a href="mailto:accessibility@cannaforyou.net" className="font-semibold underline hover:text-blue-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-blue-600 rounded">
+            <a href="mailto:accessibility@cannaforyou.net" className="font-semibold underline hover:text-teal-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-1 focus-visible:outline-teal-600 rounded">
               accessibility@cannaforyou.net
             </a>
           </p>

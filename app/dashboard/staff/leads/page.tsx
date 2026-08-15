@@ -9,7 +9,7 @@ import { formatDateTime, formatDate, cn } from '@/lib/utils'
 import type { Lead, LeadStatus } from '@/types/database'
 
 const STATUS_OPTIONS: { value: LeadStatus; label: string; color: string }[] = [
-  { value: 'new',       label: 'ליד חדש',     color: 'bg-blue-100 text-blue-700' },
+  { value: 'new',       label: 'ליד חדש',     color: 'bg-teal-100 text-teal-700' },
   { value: 'contacted', label: 'נוצר קשר',    color: 'bg-yellow-100 text-yellow-700' },
   { value: 'qualified', label: 'מוכשר',       color: 'bg-purple-100 text-purple-700' },
   { value: 'converted', label: 'הומר למטופל', color: 'bg-green-100 text-green-700' },
@@ -159,7 +159,7 @@ export default function StaffLeadsPage() {
                     onClick={() => selectLead(lead)}
                     className={cn(
                       'w-full px-4 py-3 text-right hover:bg-slate-50 transition-colors',
-                      isSelected && 'bg-blue-50 border-r-4 border-blue-600',
+                      isSelected && 'bg-teal-50 border-r-4 border-teal-600',
                       isOverdue && !isSelected && 'border-r-4 border-orange-400'
                     )}
                   >
@@ -198,13 +198,13 @@ export default function StaffLeadsPage() {
                   {selected.phone && (
                     <div>
                       <p className="text-xs text-slate-400">טלפון</p>
-                      <a href={`tel:${selected.phone}`} className="font-medium text-blue-600 hover:underline">{selected.phone}</a>
+                      <a href={`tel:${selected.phone}`} className="font-medium text-teal-600 hover:underline">{selected.phone}</a>
                     </div>
                   )}
                   {selected.email && (
                     <div>
                       <p className="text-xs text-slate-400">אימייל</p>
-                      <a href={`mailto:${selected.email}`} className="font-medium text-blue-600 hover:underline truncate block">{selected.email}</a>
+                      <a href={`mailto:${selected.email}`} className="font-medium text-teal-600 hover:underline truncate block">{selected.email}</a>
                     </div>
                   )}
                   {selected.specialty_interest && (

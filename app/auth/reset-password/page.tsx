@@ -115,7 +115,7 @@ export default function ResetPasswordPage() {
           </p>
           <Link
             href="/auth/forgot-password"
-            className="inline-flex items-center gap-2 bg-blue-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-blue-700 transition-colors"
+            className="inline-flex items-center gap-2 bg-teal-600 text-white px-6 py-3 rounded-lg font-medium hover:bg-teal-700 transition-colors"
           >
             בקש קישור חדש
           </Link>
@@ -145,7 +145,7 @@ export default function ResetPasswordPage() {
           </p>
           <Link
             href="/auth/login"
-            className="inline-flex items-center gap-2 text-sm text-blue-600 hover:text-blue-700 font-medium transition-colors"
+            className="inline-flex items-center gap-2 text-sm text-teal-600 hover:text-teal-700 font-medium transition-colors"
           >
             עבור לדשבורד
           </Link>
@@ -159,7 +159,7 @@ export default function ResetPasswordPage() {
     return (
       <AuthLayout title="איפוס סיסמה" subtitle="מאמת את הקישור...">
         <div className="flex items-center justify-center py-12">
-          <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-300 border-t-blue-600" />
+          <div className="animate-spin rounded-full h-8 w-8 border-2 border-slate-300 border-t-teal-600" />
         </div>
       </AuthLayout>
     )
@@ -179,8 +179,8 @@ export default function ResetPasswordPage() {
       )}
 
       {/* Info banner */}
-      <div className="mb-6 flex items-start gap-3 p-4 bg-blue-50 border border-blue-100 rounded-xl text-sm text-blue-700">
-        <svg className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <div className="mb-6 flex items-start gap-3 p-4 bg-teal-50 border border-teal-100 rounded-xl text-sm text-teal-700">
+        <svg className="w-5 h-5 text-teal-500 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
         </svg>
         <span>הסיסמה חייבת להכיל לפחות 8 תווים, אות קטנה, אות גדולה ומספר.</span>

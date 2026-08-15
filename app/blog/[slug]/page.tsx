@@ -53,8 +53,8 @@ const markdownComponents: Components = {
   ol: (props) => <ol className="list-decimal list-inside space-y-2 mb-4 text-slate-700" {...props} />,
   li: (props) => <li className="leading-relaxed" {...props} />,
   strong: (props) => <strong className="font-bold text-slate-900" {...props} />,
-  a: (props) => <a className="text-blue-600 hover:underline" {...props} />,
-  blockquote: (props) => <blockquote className="border-r-4 border-blue-500 pr-4 my-4 text-slate-600 italic" {...props} />,
+  a: (props) => <a className="text-teal-600 hover:underline" {...props} />,
+  blockquote: (props) => <blockquote className="border-r-4 border-teal-500 pr-4 my-4 text-slate-600 italic" {...props} />,
 }
 
 // ── Page Component ────────────────────────────────────
@@ -99,13 +99,13 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="text-2xl font-black text-blue-600">CANNA</Link>
+          <Link href="/" className="text-2xl font-black text-teal-600">CANNA</Link>
           <div className="flex items-center gap-4">
             <Link href="/specialties" className="text-sm text-slate-600 hover:text-slate-900">התמחויות</Link>
             <Link href="/doctors" className="text-sm text-slate-600 hover:text-slate-900">הרופאים שלנו</Link>
             <Link href="/blog" className="text-sm text-slate-600 hover:text-slate-900">בלוג</Link>
             <Link href="/auth/login" className="text-sm text-slate-600 hover:text-slate-900">התחברות</Link>
-            <Link href="/auth/register" className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">הרשמה חינם</Link>
+            <Link href="/auth/register" className="bg-teal-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors">הרשמה חינם</Link>
           </div>
         </div>
       </nav>
@@ -120,14 +120,14 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
             { label: post.title },
           ]} />
           {/* Back link */}
-          <Link href="/blog" className="text-sm text-blue-600 hover:underline mb-8 inline-flex items-center gap-1">
+          <Link href="/blog" className="text-sm text-teal-600 hover:underline mb-8 inline-flex items-center gap-1">
             <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12" /><polyline points="12 19 5 12 12 5" /></svg>
             חזרה לבלוג
           </Link>
 
           {/* Meta */}
           <div className="flex items-center gap-3 mb-4">
-            <span className="text-xs font-medium bg-blue-50 text-blue-700 px-3 py-1 rounded-full">
+            <span className="text-xs font-medium bg-teal-50 text-teal-700 px-3 py-1 rounded-full">
               {post.category}
             </span>
             <span className="text-xs text-slate-400">
@@ -145,7 +145,7 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
 
           {/* Author */}
           <div className="flex items-center gap-3 mb-8 pb-8 border-b">
-            <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-lg">
+            <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-lg">
               {post.coverEmoji}
             </div>
             <div>
@@ -183,11 +183,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
                   <div className="bg-white rounded-2xl border border-slate-100 shadow-sm hover:shadow-md transition-shadow p-6">
                     <div className="flex items-center gap-3 mb-3">
                       <span className="text-3xl">{r.coverEmoji}</span>
-                      <span className="text-xs font-medium bg-blue-50 text-blue-700 px-3 py-1 rounded-full">
+                      <span className="text-xs font-medium bg-teal-50 text-teal-700 px-3 py-1 rounded-full">
                         {r.category}
                       </span>
                     </div>
-                    <h3 className="font-bold text-slate-900 mb-2 group-hover:text-blue-600 transition-colors">
+                    <h3 className="font-bold text-slate-900 mb-2 group-hover:text-teal-600 transition-colors">
                       {r.title}
                     </h3>
                     <p className="text-sm text-slate-500 line-clamp-2">{r.description}</p>
@@ -200,11 +200,11 @@ export default async function BlogPostPage({ params }: { params: Promise<{ slug:
       )}
 
       {/* CTA */}
-      <section className="py-16 px-4 bg-blue-600 text-white">
+      <section className="py-16 px-4 bg-teal-600 text-white">
         <div className="max-w-4xl mx-auto text-center">
           <h2 className="text-3xl font-black mb-4">מעוניינים בייעוץ רפואי?</h2>
-          <p className="text-xl text-blue-100 mb-8">קבעו ייעוץ רפואי אונליין עם רופא מומחה — מהיר, נוח ומאובטח.</p>
-          <Link href="/auth/register" className="bg-white text-blue-600 px-8 py-4 rounded-xl text-lg font-bold hover:bg-blue-50 transition-colors inline-block">
+          <p className="text-xl text-teal-100 mb-8">קבעו ייעוץ רפואי אונליין עם רופא מומחה — מהיר, נוח ומאובטח.</p>
+          <Link href="/auth/register" className="bg-white text-teal-600 px-8 py-4 rounded-xl text-lg font-bold hover:bg-teal-50 transition-colors inline-block">
             הירשמו חינם
           </Link>
         </div>

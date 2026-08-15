@@ -156,7 +156,7 @@ export default function BillingPage() {
   const getUsageColor = (percent: number) => {
     if (percent >= 90) return 'bg-red-500'
     if (percent >= 70) return 'bg-yellow-500'
-    return 'bg-blue-500'
+    return 'bg-teal-500'
   }
 
   // ── Render ─────────────────────────────────────────
@@ -219,7 +219,7 @@ export default function BillingPage() {
               </div>
 
               <div className="flex items-baseline gap-2">
-                <span className="text-3xl font-black text-blue-600">
+                <span className="text-3xl font-black text-teal-600">
                   {currentPlan?.price_monthly === 0 ? 'חינם' : formatPrice(currentPlan?.price_monthly || 0)}
                 </span>
                 {(currentPlan?.price_monthly || 0) > 0 && (
@@ -228,7 +228,7 @@ export default function BillingPage() {
               </div>
 
               {org.subscription_status === 'trial' && org.trial_ends_at && (
-                <p className="text-sm text-blue-600 bg-blue-50 px-3 py-2 rounded-lg">
+                <p className="text-sm text-teal-600 bg-teal-50 px-3 py-2 rounded-lg">
                   תקופת הניסיון מסתיימת ב-{new Date(org.trial_ends_at).toLocaleDateString('he-IL')}
                 </p>
               )}
@@ -308,7 +308,7 @@ export default function BillingPage() {
                     {PLANS.map(p => (
                       <th key={p.id} className={cn(
                         'p-3 text-center font-bold',
-                        p.id === org.plan ? 'bg-blue-50 text-blue-700' : 'text-slate-600'
+                        p.id === org.plan ? 'bg-teal-50 text-teal-700' : 'text-slate-600'
                       )}>
                         <div>{p.name}</div>
                         <div className="text-xs font-normal mt-0.5">
@@ -325,7 +325,7 @@ export default function BillingPage() {
                   <tr className="border-b">
                     <td className="p-3 text-slate-600">מקסימום רופאים</td>
                     {PLANS.map(p => (
-                      <td key={p.id} className={cn('p-3 text-center', p.id === org.plan && 'bg-blue-50/50')}>
+                      <td key={p.id} className={cn('p-3 text-center', p.id === org.plan && 'bg-teal-50/50')}>
                         {p.max_doctors}
                       </td>
                     ))}
@@ -333,7 +333,7 @@ export default function BillingPage() {
                   <tr className="border-b">
                     <td className="p-3 text-slate-600">תורים/חודש</td>
                     {PLANS.map(p => (
-                      <td key={p.id} className={cn('p-3 text-center', p.id === org.plan && 'bg-blue-50/50')}>
+                      <td key={p.id} className={cn('p-3 text-center', p.id === org.plan && 'bg-teal-50/50')}>
                         {p.max_appointments_per_month.toLocaleString()}
                       </td>
                     ))}
@@ -341,7 +341,7 @@ export default function BillingPage() {
                   <tr className="border-b">
                     <td className="p-3 text-slate-600">אחסון</td>
                     {PLANS.map(p => (
-                      <td key={p.id} className={cn('p-3 text-center', p.id === org.plan && 'bg-blue-50/50')}>
+                      <td key={p.id} className={cn('p-3 text-center', p.id === org.plan && 'bg-teal-50/50')}>
                         {p.max_storage_gb} GB
                       </td>
                     ))}
@@ -350,7 +350,7 @@ export default function BillingPage() {
                     <tr key={key} className="border-b last:border-b-0">
                       <td className="p-3 text-slate-600">{label}</td>
                       {PLANS.map(p => (
-                        <td key={p.id} className={cn('p-3 text-center', p.id === org.plan && 'bg-blue-50/50')}>
+                        <td key={p.id} className={cn('p-3 text-center', p.id === org.plan && 'bg-teal-50/50')}>
                           {p.features[key] ? (
                             <svg className="w-5 h-5 text-green-600 mx-auto" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
                           ) : (
@@ -364,7 +364,7 @@ export default function BillingPage() {
                   <tr>
                     <td className="p-3"></td>
                     {PLANS.map(p => (
-                      <td key={p.id} className={cn('p-3 text-center', p.id === org.plan && 'bg-blue-50/50')}>
+                      <td key={p.id} className={cn('p-3 text-center', p.id === org.plan && 'bg-teal-50/50')}>
                         {p.id === org.plan ? (
                           <span className="text-xs text-slate-400">התוכנית הנוכחית</span>
                         ) : p.id === 'free' ? null : (

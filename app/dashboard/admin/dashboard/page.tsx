@@ -59,7 +59,7 @@ const getAuditIcon = (action: string) => {
 const getAuditDotColor = (action: string) => {
   if (action.toLowerCase().includes('delete') || action.toLowerCase().includes('cancel')) return 'bg-red-400'
   if (action.toLowerCase().includes('create') || action.toLowerCase().includes('add')) return 'bg-green-400'
-  if (action.toLowerCase().includes('update') || action.toLowerCase().includes('edit')) return 'bg-blue-400'
+  if (action.toLowerCase().includes('update') || action.toLowerCase().includes('edit')) return 'bg-teal-400'
   return 'bg-slate-400'
 }
 
@@ -286,7 +286,7 @@ export default function AdminDashboard() {
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-0.5">
-            <div className="w-8 h-8 rounded-lg bg-blue-600 flex items-center justify-center shrink-0">
+            <div className="w-8 h-8 rounded-lg bg-teal-600 flex items-center justify-center shrink-0">
               <svg className="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <rect x="3" y="3" width="7" height="7" /><rect x="14" y="3" width="7" height="7" />
                 <rect x="14" y="14" width="7" height="7" /><rect x="3" y="14" width="7" height="7" />
@@ -296,7 +296,7 @@ export default function AdminDashboard() {
             {org?.plan && (
               <span className={cn(
                 'text-xs font-semibold px-2 py-0.5 rounded-full',
-                isFreePlan ? 'bg-amber-100 text-amber-700' : 'bg-blue-100 text-blue-700'
+                isFreePlan ? 'bg-amber-100 text-amber-700' : 'bg-teal-100 text-teal-700'
               )}>
                 {PLAN_LABELS[org.plan] || org.plan}
               </span>
@@ -350,12 +350,12 @@ export default function AdminDashboard() {
 
       {/* ── Free/Trial plan notice ───────────────────── */}
       {org && isFreePlan && org.subscription_status !== 'suspended' && org.subscription_status !== 'cancelled' && (
-        <div className="flex items-center justify-between gap-4 px-5 py-3.5 rounded-xl border border-blue-200 bg-gradient-to-l from-blue-50 to-indigo-50">
+        <div className="flex items-center justify-between gap-4 px-5 py-3.5 rounded-xl border border-teal-200 bg-gradient-to-l from-teal-50 to-indigo-50">
           <div className="flex items-center gap-3">
-            <div className="w-7 h-7 rounded-full bg-blue-100 flex items-center justify-center shrink-0">
-              <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
+            <div className="w-7 h-7 rounded-full bg-teal-100 flex items-center justify-center shrink-0">
+              <svg className="w-4 h-4 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M13 10V3L4 14h7v7l9-11h-7z" /></svg>
             </div>
-            <p className="text-sm text-blue-800 font-medium">
+            <p className="text-sm text-teal-800 font-medium">
               {org.plan === 'trial' && org.trial_ends_at
                 ? `תקופת הניסיון מסתיימת ב-${new Date(org.trial_ends_at).toLocaleDateString('he-IL')} — שדרגו לתוכנית בתשלום`
                 : 'אתם בתוכנית החינמית — שדרגו לגישה לכל הפיצ\'רים'}
@@ -464,12 +464,12 @@ export default function AdminDashboard() {
             <CardHeader>
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-2.5">
-                  <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
-                    <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
+                  <div className="w-7 h-7 rounded-lg bg-teal-50 flex items-center justify-center">
+                    <svg className="w-4 h-4 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /></svg>
                   </div>
                   <h3 className="font-bold text-slate-900">פעילות היום</h3>
                   {todayApts.length > 0 && (
-                    <span className="bg-blue-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">{todayApts.length}</span>
+                    <span className="bg-teal-600 text-white text-xs font-bold px-2 py-0.5 rounded-full">{todayApts.length}</span>
                   )}
                 </div>
                 <Button variant="ghost" size="sm" onClick={() => router.push('/dashboard/admin/appointments')}>
@@ -495,7 +495,7 @@ export default function AdminDashboard() {
                       <div className={cn(
                         'w-1.5 h-8 rounded-full shrink-0',
                         apt.status === 'completed' ? 'bg-emerald-400' :
-                        apt.status === 'in_progress' ? 'bg-blue-500' :
+                        apt.status === 'in_progress' ? 'bg-teal-500' :
                         apt.status === 'pending' ? 'bg-amber-400' :
                         apt.status.startsWith('cancelled') ? 'bg-red-400' :
                         'bg-indigo-400'
@@ -507,7 +507,7 @@ export default function AdminDashboard() {
                         <p className="text-xs text-slate-400 truncate mt-0.5">
                           {apt.doctor ? `ד"ר ${apt.doctor.first_name} ${apt.doctor.last_name}` : 'ממתין לשיבוץ רופא'}
                           {apt.scheduled_at && (
-                            <span className="text-blue-500 font-medium mr-1.5">
+                            <span className="text-teal-500 font-medium mr-1.5">
                               · {new Date(apt.scheduled_at).toLocaleTimeString('he-IL', { hour: '2-digit', minute: '2-digit' })}
                             </span>
                           )}
@@ -745,8 +745,8 @@ export default function AdminDashboard() {
         <CardHeader>
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2.5">
-              <div className="w-7 h-7 rounded-lg bg-blue-50 flex items-center justify-center">
-                <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
+              <div className="w-7 h-7 rounded-lg bg-teal-50 flex items-center justify-center">
+                <svg className="w-4 h-4 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M22 12h-4l-3 9L9 3l-3 9H2" /></svg>
               </div>
               <h3 className="font-bold text-slate-900">פעילות אחרונה</h3>
             </div>
@@ -819,7 +819,7 @@ export default function AdminDashboard() {
               label: 'הזמן מטופל',
               icon: <svg className="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75" strokeLinecap="round" strokeLinejoin="round"><path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2" /><circle cx="12" cy="7" r="4" /><line x1="12" y1="14" x2="12" y2="20" /><line x1="9" y1="17" x2="15" y2="17" /></svg>,
               href: '/dashboard/admin/users',
-              color: 'text-blue-600 bg-blue-50 hover:bg-blue-100',
+              color: 'text-teal-600 bg-teal-50 hover:bg-teal-100',
             },
             {
               label: 'שאלונים',
@@ -851,7 +851,7 @@ export default function AdminDashboard() {
               onClick={() => router.push(item.href)}
               className={cn(
                 'flex flex-col items-center gap-2.5 p-4 rounded-xl border border-transparent transition-all text-center',
-                'hover:border-slate-200 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-blue-500',
+                'hover:border-slate-200 hover:shadow-sm focus-visible:outline-2 focus-visible:outline-teal-500',
                 item.color
               )}
             >

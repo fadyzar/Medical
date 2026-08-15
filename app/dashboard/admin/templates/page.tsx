@@ -50,7 +50,7 @@ const EVENTS: { key: TemplateEvent; label: string; description: string; icon: st
 
 const CHANNELS: { key: TemplateChannel; label: string; color: string }[] = [
   { key: 'whatsapp', label: 'WhatsApp', color: 'bg-green-100 text-green-700 border-green-200' },
-  { key: 'email',    label: 'אימייל',   color: 'bg-blue-100 text-blue-700 border-blue-200' },
+  { key: 'email',    label: 'אימייל',   color: 'bg-teal-100 text-teal-700 border-teal-200' },
 ]
 
 const VARIABLES: { key: string; description: string }[] = [
@@ -257,8 +257,8 @@ export default function AdminTemplatesPage() {
                 className={cn(
                   'w-full px-4 py-3 rounded-xl text-right transition-all',
                   activeEvent === ev.key
-                    ? 'bg-blue-600 text-white shadow-md'
-                    : 'bg-white border border-slate-200 text-slate-700 hover:border-blue-200 hover:bg-blue-50'
+                    ? 'bg-teal-600 text-white shadow-md'
+                    : 'bg-white border border-slate-200 text-slate-700 hover:border-teal-200 hover:bg-teal-50'
                 )}
               >
                 <div className="flex items-center justify-between">
@@ -267,7 +267,7 @@ export default function AdminTemplatesPage() {
                       <span className="text-base">{ev.icon}</span>
                       <p className="font-medium text-sm truncate">{ev.label}</p>
                     </div>
-                    <p className={cn('text-xs mt-0.5 truncate', activeEvent === ev.key ? 'text-blue-100' : 'text-slate-400')}>
+                    <p className={cn('text-xs mt-0.5 truncate', activeEvent === ev.key ? 'text-teal-100' : 'text-slate-400')}>
                       {ev.description}
                     </p>
                   </div>
@@ -276,7 +276,7 @@ export default function AdminTemplatesPage() {
                       <span className={cn('text-xs px-1.5 py-0.5 rounded', activeEvent === ev.key ? 'bg-white/20 text-white' : 'bg-green-100 text-green-700')}>WA</span>
                     )}
                     {hasEmail && (
-                      <span className={cn('text-xs px-1.5 py-0.5 rounded', activeEvent === ev.key ? 'bg-white/20 text-white' : 'bg-blue-100 text-blue-700')}>Email</span>
+                      <span className={cn('text-xs px-1.5 py-0.5 rounded', activeEvent === ev.key ? 'bg-white/20 text-white' : 'bg-teal-100 text-teal-700')}>Email</span>
                     )}
                   </div>
                 </div>
@@ -317,7 +317,7 @@ export default function AdminTemplatesPage() {
                       type="checkbox"
                       checked={activeTemplate?.enabled ?? true}
                       onChange={e => updateTemplate(activeEvent, activeChannel, 'enabled', e.target.checked)}
-                      className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                      className="rounded border-slate-300 text-teal-600 focus:ring-teal-500"
                     />
                     <span>פעיל</span>
                   </label>
@@ -348,7 +348,7 @@ export default function AdminTemplatesPage() {
                   value={activeTemplate?.body || ''}
                   onChange={e => updateTemplate(activeEvent, activeChannel, 'body', e.target.value)}
                   rows={activeChannel === 'email' ? 10 : 7}
-                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none resize-y"
+                  className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none resize-y"
                   placeholder="תוכן ההודעה..."
                 />
               </div>
@@ -362,7 +362,7 @@ export default function AdminTemplatesPage() {
                       key={v.key}
                       onClick={() => insertVariable(v.key)}
                       title={v.description}
-                      className="text-xs px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-blue-100 hover:text-blue-700 transition-colors font-mono"
+                      className="text-xs px-2.5 py-1 rounded-full bg-slate-100 text-slate-600 hover:bg-teal-100 hover:text-teal-700 transition-colors font-mono"
                     >
                       {v.key}
                     </button>

@@ -12,7 +12,7 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
           {error.message || 'אירעה שגיאה לא צפויה. הצוות שלנו קיבל התראה ומטפל בעניין.'}
         </p>
         <div className="flex flex-col sm:flex-row gap-3 justify-center mb-8">
-          <button onClick={reset} className="bg-blue-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-blue-700 transition-colors">
+          <button onClick={reset} className="bg-teal-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-teal-700 transition-colors">
             נסה שוב
           </button>
           <a href="/" className="bg-white text-slate-700 border px-6 py-3 rounded-xl font-medium hover:bg-slate-50 transition-colors">
@@ -20,7 +20,7 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
           </a>
         </div>
         <p className="text-xs text-slate-400">
-          אם הבעיה נמשכת, פנה אלינו ב-<BrandSupportEmail className="text-blue-600 hover:underline" />
+          אם הבעיה נמשכת, פנה אלינו ב-<BrandSupportEmail className="text-teal-600 hover:underline" />
         </p>
       </div>
     </div>

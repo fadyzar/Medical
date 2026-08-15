@@ -272,8 +272,8 @@ export default function LoginPage() {
                   <div className={cn(
                     'w-4 h-4 rounded border-2 transition-all flex items-center justify-center',
                     rememberMe
-                      ? 'bg-blue-600 border-blue-600'
-                      : 'border-slate-300 group-hover:border-blue-400'
+                      ? 'bg-teal-600 border-teal-600'
+                      : 'border-slate-300 group-hover:border-teal-400'
                   )}>
                     {rememberMe && (
                       <svg className="w-2.5 h-2.5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
@@ -285,7 +285,7 @@ export default function LoginPage() {
                 <span className="text-sm text-slate-500">זכור אותי</span>
               </label>
 
-              <Link href="/auth/forgot-password" className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors">
+              <Link href="/auth/forgot-password" className="text-sm text-teal-600 hover:text-teal-700 hover:underline transition-colors">
                 שכחת סיסמה?
               </Link>
             </div>
@@ -331,7 +331,7 @@ export default function LoginPage() {
                 <button
                   type="button"
                   onClick={() => { setOtpStep('phone'); setOtpCode(''); setServerError('') }}
-                  className="text-xs text-blue-600 hover:underline mt-1"
+                  className="text-xs text-teal-600 hover:underline mt-1"
                 >
                   שנה מספר
                 </button>
@@ -346,7 +346,7 @@ export default function LoginPage() {
                   value={otpCode}
                   onChange={e => { setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setServerError('') }}
                   placeholder="000000"
-                  className="w-full text-center text-2xl tracking-[0.5em] font-mono py-3 px-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-colors"
+                  className="w-full text-center text-2xl tracking-[0.5em] font-mono py-3 px-4 border border-slate-300 rounded-xl focus:ring-2 focus:ring-teal-500 focus:border-teal-500 transition-colors"
                   autoComplete="one-time-code"
                   dir="ltr"
                 />
@@ -370,7 +370,7 @@ export default function LoginPage() {
                   <button
                     type="button"
                     onClick={handleResendOtp}
-                    className="text-sm text-blue-600 hover:text-blue-700 hover:underline transition-colors"
+                    className="text-sm text-teal-600 hover:text-teal-700 hover:underline transition-colors"
                   >
                     שלח קוד חדש
                   </button>
@@ -391,7 +391,7 @@ export default function LoginPage() {
       <div className="text-center">
         <p className="text-sm text-slate-500">
           אין לך חשבון?{' '}
-          <Link href="/auth/register" className="text-blue-600 hover:text-blue-700 font-semibold hover:underline transition-colors">
+          <Link href="/auth/register" className="text-teal-600 hover:text-teal-700 font-semibold hover:underline transition-colors">
             הירשם עכשיו — חינם
           </Link>
         </p>

@@ -62,7 +62,7 @@ function DomainCard({ orgId, currentSubdomain }: { orgId: string; currentSubdoma
   const STATUS_LABELS: Record<string, { label: string; color: string }> = {
     none:         { label: 'לא הוגדר',      color: 'bg-slate-100 text-slate-600' },
     pending:      { label: 'מגדיר...',       color: 'bg-yellow-100 text-yellow-700' },
-    vercel_added: { label: 'ממתין ל-DNS',    color: 'bg-blue-100 text-blue-700' },
+    vercel_added: { label: 'ממתין ל-DNS',    color: 'bg-teal-100 text-teal-700' },
     active:       { label: 'פעיל',           color: 'bg-green-100 text-green-700' },
     failed:       { label: 'שגיאה',          color: 'bg-red-100 text-red-700' },
   }
@@ -116,9 +116,9 @@ function DomainCard({ orgId, currentSubdomain }: { orgId: string; currentSubdoma
 
       {/* vercel_added — waiting DNS */}
       {status === 'vercel_added' && (
-        <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700">
+        <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl text-sm text-teal-700">
           <p className="font-semibold mb-1">נוסף ל-Vercel — ממתין לאימות DNS</p>
-          <p className="text-xs text-blue-600">לאחר שה-DNS מתפשט (עד 5 דקות) לחץ ״בדוק סטטוס״.</p>
+          <p className="text-xs text-teal-600">לאחר שה-DNS מתפשט (עד 5 דקות) לחץ ״בדוק סטטוס״.</p>
         </div>
       )}
 
@@ -305,7 +305,7 @@ const INTEGRATIONS: IntegrationConfig[] = [
         <polyline points="22,6 12,13 2,6"/>
       </svg>
     ),
-    color: 'text-blue-600',
+    color: 'text-teal-600',
     fields: [
       { id: 'resend_api_key', label: 'Resend API Key', type: 'password', placeholder: 're_xxxxxxxxxxxxxxxx', required: true },
       { id: 'email_from', label: 'כתובת שולח', type: 'text', placeholder: 'noreply@clinic.co.il', hint: 'חייב להיות מוגדר ב-Resend תחת דומיין מאומת' },
@@ -531,7 +531,7 @@ export default function AdminIntegrationsPage() {
               className={cn(
                 'p-5 rounded-xl border text-right transition-all hover:shadow-md',
                 activeKey === integ.key
-                  ? 'border-blue-400 bg-blue-50 shadow-md'
+                  ? 'border-teal-400 bg-teal-50 shadow-md'
                   : 'bg-white border-slate-200 hover:border-slate-300'
               )}
             >
@@ -554,7 +554,7 @@ export default function AdminIntegrationsPage() {
 
       {/* Expanded settings panel */}
       {activeKey && activeInteg && (
-        <Card className="border-blue-200">
+        <Card className="border-teal-200">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -592,27 +592,27 @@ export default function AdminIntegrationsPage() {
               <>
                 {/* Green API setup guide */}
                 {activeKey === 'whatsapp' && (
-                  <div className="bg-blue-50 border border-blue-200 rounded-xl p-4 space-y-3">
-                    <p className="text-sm font-semibold text-blue-900">איך מתחברים ל-Green API?</p>
-                    <ol className="space-y-2.5 text-sm text-blue-800">
+                  <div className="bg-teal-50 border border-teal-200 rounded-xl p-4 space-y-3">
+                    <p className="text-sm font-semibold text-teal-900">איך מתחברים ל-Green API?</p>
+                    <ol className="space-y-2.5 text-sm text-teal-800">
                       <li className="flex gap-2.5">
-                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">1</span>
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-teal-600 text-white text-xs flex items-center justify-center font-bold">1</span>
                         <span>נכנסים לאתר <span className="font-mono font-semibold">green-api.com</span> ונפתחים חשבון חינמי</span>
                       </li>
                       <li className="flex gap-2.5">
-                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">2</span>
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-teal-600 text-white text-xs flex items-center justify-center font-bold">2</span>
                         <span>לוחצים <strong>«Create Instance»</strong> — בוחרים את הסוג <strong>API</strong></span>
                       </li>
                       <li className="flex gap-2.5">
-                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">3</span>
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-teal-600 text-white text-xs flex items-center justify-center font-bold">3</span>
                         <span>בתוך ה-instance לוחצים <strong>«Scan QR»</strong> וסורקים עם WhatsApp של המרפאה (הגדרות ← מכשירים מקושרים)</span>
                       </li>
                       <li className="flex gap-2.5">
-                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">4</span>
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-teal-600 text-white text-xs flex items-center justify-center font-bold">4</span>
                         <span>מעתיקים את <strong>idInstance</strong> ואת <strong>apiTokenInstance</strong> ומזינים בשדות למטה</span>
                       </li>
                       <li className="flex gap-2.5">
-                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-blue-600 text-white text-xs flex items-center justify-center font-bold">5</span>
+                        <span className="flex-shrink-0 w-5 h-5 rounded-full bg-teal-600 text-white text-xs flex items-center justify-center font-bold">5</span>
                         <span>שומרים ושולחים הודעת טסט לאימות</span>
                       </li>
                     </ol>
@@ -636,7 +636,7 @@ export default function AdminIntegrationsPage() {
                             [activeKey]: { ...prev[activeKey], [field.id]: e.target.value },
                           }))}
                           placeholder={field.placeholder}
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
                           dir="ltr"
                         />
                         {field.type === 'password' && (

@@ -14,7 +14,7 @@ const ROLE_LABELS: Record<string, string> = {
 }
 
 const ROLE_COLORS: Record<string, string> = {
-  doctor:  'bg-blue-100 text-blue-700 border-blue-200',
+  doctor:  'bg-teal-100 text-teal-700 border-teal-200',
   staff:   'bg-purple-100 text-purple-700 border-purple-200',
   admin:   'bg-amber-100 text-amber-700 border-amber-200',
 }
@@ -146,7 +146,7 @@ export default function InviteForm({ token, email, role, orgName, orgId }: Props
         {ROLE_LABELS[role] ?? role} — {orgName}
       </div>
 
-      <div className="mb-6 p-4 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-800 leading-relaxed">
+      <div className="mb-6 p-4 bg-teal-50 border border-teal-200 rounded-xl text-sm text-teal-800 leading-relaxed">
         <p>האימייל <strong>{email}</strong> מוגדר להזמנה זו ולא ניתן לשינוי.</p>
       </div>
 
@@ -217,7 +217,7 @@ export default function InviteForm({ token, email, role, orgName, orgId }: Props
 
       <p className="text-center text-sm text-slate-500 mt-6">
         כבר יש לך חשבון?{' '}
-        <Link href="/auth/login" className="text-blue-600 font-semibold hover:underline">התחבר</Link>
+        <Link href="/auth/login" className="text-teal-600 font-semibold hover:underline">התחבר</Link>
       </p>
     </div>
   )

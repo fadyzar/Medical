@@ -45,7 +45,7 @@ function DoctorAvatar({ doc }: { doc: DoctorInfo | null }) {
     <img src={doc.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0 ring-2 ring-white" />
   )
   return (
-    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-700 shrink-0 ring-2 ring-white">
+    <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-sm font-bold text-teal-700 shrink-0 ring-2 ring-white">
       {getInitials(doc.first_name, doc.last_name)}
     </div>
   )
@@ -58,7 +58,7 @@ function QuickActionCard({ icon, label, description, onClick, color }: {
   color: 'blue' | 'purple' | 'emerald' | 'gray'
 }) {
   const colors = {
-    blue:    'bg-blue-50 border-blue-200 hover:border-blue-400 text-blue-700 hover:bg-blue-100',
+    blue:    'bg-teal-50 border-teal-200 hover:border-teal-400 text-teal-700 hover:bg-teal-100',
     purple:  'bg-purple-50 border-purple-200 hover:border-purple-400 text-purple-700 hover:bg-purple-100',
     emerald: 'bg-emerald-50 border-emerald-200 hover:border-emerald-400 text-emerald-700 hover:bg-emerald-100',
     gray:    'bg-slate-50 border-slate-200 hover:border-slate-400 text-slate-700 hover:bg-slate-100',
@@ -84,14 +84,14 @@ function NotificationsBanner({
   const [expanded, setExpanded] = useState<string | null>(null)
 
   return (
-    <div className="rounded-2xl border border-blue-200 bg-blue-50 overflow-hidden">
-      <div className="px-4 py-3 flex items-center gap-2 bg-blue-100/50 border-b border-blue-200">
-        <div className="w-2 h-2 rounded-full bg-blue-500 animate-pulse" />
-        <p className="text-sm font-semibold text-blue-800">
+    <div className="rounded-2xl border border-teal-200 bg-teal-50 overflow-hidden">
+      <div className="px-4 py-3 flex items-center gap-2 bg-teal-100/50 border-b border-teal-200">
+        <div className="w-2 h-2 rounded-full bg-teal-500 animate-pulse" />
+        <p className="text-sm font-semibold text-teal-800">
           {notifications.length === 1 ? 'הודעה חדשה מהרופא שלך' : `${notifications.length} הודעות חדשות מהרופא שלך`}
         </p>
       </div>
-      <div className="divide-y divide-blue-100">
+      <div className="divide-y divide-teal-100">
         {notifications.map(n => (
           <div key={n.id} className="px-4 py-3">
             <button
@@ -104,18 +104,18 @@ function NotificationsBanner({
                   {n.content?.split('\n')[0] || ''}
                 </p>
               </div>
-              <svg className={cn('w-4 h-4 text-blue-400 shrink-0 mt-0.5 transition-transform', expanded === n.id && 'rotate-180')} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <svg className={cn('w-4 h-4 text-teal-400 shrink-0 mt-0.5 transition-transform', expanded === n.id && 'rotate-180')} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                 <polyline points="6 9 12 15 18 9" />
               </svg>
             </button>
             {expanded === n.id && (
               <div className="mt-3 space-y-3">
-                <div className="rounded-xl bg-white border border-blue-100 p-3">
+                <div className="rounded-xl bg-white border border-teal-100 p-3">
                   <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{n.content}</p>
                 </div>
                 <button
                   onClick={() => onMarkRead(n.id)}
-                  className="text-xs text-blue-600 hover:text-blue-800 font-medium flex items-center gap-1.5"
+                  className="text-xs text-teal-600 hover:text-teal-800 font-medium flex items-center gap-1.5"
                 >
                   <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                     <polyline points="20 6 9 17 4 12" />
@@ -213,7 +213,7 @@ export default function PatientDashboard() {
           {/* Avatar */}
           <div className={cn(
             'w-14 h-14 rounded-2xl flex items-center justify-center text-xl font-bold text-white shrink-0',
-            'bg-gradient-to-br from-blue-500 to-indigo-600 shadow-lg shadow-blue-200'
+            'bg-gradient-to-br from-teal-500 to-indigo-600 shadow-lg shadow-teal-200'
           )}>
             {profile.avatar_url
               ? <img src={profile.avatar_url} alt="" className="w-full h-full rounded-2xl object-cover" />
@@ -231,7 +231,7 @@ export default function PatientDashboard() {
         </div>
         <Button
           size="lg"
-          className="gap-2 shadow-sm shadow-blue-200"
+          className="gap-2 shadow-sm shadow-teal-200"
           onClick={() => router.push('/dashboard/patient/new-appointment')}
         >
           <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -355,19 +355,19 @@ export default function PatientDashboard() {
         ].map(s => (
           <div key={s.label} className={cn(
             'rounded-2xl p-4 border',
-            s.color === 'blue'   && 'bg-blue-50 border-blue-100',
+            s.color === 'blue'   && 'bg-teal-50 border-teal-100',
             s.color === 'green'  && 'bg-emerald-50 border-emerald-100',
             s.color === 'purple' && 'bg-purple-50 border-purple-100',
             s.color === 'orange' && 'bg-orange-50 border-orange-100',
           )}>
             <p className={cn('text-xs font-medium mb-1',
-              s.color === 'blue'   && 'text-blue-600',
+              s.color === 'blue'   && 'text-teal-600',
               s.color === 'green'  && 'text-emerald-600',
               s.color === 'purple' && 'text-purple-600',
               s.color === 'orange' && 'text-orange-600',
             )}>{s.label}</p>
             <p className={cn('text-2xl font-bold',
-              s.color === 'blue'   && 'text-blue-800',
+              s.color === 'blue'   && 'text-teal-800',
               s.color === 'green'  && 'text-emerald-800',
               s.color === 'purple' && 'text-purple-800',
               s.color === 'orange' && 'text-orange-800',
@@ -378,7 +378,7 @@ export default function PatientDashboard() {
 
       {/* ── Profile completion ── */}
       {profilePercent < 100 && (
-        <div className="rounded-2xl border border-blue-200 bg-gradient-to-l from-blue-50 to-indigo-50 p-4">
+        <div className="rounded-2xl border border-teal-200 bg-gradient-to-l from-teal-50 to-indigo-50 p-4">
           <div className="flex items-center gap-4">
             {/* Donut */}
             <div className="relative w-14 h-14 shrink-0">
@@ -388,7 +388,7 @@ export default function PatientDashboard() {
                   strokeDasharray={`${profilePercent} 100`} strokeLinecap="round"
                   style={{ strokeDasharray: `${profilePercent * 1.005} 100` }} />
               </svg>
-              <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-blue-700">{profilePercent}%</span>
+              <span className="absolute inset-0 flex items-center justify-center text-sm font-bold text-teal-700">{profilePercent}%</span>
             </div>
             <div className="flex-1 min-w-0">
               <p className="font-bold text-slate-900">השלם את הפרופיל הרפואי שלך</p>
@@ -396,26 +396,26 @@ export default function PatientDashboard() {
                 חסר: {profileMissing.slice(0, 3).join(', ')}{profileMissing.length > 3 ? ` ועוד ${profileMissing.length - 3}` : ''}
               </p>
             </div>
-            <Button size="sm" variant="outline" className="shrink-0 border-blue-300 text-blue-700" onClick={() => router.push('/dashboard/patient/profile')}>
+            <Button size="sm" variant="outline" className="shrink-0 border-teal-300 text-teal-700" onClick={() => router.push('/dashboard/patient/profile')}>
               השלם
             </Button>
           </div>
           {/* Progress bar */}
-          <div className="mt-3 h-1.5 rounded-full bg-blue-100">
-            <div className="h-1.5 rounded-full bg-blue-500 transition-all" style={{ width: `${profilePercent}%` }} />
+          <div className="mt-3 h-1.5 rounded-full bg-teal-100">
+            <div className="h-1.5 rounded-full bg-teal-500 transition-all" style={{ width: `${profilePercent}%` }} />
           </div>
         </div>
       )}
 
       {/* ── Next appointment hero ── */}
       {nextApt && (
-        <Card className="overflow-hidden border-blue-200 shadow-sm shadow-blue-100">
-          <div className="bg-gradient-to-l from-blue-600 to-indigo-700 px-6 py-5 text-white">
+        <Card className="overflow-hidden border-teal-200 shadow-sm shadow-teal-100">
+          <div className="bg-gradient-to-l from-teal-600 to-indigo-700 px-6 py-5 text-white">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <p className="text-xs font-semibold text-blue-200 uppercase tracking-wider mb-1">התור הבא שלך</p>
+                <p className="text-xs font-semibold text-teal-200 uppercase tracking-wider mb-1">התור הבא שלך</p>
                 <p className="text-xl font-bold">{nextApt.chief_complaint}</p>
-                <p className="text-blue-200 text-sm mt-1">{formatDateTime(nextApt.scheduled_at!)}</p>
+                <p className="text-teal-200 text-sm mt-1">{formatDateTime(nextApt.scheduled_at!)}</p>
               </div>
               <div className="shrink-0">
                 <span className="inline-flex items-center px-3 py-1.5 rounded-full bg-white/20 text-sm font-semibold text-white">
@@ -511,7 +511,7 @@ export default function PatientDashboard() {
               <div key={apt.id} className="px-5 py-3.5 flex items-center gap-3 hover:bg-slate-50 transition-colors">
                 <div className={cn('w-2 h-8 rounded-full shrink-0',
                   apt.status === 'pending' ? 'bg-amber-400' :
-                  apt.status === 'doctor_confirmed' ? 'bg-blue-400' : 'bg-indigo-400'
+                  apt.status === 'doctor_confirmed' ? 'bg-teal-400' : 'bg-indigo-400'
                 )} />
                 <div className="flex-1 min-w-0">
                   <p className="font-medium text-sm truncate">{apt.chief_complaint}</p>
@@ -620,7 +620,7 @@ export default function PatientDashboard() {
               <div key={doc.id} className="px-5 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors">
                 <div className={cn('w-9 h-9 rounded-lg flex items-center justify-center shrink-0',
                   doc.file_type?.startsWith('image/') ? 'bg-purple-50' :
-                  doc.file_type === 'application/pdf' ? 'bg-red-50' : 'bg-blue-50'
+                  doc.file_type === 'application/pdf' ? 'bg-red-50' : 'bg-teal-50'
                 )}>
                   <svg className="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
@@ -641,8 +641,8 @@ export default function PatientDashboard() {
         <Card>
           <EmptyState
             icon={
-              <div className="w-20 h-20 rounded-3xl bg-blue-50 flex items-center justify-center mx-auto mb-2">
-                <svg className="w-10 h-10 text-blue-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+              <div className="w-20 h-20 rounded-3xl bg-teal-50 flex items-center justify-center mx-auto mb-2">
+                <svg className="w-10 h-10 text-teal-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M4.8 2.3A.3.3 0 105 2H4a2 2 0 00-2 2v5a6 6 0 006 6 6 6 0 006-6V4a2 2 0 00-2-2h-1a.2.2 0 10.3.3" />
                   <path d="M8 15v1a6 6 0 006 6 6 6 0 006-6v-4" /><circle cx="20" cy="10" r="2" />
                 </svg>
@@ -677,7 +677,7 @@ export default function PatientDashboard() {
           label="תור חדש"
           description="ייעוץ עם מומחה"
           onClick={() => router.push('/dashboard/patient/new-appointment')}
-          icon={<svg className="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="12" y1="14" x2="12" y2="18" /><line x1="10" y1="16" x2="14" y2="16" /></svg>}
+          icon={<svg className="w-6 h-6 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="4" width="18" height="18" rx="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" /><line x1="12" y1="14" x2="12" y2="18" /><line x1="10" y1="16" x2="14" y2="16" /></svg>}
         />
         <QuickActionCard
           color="emerald"

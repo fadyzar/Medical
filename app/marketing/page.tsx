@@ -29,7 +29,7 @@ function ArrowLeft() {
 
 function CheckCircle() {
   return (
-    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-blue-600 shrink-0 mt-0.5">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" className="text-teal-600 shrink-0 mt-0.5">
       <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
     </svg>
   )
@@ -138,7 +138,7 @@ export default function MarketingPage() {
             <Link href="/auth/login" className="hidden sm:block text-sm font-medium text-slate-600 hover:text-slate-900 transition-colors px-3 py-2">
               כניסה
             </Link>
-            <Link href="/auth/register" className="bg-blue-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-blue-700 transition-colors">
+            <Link href="/auth/register" className="bg-teal-600 text-white text-sm font-semibold px-5 py-2.5 rounded-lg hover:bg-teal-700 transition-colors">
               הרשמה חינם
             </Link>
           </div>
@@ -151,15 +151,15 @@ export default function MarketingPage() {
 
           {/* Text */}
           <div className="order-2 lg:order-1">
-            <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-700 text-xs font-semibold tracking-wide uppercase px-3 py-1.5 rounded-full mb-6">
-              <span className="w-1.5 h-1.5 bg-blue-600 rounded-full" />
+            <div className="inline-flex items-center gap-2 bg-teal-50 text-teal-700 text-xs font-semibold tracking-wide uppercase px-3 py-1.5 rounded-full mb-6">
+              <span className="w-1.5 h-1.5 bg-teal-600 rounded-full" />
               הפלטפורמה הרפואית המתקדמת בישראל
             </div>
 
             <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black tracking-tight leading-[1.1] text-slate-900">
               רופא מומחה,
               <br />
-              <span className="text-blue-600">מכל מקום.</span>
+              <span className="text-teal-600">מכל מקום.</span>
             </h1>
 
             <p className="text-lg text-slate-500 mt-6 leading-relaxed max-w-xl">
@@ -169,7 +169,7 @@ export default function MarketingPage() {
             <div className="flex flex-col sm:flex-row gap-3 mt-10">
               <Link
                 href="/auth/register"
-                className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white text-base font-bold px-7 py-4 rounded-xl hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/20 hover:shadow-xl hover:shadow-blue-600/25"
+                className="inline-flex items-center justify-center gap-2 bg-teal-600 text-white text-base font-bold px-7 py-4 rounded-xl hover:bg-teal-700 transition-all shadow-lg shadow-teal-600/20 hover:shadow-xl hover:shadow-teal-600/25"
               >
                 קבע ייעוץ עכשיו — חינם
               </Link>
@@ -223,9 +223,9 @@ export default function MarketingPage() {
             </div>
 
             {/* Floating badge — capability, not a fabricated metric */}
-            <div className="absolute -top-4 -left-4 bg-blue-600 text-white rounded-2xl px-5 py-3 shadow-lg shadow-blue-600/30">
+            <div className="absolute -top-4 -left-4 bg-teal-600 text-white rounded-2xl px-5 py-3 shadow-lg shadow-teal-600/30">
               <p className="text-lg font-black">וידאו HD</p>
-              <p className="text-xs text-blue-200 mt-0.5">מוצפן מקצה לקצה</p>
+              <p className="text-xs text-teal-200 mt-0.5">מוצפן מקצה לקצה</p>
             </div>
           </div>
         </div>
@@ -260,7 +260,7 @@ export default function MarketingPage() {
             >
               {/* Text */}
               <div className={f.reverse ? 'order-1 lg:order-2' : ''}>
-                <span className="text-xs font-bold tracking-widest uppercase text-blue-600">{f.label}</span>
+                <span className="text-xs font-bold tracking-widest uppercase text-teal-600">{f.label}</span>
                 <h2 className="text-3xl sm:text-4xl font-black tracking-tight mt-3 leading-tight text-slate-900">
                   {f.heading}
                 </h2>
@@ -275,7 +275,7 @@ export default function MarketingPage() {
                 </ul>
                 <Link
                   href="/auth/register"
-                  className="inline-flex items-center gap-2 text-blue-600 font-semibold mt-8 hover:gap-3 transition-all"
+                  className="inline-flex items-center gap-2 text-teal-600 font-semibold mt-8 hover:gap-3 transition-all"
                 >
                   התחל עכשיו
                   <ArrowLeft />
@@ -294,7 +294,7 @@ export default function MarketingPage() {
       {/* ── Specialties ────────────────────────────────────────── */}
       <section className="bg-slate-50 py-20 px-6">
         <div className="max-w-4xl mx-auto text-center">
-          <span className="text-xs font-bold tracking-widest uppercase text-blue-600">התמחויות</span>
+          <span className="text-xs font-bold tracking-widest uppercase text-teal-600">התמחויות</span>
           <h2 className="text-3xl sm:text-4xl font-black mt-3 text-slate-900">רופאים מומחים בכל תחום</h2>
           <p className="text-slate-500 mt-3 text-lg">פנל רחב של רופאים בכל התמחות רפואית</p>
           <div className="flex flex-wrap justify-center gap-3 mt-10">
@@ -302,13 +302,13 @@ export default function MarketingPage() {
               <Link
                 key={s}
                 href={`/specialties/${s}`}
-                className="bg-white border border-slate-200 text-slate-700 text-sm font-medium px-5 py-2.5 rounded-full hover:border-blue-300 hover:text-blue-700 hover:bg-blue-50 transition-all shadow-sm"
+                className="bg-white border border-slate-200 text-slate-700 text-sm font-medium px-5 py-2.5 rounded-full hover:border-teal-300 hover:text-teal-700 hover:bg-teal-50 transition-all shadow-sm"
               >
                 {s}
               </Link>
             ))}
           </div>
-          <Link href="/specialties" className="inline-flex items-center gap-2 text-blue-600 font-semibold text-sm mt-8 hover:gap-3 transition-all">
+          <Link href="/specialties" className="inline-flex items-center gap-2 text-teal-600 font-semibold text-sm mt-8 hover:gap-3 transition-all">
             כל ההתמחויות
             <ArrowLeft />
           </Link>
@@ -319,7 +319,7 @@ export default function MarketingPage() {
       <section className="py-24 px-6">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <span className="text-xs font-bold tracking-widest uppercase text-blue-600">תהליך</span>
+            <span className="text-xs font-bold tracking-widest uppercase text-teal-600">תהליך</span>
             <h2 className="text-3xl sm:text-4xl font-black mt-3 text-slate-900">ארבעה שלבים פשוטים</h2>
             <p className="text-slate-500 mt-3 text-lg">מהרשמה לייעוץ — הכל תוך דקות ספורות</p>
           </div>
@@ -330,7 +330,7 @@ export default function MarketingPage() {
                 {i < 3 && (
                   <div className="hidden md:block absolute top-6 left-0 w-full h-px bg-slate-200 -z-10" />
                 )}
-                <div className="w-12 h-12 rounded-2xl bg-blue-600 text-white text-sm font-black flex items-center justify-center shadow-lg shadow-blue-600/20">
+                <div className="w-12 h-12 rounded-2xl bg-teal-600 text-white text-sm font-black flex items-center justify-center shadow-lg shadow-teal-600/20">
                   {s.n}
                 </div>
                 <h3 className="font-bold text-slate-900 mt-5">{s.title}</h3>
@@ -348,7 +348,7 @@ export default function MarketingPage() {
           <div className="bg-slate-900 rounded-3xl overflow-hidden grid lg:grid-cols-2 items-stretch min-h-[360px]">
             {/* Text */}
             <div className="p-12 lg:p-16 flex flex-col justify-center">
-              <span className="text-xs font-bold tracking-widest uppercase text-blue-400 mb-4">SaaS למרפאות</span>
+              <span className="text-xs font-bold tracking-widest uppercase text-teal-400 mb-4">SaaS למרפאות</span>
               <h2 className="text-3xl sm:text-4xl font-black text-white leading-tight">
                 הקם את הקליניקה
                 <br />
@@ -360,7 +360,7 @@ export default function MarketingPage() {
               <div className="flex flex-col sm:flex-row gap-3 mt-8">
                 <Link
                   href="/onboarding"
-                  className="inline-flex items-center justify-center gap-2 bg-blue-600 text-white font-bold px-7 py-4 rounded-xl hover:bg-blue-500 transition-colors shadow-lg shadow-blue-600/20"
+                  className="inline-flex items-center justify-center gap-2 bg-teal-600 text-white font-bold px-7 py-4 rounded-xl hover:bg-teal-500 transition-colors shadow-lg shadow-teal-600/20"
                 >
                   ניסיון חינם — 14 ימים
                 </Link>
@@ -374,7 +374,7 @@ export default function MarketingPage() {
             </div>
             {/* Visual — branded gradient, no stock photo */}
             <div className="hidden lg:block relative">
-              <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #1e40af 55%, #0e7490 100%)' }} />
+              <div className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #0f172a 0%, #157F73 55%, #0e7490 100%)' }} />
               <div className="absolute inset-0 opacity-[0.12]" style={{ backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
               <div className="absolute inset-0 bg-gradient-to-r from-slate-900 to-transparent" />
             </div>
@@ -389,7 +389,7 @@ export default function MarketingPage() {
             {/* Brand */}
             <div className="col-span-2 md:col-span-1">
               <div className="flex items-center gap-2 mb-4">
-                <div className="w-7 h-7 rounded-md bg-blue-600 flex items-center justify-center">
+                <div className="w-7 h-7 rounded-md bg-teal-600 flex items-center justify-center">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                     <path d="M4.8 2.3A.3.3 0 105 2H4a2 2 0 00-2 2v5a6 6 0 006 6 6 6 0 006-6V4a2 2 0 00-2-2h-1"/>
                     <path d="M8 15v1a6 6 0 006 6 6 6 0 006-6v-4"/><circle cx="20" cy="10" r="2"/>

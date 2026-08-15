@@ -7,7 +7,7 @@ import { useEffect, useState, useCallback } from 'react'
  * No stock photography — premium SaaS-healthcare gradients with a subtle medical motif.
  */
 const slides = [
-  { from: '#0f172a', via: '#1e40af', to: '#0e7490', label: 'מרפאה דיגיטלית' },
+  { from: '#0f172a', via: '#157F73', to: '#0e7490', label: 'מרפאה דיגיטלית' },
   { from: '#0c4a6e', via: '#0369a1', to: '#0d9488', label: 'ניהול חכם' },
   { from: '#1e3a8a', via: '#4338ca', to: '#0e7490', label: 'מיתוג White-Label' },
   { from: '#065f46', via: '#0d9488', to: '#0369a1', label: 'AI לרופאים' },

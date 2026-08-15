@@ -29,13 +29,13 @@ function DocLink({ doc }: { doc: { id: string; file_name: string; file_type: str
 
   return (
     <div className="flex items-center gap-3 p-2 rounded-lg border border-slate-100 hover:bg-slate-50">
-      <div className="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center shrink-0">
+      <div className="w-8 h-8 rounded-lg bg-teal-100 flex items-center justify-center shrink-0">
         {isImage ? (
-          <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg className="w-4 h-4 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="3" width="18" height="18" rx="2" /><circle cx="8.5" cy="8.5" r="1.5" /><polyline points="21 15 16 10 5 21" />
           </svg>
         ) : (
-          <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg className="w-4 h-4 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
           </svg>
         )}
@@ -43,7 +43,7 @@ function DocLink({ doc }: { doc: { id: string; file_name: string; file_type: str
       <span className="text-sm text-slate-700 flex-1 truncate">{doc.file_name}</span>
       {url ? (
         <a href={url} target="_blank" rel="noopener noreferrer"
-          className="text-xs text-blue-600 hover:underline font-medium shrink-0">
+          className="text-xs text-teal-600 hover:underline font-medium shrink-0">
           פתח
         </a>
       ) : (
@@ -159,7 +159,7 @@ function SchedulePanel({ apt, onScheduled }: {
   // ── Closed state: just the button ──
   if (mode === 'closed') {
     return (
-      <Button onClick={openPanel} className="bg-blue-600 hover:bg-blue-700 gap-2">
+      <Button onClick={openPanel} className="bg-teal-600 hover:bg-teal-700 gap-2">
         <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
         </svg>
@@ -177,10 +177,10 @@ function SchedulePanel({ apt, onScheduled }: {
     const dateStr = `יום ${days[d.getDay()]}, ${d.getDate()} ב${months[d.getMonth()]} — ${timeStr}`
 
     return (
-      <div className="w-full border border-blue-200 rounded-xl p-4 bg-blue-50 space-y-3">
-        <p className="text-sm font-semibold text-blue-800">המטופל ביקש מועד</p>
-        <div className="flex items-center gap-2 bg-white border border-blue-200 rounded-lg px-4 py-3">
-          <svg className="w-4 h-4 text-blue-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <div className="w-full border border-teal-200 rounded-xl p-4 bg-teal-50 space-y-3">
+        <p className="text-sm font-semibold text-teal-800">המטופל ביקש מועד</p>
+        <div className="flex items-center gap-2 bg-white border border-teal-200 rounded-lg px-4 py-3">
+          <svg className="w-4 h-4 text-teal-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
           <span className="text-sm font-semibold text-slate-800">{dateStr}</span>
@@ -190,7 +190,7 @@ function SchedulePanel({ apt, onScheduled }: {
           <select
             value={duration}
             onChange={e => setDuration(Number(e.target.value))}
-            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 bg-white"
           >
             {[15, 20, 30, 45, 60, 90].map(m => (
               <option key={m} value={m}>{m} דקות</option>
@@ -215,8 +215,8 @@ function SchedulePanel({ apt, onScheduled }: {
 
   // ── Propose / set manual time ──
   return (
-    <div className="w-full border border-blue-200 rounded-xl p-4 bg-blue-50 space-y-3">
-      <p className="text-sm font-semibold text-blue-800">
+    <div className="w-full border border-teal-200 rounded-xl p-4 bg-teal-50 space-y-3">
+      <p className="text-sm font-semibold text-teal-800">
         {hasPatientSlot ? 'הצע מועד חלופי למטופל' : 'קביעת מועד לשיחת וידאו'}
       </p>
       <div className="grid grid-cols-2 gap-3">
@@ -226,7 +226,7 @@ function SchedulePanel({ apt, onScheduled }: {
             type="datetime-local"
             value={altDate}
             onChange={e => setAltDate(e.target.value)}
-            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 focus:border-blue-500 bg-white"
+            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 focus:border-teal-500 bg-white"
           />
         </div>
         <div>
@@ -234,7 +234,7 @@ function SchedulePanel({ apt, onScheduled }: {
           <select
             value={duration}
             onChange={e => setDuration(Number(e.target.value))}
-            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-blue-500 bg-white"
+            className="w-full border border-slate-300 rounded-lg px-3 py-2 text-sm focus:ring-2 focus:ring-teal-500 bg-white"
           >
             {[15, 20, 30, 45, 60, 90].map(m => (
               <option key={m} value={m}>{m} דקות</option>
@@ -243,7 +243,7 @@ function SchedulePanel({ apt, onScheduled }: {
         </div>
       </div>
       <div className="flex gap-2">
-        <Button size="sm" onClick={hasPatientSlot ? proposeAlternative : confirmManual} loading={saving} className="bg-blue-600 hover:bg-blue-700">
+        <Button size="sm" onClick={hasPatientSlot ? proposeAlternative : confirmManual} loading={saving} className="bg-teal-600 hover:bg-teal-700">
           {hasPatientSlot ? 'שלח הצעה למטופל' : 'אשר תור'}
         </Button>
         {hasPatientSlot && (
@@ -252,7 +252,7 @@ function SchedulePanel({ apt, onScheduled }: {
         <Button size="sm" variant="outline" onClick={() => setMode('closed')}>ביטול</Button>
       </div>
       {hasPatientSlot && (
-        <p className="text-xs text-blue-600">המטופל יקבל הודעה ויצטרך לאשר את המועד החלופי</p>
+        <p className="text-xs text-teal-600">המטופל יקבל הודעה ויצטרך לאשר את המועד החלופי</p>
       )}
     </div>
   )
@@ -262,7 +262,7 @@ function SchedulePanel({ apt, onScheduled }: {
 function PatientAvatar({ first, last, size = 'md' }: { first: string; last: string; size?: 'sm' | 'md' | 'lg' }) {
   const s = { sm: 'w-8 h-8 text-xs', md: 'w-10 h-10 text-sm', lg: 'w-14 h-14 text-lg' }
   return (
-    <div className={cn('rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-bold text-white shrink-0', s[size])}>
+    <div className={cn('rounded-full bg-gradient-to-br from-teal-500 to-indigo-600 flex items-center justify-center font-bold text-white shrink-0', s[size])}>
       {getInitials(first || '?', last || '?')}
     </div>
   )
@@ -338,19 +338,19 @@ function AISummaryCard({
   const { sections, structured } = parseSummary(summary)
 
   return (
-    <Card className="border-blue-200">
-      <CardHeader className="py-3 px-4 border-b border-blue-100 bg-blue-50/60">
+    <Card className="border-teal-200">
+      <CardHeader className="py-3 px-4 border-b border-teal-100 bg-teal-50/60">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-blue-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="w-4 h-4 text-teal-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22" />
             </svg>
-            <p className="text-sm font-semibold text-blue-800">סיכום ייעוץ — AI</p>
+            <p className="text-sm font-semibold text-teal-800">סיכום ייעוץ — AI</p>
           </div>
           {structured && (
             <button
               onClick={() => setShowJson(v => !v)}
-              className="text-xs text-blue-500 hover:text-blue-700 font-medium transition-colors"
+              className="text-xs text-teal-500 hover:text-teal-700 font-medium transition-colors"
             >
               {showJson ? 'הצג טקסט' : 'הצג JSON'}
             </button>
@@ -363,7 +363,7 @@ function AISummaryCard({
           <div className="space-y-3">
             {sections.map((sec, i) => (
               <div key={i} className={cn('rounded-lg p-3', sec.warning ? 'bg-amber-50 border border-amber-200' : 'bg-slate-50 border border-slate-100')}>
-                <p className={cn('text-xs font-bold uppercase tracking-wide mb-1', sec.warning ? 'text-amber-700' : 'text-blue-600')}>{sec.label}</p>
+                <p className={cn('text-xs font-bold uppercase tracking-wide mb-1', sec.warning ? 'text-amber-700' : 'text-teal-600')}>{sec.label}</p>
                 <p className={cn('text-sm leading-relaxed', sec.warning ? 'text-amber-900' : 'text-slate-800')}>{sec.value}</p>
               </div>
             ))}
@@ -378,11 +378,11 @@ function AISummaryCard({
         )}
 
         {/* Send summary to patient */}
-        <div className="pt-3 border-t border-blue-100 space-y-2">
+        <div className="pt-3 border-t border-teal-100 space-y-2">
           <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">שלח סיכום למטופל</p>
           <div className="grid grid-cols-3 gap-2">
             {[
-              { channel: 'in_app' as const, label: 'בעמוד', icon: '🔔', cls: 'bg-blue-50 hover:bg-blue-100 text-blue-700 border-blue-200' },
+              { channel: 'in_app' as const, label: 'בעמוד', icon: '🔔', cls: 'bg-teal-50 hover:bg-teal-100 text-teal-700 border-teal-200' },
               { channel: 'whatsapp' as const, label: 'WhatsApp', icon: '💬', cls: 'bg-green-50 hover:bg-green-100 text-green-700 border-green-200' },
               { channel: 'email' as const, label: 'אימייל', icon: '📧', cls: 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200' },
             ].map(opt => (
@@ -431,7 +431,7 @@ const SOAP_FIELDS = [
     letterEn: 'S',
     label: 'סובייקטיבי',
     sublabel: 'תלונת המטופל, תסמינים ותחושות סובייקטיביות',
-    color: 'bg-blue-600',
+    color: 'bg-teal-600',
     rows: 3,
   },
   {
@@ -785,7 +785,7 @@ export default function DoctorAppointmentsPage() {
               value={search}
               onChange={e => setSearch(e.target.value)}
               placeholder="חיפוש לפי שם מטופל או תלונה..."
-              className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pr-9 pl-4 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none placeholder:text-slate-400"
+              className="w-full rounded-xl border border-slate-300 bg-white py-2.5 pr-9 pl-4 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none placeholder:text-slate-400"
             />
           </div>
 
@@ -801,14 +801,14 @@ export default function DoctorAppointmentsPage() {
                   className={cn(
                     'px-3 py-1.5 rounded-full text-xs font-medium transition-colors flex items-center gap-1.5',
                     filter === f.value
-                      ? 'bg-blue-600 text-white shadow-sm'
+                      ? 'bg-teal-600 text-white shadow-sm'
                       : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
                   )}
                 >
                   {f.label}
                   <span className={cn(
                     'text-[10px] font-bold px-1.5 py-0.5 rounded-full',
-                    filter === f.value ? 'bg-blue-500 text-white' : 'bg-slate-200 text-slate-600'
+                    filter === f.value ? 'bg-teal-500 text-white' : 'bg-slate-200 text-slate-600'
                   )}>
                     {count}
                   </span>
@@ -843,14 +843,14 @@ export default function DoctorAppointmentsPage() {
                       className={cn(
                         'w-full px-4 py-3.5 text-right flex gap-3 items-start transition-colors',
                         isSelected
-                          ? 'bg-blue-50 border-r-4 border-blue-600'
+                          ? 'bg-teal-50 border-r-4 border-teal-600'
                           : 'hover:bg-slate-50 border-r-4 border-transparent'
                       )}
                     >
                       <PatientAvatar first={patient?.first_name || ''} last={patient?.last_name || ''} size="sm" />
                       <div className="flex-1 min-w-0">
                         <div className="flex items-center justify-between gap-1">
-                          <p className={cn('font-semibold text-sm truncate', isSelected ? 'text-blue-900' : 'text-slate-900')}>
+                          <p className={cn('font-semibold text-sm truncate', isSelected ? 'text-teal-900' : 'text-slate-900')}>
                             {patient?.first_name} {patient?.last_name}
                           </p>
                           <Badge variant={statusBadgeVariant(apt.status)} className="text-[10px] shrink-0">
@@ -1144,7 +1144,7 @@ export default function DoctorAppointmentsPage() {
                       {['ס', 'א', 'ה', 'ת'].map((l, i) => (
                         <span key={i} className={cn(
                           'w-7 h-7 rounded-lg text-white text-xs font-bold flex items-center justify-center',
-                          ['bg-blue-600', 'bg-indigo-600', 'bg-violet-600', 'bg-purple-600'][i]
+                          ['bg-teal-600', 'bg-indigo-600', 'bg-violet-600', 'bg-purple-600'][i]
                         )}>{l}</span>
                       ))}
                     </div>
@@ -1191,7 +1191,7 @@ export default function DoctorAppointmentsPage() {
                           value={soapForm.follow_up_instructions}
                           onChange={e => setSoapForm(p => ({ ...p, follow_up_instructions: e.target.value }))}
                           placeholder="הוראות מעקב למטופל..."
-                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none resize-none placeholder:text-slate-400"
+                          className="w-full rounded-lg border border-slate-300 px-3 py-2.5 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none resize-none placeholder:text-slate-400"
                         />
                       </div>
                     </div>
@@ -1268,7 +1268,7 @@ export default function DoctorAppointmentsPage() {
                       <select
                         value={docType}
                         onChange={e => setDocType(e.target.value)}
-                        className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none bg-white"
+                        className="flex-1 rounded-lg border border-slate-300 px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none bg-white"
                       >
                         {DOC_TYPES.map(d => (
                           <option key={d.value} value={d.value}>{d.label}</option>
@@ -1312,7 +1312,7 @@ export default function DoctorAppointmentsPage() {
                               setMessage({ type: 'success', text: 'הועתק ללוח' })
                               setTimeout(() => setMessage(null), 2000)
                             }}
-                            className="flex items-center gap-1.5 text-xs text-blue-600 hover:text-blue-800 transition-colors font-medium"
+                            className="flex items-center gap-1.5 text-xs text-teal-600 hover:text-teal-800 transition-colors font-medium"
                           >
                             <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                               <rect x="9" y="9" width="13" height="13" rx="2" ry="2" /><path d="M5 15H4a2 2 0 01-2-2V4a2 2 0 012-2h9a2 2 0 012 2v1" />

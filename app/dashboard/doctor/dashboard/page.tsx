@@ -13,7 +13,7 @@ import type { Appointment, User } from '@/types/database'
 function PatientAvatar({ first, last, size = 'md' }: { first: string; last: string; size?: 'sm' | 'md' | 'lg' }) {
   const s = { sm: 'w-8 h-8 text-xs', md: 'w-10 h-10 text-sm', lg: 'w-12 h-12 text-base' }
   return (
-    <div className={cn('rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center font-semibold text-white shrink-0', s[size])}>
+    <div className={cn('rounded-full bg-gradient-to-br from-teal-500 to-indigo-600 flex items-center justify-center font-semibold text-white shrink-0', s[size])}>
       {getInitials(first || '?', last || '?')}
     </div>
   )
@@ -30,7 +30,7 @@ function QuickAction({ icon, label, description, onClick, accent = 'blue' }: {
   icon: React.ReactNode; label: string; description: string; onClick: () => void; accent?: 'blue' | 'indigo' | 'emerald'
 }) {
   const colors = {
-    blue:    'from-blue-50 to-blue-100 border-blue-200 hover:border-blue-400 text-blue-700',
+    blue:    'from-teal-50 to-teal-100 border-teal-200 hover:border-teal-400 text-teal-700',
     indigo:  'from-indigo-50 to-indigo-100 border-indigo-200 hover:border-indigo-400 text-indigo-700',
     emerald: 'from-emerald-50 to-emerald-100 border-emerald-200 hover:border-emerald-400 text-emerald-700',
   }
@@ -68,7 +68,7 @@ function TimelineItem({ apt, isLast }: { apt: Appointment; isLast: boolean }) {
       <div className={cn(
         'relative z-10 mt-1 w-9 h-9 rounded-full border-2 flex items-center justify-center shrink-0 text-xs font-bold',
         isActive ? 'bg-green-500 border-green-500 text-white animate-pulse' :
-        isReady  ? 'bg-blue-500 border-blue-500 text-white' :
+        isReady  ? 'bg-teal-500 border-teal-500 text-white' :
                    'bg-white border-slate-300 text-slate-500'
       )}>
         {apt.scheduled_at ? formatTime(apt.scheduled_at).split(':')[0] : '—'}
@@ -76,7 +76,7 @@ function TimelineItem({ apt, isLast }: { apt: Appointment; isLast: boolean }) {
 
       <div className={cn(
         'flex-1 mb-4 rounded-xl border p-3 bg-white transition-shadow hover:shadow-sm',
-        isActive ? 'border-green-300 bg-green-50' : isReady ? 'border-blue-200' : 'border-slate-200'
+        isActive ? 'border-green-300 bg-green-50' : isReady ? 'border-teal-200' : 'border-slate-200'
       )}>
         <div className="flex items-center justify-between gap-2">
           <div className="flex items-center gap-2 min-w-0">
@@ -105,34 +105,34 @@ function NotificationsBanner({ notifications, onMarkRead }: { notifications: Not
   if (notifications.length === 0) return null
   const shown = expanded ? notifications : notifications.slice(0, 2)
   return (
-    <div className="bg-blue-50 border border-blue-200 rounded-xl overflow-hidden">
-      <div className="flex items-center justify-between px-4 py-3 border-b border-blue-100">
+    <div className="bg-teal-50 border border-teal-200 rounded-xl overflow-hidden">
+      <div className="flex items-center justify-between px-4 py-3 border-b border-teal-100">
         <div className="flex items-center gap-2">
-          <svg className="w-4 h-4 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <svg className="w-4 h-4 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9"/><path d="M13.73 21a2 2 0 01-3.46 0"/>
           </svg>
-          <span className="text-sm font-bold text-blue-900">התראות</span>
+          <span className="text-sm font-bold text-teal-900">התראות</span>
           {unread.length > 0 && (
-            <span className="bg-blue-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{unread.length}</span>
+            <span className="bg-teal-600 text-white text-xs font-bold px-1.5 py-0.5 rounded-full">{unread.length}</span>
           )}
         </div>
         {notifications.length > 2 && (
-          <button onClick={() => setExpanded(e => !e)} className="text-xs text-blue-600 font-medium hover:underline">
+          <button onClick={() => setExpanded(e => !e)} className="text-xs text-teal-600 font-medium hover:underline">
             {expanded ? 'הצג פחות' : `הצג הכל (${notifications.length})`}
           </button>
         )}
       </div>
-      <div className="divide-y divide-blue-100">
+      <div className="divide-y divide-teal-100">
         {shown.map(n => (
           <div key={n.id} className={cn('flex items-start gap-3 px-4 py-3', !n.read_at && 'bg-white/60')}>
-            {!n.read_at && <span className="w-2 h-2 rounded-full bg-blue-500 shrink-0 mt-1.5" />}
+            {!n.read_at && <span className="w-2 h-2 rounded-full bg-teal-500 shrink-0 mt-1.5" />}
             {n.read_at && <span className="w-2 h-2 shrink-0" />}
             <div className="flex-1 min-w-0">
               <p className="text-sm font-semibold text-slate-900">{n.title}</p>
               <p className="text-xs text-slate-500 mt-0.5 line-clamp-2">{n.content}</p>
             </div>
             {!n.read_at && (
-              <button onClick={() => onMarkRead(n.id)} className="text-xs text-blue-600 hover:underline shrink-0 mt-0.5">
+              <button onClick={() => onMarkRead(n.id)} className="text-xs text-teal-600 hover:underline shrink-0 mt-0.5">
                 קראתי
               </button>
             )}
@@ -325,7 +325,7 @@ export default function DoctorDashboard() {
           value={today.length}
           color="blue"
           icon={
-            <svg className="w-6 h-6 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="w-6 h-6 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
             </svg>
           }
@@ -360,7 +360,7 @@ export default function DoctorDashboard() {
           description="תצוגה שבועית ויומית של תורים"
           onClick={() => router.push('/dashboard/doctor/calendar')}
           icon={
-            <svg className="w-5 h-5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="w-5 h-5 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <rect x="3" y="4" width="18" height="18" rx="2" ry="2" /><line x1="16" y1="2" x2="16" y2="6" /><line x1="8" y1="2" x2="8" y2="6" /><line x1="3" y1="10" x2="21" y2="10" />
             </svg>
           }
@@ -403,7 +403,7 @@ export default function DoctorDashboard() {
       <Card>
         <CardHeader className="flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-blue-500" />
+            <div className="w-2 h-2 rounded-full bg-teal-500" />
             <h3 className="font-bold text-base">לוח הזמנים להיום</h3>
           </div>
           <span className="text-xs text-slate-400 bg-slate-100 px-2.5 py-1 rounded-full font-medium">{today.length} ביקורים</span>

@@ -327,7 +327,7 @@ function LogRow({ log, userName, expanded, onToggle }: {
 
   return (
     <>
-      <tr className={cn('border-b border-slate-50 hover:bg-blue-50/40 transition-colors', expanded && 'bg-blue-50/50')}>
+      <tr className={cn('border-b border-slate-50 hover:bg-teal-50/40 transition-colors', expanded && 'bg-teal-50/50')}>
         <td className="p-3 whitespace-nowrap text-slate-500 text-xs">
           {formatDateTime(log.created_at)}
         </td>
@@ -354,7 +354,7 @@ function LogRow({ log, userName, expanded, onToggle }: {
             <button
               type="button"
               onClick={onToggle}
-              className="text-blue-600 hover:text-blue-800 text-xs font-medium"
+              className="text-teal-600 hover:text-teal-800 text-xs font-medium"
               aria-expanded={expanded}
             >
               {expanded ? 'סגור' : 'פרטים'}

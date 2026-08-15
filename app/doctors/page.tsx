@@ -66,8 +66,8 @@ export default async function DoctorsPage() {
 
   /* Gradient palette for avatars — cycles by index */
   const AVATAR_GRADIENTS = [
-    ['#3b82f6','#6366f1'],['#10b981','#0891b2'],['#8b5cf6','#ec4899'],
-    ['#f59e0b','#ef4444'],['#06b6d4','#3b82f6'],['#84cc16','#10b981'],
+    ['#2FA9A2','#48A28C'],['#10b981','#0891b2'],['#8b5cf6','#ec4899'],
+    ['#f59e0b','#ef4444'],['#06b6d4','#2FA9A2'],['#84cc16','#10b981'],
   ]
 
   return (
@@ -76,27 +76,22 @@ export default async function DoctorsPage() {
 
       {/* ── Nav ── */}
       <nav
-        className="sticky top-0 z-50 flex items-center justify-between h-16 px-4"
-        style={{
-          background: 'rgba(7,9,15,0.85)',
-          backdropFilter: 'blur(20px)',
-          borderBottom: '1px solid rgba(255,255,255,0.06)',
-        }}
+        className="sticky top-0 z-50 flex items-center justify-between h-16 px-4 bg-white/85 backdrop-blur-md border-b border-slate-100"
         dir="rtl"
       >
-        <Link href="/" className="flex items-center gap-2 text-xl font-black text-white tracking-tight">
+        <Link href="/" className="flex items-center gap-2 text-xl font-black text-slate-900 tracking-tight">
           {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/canna-mark.png" alt="" className="w-9 h-9 rounded-lg bg-white object-contain p-0.5" />CANNA
+          <img src="/canna-mark.png" alt="" className="w-9 h-9 object-contain" />CANNA
         </Link>
         <div className="flex items-center gap-5">
-          <Link href="/specialties" className="text-sm text-slate-400 hover:text-white transition-colors hidden sm:block">התמחויות</Link>
-          <Link href="/doctors" className="text-sm font-semibold text-blue-400 hidden sm:block">הרופאים שלנו</Link>
-          <Link href="/for-clinics" className="text-sm text-slate-400 hover:text-white transition-colors hidden sm:block">למרפאות</Link>
-          <Link href="/auth/login" className="text-sm text-slate-400 hover:text-white transition-colors">התחברות</Link>
+          <Link href="/specialties" className="text-sm text-slate-500 hover:text-slate-900 transition-colors hidden sm:block">התמחויות</Link>
+          <Link href="/doctors" className="text-sm font-semibold text-teal-600 hidden sm:block">הרופאים שלנו</Link>
+          <Link href="/for-clinics" className="text-sm text-slate-500 hover:text-slate-900 transition-colors hidden sm:block">למרפאות</Link>
+          <Link href="/auth/login" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">התחברות</Link>
           <Link
             href="/auth/register"
-            className="text-sm font-bold text-white px-5 py-2 rounded-lg transition-all hover:scale-105"
-            style={{ background: 'linear-gradient(135deg, #2563eb, #4f46e5)' }}
+            className="text-sm font-bold text-white px-5 py-2 rounded-lg transition-all hover:brightness-95"
+            style={{ background: 'linear-gradient(135deg, #2FA9A2, #157F73)' }}
           >
             הרשמה חינם
           </Link>
@@ -109,7 +104,7 @@ export default async function DoctorsPage() {
       {/* ── Light mode starts here ── */}
 
       {/* Stats strip */}
-      <div className="bg-gradient-to-r from-blue-600 to-indigo-700 py-5 px-4">
+      <div className="bg-gradient-to-r from-teal-600 to-indigo-700 py-5 px-4">
         <div className="max-w-5xl mx-auto grid grid-cols-2 md:grid-cols-4 gap-6 text-center text-white">
           {[
             { v: typedDoctors.length > 0 ? `${typedDoctors.length}` : '—', l: 'רופאים פעילים' },
@@ -119,15 +114,15 @@ export default async function DoctorsPage() {
           ].map((s, i) => (
             <div key={i}>
               <p className="text-2xl font-black">{s.v}</p>
-              <p className="text-blue-100 text-xs mt-0.5 font-medium">{s.l}</p>
+              <p className="text-teal-100 text-xs mt-0.5 font-medium">{s.l}</p>
             </div>
           ))}
         </div>
       </div>
 
       {/* Trust row */}
-      <div className="bg-blue-50 border-b border-blue-100 py-3 px-4 overflow-x-auto">
-        <div className="max-w-5xl mx-auto flex items-center justify-center gap-8 whitespace-nowrap text-sm font-semibold text-blue-700">
+      <div className="bg-teal-50 border-b border-teal-100 py-3 px-4 overflow-x-auto">
+        <div className="max-w-5xl mx-auto flex items-center justify-center gap-8 whitespace-nowrap text-sm font-semibold text-teal-700">
           {[
             { i: '🛡️', t: 'כל הרופאים אומתו ברישיון' },
             { i: '🔒', t: 'שיחות מוצפנות end-to-end' },
@@ -147,7 +142,7 @@ export default async function DoctorsPage() {
             <span className="text-xs font-bold text-slate-400 self-center ml-2 uppercase tracking-widest">סנן:</span>
             {SPECIALTIES.filter(s => specialtyCounts[s.id]).map(s => (
               <Link key={s.id} href={`/specialties/${s.id}`}
-                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold text-slate-600 bg-slate-100 border border-transparent hover:bg-blue-50 hover:text-blue-700 hover:border-blue-200 transition-all">
+                className="inline-flex items-center gap-1.5 px-4 py-1.5 rounded-full text-sm font-semibold text-slate-600 bg-slate-100 border border-transparent hover:bg-teal-50 hover:text-teal-700 hover:border-teal-200 transition-all">
                 {s.label}
                 <span className="text-xs text-slate-400 font-normal">({specialtyCounts[s.id]})</span>
               </Link>
@@ -174,7 +169,7 @@ export default async function DoctorsPage() {
               <p className="text-slate-500 mb-8 max-w-sm mx-auto">אנחנו בתהליך גיוס מומחים. הירשם ונעדכן אותך.</p>
               <Link href="/auth/register"
                 className="inline-flex items-center gap-2 text-white font-bold px-8 py-3.5 rounded-xl shadow-lg transition-all hover:scale-105"
-                style={{ background: 'linear-gradient(135deg, #2563eb, #4f46e5)' }}>
+                style={{ background: 'linear-gradient(135deg, #2FA9A2, #157F73)' }}>
                 הירשם לעדכונים
               </Link>
             </div>
@@ -184,7 +179,7 @@ export default async function DoctorsPage() {
                 const [from, to] = AVATAR_GRADIENTS[idx % AVATAR_GRADIENTS.length]
                 return (
                   <article key={doc.id}
-                    className="group bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-blue-100"
+                    className="group bg-white rounded-3xl overflow-hidden border border-slate-100 shadow-sm transition-all duration-300 hover:-translate-y-1 hover:shadow-xl hover:border-teal-100"
                   >
                     {/* Card top gradient bar */}
                     <div className="h-1.5 w-full" style={{ background: `linear-gradient(90deg, ${from}, ${to})` }} />
@@ -210,7 +205,7 @@ export default async function DoctorsPage() {
                         </div>
 
                         <div className="flex-1 min-w-0">
-                          <Link href={`/doctors/${doc.id}`} className="group-hover:text-blue-600 transition-colors">
+                          <Link href={`/doctors/${doc.id}`} className="group-hover:text-teal-600 transition-colors">
                             <h3 className="font-black text-lg text-slate-900 leading-tight">
                               ד&quot;ר {doc.first_name} {doc.last_name}
                             </h3>
@@ -287,13 +282,13 @@ export default async function DoctorsPage() {
       <section className="py-24 px-4 bg-white">
         <div className="max-w-5xl mx-auto">
           <div className="text-center mb-16">
-            <span className="text-xs font-black tracking-widest uppercase text-blue-600 bg-blue-50 px-4 py-2 rounded-full">תהליך פשוט</span>
+            <span className="text-xs font-black tracking-widest uppercase text-teal-600 bg-teal-50 px-4 py-2 rounded-full">תהליך פשוט</span>
             <h2 className="text-4xl font-black text-slate-900 mt-4 mb-3">מבחירת רופא ועד לייעוץ — 4 צעדים</h2>
             <p className="text-slate-500 text-lg">ניהול מלא, דיגיטלי ומהיר</p>
           </div>
           <div className="relative grid md:grid-cols-4 gap-8">
             {/* Connecting line */}
-            <div className="hidden md:block absolute top-8 right-8 left-8 h-0.5 bg-gradient-to-l from-indigo-200 via-blue-200 to-indigo-200" style={{ zIndex: 0 }} />
+            <div className="hidden md:block absolute top-8 right-8 left-8 h-0.5 bg-gradient-to-l from-indigo-200 via-teal-200 to-indigo-200" style={{ zIndex: 0 }} />
             {[
               { n: '01', icon: '🔍', title: 'בחר רופא', desc: 'חפש לפי התמחות, דירוג, מחיר. קרא ביקורות ואישורי רישיון.' },
               { n: '02', icon: '📅', title: 'קבע מועד', desc: 'בחר שעה מתוך הסלוטים הפנויים. אישור תוך דקות.' },
@@ -301,10 +296,10 @@ export default async function DoctorsPage() {
               { n: '04', icon: '📋', title: 'מרשם + סיכום', desc: 'AI מסכם SOAP. מרשם דיגיטלי ישירות לנייד.' },
             ].map((step, i) => (
               <div key={i} className="relative z-10 text-center flex flex-col items-center">
-                <div className="w-16 h-16 rounded-2xl bg-white border-2 border-blue-100 flex items-center justify-center text-2xl shadow-md mb-4 relative">
+                <div className="w-16 h-16 rounded-2xl bg-white border-2 border-teal-100 flex items-center justify-center text-2xl shadow-md mb-4 relative">
                   {step.icon}
                   <span className="absolute -top-2.5 -right-2.5 w-6 h-6 rounded-full text-xs font-black text-white flex items-center justify-center"
-                    style={{ background: 'linear-gradient(135deg, #2563eb, #4f46e5)' }}>
+                    style={{ background: 'linear-gradient(135deg, #2FA9A2, #157F73)' }}>
                     {step.n}
                   </span>
                 </div>
@@ -344,7 +339,7 @@ export default async function DoctorsPage() {
           </div>
           <h2 className="font-black text-white mb-4" style={{ fontSize: 'clamp(2rem, 5vw, 3.5rem)', lineHeight: 1 }}>
             מוכן לקבל<br />
-            <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(90deg, #60a5fa, #818cf8)' }}>
+            <span className="bg-clip-text text-transparent" style={{ backgroundImage: 'linear-gradient(90deg, #5EC8C0, #48A28C)' }}>
               ייעוץ מקצועי?
             </span>
           </h2>
@@ -354,7 +349,7 @@ export default async function DoctorsPage() {
           <div className="flex flex-wrap gap-4 justify-center mb-8">
             <Link href="/auth/register"
               className="inline-flex items-center gap-2 text-white font-black px-9 py-4 rounded-2xl text-lg transition-all hover:scale-105"
-              style={{ background: 'linear-gradient(135deg, #2563eb, #4f46e5)', boxShadow: '0 8px 32px rgba(59,130,246,0.4)' }}>
+              style={{ background: 'linear-gradient(135deg, #2FA9A2, #157F73)', boxShadow: '0 8px 32px rgba(59,130,246,0.4)' }}>
               הרשמה חינם — קבע תור עכשיו
             </Link>
             <Link href="/auth/login"

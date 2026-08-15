@@ -96,7 +96,7 @@ function DomainCard({ orgId, currentSubdomain }: { orgId: string; currentSubdoma
   const STATUS_LABELS: Record<string, { label: string; color: string }> = {
     none:        { label: 'לא הוגדר', color: 'bg-slate-100 text-slate-600' },
     pending:     { label: 'מוגדר...', color: 'bg-yellow-100 text-yellow-700' },
-    vercel_added:{ label: 'ממתין ל-DNS', color: 'bg-blue-100 text-blue-700' },
+    vercel_added:{ label: 'ממתין ל-DNS', color: 'bg-teal-100 text-teal-700' },
     active:      { label: 'פעיל', color: 'bg-green-100 text-green-700' },
     failed:      { label: 'שגיאה', color: 'bg-red-100 text-red-700' },
   }
@@ -172,9 +172,9 @@ function DomainCard({ orgId, currentSubdomain }: { orgId: string; currentSubdoma
 
           {/* Waiting for DNS — vercel_added */}
           {status === 'vercel_added' && (
-            <div className="p-3 bg-blue-50 border border-blue-200 rounded-xl text-sm text-blue-700">
+            <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl text-sm text-teal-700">
               <p className="font-semibold mb-1">נוסף ל-Vercel — ממתין לאימות DNS</p>
-              <p className="text-xs text-blue-600">לאחר שה-DNS מתפשט (עד 5 דקות) לחץ ״בדוק סטטוס״.</p>
+              <p className="text-xs text-teal-600">לאחר שה-DNS מתפשט (עד 5 דקות) לחץ ״בדוק סטטוס״.</p>
             </div>
           )}
 
@@ -428,16 +428,16 @@ export default function AdminSettingsPage() {
       <h2 className="text-2xl font-bold">הגדרות מרפאה</h2>
 
       {/* ── Patient Invite Links ───────────────────────────── */}
-      <Card className="border-blue-200 bg-blue-50/40">
+      <Card className="border-teal-200 bg-teal-50/40">
         <CardHeader>
           <div className="flex items-center gap-2">
-            <svg className="w-5 h-5 text-blue-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <svg className="w-5 h-5 text-teal-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
               <path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="8.5" cy="7" r="4"/>
               <line x1="20" y1="8" x2="20" y2="14"/><line x1="23" y1="11" x2="17" y2="11"/>
             </svg>
-            <h3 className="font-bold text-blue-900">הזמנת מטופלים</h3>
+            <h3 className="font-bold text-teal-900">הזמנת מטופלים</h3>
           </div>
-          <p className="text-sm text-blue-700 mt-1">שתף קישור זה עם מטופלים — הם יירשמו ישירות תחת המרפאה שלך</p>
+          <p className="text-sm text-teal-700 mt-1">שתף קישור זה עם מטופלים — הם יירשמו ישירות תחת המרפאה שלך</p>
         </CardHeader>
         <CardContent>
           <div className="space-y-4">
@@ -449,12 +449,12 @@ export default function AdminSettingsPage() {
                   קישור מרפאה (מומלץ)
                 </p>
                 <div className="flex items-center gap-2">
-                  <div className="flex-1 bg-white border border-blue-200 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-700 truncate select-all">
+                  <div className="flex-1 bg-white border border-teal-200 rounded-xl px-4 py-2.5 text-sm font-mono text-slate-700 truncate select-all">
                     {subdomainUrl}
                   </div>
                   <button
                     onClick={() => copyLink(subdomainUrl)}
-                    className="shrink-0 px-3 py-2.5 rounded-xl bg-blue-600 text-white text-sm font-medium hover:bg-blue-700 transition-colors flex items-center gap-1.5"
+                    className="shrink-0 px-3 py-2.5 rounded-xl bg-teal-600 text-white text-sm font-medium hover:bg-teal-700 transition-colors flex items-center gap-1.5"
                     title="העתק קישור"
                   >
                     <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -627,7 +627,7 @@ export default function AdminSettingsPage() {
                     type="checkbox"
                     checked={h.enabled}
                     onChange={e => updateHour(i, 'enabled', e.target.checked)}
-                    className="rounded border-slate-300 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-slate-300 text-teal-600 focus:ring-teal-500"
                   />
                   <span className="text-sm font-medium">{h.label}</span>
                 </label>
@@ -637,14 +637,14 @@ export default function AdminSettingsPage() {
                       type="time"
                       value={h.start}
                       onChange={e => updateHour(i, 'start', e.target.value)}
-                      className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                      className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
                     />
                     <span className="text-slate-400">—</span>
                     <input
                       type="time"
                       value={h.end}
                       onChange={e => updateHour(i, 'end', e.target.value)}
-                      className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+                      className="rounded-lg border border-slate-300 px-3 py-1.5 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
                     />
                   </div>
                 ) : (
@@ -702,7 +702,7 @@ export default function AdminSettingsPage() {
                 type="checkbox"
                 checked={emailNotifications}
                 onChange={e => setEmailNotifications(e.target.checked)}
-                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
+                className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
               />
               <div>
                 <span className="text-sm font-medium">התראות אימייל</span>
@@ -714,7 +714,7 @@ export default function AdminSettingsPage() {
                 type="checkbox"
                 checked={autoReminder24h}
                 onChange={e => setAutoReminder24h(e.target.checked)}
-                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
+                className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
               />
               <div>
                 <span className="text-sm font-medium">תזכורת 24 שעות לפני תור</span>
@@ -726,7 +726,7 @@ export default function AdminSettingsPage() {
                 type="checkbox"
                 checked={autoReminder1h}
                 onChange={e => setAutoReminder1h(e.target.checked)}
-                className="rounded border-slate-300 text-blue-600 focus:ring-blue-500 h-4 w-4"
+                className="rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
               />
               <div>
                 <span className="text-sm font-medium">תזכורת שעה לפני תור</span>

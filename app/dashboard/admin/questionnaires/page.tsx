@@ -299,7 +299,7 @@ export default function AdminQuestionnairesPage() {
                   {q.specialties && q.specialties.length > 0 && (
                     <div className="flex flex-wrap gap-1 mb-4">
                       {q.specialties.map(s => (
-                        <span key={s} className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
+                        <span key={s} className="text-xs bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full">
                           {SPECIALTIES.find(sp => sp.id === s)?.label || s}
                         </span>
                       ))}
@@ -369,7 +369,7 @@ export default function AdminQuestionnairesPage() {
               {SPECIALTIES.map(s => (
                 <button key={s.id} type="button" onClick={() => setSpecialties(prev => prev.includes(s.id) ? prev.filter(x => x !== s.id) : [...prev, s.id])}
                   className={cn('px-3 py-1.5 rounded-full text-xs font-medium transition-colors border',
-                    specialties.includes(s.id) ? 'bg-blue-600 text-white border-blue-600' : 'bg-white text-slate-600 border-slate-200 hover:border-blue-400')}>
+                    specialties.includes(s.id) ? 'bg-teal-600 text-white border-teal-600' : 'bg-white text-slate-600 border-slate-200 hover:border-teal-400')}>
                   {s.label}
                 </button>
               ))}
@@ -378,7 +378,7 @@ export default function AdminQuestionnairesPage() {
 
           <label className="flex items-center gap-2 cursor-pointer">
             <input type="checkbox" checked={isPublished} onChange={e => setIsPublished(e.target.checked)}
-              className="w-4 h-4 rounded border-slate-300 text-blue-600 focus:ring-blue-500" />
+              className="w-4 h-4 rounded border-slate-300 text-teal-600 focus:ring-teal-500" />
             <span className="text-sm font-medium">פרסם שאלון (גלוי למטופלים)</span>
           </label>
         </CardContent>
@@ -400,7 +400,7 @@ export default function AdminQuestionnairesPage() {
               onDragStart={() => handleDragStart(idx)}
               onDragOver={e => handleDragOver(e, idx)}
               onDrop={handleDrop}
-              className="border-2 border-slate-200 rounded-xl p-4 bg-white hover:border-blue-300 transition-colors group"
+              className="border-2 border-slate-200 rounded-xl p-4 bg-white hover:border-teal-300 transition-colors group"
             >
               {/* Question header */}
               <div className="flex items-center gap-2 mb-3">
@@ -425,7 +425,7 @@ export default function AdminQuestionnairesPage() {
                 <div className="flex-1" />
                 <label className="flex items-center gap-1.5 text-xs text-slate-500 cursor-pointer">
                   <input type="checkbox" checked={q.required} onChange={e => updateQuestion(q.id, { required: e.target.checked })}
-                    className="w-3.5 h-3.5 rounded border-slate-300 text-blue-600" />
+                    className="w-3.5 h-3.5 rounded border-slate-300 text-teal-600" />
                   חובה
                 </label>
                 {/* Move buttons */}
@@ -665,11 +665,11 @@ function QuestionRenderer({ question, index, value, onChange }: {
           {(q.options || []).filter(o => o.trim()).map((opt, i) => (
             <label key={i} className={cn(
               'flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-colors',
-              value === opt ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-blue-300'
+              value === opt ? 'border-teal-500 bg-teal-50' : 'border-slate-200 hover:border-teal-300'
             )}>
               <input type="radio" name={`q_${q.id}`} value={opt} checked={value === opt}
                 onChange={() => onChange(opt)}
-                className="w-4 h-4 text-blue-600" />
+                className="w-4 h-4 text-teal-600" />
               <span className="text-sm">{opt}</span>
             </label>
           ))}
@@ -683,14 +683,14 @@ function QuestionRenderer({ question, index, value, onChange }: {
             return (
               <label key={i} className={cn(
                 'flex items-center gap-3 p-3 rounded-xl border-2 cursor-pointer transition-colors',
-                selected ? 'border-blue-500 bg-blue-50' : 'border-slate-200 hover:border-blue-300'
+                selected ? 'border-teal-500 bg-teal-50' : 'border-slate-200 hover:border-teal-300'
               )}>
                 <input type="checkbox" value={opt} checked={selected}
                   onChange={e => {
                     const prev = Array.isArray(value) ? value : []
                     onChange(e.target.checked ? [...prev, opt] : prev.filter(v => v !== opt))
                   }}
-                  className="w-4 h-4 rounded text-blue-600" />
+                  className="w-4 h-4 rounded text-teal-600" />
                 <span className="text-sm">{opt}</span>
               </label>
             )
@@ -706,7 +706,7 @@ function QuestionRenderer({ question, index, value, onChange }: {
               <button key={i} type="button" onClick={() => onChange(val)}
                 className={cn(
                   'w-10 h-10 rounded-full text-sm font-bold transition-colors',
-                  value === val ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-blue-100'
+                  value === val ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-teal-100'
                 )}>
                 {val}
               </button>
@@ -731,7 +731,7 @@ function QuestionRenderer({ question, index, value, onChange }: {
       )}
 
       {q.type === 'image' && (
-        <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-blue-400 transition-colors">
+        <div className="border-2 border-dashed border-slate-300 rounded-xl p-6 text-center hover:border-teal-400 transition-colors">
           <svg className="w-8 h-8 text-slate-400 mx-auto mb-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"><path d="M23 19a2 2 0 01-2 2H3a2 2 0 01-2-2V8a2 2 0 012-2h4l2-3h6l2 3h4a2 2 0 012 2z" /><circle cx="12" cy="13" r="4" /></svg>
           <p className="text-sm text-slate-500">לחץ להעלאת תמונה</p>
         </div>

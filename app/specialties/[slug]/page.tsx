@@ -300,7 +300,7 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-2xl font-black text-blue-600">
+          <Link href="/" className="flex items-center gap-2 text-2xl font-black text-teal-600">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/canna-mark.png" alt="" className="w-9 h-9 object-contain" />CANNA
           </Link>
@@ -309,7 +309,7 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
             <Link href="/doctors" className="text-sm text-slate-600 hover:text-slate-900">הרופאים שלנו</Link>
             <Link href="/blog" className="text-sm text-slate-600 hover:text-slate-900">בלוג</Link>
             <Link href="/auth/login" className="text-sm text-slate-600 hover:text-slate-900">התחברות</Link>
-            <Link href="/auth/register" className="bg-blue-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-blue-700 transition-colors">הרשמה חינם</Link>
+            <Link href="/auth/register" className="bg-teal-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors">הרשמה חינם</Link>
           </div>
         </div>
       </nav>
@@ -324,17 +324,17 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
       </div>
 
       {/* Hero */}
-      <section className="py-16 px-4 bg-gradient-to-b from-blue-50 to-white">
+      <section className="py-16 px-4 bg-gradient-to-b from-teal-50 to-white">
         <div className="max-w-4xl mx-auto text-center">
           <div className="text-6xl mb-6">{content.icon}</div>
           <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">
             {content.title}
             <br />
-            <span className="text-blue-600">ייעוץ אונליין</span>
+            <span className="text-teal-600">ייעוץ אונליין</span>
           </h1>
           <p className="text-lg text-slate-500 max-w-2xl mx-auto">{content.heroDescription}</p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center mt-8">
-            <Link href="/auth/register" className="bg-blue-600 text-white px-8 py-4 rounded-xl text-lg font-bold hover:bg-blue-700 transition-all shadow-lg shadow-blue-600/25">
+            <Link href="/auth/register" className="bg-teal-600 text-white px-8 py-4 rounded-xl text-lg font-bold hover:bg-teal-700 transition-all shadow-lg shadow-teal-600/25">
               קבע תור עכשיו
             </Link>
             <Link href="/doctors" className="border-2 border-slate-300 text-slate-700 px-8 py-4 rounded-xl text-lg font-bold hover:border-slate-400 transition-colors">
@@ -372,8 +372,8 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
           <h2 className="text-3xl font-black mb-8 text-center">מתי כדאי להתייעץ?</h2>
           <div className="space-y-4 max-w-2xl mx-auto">
             {content.whenToConsult.map((item, i) => (
-              <div key={i} className="flex items-start gap-3 bg-blue-50 rounded-xl p-4">
-                <span className="text-blue-600 font-bold text-lg mt-0.5">✓</span>
+              <div key={i} className="flex items-start gap-3 bg-teal-50 rounded-xl p-4">
+                <span className="text-teal-600 font-bold text-lg mt-0.5">✓</span>
                 <p className="text-slate-700">{item}</p>
               </div>
             ))}
@@ -390,7 +390,7 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
               {typedDoctors.map(doc => (
                 <Link key={doc.id} href={`/doctors/${doc.id}`} className="block bg-white rounded-2xl border border-slate-100 shadow-sm p-6 hover:shadow-md transition-shadow">
                   <div className="flex items-center gap-4 mb-4">
-                    <div className="w-14 h-14 rounded-full bg-blue-100 flex items-center justify-center text-xl font-bold text-blue-700 shrink-0">
+                    <div className="w-14 h-14 rounded-full bg-teal-100 flex items-center justify-center text-xl font-bold text-teal-700 shrink-0">
                       {doc.first_name.charAt(0)}{doc.last_name.charAt(0)}
                     </div>
                     <div>
@@ -415,7 +415,7 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
               ))}
             </div>
             <div className="text-center mt-8">
-              <Link href="/auth/register" className="bg-blue-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-blue-700 transition-colors inline-block">
+              <Link href="/auth/register" className="bg-teal-600 text-white px-8 py-3 rounded-xl font-bold hover:bg-teal-700 transition-colors inline-block">
                 קבע תור עכשיו
               </Link>
             </div>
@@ -435,7 +435,7 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
               { num: '4', title: 'ייעוץ בוידאו', desc: 'שוחח עם הרופא בשיחת וידאו' },
             ].map(s => (
               <div key={s.num} className="text-center">
-                <div className="w-12 h-12 rounded-full bg-blue-600 text-white text-xl font-bold flex items-center justify-center mx-auto">{s.num}</div>
+                <div className="w-12 h-12 rounded-full bg-teal-600 text-white text-xl font-bold flex items-center justify-center mx-auto">{s.num}</div>
                 <h3 className="font-bold mt-3">{s.title}</h3>
                 <p className="text-slate-500 text-sm mt-1">{s.desc}</p>
               </div>
@@ -453,8 +453,8 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
               <Link key={s.id} href={`/specialties/${s.id}`}
                 className={`px-4 py-2 rounded-full text-sm font-medium transition-colors ${
                   s.id === slug
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-white text-slate-700 border border-slate-200 hover:border-blue-400 hover:text-blue-600'
+                    ? 'bg-teal-600 text-white'
+                    : 'bg-white text-slate-700 border border-slate-200 hover:border-teal-400 hover:text-teal-600'
                 }`}>
                 {s.label}
               </Link>

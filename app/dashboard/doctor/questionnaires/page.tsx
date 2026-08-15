@@ -143,7 +143,7 @@ export default function DoctorQuestionnairesPage() {
         {patient && (
           <Card>
             <CardContent className="p-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-700">
+              <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-sm font-bold text-teal-700">
                 {patient.first_name?.charAt(0)}{patient.last_name?.charAt(0)}
               </div>
               <div>
@@ -202,7 +202,7 @@ export default function DoctorQuestionnairesPage() {
                               return (
                                 <div key={i} className={cn(
                                   'w-8 h-8 rounded-full flex items-center justify-center text-xs font-bold',
-                                  isSelected ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-400'
+                                  isSelected ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-400'
                                 )}>{val}</div>
                               )
                             })}
@@ -300,7 +300,7 @@ export default function DoctorQuestionnairesPage() {
 
       {/* Copy message */}
       {copyMessage && (
-        <div className="bg-blue-50 border border-blue-200 text-blue-700 p-3 rounded-lg text-sm" role="status">
+        <div className="bg-teal-50 border border-teal-200 text-teal-700 p-3 rounded-lg text-sm" role="status">
           {copyMessage}
         </div>
       )}
@@ -309,13 +309,13 @@ export default function DoctorQuestionnairesPage() {
       <div className="flex gap-2 border-b" role="tablist">
         <button onClick={() => setTab('my')} role="tab" aria-selected={tab === 'my'} className={cn(
           'px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px',
-          tab === 'my' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'
+          tab === 'my' ? 'border-teal-600 text-teal-600' : 'border-transparent text-slate-500 hover:text-slate-700'
         )}>
           שאלונים ({myQuestionnaires.length})
         </button>
         <button onClick={() => setTab('responses')} role="tab" aria-selected={tab === 'responses'} className={cn(
           'px-4 py-2 text-sm font-medium border-b-2 transition-colors -mb-px',
-          tab === 'responses' ? 'border-blue-600 text-blue-600' : 'border-transparent text-slate-500 hover:text-slate-700'
+          tab === 'responses' ? 'border-teal-600 text-teal-600' : 'border-transparent text-slate-500 hover:text-slate-700'
         )}>
           תשובות אחרונות ({responses.length})
         </button>
@@ -356,7 +356,7 @@ export default function DoctorQuestionnairesPage() {
                       {q.specialties && q.specialties.length > 0 && (
                         <div className="flex flex-wrap gap-1 mb-3">
                           {q.specialties.map(s => (
-                            <span key={s} className="text-xs bg-blue-50 text-blue-700 px-2 py-0.5 rounded-full">
+                            <span key={s} className="text-xs bg-teal-50 text-teal-700 px-2 py-0.5 rounded-full">
                               {SPECIALTIES.find(sp => sp.id === s)?.label || s}
                             </span>
                           ))}

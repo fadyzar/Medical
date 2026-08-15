@@ -37,7 +37,7 @@ function TagInput({ label, tags, onChange, placeholder }: {
           onChange={e => setInput(e.target.value)}
           onKeyDown={e => { if (e.key === 'Enter') { e.preventDefault(); addTag() } }}
           placeholder={placeholder}
-          className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+          className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
         />
         <Button variant="outline" size="sm" type="button" onClick={addTag} disabled={!input.trim()}>
           הוסף
@@ -46,12 +46,12 @@ function TagInput({ label, tags, onChange, placeholder }: {
       {tags.length > 0 && (
         <div className="flex flex-wrap gap-2 mt-2">
           {tags.map((tag, i) => (
-            <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-blue-50 text-blue-700 text-sm">
+            <span key={i} className="inline-flex items-center gap-1 px-2.5 py-1 rounded-full bg-teal-50 text-teal-700 text-sm">
               {tag}
               <button
                 type="button"
                 onClick={() => onChange(tags.filter((_, idx) => idx !== i))}
-                className="hover:text-red-600 text-blue-400 font-bold mr-0.5"
+                className="hover:text-red-600 text-teal-400 font-bold mr-0.5"
                 aria-label={`הסר ${tag}`}
               >
                 x
@@ -380,7 +380,7 @@ export default function PatientProfilePage() {
               </svg>
               <span className={cn(
                 'absolute inset-0 flex items-center justify-center text-sm font-bold',
-                percent === 100 ? 'text-green-600' : 'text-blue-600'
+                percent === 100 ? 'text-green-600' : 'text-teal-600'
               )}>
                 {percent}%
               </span>
@@ -400,7 +400,7 @@ export default function PatientProfilePage() {
                 <div
                   className={cn(
                     'h-full rounded-full transition-all duration-500',
-                    percent === 100 ? 'bg-green-500' : 'bg-blue-500'
+                    percent === 100 ? 'bg-green-500' : 'bg-teal-500'
                   )}
                   style={{ width: `${percent}%` }}
                 />
@@ -423,7 +423,7 @@ export default function PatientProfilePage() {
                   className="w-20 h-20 rounded-full object-cover border-2 border-slate-200"
                 />
               ) : (
-                <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-2xl font-bold text-blue-700 border-2 border-slate-200">
+                <div className="w-20 h-20 rounded-full bg-teal-100 flex items-center justify-center text-2xl font-bold text-teal-700 border-2 border-slate-200">
                   {getInitials(profile.first_name, profile.last_name)}
                 </div>
               )}
@@ -523,7 +523,7 @@ export default function PatientProfilePage() {
                   className={cn(
                     'px-4 py-2 rounded-lg border text-sm font-medium transition-colors',
                     form.gender === option.value
-                      ? 'border-blue-500 bg-blue-50 text-blue-700'
+                      ? 'border-teal-500 bg-teal-50 text-teal-700'
                       : 'border-slate-300 text-slate-600 hover:bg-slate-50'
                   )}
                 >

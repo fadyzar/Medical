@@ -41,7 +41,7 @@ export default async function InvitePage({ params }: Props) {
             </svg>
           </div>
           <p className="text-slate-600 mb-6">קישור ההזמנה לא תקף. ייתכן שפג תוקפו או שהוא שגוי.</p>
-          <Link href="/auth/login" className="text-blue-600 font-semibold hover:underline text-sm">
+          <Link href="/auth/login" className="text-teal-600 font-semibold hover:underline text-sm">
             חזור לדף הכניסה
           </Link>
         </div>
@@ -61,7 +61,7 @@ export default async function InvitePage({ params }: Props) {
             </svg>
           </div>
           <p className="text-slate-600 mb-6">הזמנה זו כבר נוצלה. אם נתקלת בבעיה, פנה למנהל המרפאה.</p>
-          <Link href="/auth/login" className="text-blue-600 font-semibold hover:underline text-sm">
+          <Link href="/auth/login" className="text-teal-600 font-semibold hover:underline text-sm">
             כניסה לחשבון קיים
           </Link>
         </div>
@@ -80,7 +80,7 @@ export default async function InvitePage({ params }: Props) {
             </svg>
           </div>
           <p className="text-slate-600 mb-6">תוקף ההזמנה פג. בקש ממנהל המרפאה לשלוח הזמנה חדשה.</p>
-          <Link href="/auth/login" className="text-blue-600 font-semibold hover:underline text-sm">
+          <Link href="/auth/login" className="text-teal-600 font-semibold hover:underline text-sm">
             חזור לדף הכניסה
           </Link>
         </div>

@@ -20,7 +20,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           ref={ref}
           disabled={disabled || loading}
           className={cn(base, s[size], 'text-white shadow-sm brand-btn-primary', className)}
-          style={{ backgroundColor: 'var(--brand-primary, #2563eb)', ...style }}
+          style={{ backgroundColor: 'var(--brand-primary, #2FA9A2)', ...style }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.filter = 'brightness(0.88)' }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.filter = '' }}
           {...props}
@@ -37,7 +37,7 @@ export const Button = forwardRef<HTMLButtonElement, ButtonProps>(
           ref={ref}
           disabled={disabled || loading}
           className={cn(base, s[size], 'text-white shadow-sm', className)}
-          style={{ backgroundColor: 'var(--brand-secondary, #6b7280)', ...style }}
+          style={{ backgroundColor: 'var(--brand-secondary, #157F73)', ...style }}
           onMouseEnter={e => { (e.currentTarget as HTMLElement).style.filter = 'brightness(0.88)' }}
           onMouseLeave={e => { (e.currentTarget as HTMLElement).style.filter = '' }}
           {...props}
@@ -78,7 +78,7 @@ export const Input = forwardRef<HTMLInputElement, InputProps>(
         <input ref={ref} id={inputId} className={cn(
           'w-full rounded-lg border px-3 py-2.5 text-sm transition-colors',
           'placeholder:text-slate-400',
-          'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none',
+          'focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none',
           error ? 'border-red-300 bg-red-50' : 'border-slate-200 bg-white',
           className
         )} aria-invalid={!!error} aria-describedby={error ? `${inputId}-error` : undefined} {...props} />
@@ -103,7 +103,7 @@ export const Textarea = forwardRef<HTMLTextAreaElement, TextareaProps>(
         {label && <label htmlFor={inputId} className="block text-sm font-medium text-slate-700">{label}</label>}
         <textarea ref={ref} id={inputId} className={cn(
           'w-full rounded-lg border px-3 py-2.5 text-sm transition-colors resize-y min-h-[80px]',
-          'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none',
+          'focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none',
           error ? 'border-red-300 bg-red-50' : 'border-slate-200 bg-white',
           className
         )} aria-invalid={!!error} aria-describedby={error ? `${inputId}-error` : undefined} {...props} />
@@ -129,7 +129,7 @@ export const Select = forwardRef<HTMLSelectElement, SelectProps>(
         {label && <label htmlFor={inputId} className="block text-sm font-medium text-slate-700">{label}</label>}
         <select ref={ref} id={inputId} className={cn(
           'w-full rounded-lg border px-3 py-2.5 text-sm bg-white transition-colors',
-          'focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none',
+          'focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none',
           error ? 'border-red-300' : 'border-slate-200',
           className
         )} aria-invalid={!!error} aria-describedby={error ? `${inputId}-error` : undefined} {...props}>
@@ -164,7 +164,7 @@ export function Badge({ children, variant = 'default', className }: { children: 
     success: 'bg-emerald-50 text-emerald-700',
     warning: 'bg-amber-50 text-amber-700',
     danger: 'bg-rose-50 text-rose-700',
-    info: 'bg-blue-50 text-blue-700',
+    info: 'bg-teal-50 text-teal-700',
   }
   return <span className={cn('inline-flex items-center px-2.5 py-1 rounded-full text-xs font-semibold', v[variant], className)}>{children}</span>
 }
@@ -173,7 +173,7 @@ export function Badge({ children, variant = 'default', className }: { children: 
 export function Spinner({ size = 'md', className }: { size?: 'sm' | 'md' | 'lg'; className?: string }) {
   const s = { sm: 'h-4 w-4', md: 'h-6 w-6', lg: 'h-10 w-10' }
   return (
-    <div className={cn('animate-spin rounded-full border-2 border-slate-200 border-t-blue-600', s[size], className)} role="status" aria-label="טוען">
+    <div className={cn('animate-spin rounded-full border-2 border-slate-200 border-t-teal-600', s[size], className)} role="status" aria-label="טוען">
       <span className="sr-only">טוען...</span>
     </div>
   )
@@ -241,8 +241,8 @@ export function EmptyState({ icon, title, description, action }: { icon?: ReactN
 export { Breadcrumb } from './Breadcrumb'
 
 export function StatCard({ label, value, icon, color = 'blue' }: { label: string; value: string | number; icon?: ReactNode; color?: 'blue' | 'green' | 'orange' | 'red' | 'purple' }) {
-  const textColors = { blue: 'text-blue-600', green: 'text-emerald-600', orange: 'text-amber-600', red: 'text-rose-600', purple: 'text-violet-600' }
-  const bgColors = { blue: 'bg-blue-50 ring-blue-100', green: 'bg-emerald-50 ring-emerald-100', orange: 'bg-amber-50 ring-amber-100', red: 'bg-rose-50 ring-rose-100', purple: 'bg-violet-50 ring-violet-100' }
+  const textColors = { blue: 'text-teal-600', green: 'text-emerald-600', orange: 'text-amber-600', red: 'text-rose-600', purple: 'text-violet-600' }
+  const bgColors = { blue: 'bg-teal-50 ring-teal-100', green: 'bg-emerald-50 ring-emerald-100', orange: 'bg-amber-50 ring-amber-100', red: 'bg-rose-50 ring-rose-100', purple: 'bg-violet-50 ring-violet-100' }
   return (
     <div className="rounded-2xl bg-white border border-slate-100 p-5 shadow-sm hover:shadow-md hover:border-slate-200 transition-all">
       <div className="flex items-start justify-between gap-3">

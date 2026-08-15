@@ -21,7 +21,7 @@ export default function ContactPage() {
       {/* Nav */}
       <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
         <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-2xl font-black text-blue-600">
+          <Link href="/" className="flex items-center gap-2 text-2xl font-black text-teal-600">
             {/* eslint-disable-next-line @next/next/no-img-element */}
             <img src="/canna-mark.png" alt="" className="w-9 h-9 object-contain" />CANNA
           </Link>
@@ -34,7 +34,7 @@ export default function ContactPage() {
         </div>
       </nav>
 
-      <section className="py-20 px-4 bg-gradient-to-b from-blue-50 to-white">
+      <section className="py-20 px-4 bg-gradient-to-b from-teal-50 to-white">
         <div className="max-w-2xl mx-auto text-center">
           <h1 className="text-4xl md:text-5xl font-black text-slate-900 mb-4">דברו איתנו</h1>
           <p className="text-lg text-slate-500">
@@ -47,7 +47,7 @@ export default function ContactPage() {
         <div className="max-w-2xl mx-auto grid gap-4">
           {CONTACTS.map(c => (
             <a key={c.label} href={c.href}
-              className="flex items-center gap-4 rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md hover:border-blue-200 transition-all">
+              className="flex items-center gap-4 rounded-2xl border border-slate-100 shadow-sm p-5 hover:shadow-md hover:border-teal-200 transition-all">
               <span className="text-3xl shrink-0">{c.icon}</span>
               <div>
                 <p className="text-xs text-slate-400">{c.label}</p>
@@ -57,7 +57,7 @@ export default function ContactPage() {
           ))}
         </div>
         <div className="max-w-2xl mx-auto text-center mt-12">
-          <Link href="/for-clinics" className="bg-blue-600 text-white px-8 py-4 rounded-xl text-lg font-bold hover:bg-blue-700 transition-colors inline-block">
+          <Link href="/for-clinics" className="bg-teal-600 text-white px-8 py-4 rounded-xl text-lg font-bold hover:bg-teal-700 transition-colors inline-block">
             למידע על תוכניות ומחירים
           </Link>
         </div>

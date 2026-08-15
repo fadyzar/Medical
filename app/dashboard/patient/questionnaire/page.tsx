@@ -257,10 +257,10 @@ export default function PatientQuestionnairePage() {
       <div className="space-y-2">
         <div className="flex items-center justify-between text-sm">
           <span className="text-slate-500">התקדמות</span>
-          <span className="font-medium text-blue-600">{progress}%</span>
+          <span className="font-medium text-teal-600">{progress}%</span>
         </div>
         <div className="w-full h-2 bg-slate-200 rounded-full overflow-hidden">
-          <div className="h-full bg-blue-600 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
+          <div className="h-full bg-teal-600 rounded-full transition-all duration-300" style={{ width: `${progress}%` }} />
         </div>
         {totalSteps > 1 && (
           <p className="text-xs text-slate-400 text-center">
@@ -300,14 +300,14 @@ export default function PatientQuestionnairePage() {
                         className={cn(
                           'flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all w-full text-right',
                           answers[q.id] === opt
-                            ? 'border-blue-500 bg-blue-50 shadow-sm'
-                            : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
+                            ? 'border-teal-500 bg-teal-50 shadow-sm'
+                            : 'border-slate-200 hover:border-teal-300 hover:bg-slate-50'
                         )}>
                         <div className={cn(
                           'w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0',
-                          answers[q.id] === opt ? 'border-blue-600' : 'border-slate-300'
+                          answers[q.id] === opt ? 'border-teal-600' : 'border-slate-300'
                         )}>
-                          {answers[q.id] === opt && <div className="w-2.5 h-2.5 rounded-full bg-blue-600" />}
+                          {answers[q.id] === opt && <div className="w-2.5 h-2.5 rounded-full bg-teal-600" />}
                         </div>
                         <span className="text-sm">{opt}</span>
                       </button>
@@ -333,12 +333,12 @@ export default function PatientQuestionnairePage() {
                           className={cn(
                             'flex items-center gap-3 p-4 rounded-xl border-2 cursor-pointer transition-all w-full text-right',
                             selected
-                              ? 'border-blue-500 bg-blue-50 shadow-sm'
-                              : 'border-slate-200 hover:border-blue-300 hover:bg-slate-50'
+                              ? 'border-teal-500 bg-teal-50 shadow-sm'
+                              : 'border-slate-200 hover:border-teal-300 hover:bg-slate-50'
                           )}>
                           <div className={cn(
                             'w-5 h-5 rounded border-2 flex items-center justify-center shrink-0',
-                            selected ? 'border-blue-600 bg-blue-600' : 'border-slate-300'
+                            selected ? 'border-teal-600 bg-teal-600' : 'border-slate-300'
                           )}>
                             {selected && (
                               <svg className="w-3 h-3 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="4" strokeLinecap="round" strokeLinejoin="round">
@@ -365,8 +365,8 @@ export default function PatientQuestionnairePage() {
                             className={cn(
                               'w-11 h-11 rounded-full text-sm font-bold transition-all',
                               isSelected
-                                ? 'bg-blue-600 text-white shadow-md scale-110'
-                                : 'bg-slate-100 text-slate-600 hover:bg-blue-100 hover:text-blue-700'
+                                ? 'bg-teal-600 text-white shadow-md scale-110'
+                                : 'bg-slate-100 text-slate-600 hover:bg-teal-100 hover:text-teal-700'
                             )}>
                             {val}
                           </button>
@@ -402,7 +402,7 @@ export default function PatientQuestionnairePage() {
 
                 {/* Image upload */}
                 {q.type === 'image' && (
-                  <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-blue-400 transition-colors cursor-pointer">
+                  <div className="border-2 border-dashed border-slate-300 rounded-xl p-8 text-center hover:border-teal-400 transition-colors cursor-pointer">
                     <input type="file" accept="image/*" className="hidden" id={`img_${q.id}`}
                       onChange={async e => {
                         const file = e.target.files?.[0]

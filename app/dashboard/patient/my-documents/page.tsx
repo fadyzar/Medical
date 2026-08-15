@@ -35,7 +35,7 @@ function getCategoryKey(doc: Document): CategoryKey {
 function fileIconColor(fileType: string) {
   if (fileType?.startsWith('image/')) return { bg: 'bg-purple-50', text: 'text-purple-600' }
   if (fileType === 'application/pdf') return { bg: 'bg-red-50', text: 'text-red-600' }
-  return { bg: 'bg-blue-50', text: 'text-blue-600' }
+  return { bg: 'bg-teal-50', text: 'text-teal-600' }
 }
 
 function fileExt(fileName: string): string {
@@ -203,7 +203,7 @@ export default function MyDocumentsPage() {
         <div
           className={cn(
             'rounded-2xl border-2 border-dashed p-12 text-center transition-all cursor-pointer',
-            isDragging ? 'border-blue-500 bg-blue-50' : 'border-slate-300 bg-slate-50 hover:border-blue-400 hover:bg-blue-50/40'
+            isDragging ? 'border-teal-500 bg-teal-50' : 'border-slate-300 bg-slate-50 hover:border-teal-400 hover:bg-teal-50/40'
           )}
           onClick={() => document.getElementById('doc-upload')?.click()}
           onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
@@ -218,7 +218,7 @@ export default function MyDocumentsPage() {
           <h3 className="font-bold text-slate-700 text-lg">גרור מסמכים לכאן</h3>
           <p className="text-sm text-slate-400 mt-1">או לחץ לבחירת קבצים</p>
           <p className="text-xs text-slate-400 mt-3">PDF, תמונות, Word · עד 10MB לקובץ</p>
-          <p className="text-xs text-blue-500 mt-2 font-medium">🔒 כל המסמכים מוצפנים ומאובטחים</p>
+          <p className="text-xs text-teal-500 mt-2 font-medium">🔒 כל המסמכים מוצפנים ומאובטחים</p>
         </div>
       ) : (
         <>
@@ -234,7 +234,7 @@ export default function MyDocumentsPage() {
               placeholder="חיפוש לפי שם קובץ..."
               value={search}
               onChange={e => setSearch(e.target.value)}
-              className="w-full rounded-xl border border-slate-200 bg-white py-3 pr-10 pl-4 text-sm shadow-sm placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none"
+              className="w-full rounded-xl border border-slate-200 bg-white py-3 pr-10 pl-4 text-sm shadow-sm placeholder:text-slate-400 focus:border-teal-400 focus:ring-2 focus:ring-teal-100 focus:outline-none"
             />
           </div>
 
@@ -250,8 +250,8 @@ export default function MyDocumentsPage() {
                   className={cn(
                     'flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all',
                     active
-                      ? 'bg-blue-600 text-white shadow-sm'
-                      : 'bg-white text-slate-600 border border-slate-200 hover:border-blue-300 hover:text-blue-600'
+                      ? 'bg-teal-600 text-white shadow-sm'
+                      : 'bg-white text-slate-600 border border-slate-200 hover:border-teal-300 hover:text-teal-600'
                   )}
                 >
                   <span>{cat.icon}</span>
@@ -289,7 +289,7 @@ export default function MyDocumentsPage() {
                   <div
                     className={cn(
                       'text-xs px-3 py-1.5 rounded-lg border transition-all cursor-pointer',
-                      isDragging ? 'border-blue-400 bg-blue-50 text-blue-700' : 'border-dashed border-slate-300 text-slate-400 hover:border-blue-300'
+                      isDragging ? 'border-teal-400 bg-teal-50 text-teal-700' : 'border-dashed border-slate-300 text-slate-400 hover:border-teal-300'
                     )}
                     onClick={() => document.getElementById('doc-upload')?.click()}
                     onDragOver={e => { e.preventDefault(); setIsDragging(true) }}
@@ -323,7 +323,7 @@ export default function MyDocumentsPage() {
                           {doc.category && (
                             <>
                               <span className="text-slate-200">·</span>
-                              <span className="text-xs text-blue-600 font-medium">{doc.category}</span>
+                              <span className="text-xs text-teal-600 font-medium">{doc.category}</span>
                             </>
                           )}
                         </div>

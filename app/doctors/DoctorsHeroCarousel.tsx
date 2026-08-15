@@ -6,7 +6,7 @@ import Link from 'next/link'
 /* Illustrative specialty cards for the hero — no fabricated doctors, names,
    ratings, reviews or prices. Real doctors are listed in the grid below. */
 const SPECIALTY_CARDS = [
-  { icon: '🔬', spec: 'עור ומין', tag: 'ייעוץ בוידאו', from: '#3b82f6', to: '#6366f1' },
+  { icon: '🔬', spec: 'עור ומין', tag: 'ייעוץ בוידאו', from: '#2FA9A2', to: '#48A28C' },
   { icon: '❤️', spec: 'קרדיולוגיה', tag: 'ייעוץ בוידאו', from: '#10b981', to: '#0891b2' },
   { icon: '🦴', spec: 'אורתופדיה', tag: 'ייעוץ בוידאו', from: '#8b5cf6', to: '#ec4899' },
 ]
@@ -72,7 +72,7 @@ export default function DoctorsHeroCarousel() {
 
       {/* Floating orbs */}
       <div className="pointer-events-none absolute top-24 left-[10%] w-72 h-72 rounded-full blur-3xl opacity-20"
-        style={{ background: 'radial-gradient(circle, #3b82f6, transparent)' }} />
+        style={{ background: 'radial-gradient(circle, #2FA9A2, transparent)' }} />
       <div className="pointer-events-none absolute bottom-24 right-[15%] w-56 h-56 rounded-full blur-3xl opacity-15"
         style={{ background: 'radial-gradient(circle, #8b5cf6, transparent)' }} />
 
@@ -108,7 +108,7 @@ export default function DoctorsHeroCarousel() {
             הרופא שלך<br />
             <span
               className="bg-clip-text text-transparent"
-              style={{ backgroundImage: 'linear-gradient(90deg, #60a5fa, #818cf8, #a78bfa)' }}>
+              style={{ backgroundImage: 'linear-gradient(90deg, #5EC8C0, #48A28C, #a78bfa)' }}>
               בשיחת וידאו
             </span>
           </h1>
@@ -125,7 +125,7 @@ export default function DoctorsHeroCarousel() {
               href="/auth/register"
               className="inline-flex items-center gap-2 rounded-2xl px-8 py-4 text-base font-black text-white transition-all hover:scale-105"
               style={{
-                background: 'linear-gradient(135deg, #2563eb, #4f46e5)',
+                background: 'linear-gradient(135deg, #2FA9A2, #157F73)',
                 boxShadow: '0 8px 32px rgba(59,130,246,0.4)',
               }}
             >
@@ -244,7 +244,7 @@ export default function DoctorsHeroCarousel() {
                     >
                       ● ייעוץ אונליין
                     </span>
-                    <span className="text-xs font-bold" style={{ color: '#60a5fa' }}>
+                    <span className="text-xs font-bold" style={{ color: '#5EC8C0' }}>
                       {doc.tag}
                     </span>
                   </div>
@@ -275,7 +275,7 @@ export default function DoctorsHeroCarousel() {
                     <a
                       href="#doctors-grid"
                       className="text-xs font-bold px-4 py-2 rounded-xl text-white transition-all hover:scale-105"
-                      style={{ background: 'linear-gradient(135deg, #2563eb, #4f46e5)' }}
+                      style={{ background: 'linear-gradient(135deg, #2FA9A2, #157F73)' }}
                     >
                       קבע תור
                     </a>
@@ -322,7 +322,7 @@ export default function DoctorsHeroCarousel() {
                 style={{
                   width: active === i ? '28px' : '8px',
                   height: '8px',
-                  background: active === i ? '#3b82f6' : 'rgba(255,255,255,0.2)',
+                  background: active === i ? '#2FA9A2' : 'rgba(255,255,255,0.2)',
                 }}
               />
             ))}
@@ -336,7 +336,7 @@ export default function DoctorsHeroCarousel() {
         <div className="w-5 h-8 rounded-full flex items-start justify-center pt-1.5"
           style={{ border: '1.5px solid rgba(255,255,255,0.15)' }}>
           <div className="w-1 h-2 rounded-full animate-bounce"
-            style={{ background: '#60a5fa' }} />
+            style={{ background: '#5EC8C0' }} />
         </div>
       </div>
     </section>

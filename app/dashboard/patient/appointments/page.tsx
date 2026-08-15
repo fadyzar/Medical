@@ -36,7 +36,7 @@ function statusBadgeVariant(s: string): 'success' | 'danger' | 'warning' | 'info
 
 function statusBar(s: string) {
   if (s === 'completed') return 'bg-emerald-400'
-  if (s === 'in_progress' || s === 'ready') return 'bg-blue-500'
+  if (s === 'in_progress' || s === 'ready') return 'bg-teal-500'
   if (s === 'pending') return 'bg-amber-400'
   if (CANCELLED_STATUSES.includes(s)) return 'bg-red-400'
   return 'bg-indigo-400'
@@ -51,7 +51,7 @@ function DoctorAvatar({ doc }: { doc: AptWithDoctor['doctor'] }) {
     <img src={doc.avatar_url} alt="" className="w-10 h-10 rounded-full object-cover shrink-0" />
   )
   return (
-    <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-sm font-bold text-blue-700 shrink-0">
+    <div className="w-10 h-10 rounded-full bg-teal-100 flex items-center justify-center text-sm font-bold text-teal-700 shrink-0">
       {getInitials(doc.first_name, doc.last_name)}
     </div>
   )
@@ -261,7 +261,7 @@ export default function PatientAppointmentsPage() {
           placeholder="חיפוש לפי תלונה או שם רופא..."
           value={search}
           onChange={e => setSearch(e.target.value)}
-          className="w-full rounded-xl border border-slate-200 bg-white py-3 pr-10 pl-4 text-sm shadow-sm placeholder:text-slate-400 focus:border-blue-400 focus:ring-2 focus:ring-blue-100 focus:outline-none"
+          className="w-full rounded-xl border border-slate-200 bg-white py-3 pr-10 pl-4 text-sm shadow-sm placeholder:text-slate-400 focus:border-teal-400 focus:ring-2 focus:ring-teal-100 focus:outline-none"
           aria-label="חיפוש תורים"
         />
         {search && (
@@ -285,8 +285,8 @@ export default function PatientAppointmentsPage() {
               className={cn(
                 'flex items-center gap-1.5 px-3.5 py-1.5 rounded-full text-sm font-medium transition-all',
                 active
-                  ? 'bg-blue-600 text-white shadow-sm'
-                  : 'bg-white text-slate-600 border border-slate-200 hover:border-blue-300 hover:text-blue-600'
+                  ? 'bg-teal-600 text-white shadow-sm'
+                  : 'bg-white text-slate-600 border border-slate-200 hover:border-teal-300 hover:text-teal-600'
               )}
             >
               {f.label}

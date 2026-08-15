@@ -311,7 +311,7 @@ export default function StaffAppointmentsPage() {
             className={cn(
               'px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
               statusFilter === f
-                ? 'bg-blue-600 text-white'
+                ? 'bg-teal-600 text-white'
                 : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
             )}
           >
@@ -337,7 +337,7 @@ export default function StaffAppointmentsPage() {
                       onClick={() => selectAppointment(apt)}
                       className={cn(
                         'w-full px-4 py-3 text-right hover:bg-slate-50 transition-colors',
-                        isSelected && 'bg-blue-50 border-r-4 border-blue-600'
+                        isSelected && 'bg-teal-50 border-r-4 border-teal-600'
                       )}
                     >
                       <div className="flex items-center justify-between gap-2">
@@ -458,7 +458,7 @@ function DetailPanel({
             // eslint-disable-next-line @next/next/no-img-element
             <img src={patient.avatar_url} alt="" className="w-12 h-12 rounded-full object-cover" />
           ) : (
-            <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center text-lg font-bold text-blue-700">
+            <div className="w-12 h-12 rounded-full bg-teal-100 flex items-center justify-center text-lg font-bold text-teal-700">
               {patient ? getInitials(patient.first_name, patient.last_name) : '?'}
             </div>
           )}
@@ -564,7 +564,7 @@ function DetailPanel({
           <select
             value={assignDoctor}
             onChange={e => setAssignDoctor(e.target.value)}
-            className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+            className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
           >
             <option value="">בחר רופא...</option>
             {doctors.map(d => (
@@ -644,9 +644,9 @@ function DetailPanel({
 
       {/* AI Summary */}
       {apt.ai_summary && (
-        <div className="bg-blue-50 rounded-lg p-3">
-          <p className="text-xs font-medium text-blue-700 mb-1">סיכום AI</p>
-          <p className="text-sm text-blue-600 whitespace-pre-wrap">{apt.ai_summary}</p>
+        <div className="bg-teal-50 rounded-lg p-3">
+          <p className="text-xs font-medium text-teal-700 mb-1">סיכום AI</p>
+          <p className="text-sm text-teal-600 whitespace-pre-wrap">{apt.ai_summary}</p>
         </div>
       )}
 
@@ -664,7 +664,7 @@ function DetailPanel({
             onChange={e => setStaffNote(e.target.value)}
             onKeyDown={e => { if (e.key === 'Enter' && staffNote.trim()) { e.preventDefault(); onAddNote() } }}
             placeholder="הוסף הערה פנימית..."
-            className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:border-blue-500 focus:ring-2 focus:ring-blue-500/20 focus:outline-none"
+            className="flex-1 rounded-lg border border-slate-300 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:border-teal-500 focus:ring-2 focus:ring-teal-500/20 focus:outline-none"
           />
           <Button
             size="sm"

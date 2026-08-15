@@ -263,7 +263,7 @@ export default function DoctorCalendarPage() {
               aria-pressed={tab === t}
               className={cn(
                 'px-3 py-1.5 rounded-full text-sm font-medium transition-colors',
-                tab === t ? 'bg-blue-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
+                tab === t ? 'bg-teal-600 text-white' : 'bg-slate-100 text-slate-600 hover:bg-slate-200'
               )}
             >
               {t === 'calendar' ? 'לוח שנה' : t === 'availability' ? 'שעות פעילות' : 'ימי חופשה'}
@@ -430,13 +430,13 @@ function WeekTimeGrid({
               onClick={() => { setCurrentDate(day); setViewMode('day') }}
               className={cn(
                 'border-l border-slate-200 px-1 py-2 text-center hover:bg-slate-50 transition-colors',
-                today && 'bg-blue-50/60'
+                today && 'bg-teal-50/60'
               )}
             >
               <p className="text-xs text-slate-500">{DAY_NAMES[i]}</p>
               <p className={cn(
                 'text-lg font-bold mt-0.5',
-                today ? 'text-blue-600' : 'text-slate-900'
+                today ? 'text-teal-600' : 'text-slate-900'
               )}>
                 {format(day, 'd')}
               </p>
@@ -480,7 +480,7 @@ function WeekTimeGrid({
                   'relative border-l border-slate-200',
                   isPast && 'opacity-60',
                   isVac && 'bg-orange-50/40',
-                  today && !isVac && 'bg-blue-50/30'
+                  today && !isVac && 'bg-teal-50/30'
                 )}
               >
                 {/* Hour gridlines */}
@@ -711,7 +711,7 @@ function AvailabilityEditor({
                 onClick={() => toggleDayAvailability(i)}
                 className={cn(
                   'w-10 h-6 rounded-full transition-colors relative',
-                  slot ? 'bg-blue-600' : 'bg-slate-300'
+                  slot ? 'bg-teal-600' : 'bg-slate-300'
                 )}
                 role="switch"
                 aria-checked={!!slot}

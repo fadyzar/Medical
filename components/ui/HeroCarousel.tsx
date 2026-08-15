@@ -10,7 +10,7 @@ const slides = [
   { from: '#0c4a6e', via: '#0e7490', to: '#0f766e', label: 'ייעוץ וידאו' },
   { from: '#1e3a8a', via: '#4338ca', to: '#0e7490', label: 'בינה מלאכותית' },
   { from: '#065f46', via: '#0d9488', to: '#0369a1', label: 'מסמכים מאובטחים' },
-  { from: '#0f172a', via: '#1e40af', to: '#0e7490', label: 'זמינות 24/7' },
+  { from: '#0f172a', via: '#157F73', to: '#0e7490', label: 'זמינות 24/7' },
 ]
 
 /* Faint ECG + cross motif, tiled — pure SVG, no external assets */
