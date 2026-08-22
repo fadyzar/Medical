@@ -200,7 +200,10 @@ export default function RegisterPage() {
         } catch { /* non-critical */ }
 
         toast.success('נרשמת בהצלחה!')
-        router.push('/dashboard/patient/dashboard')
+        // Preserve booking deep-link through registration (internal paths only)
+        const rp = searchParams.get('redirect')
+        const safeRp = rp && rp.startsWith('/') && !rp.startsWith('//') && !rp.startsWith('/\\') ? rp : null
+        router.push(safeRp || '/dashboard/patient/dashboard')
       } else {
         setEmailSent(true)
         toast.success('נרשמת! בדוק את האימייל לאימות.')

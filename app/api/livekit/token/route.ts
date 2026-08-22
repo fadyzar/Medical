@@ -31,6 +31,11 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
+    // Cannot join a cancelled / finished appointment's room
+    if (['cancelled_patient', 'cancelled_doctor', 'no_show_patient', 'no_show_doctor', 'completed'].includes(apt.status)) {
+      return NextResponse.json({ error: 'התור אינו פעיל' }, { status: 409 })
+    }
+
     // Get user profile for display name
     const { data: profile } = await supabase.from('users')
       .select('first_name, last_name, role')

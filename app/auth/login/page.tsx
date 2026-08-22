@@ -1,7 +1,7 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useRouter, useSearchParams } from 'next/navigation'
+import { useSearchParams } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { loginSchema } from '@/lib/validation/schemas'
 import { toast } from 'sonner'
@@ -11,7 +11,6 @@ import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
 export default function LoginPage() {
-  const router = useRouter()
   const searchParams = useSearchParams()
   const redirect = searchParams.get('redirect')
   const errorParam = searchParams.get('error')
@@ -73,10 +72,18 @@ export default function LoginPage() {
       localStorage.setItem('sessionExpiresAt', String(Date.now() + 12 * 60 * 60 * 1000))
     }
 
-    if (redirect) { router.push(redirect); return }
+    // Only allow internal same-origin paths (open-redirect guard).
+    const safeRedirect =
+      redirect && redirect.startsWith('/') && !redirect.startsWith('//') && !redirect.startsWith('/\\')
+        ? redirect
+        : null
     const roleHome: Record<string, string> = { doctor: '/dashboard/doctor/dashboard', admin: '/dashboard/admin/dashboard', staff: '/dashboard/staff/dashboard' }
-    router.push(roleHome[profile?.role || ''] || '/dashboard/patient/dashboard')
-  }, [redirect, rememberMe, router])
+    const dest = safeRedirect || roleHome[profile?.role || ''] || '/dashboard/patient/dashboard'
+
+    // Hard navigation: guarantees the fresh auth cookie reaches the middleware
+    // so an authenticated user never gets left on /auth/login (login-stall bug).
+    window.location.assign(dest)
+  }, [redirect, rememberMe])
 
   // ── Email+Password submit ──────────────────────────
   const handleEmailSubmit = async (e: React.FormEvent) => {
@@ -391,7 +398,7 @@ export default function LoginPage() {
       <div className="text-center">
         <p className="text-sm text-slate-500">
           אין לך חשבון?{' '}
-          <Link href="/auth/register" className="text-teal-600 hover:text-teal-700 font-semibold hover:underline transition-colors">
+          <Link href={redirect ? `/auth/register?redirect=${encodeURIComponent(redirect)}` : '/auth/register'} className="text-teal-600 hover:text-teal-700 font-semibold hover:underline transition-colors">
             הירשם עכשיו — חינם
           </Link>
         </p>

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import PublicNav from '@/components/layout/PublicNav'
 import { createServiceRole } from '@/lib/supabase/server'
 import { SPECIALTIES, formatPrice } from '@/lib/utils'
 
@@ -73,29 +74,8 @@ export default async function DoctorsPage() {
     <div className="min-h-screen bg-white" dir="rtl">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      {/* ── Nav ── */}
-      <nav
-        className="sticky top-0 z-50 flex items-center justify-between h-16 px-4 bg-white/85 backdrop-blur-md border-b border-slate-100"
-        dir="rtl"
-      >
-        <Link href="/" className="flex items-center gap-2 text-xl font-black text-slate-900 tracking-tight">
-          {/* eslint-disable-next-line @next/next/no-img-element */}
-          <img src="/canna-mark.png" alt="" className="w-9 h-9 object-contain" />CANNA
-        </Link>
-        <div className="flex items-center gap-5">
-          <Link href="/specialties" className="text-sm text-slate-500 hover:text-slate-900 transition-colors hidden sm:block">התמחויות</Link>
-          <Link href="/doctors" className="text-sm font-semibold text-teal-600 hidden sm:block">הרופאים שלנו</Link>
-          <Link href="/for-clinics" className="text-sm text-slate-500 hover:text-slate-900 transition-colors hidden sm:block">למרפאות</Link>
-          <Link href="/auth/login" className="text-sm text-slate-500 hover:text-slate-900 transition-colors">התחברות</Link>
-          <Link
-            href="/auth/register"
-            className="text-sm font-bold text-white px-5 py-2 rounded-lg transition-all hover:brightness-95"
-            style={{ background: 'linear-gradient(135deg, #2FA9A2, #157F73)' }}
-          >
-            הרשמה חינם
-          </Link>
-        </div>
-      </nav>
+      {/* ── Nav (shared) ── */}
+      <PublicNav active="doctors" />
 
       {/* ── HERO — bright CANNA layout ── */}
       <section className="relative overflow-hidden bg-[#F7F9FA] border-b border-slate-100">
@@ -240,7 +220,9 @@ export default async function DoctorsPage() {
                                 </span>
                               ))}
                               {(doc.specialties.length > 2) && (
-                                <span className="text-xs text-slate-400 self-center">+{doc.specialties.length - 2}</span>
+                                <span className="text-xs text-slate-400 self-center" title="התמחויות נוספות">
+                                  +{doc.specialties.length - 2} התמחויות
+                                </span>
                               )}
                             </div>
                           )}

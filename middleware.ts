@@ -137,7 +137,9 @@ export async function middleware(req: NextRequest) {
   // ── Protected routes: require auth ────────────────────
   if (!user) {
     const loginUrl = new URL('/auth/login', req.url)
-    if (path !== '/auth/login') loginUrl.searchParams.set('redirect', path)
+    // Preserve the full destination (path + query, e.g. ?doctor=<id>) so the
+    // booking deep-link survives the login round-trip.
+    if (path !== '/auth/login') loginUrl.searchParams.set('redirect', path + req.nextUrl.search)
     return NextResponse.redirect(loginUrl)
   }
 

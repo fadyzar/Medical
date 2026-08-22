@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import PublicNav from '@/components/layout/PublicNav'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cannaforyou.net'
 
@@ -83,31 +84,8 @@ export default function HomePage() {
     <div className="min-h-screen bg-white" dir="rtl">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
-      {/* ── Navbar ─────────────────────────────────────────────────────── */}
-      <header className="fixed inset-x-0 top-0 z-50">
-        <div className="mx-auto max-w-7xl px-6">
-          <nav className="mt-4 flex items-center justify-between rounded-2xl bg-white/80 backdrop-blur-md border border-white/60 shadow-sm px-5 h-14">
-            <Link href="/" className="flex items-center gap-2 font-bold text-lg text-slate-900">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/canna-mark.png" alt="CANNA" className="w-9 h-9 object-contain" />
-              CANNA
-            </Link>
-            <div className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">
-              <Link href="/doctors" className="hover:text-slate-900 transition-colors">רופאים</Link>
-              <Link href="/specialties" className="hover:text-slate-900 transition-colors">התמחויות</Link>
-              <Link href="/for-clinics" className="hover:text-slate-900 transition-colors">למרפאות</Link>
-            </div>
-            <div className="flex items-center gap-2">
-              <Link href="/auth/login" className="hidden sm:block text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-2 transition-colors">
-                כניסה
-              </Link>
-              <Link href="/auth/register" className="bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors shadow-sm shadow-teal-600/20">
-                התחל עכשיו
-              </Link>
-            </div>
-          </nav>
-        </div>
-      </header>
+      {/* ── Navbar (shared) ────────────────────────────────────────────── */}
+      <PublicNav active="home" />
 
       {/* ── Hero — bright CANNA layout ─────────────────────────────────── */}
       <section className="relative overflow-hidden bg-[#F7F9FA]">
@@ -115,7 +93,7 @@ export default function HomePage() {
         <div aria-hidden className="pointer-events-none absolute -top-32 -right-24 w-[28rem] h-[28rem] rounded-full bg-teal-100/50 blur-3xl" />
         <div aria-hidden className="pointer-events-none absolute -bottom-24 left-1/4 w-80 h-80 rounded-full bg-emerald-100/40 blur-3xl" />
 
-        <div className="relative max-w-7xl mx-auto px-6 pt-36 pb-20 lg:pt-40 lg:pb-28 grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="relative max-w-7xl mx-auto px-6 pt-16 pb-20 lg:pt-20 lg:pb-28 grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           {/* Text side */}
           <div className="order-2 lg:order-1">
             <div className="inline-flex items-center gap-2 bg-teal-50 border border-teal-100 text-teal-700 text-xs font-semibold tracking-wide uppercase px-4 py-2 rounded-full mb-7">

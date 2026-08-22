@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import PublicNav from '@/components/layout/PublicNav'
 
 export const metadata: Metadata = {
   title: { absolute: 'CANNA למרפאות — SaaS רפואי ישראלי' },
@@ -80,38 +81,15 @@ export default function ForClinicsPage() {
   return (
     <div className="min-h-screen bg-white" dir="rtl">
 
-      {/* ── Navbar ── */}
-      <header className="fixed inset-x-0 top-0 z-50">
-        <div className="mx-auto max-w-7xl px-6">
-          <nav className="mt-4 flex items-center justify-between rounded-2xl bg-white/80 backdrop-blur-md border border-white/60 shadow-sm px-5 h-14">
-            <Link href="/" className="flex items-center gap-2 font-bold text-lg text-slate-900">
-              {/* eslint-disable-next-line @next/next/no-img-element */}
-              <img src="/canna-mark.png" alt="CANNA" className="w-9 h-9 object-contain" />
-              CANNA
-            </Link>
-            <div className="hidden md:flex items-center gap-7 text-sm font-medium text-slate-600">
-              <Link href="/doctors" className="hover:text-slate-900 transition-colors">לרופאים</Link>
-              <Link href="#features" className="hover:text-slate-900 transition-colors">פיצ׳רים</Link>
-              <Link href="#pricing" className="hover:text-slate-900 transition-colors">מחירים</Link>
-            </div>
-            <div className="flex items-center gap-2">
-              <Link href="/auth/login" className="hidden sm:block text-sm font-medium text-slate-600 hover:text-slate-900 px-3 py-2 transition-colors">
-                כניסה
-              </Link>
-              <Link href="/auth/register?type=clinic" className="bg-teal-600 hover:bg-teal-700 text-white text-sm font-semibold px-4 py-2 rounded-xl transition-colors shadow-sm shadow-teal-600/20">
-                ניסיון חינם — 14 יום
-              </Link>
-            </div>
-          </nav>
-        </div>
-      </header>
+      {/* ── Navbar (shared) ── */}
+      <PublicNav active="clinics" />
 
-      {/* ── Hero — fullscreen carousel ── */}
+      {/* ── Hero — bright ── */}
       <section className="relative overflow-hidden bg-[#F7F9FA] border-b border-slate-100">
         <div aria-hidden className="pointer-events-none absolute -top-32 -left-24 w-[28rem] h-[28rem] rounded-full bg-teal-100/50 blur-3xl" />
         <div aria-hidden className="pointer-events-none absolute -bottom-24 right-1/4 w-80 h-80 rounded-full bg-emerald-100/40 blur-3xl" />
 
-        <div className="relative max-w-7xl mx-auto px-6 pt-36 pb-20 lg:pt-40 lg:pb-24 grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
+        <div className="relative max-w-7xl mx-auto px-6 pt-16 pb-20 lg:pt-20 lg:pb-24 grid lg:grid-cols-2 gap-12 lg:gap-16 items-center">
           <div className="order-2 lg:order-1">
             <div className="inline-flex items-center gap-2 bg-teal-50 border border-teal-100 text-teal-700 text-xs font-semibold tracking-wide uppercase px-4 py-2 rounded-full mb-7">
               <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />

@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import PublicNav from '@/components/layout/PublicNav'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cannaforyou.net'
 
@@ -18,21 +19,8 @@ const CONTACTS = [
 export default function ContactPage() {
   return (
     <div className="min-h-screen bg-white" dir="rtl">
-      {/* Nav */}
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-2xl font-black text-teal-600">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/canna-mark.png" alt="" className="w-9 h-9 object-contain" />CANNA
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/specialties" className="text-sm text-slate-600 hover:text-slate-900">התמחויות</Link>
-            <Link href="/doctors" className="text-sm text-slate-600 hover:text-slate-900">הרופאים שלנו</Link>
-            <Link href="/for-clinics" className="text-sm text-slate-600 hover:text-slate-900">למרפאות</Link>
-            <Link href="/auth/login" className="text-sm text-slate-600 hover:text-slate-900">התחברות</Link>
-          </div>
-        </div>
-      </nav>
+      {/* Nav (shared) */}
+      <PublicNav active="contact" />
 
       <section className="py-20 px-4 bg-gradient-to-b from-teal-50 to-white">
         <div className="max-w-2xl mx-auto text-center">

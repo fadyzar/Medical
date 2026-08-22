@@ -5,16 +5,21 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
+// All user-facing appointment times display in Israel local time (Asia/Jerusalem),
+// DST-aware. Pinning the timeZone keeps server-side surfaces (emails, WhatsApp,
+// notifications — which run in UTC on Vercel) consistent with the browser.
+export const APP_TIMEZONE = 'Asia/Jerusalem'
+
 export function formatDate(date: string | Date, locale = 'he-IL') {
-  return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(date))
+  return new Intl.DateTimeFormat(locale, { timeZone: APP_TIMEZONE, day: 'numeric', month: 'long', year: 'numeric' }).format(new Date(date))
 }
 
 export function formatTime(date: string | Date, locale = 'he-IL') {
-  return new Intl.DateTimeFormat(locale, { hour: '2-digit', minute: '2-digit' }).format(new Date(date))
+  return new Intl.DateTimeFormat(locale, { timeZone: APP_TIMEZONE, hour: '2-digit', minute: '2-digit' }).format(new Date(date))
 }
 
 export function formatDateTime(date: string | Date, locale = 'he-IL') {
-  return new Intl.DateTimeFormat(locale, { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(date))
+  return new Intl.DateTimeFormat(locale, { timeZone: APP_TIMEZONE, day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit' }).format(new Date(date))
 }
 
 export function formatPrice(amount: number, currency = 'ILS') {

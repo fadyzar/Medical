@@ -117,7 +117,10 @@ export default function BillingPage() {
   }
 
   const sendInvite = async () => {
-    if (!inviteName.trim() || !inviteEmail.trim()) return
+    // Field validation — never fail silently
+    if (!inviteName.trim()) { setInviteMessage({ type: 'error', text: 'יש להזין שם רופא' }); return }
+    if (!inviteEmail.trim()) { setInviteMessage({ type: 'error', text: 'יש להזין כתובת אימייל' }); return }
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(inviteEmail.trim())) { setInviteMessage({ type: 'error', text: 'כתובת אימייל לא תקינה' }); return }
     setInviteLoading(true)
     setInviteMessage(null)
     try {
@@ -148,10 +151,13 @@ export default function BillingPage() {
   const currentPlan = org ? PLANS.find(p => p.id === org.plan) : null
   const pendingInvites = (org?.settings?.pending_invites as Array<{ name: string; email: string }>) || []
 
+  const isUnlimited = (max: number) => !max || max <= 0
   const getUsagePercent = (current: number, max: number) => {
-    if (max === 0) return 0
+    if (isUnlimited(max)) return 0
     return Math.min(Math.round((current / max) * 100), 100)
   }
+  // Limit display — the plan config is the single source of truth.
+  const limitLabel = (max: number) => (isUnlimited(max) ? 'ללא הגבלה' : max.toLocaleString())
 
   const getUsageColor = (percent: number) => {
     if (percent >= 90) return 'bg-red-500'
@@ -165,9 +171,13 @@ export default function BillingPage() {
     return <PageLoading />
   }
 
-  const doctorsPercent = getUsagePercent(org.current_doctors, org.max_doctors)
-  const appointmentsPercent = getUsagePercent(org.current_month_appointments, org.max_appointments_per_month)
-  const storagePercent = getUsagePercent(org.current_storage_gb, org.max_storage_gb)
+  // Limits derived from the plan config (org.max_* fields can be stale/zero).
+  const limDoctors = currentPlan?.max_doctors ?? org.max_doctors
+  const limApts = currentPlan?.max_appointments_per_month ?? org.max_appointments_per_month
+  const limStorage = currentPlan?.max_storage_gb ?? org.max_storage_gb
+  const doctorsPercent = getUsagePercent(org.current_doctors, limDoctors)
+  const appointmentsPercent = getUsagePercent(org.current_month_appointments, limApts)
+  const storagePercent = getUsagePercent(org.current_storage_gb, limStorage)
 
   return (
       <div className="space-y-6">
@@ -255,7 +265,7 @@ export default function BillingPage() {
               <div>
                 <div className="flex justify-between text-sm mb-1.5">
                   <span className="text-slate-600">רופאים</span>
-                  <span className="font-medium">{org.current_doctors} / {org.max_doctors}</span>
+                  <span className="font-medium">{org.current_doctors} / {limitLabel(limDoctors)}</span>
                 </div>
                 <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
                   <div
@@ -269,7 +279,7 @@ export default function BillingPage() {
               <div>
                 <div className="flex justify-between text-sm mb-1.5">
                   <span className="text-slate-600">תורים החודש</span>
-                  <span className="font-medium">{org.current_month_appointments.toLocaleString()} / {org.max_appointments_per_month.toLocaleString()}</span>
+                  <span className="font-medium">{org.current_month_appointments.toLocaleString()} / {limitLabel(limApts)}</span>
                 </div>
                 <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
                   <div
@@ -283,7 +293,7 @@ export default function BillingPage() {
               <div>
                 <div className="flex justify-between text-sm mb-1.5">
                   <span className="text-slate-600">אחסון</span>
-                  <span className="font-medium">{org.current_storage_gb} GB / {org.max_storage_gb} GB</span>
+                  <span className="font-medium">{org.current_storage_gb} GB / {isUnlimited(limStorage) ? 'ללא הגבלה' : `${limStorage} GB`}</span>
                 </div>
                 <div className="h-2.5 bg-slate-100 rounded-full overflow-hidden">
                   <div

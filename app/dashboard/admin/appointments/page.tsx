@@ -116,8 +116,24 @@ export default function AdminAppointmentsPage() {
 
   const updateStatus = async (id: string, status: AppointmentStatus) => {
     setActionLoading(id)
+
+    // Cancellations go through the audited cancel API (status-based, never a
+    // hard delete; writes an audit log; enforces org/role permissions).
+    if (status === 'cancelled_patient') {
+      try {
+        const res = await fetch('/api/appointments/cancel', {
+          method: 'POST', headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ appointmentId: id }),
+        })
+        const data = await res.json()
+        if (!res.ok) toast.error(data.error || 'שגיאה בביטול התור')
+        else { toast.success('התור בוטל'); loadAppointments(orgId) }
+      } catch { toast.error('שגיאה בביטול התור') }
+      finally { setActionLoading(null) }
+      return
+    }
+
     const updates: Record<string, unknown> = { status }
-    if (status === 'cancelled_patient') updates.cancelled_at = new Date().toISOString()
     if (status === 'no_show_patient')   updates.no_show_recorded_at = new Date().toISOString()
 
     const { error } = await supabase.from('appointments').update(updates).eq('id', id)

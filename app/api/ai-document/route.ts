@@ -59,7 +59,7 @@ export async function POST(req: NextRequest) {
       .eq('id', orgId)
       .single()
 
-    const today = new Date().toLocaleDateString('he-IL', { year: 'numeric', month: 'long', day: 'numeric' })
+    const today = new Date().toLocaleDateString('he-IL', { timeZone: 'Asia/Jerusalem', year: 'numeric', month: 'long', day: 'numeric' })
     const docLabel = DOCUMENT_TYPES[documentType as keyof typeof DOCUMENT_TYPES] || 'מסמך רפואי'
 
     const systemPrompt = `אתה רופא/ת ישראלי/ת עם ניסיון רב שכותב/ת מסמכים רפואיים רשמיים בעברית.

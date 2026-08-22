@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Card, CardHeader, Badge, PageLoading, EmptyState } from '@/components/ui'
 import { STATUS_LABELS, formatDateTime, formatDate, getInitials, cn } from '@/lib/utils'
+import { toast } from 'sonner'
 import type { Appointment, User } from '@/types/database'
 
 type AptWithDoctor = Appointment & {
@@ -173,8 +174,33 @@ export default function PatientAppointmentsPage() {
   const [search, setSearch]         = useState('')
   const [expanded, setExpanded]     = useState<string | null>(null)
   const [ratingApt, setRatingApt]   = useState<string | null>(null)
+  const [cancelId, setCancelId]     = useState<string | null>(null)
+  const [cancelReason, setCancelReason] = useState('')
+  const [cancelBusy, setCancelBusy] = useState(false)
 
   useEffect(() => { load() }, [])
+
+  const CANCELLABLE = ['pending', 'doctor_confirmed', 'time_selected', 'payment_pending', 'paid', 'scheduled', 'ready']
+
+  const doCancel = async (id: string) => {
+    setCancelBusy(true)
+    try {
+      const res = await fetch('/api/appointments/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId: id, reason: cancelReason }),
+      })
+      const data = await res.json()
+      if (!res.ok) { toast.error(data.error || 'שגיאה בביטול התור'); return }
+      setAppointments(prev => prev.map(a => a.id === id ? { ...a, status: 'cancelled_patient' } : a))
+      toast.success('התור בוטל')
+      setCancelId(null); setCancelReason('')
+    } catch {
+      toast.error('שגיאה בביטול התור')
+    } finally {
+      setCancelBusy(false)
+    }
+  }
 
   const load = async () => {
     try {
@@ -406,7 +432,7 @@ export default function PatientAppointmentsPage() {
                       )}
 
                       {/* Quick actions */}
-                      {(canVideo || needsPayment) && (
+                      {(canVideo || needsPayment || CANCELLABLE.includes(apt.status)) && (
                         <div className="flex gap-2 flex-wrap">
                           {canVideo && (
                             <Button
@@ -432,6 +458,40 @@ export default function PatientAppointmentsPage() {
                               {apt.payment_status === 'failed' ? 'חזור לתשלום' : 'שלם עכשיו'}
                             </Button>
                           )}
+                          {CANCELLABLE.includes(apt.status) && cancelId !== apt.id && (
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="gap-1.5 text-rose-600 border-rose-200 hover:bg-rose-50"
+                              onClick={() => { setCancelId(apt.id); setCancelReason('') }}
+                            >
+                              <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18" /><line x1="6" y1="6" x2="18" y2="18" /></svg>
+                              ביטול תור
+                            </Button>
+                          )}
+                        </div>
+                      )}
+
+                      {/* Cancellation confirm panel */}
+                      {cancelId === apt.id && (
+                        <div className="rounded-xl border border-rose-200 bg-rose-50/60 p-4 space-y-3">
+                          <p className="text-sm font-semibold text-slate-800">לבטל את התור?</p>
+                          <p className="text-xs text-slate-500">הפעולה תבטל את התור. ההיסטוריה הרפואית נשמרת.</p>
+                          <textarea
+                            value={cancelReason}
+                            onChange={e => setCancelReason(e.target.value)}
+                            placeholder="סיבת ביטול (אופציונלי)"
+                            rows={2}
+                            className="w-full rounded-lg border border-slate-200 bg-white px-3 py-2 text-sm placeholder:text-slate-400 focus:border-rose-300 focus:ring-2 focus:ring-rose-100 focus:outline-none"
+                          />
+                          <div className="flex gap-2">
+                            <Button size="sm" loading={cancelBusy} className="bg-rose-600 hover:bg-rose-700" onClick={() => doCancel(apt.id)}>
+                              אשר ביטול
+                            </Button>
+                            <Button size="sm" variant="outline" disabled={cancelBusy} onClick={() => { setCancelId(null); setCancelReason('') }}>
+                              חזור
+                            </Button>
+                          </div>
                         </div>
                       )}
 

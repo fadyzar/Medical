@@ -39,6 +39,7 @@ const ROLE_LABELS: Record<string, string> = {
 export default function AdminUsersPage() {
   const [users, setUsers] = useState<User[]>([])
   const [patients, setPatients] = useState<User[]>([])
+  const [aptCounts, setAptCounts] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
   const [orgId, setOrgId] = useState('')
   const [search, setSearch] = useState('')
@@ -85,6 +86,17 @@ export default function AdminUsersPage() {
 
       setUsers((staffRes.data || []) as unknown as User[])
       setPatients((patientsRes.data || []) as unknown as User[])
+
+      // Real appointment counts (the users.total_appointments field can be stale)
+      const { data: aptRows } = await supabase.from('appointments')
+        .select('patient_id, doctor_id')
+        .eq('organization_id', profile.organization_id)
+      const counts: Record<string, number> = {}
+      for (const r of (aptRows || []) as Array<{ patient_id: string | null; doctor_id: string | null }>) {
+        if (r.patient_id) counts[r.patient_id] = (counts[r.patient_id] || 0) + 1
+        if (r.doctor_id) counts[r.doctor_id] = (counts[r.doctor_id] || 0) + 1
+      }
+      setAptCounts(counts)
     } catch {
       toast.error('שגיאה בטעינת רשימת המשתמשים')
     } finally {
@@ -331,7 +343,7 @@ export default function AdminUsersPage() {
                         })}
                       </div>
                     </td>
-                    <td className="px-4 py-3 text-slate-600">{user.total_appointments}</td>
+                    <td className="px-4 py-3 text-slate-600">{aptCounts[user.id] ?? 0}</td>
                     <td className="px-4 py-3">
                       <Badge variant={user.is_active ? 'success' : 'danger'}>
                         {user.is_active ? 'פעיל' : 'מושבת'}

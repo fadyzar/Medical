@@ -1,5 +1,6 @@
 import type { Metadata } from 'next'
 import Link from 'next/link'
+import PublicNav from '@/components/layout/PublicNav'
 import { SPECIALTIES } from '@/lib/utils'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cannaforyou.net'
@@ -72,22 +73,8 @@ export default function SpecialtiesPage() {
   return (
     <div className="min-h-screen bg-white" dir="rtl">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
-      {/* Nav */}
-      <nav className="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b">
-        <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-          <Link href="/" className="flex items-center gap-2 text-2xl font-black text-teal-600">
-            {/* eslint-disable-next-line @next/next/no-img-element */}
-            <img src="/canna-mark.png" alt="" className="w-9 h-9 object-contain" />CANNA
-          </Link>
-          <div className="flex items-center gap-4">
-            <Link href="/specialties" className="text-sm text-teal-600 font-medium">התמחויות</Link>
-            <Link href="/doctors" className="text-sm text-slate-600 hover:text-slate-900">הרופאים שלנו</Link>
-            <Link href="/blog" className="text-sm text-slate-600 hover:text-slate-900">בלוג</Link>
-            <Link href="/auth/login" className="text-sm text-slate-600 hover:text-slate-900">התחברות</Link>
-            <Link href="/auth/register" className="bg-teal-600 text-white px-5 py-2 rounded-lg text-sm font-medium hover:bg-teal-700 transition-colors">הרשמה חינם</Link>
-          </div>
-        </div>
-      </nav>
+      {/* Nav (shared) */}
+      <PublicNav active="specialties" />
 
       {/* Hero */}
       <section className="py-16 px-4 bg-gradient-to-b from-teal-50 to-white">
