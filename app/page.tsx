@@ -35,46 +35,170 @@ const features = [
     title: 'ייעוץ כמו בקליניקה, מהסלון',
     body: 'שיחת וידאו באיכות גבוהה עם הרופא שלך. אין תור, אין נסיעה — ייעוץ בתוך דקות.',
     icon: 'video' as const,
-    gradient: ['#0c4a6e', '#0e7490', '#0f766e'] as const,
   },
   {
     tag: 'בינה מלאכותית',
     title: 'AI שמכין את הרופא לפגישה',
     body: 'לפני כל ייעוץ — AI מנתח את התלונה, בודק היסטוריה רפואית ומדרג דחיפות. אחרי — מייצר סיכום SOAP מלא.',
     icon: 'ai' as const,
-    gradient: ['#1e3a8a', '#4338ca', '#0e7490'] as const,
   },
   {
     tag: 'אבטחה',
     title: 'הפרטיות שלך — קו אדום',
     body: 'הצפנה מקצה לקצה, תקן HIPAA, audit log מלא. המסמכים שלך נגישים רק לך ולרופא המטפל.',
     icon: 'shield' as const,
-    gradient: ['#065f46', '#0d9488', '#0369a1'] as const,
   },
 ]
 
-// ── Branded feature visual — gradient panel + medical icon (no stock photos) ──
-function FeatureIcon({ name }: { name: 'video' | 'ai' | 'shield' }) {
-  const common = { width: 96, height: 96, viewBox: '0 0 24 24', fill: 'none', stroke: 'white', strokeWidth: 1.4, strokeLinecap: 'round' as const, strokeLinejoin: 'round' as const }
-  if (name === 'video') return (<svg {...common}><path d="M23 7l-7 5 7 5V7z"/><rect x="1" y="5" width="15" height="14" rx="2" ry="2"/></svg>)
-  if (name === 'ai') return (<svg {...common}><circle cx="12" cy="12" r="3"/><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2"/></svg>)
-  return (<svg {...common}><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><polyline points="9 12 11 14 15 10"/></svg>)
+// ── Illustrated avatars (flat, on-brand — no stock photos) ─────────────────
+function DoctorPortrait({ className = '' }: { className?: string }) {
+  return (
+    <svg viewBox="0 0 240 300" preserveAspectRatio="xMidYMax meet" className={className} aria-hidden>
+      <path d="M18 300 C18 208 70 188 120 188 C170 188 222 208 222 300 Z" fill="#ffffff" />
+      <path d="M96 190 L120 222 L144 190 L135 300 L105 300 Z" fill="#2FA9A2" />
+      <path d="M104 162 L104 196 Q120 206 136 196 L136 162 Z" fill="#e7ab7f" />
+      <ellipse cx="120" cy="118" rx="42" ry="46" fill="#f2c19c" />
+      <circle cx="80" cy="120" r="8" fill="#f2c19c" />
+      <circle cx="160" cy="120" r="8" fill="#f2c19c" />
+      <path d="M78 116 C74 68 100 58 120 58 C140 58 166 68 162 116 C160 94 150 86 120 86 C90 86 80 94 78 116 Z" fill="#5b3f2e" />
+      <circle cx="105" cy="118" r="4" fill="#3b2b22" />
+      <circle cx="135" cy="118" r="4" fill="#3b2b22" />
+      <path d="M108 138 Q120 149 132 138" stroke="#b5765a" strokeWidth="3" fill="none" strokeLinecap="round" />
+      <path d="M105 197 C101 240 97 250 97 250" stroke="#334155" strokeWidth="4" fill="none" strokeLinecap="round" />
+      <path d="M135 197 C139 238 150 248 150 248" stroke="#334155" strokeWidth="4" fill="none" strokeLinecap="round" />
+      <circle cx="150" cy="253" r="9" fill="#cbd5e1" stroke="#334155" strokeWidth="3" />
+    </svg>
+  )
 }
 
-function FeatureVisual({ icon, gradient, side }: { icon: 'video' | 'ai' | 'shield'; gradient: readonly [string, string, string]; side: number }) {
+function PatientPortrait({ className = '' }: { className?: string }) {
   return (
-    <div className="relative">
-      <div className="rounded-3xl overflow-hidden shadow-2xl shadow-slate-200 aspect-[4/3] relative flex items-center justify-center"
-        style={{ background: `linear-gradient(135deg, ${gradient[0]} 0%, ${gradient[1]} 55%, ${gradient[2]} 100%)` }}>
-        {/* grid + glow motif */}
-        <div className="absolute inset-0 opacity-[0.12]" style={{ backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
-        <div className="absolute inset-0" style={{ background: 'radial-gradient(60% 60% at 70% 25%, rgba(255,255,255,0.18) 0%, transparent 60%)' }} />
-        <div className="relative w-28 h-28 rounded-3xl bg-white/15 border border-white/25 backdrop-blur-sm flex items-center justify-center shadow-lg">
-          <FeatureIcon name={icon} />
-        </div>
+    <svg viewBox="0 0 120 150" preserveAspectRatio="xMidYMax meet" className={className} aria-hidden>
+      <rect width="120" height="150" fill="#e2e8f0" />
+      <path d="M14 150 C14 108 34 96 60 96 C86 96 106 108 106 150 Z" fill="#94a3b8" />
+      <circle cx="60" cy="66" r="26" fill="#cbd5e1" />
+      <path d="M36 64 C34 38 48 30 60 30 C72 30 86 38 84 64 C82 50 74 46 60 46 C46 46 38 50 36 64 Z" fill="#64748b" />
+    </svg>
+  )
+}
+
+// ── Realistic live video-call mockup (reused in hero + feature) ────────────
+function VideoCallMock() {
+  return (
+    <div className="relative w-full h-full overflow-hidden rounded-[20px]" style={{ background: 'linear-gradient(160deg,#0f766e 0%,#157F73 45%,#0c4a6e 100%)' }}>
+      <div className="absolute inset-0" style={{ background: 'radial-gradient(75% 55% at 50% 22%, rgba(255,255,255,0.20), transparent 70%)' }} />
+      <DoctorPortrait className="absolute inset-x-0 bottom-0 w-full h-full" />
+      {/* top bar */}
+      <div className="absolute top-3 inset-x-3 flex items-center justify-between">
+        <span className="inline-flex items-center gap-1.5 bg-black/25 backdrop-blur-sm text-white text-[11px] font-bold px-2.5 py-1 rounded-full">
+          <span className="w-1.5 h-1.5 rounded-full bg-rose-400 animate-pulse" /> LIVE
+        </span>
+        <span className="bg-black/25 backdrop-blur-sm text-white text-[11px] font-semibold px-2.5 py-1 rounded-full tabular-nums">12:47</span>
       </div>
-      <div className={`absolute -z-10 w-48 h-48 opacity-30 ${side % 2 === 0 ? '-bottom-6 -left-6' : '-bottom-6 -right-6'}`}
-        style={{ backgroundImage: 'radial-gradient(circle, #94a3b8 1px, transparent 1px)', backgroundSize: '16px 16px' }} />
+      {/* doctor name tag */}
+      <div className="absolute bottom-16 right-3 bg-black/30 backdrop-blur-sm px-3 py-1.5 rounded-xl">
+        <p className="text-white text-[13px] font-bold leading-none">ד״ר רונית לוי</p>
+        <p className="text-white/70 text-[10px] mt-1">מומחית עור ומין</p>
+      </div>
+      {/* patient self-view */}
+      <div className="absolute bottom-16 left-3 w-16 aspect-[4/5] rounded-lg overflow-hidden border-2 border-white/40 shadow-md">
+        <PatientPortrait className="w-full h-full" />
+      </div>
+      {/* call controls */}
+      <div className="absolute bottom-3 inset-x-0 flex items-center justify-center gap-2.5">
+        <span className="w-9 h-9 rounded-full bg-white/90 text-slate-700 flex items-center justify-center shadow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 1a3 3 0 00-3 3v8a3 3 0 006 0V4a3 3 0 00-3-3z" /><path d="M19 10v2a7 7 0 01-14 0v-2M12 19v4" /></svg>
+        </span>
+        <span className="w-9 h-9 rounded-full bg-white/90 text-slate-700 flex items-center justify-center shadow">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M23 7l-7 5 7 5V7z" /><rect x="1" y="5" width="15" height="14" rx="2" /></svg>
+        </span>
+        <span className="w-9 h-9 rounded-full bg-rose-500 text-white flex items-center justify-center shadow rotate-[135deg]">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M22 16.92v3a2 2 0 01-2.18 2 19.79 19.79 0 01-8.63-3.07 19.5 19.5 0 01-6-6 19.79 19.79 0 01-3.07-8.67A2 2 0 014.11 2h3a2 2 0 012 1.72c.13.96.36 1.9.7 2.81a2 2 0 01-.45 2.11L8.09 9.91a16 16 0 006 6l1.27-1.27a2 2 0 012.11-.45c.9.34 1.85.57 2.81.7A2 2 0 0122 16.92z" /></svg>
+        </span>
+      </div>
+    </div>
+  )
+}
+
+// ── AI SOAP-summary mockup ─────────────────────────────────────────────────
+function AiMock() {
+  const rows = [
+    { k: 'S', t: 'כאב גרון 3 ימים, חום 37.8°', w: 'w-[85%]' },
+    { k: 'O', t: 'לוע אדום, בלוטות מוגדלות', w: 'w-[68%]' },
+    { k: 'A', t: 'חשד לדלקת גרון חיידקית', w: 'w-[78%]' },
+    { k: 'P', t: 'אנטיביוטיקה + מעקב 48ש׳', w: 'w-[60%]' },
+  ]
+  return (
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 max-w-sm mx-auto">
+      <div className="flex items-center justify-between mb-4">
+        <div className="flex items-center gap-2">
+          <span className="w-8 h-8 rounded-lg bg-violet-50 text-violet-600 flex items-center justify-center">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.9 5.8L20 10l-5.8 2.1L12 18l-2.1-5.9L4 10l5.9-1.2L12 3z" /></svg>
+          </span>
+          <p className="font-bold text-slate-800 text-sm">סיכום SOAP</p>
+        </div>
+        <span className="text-[10px] font-bold text-violet-600 bg-violet-50 px-2 py-1 rounded-full">AI</span>
+      </div>
+      <div className="space-y-3">
+        {rows.map(r => (
+          <div key={r.k} className="flex items-start gap-3">
+            <span className="w-6 h-6 rounded-md bg-teal-50 text-teal-700 text-xs font-black flex items-center justify-center shrink-0">{r.k}</span>
+            <div className="flex-1 min-w-0 pt-0.5">
+              <p className="text-[13px] text-slate-700 leading-snug">{r.t}</p>
+              <div className={`h-1.5 rounded-full bg-slate-100 mt-2 ${r.w}`} />
+            </div>
+          </div>
+        ))}
+      </div>
+      <div className="mt-4 flex items-center gap-2 text-teal-700 bg-teal-50 rounded-xl px-3 py-2">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+        <span className="text-xs font-bold">נשלח למטופל ולתיק הרפואי</span>
+      </div>
+    </div>
+  )
+}
+
+// ── Security / privacy mockup ──────────────────────────────────────────────
+function ShieldMock() {
+  const items = [
+    { t: 'הצפנה מקצה לקצה', s: 'AES-256' },
+    { t: 'תקן HIPAA', s: 'תואם' },
+    { t: 'Audit log מלא', s: 'פעיל' },
+  ]
+  return (
+    <div className="bg-white rounded-2xl border border-slate-100 shadow-sm p-5 max-w-sm mx-auto">
+      <div className="flex items-center gap-3 mb-4">
+        <span className="w-11 h-11 rounded-2xl text-white flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(135deg,#0d9488,#0369a1)' }}>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z" /><polyline points="9 12 11 14 15 10" /></svg>
+        </span>
+        <div>
+          <p className="font-bold text-slate-800 text-sm">אבטחת מידע רפואי</p>
+          <p className="text-xs text-slate-400">הנתונים שלך מוגנים 24/7</p>
+        </div>
+        <span className="mr-auto text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-full">מאובטח</span>
+      </div>
+      <div className="space-y-2.5">
+        {items.map(it => (
+          <div key={it.t} className="flex items-center gap-3 rounded-xl border border-slate-100 px-3 py-2.5">
+            <span className="w-6 h-6 rounded-full bg-emerald-50 text-emerald-600 flex items-center justify-center shrink-0">
+              <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg>
+            </span>
+            <p className="text-[13px] font-medium text-slate-700 flex-1">{it.t}</p>
+            <span className="text-[11px] font-semibold text-slate-400">{it.s}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+}
+
+function FeatureVisual({ icon }: { icon: 'video' | 'ai' | 'shield' }) {
+  return (
+    <div className="rounded-3xl p-5 sm:p-7 shadow-xl shadow-slate-200/70 border border-slate-100"
+      style={{ background: icon === 'ai' ? 'linear-gradient(135deg,#eef2ff,#faf5ff)' : icon === 'shield' ? 'linear-gradient(135deg,#ecfdf5,#f0fdfa)' : 'linear-gradient(135deg,#f0fdfa,#ecfeff)' }}>
+      {icon === 'video' && <div className="max-w-[15rem] mx-auto aspect-[4/5]"><VideoCallMock /></div>}
+      {icon === 'ai' && <AiMock />}
+      {icon === 'shield' && <ShieldMock />}
     </div>
   )
 }
@@ -137,38 +261,33 @@ export default function HomePage() {
             </div>
           </div>
 
-          {/* Consultation card — clean, no stock photo */}
+          {/* Consultation mockup — realistic live video call */}
           <div className="order-1 lg:order-2 relative">
-            <div className="relative mx-auto max-w-md rounded-3xl bg-white border border-slate-100 shadow-[0_20px_60px_-24px_rgba(15,23,42,0.25)] p-5">
-              {/* Video panel */}
-              <div className="rounded-2xl aspect-video relative overflow-hidden flex items-center justify-center"
-                style={{ background: 'linear-gradient(135deg, #2FA9A2 0%, #157F73 100%)' }}>
-                <div className="absolute inset-0 opacity-[0.15]" style={{ backgroundImage: 'linear-gradient(white 1px, transparent 1px), linear-gradient(90deg, white 1px, transparent 1px)', backgroundSize: '32px 32px' }} />
-                <div className="relative w-16 h-16 rounded-2xl bg-white/15 border border-white/25 flex items-center justify-center">
-                  <svg className="w-8 h-8 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round"><path d="M23 7l-7 5 7 5V7z" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" /></svg>
-                </div>
-                <span className="absolute top-3 right-3 inline-flex items-center gap-1.5 bg-white/90 text-teal-700 text-[11px] font-bold px-2.5 py-1 rounded-full">
-                  <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" /> וידאו HD
-                </span>
+            {/* floating wait-time stat */}
+            <div className="absolute -top-4 -left-3 z-20 hidden sm:flex items-center gap-2.5 bg-white rounded-2xl shadow-xl shadow-slate-200/60 border border-slate-100 px-4 py-3">
+              <span className="w-9 h-9 rounded-xl bg-teal-50 text-teal-600 flex items-center justify-center shrink-0">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" /></svg>
+              </span>
+              <div>
+                <p className="text-sm font-black text-slate-900 leading-none">2:14 דק׳</p>
+                <p className="text-[11px] text-slate-400 mt-1">זמן המתנה ממוצע</p>
               </div>
-              {/* Doctor row */}
-              <div className="flex items-center gap-3 mt-4">
-                <div className="w-11 h-11 rounded-xl text-white font-bold flex items-center justify-center shrink-0" style={{ background: 'linear-gradient(135deg, #2FA9A2, #157F73)' }}>ד״ר</div>
-                <div className="min-w-0">
-                  <p className="font-bold text-slate-900 text-sm">רופא/ה מומחה/ית</p>
-                  <p className="text-xs text-slate-400">ייעוץ בוידאו · מרשם דיגיטלי</p>
-                </div>
-                <span className="mr-auto text-xs font-semibold text-teal-700 bg-teal-50 px-2.5 py-1 rounded-full">מחובר</span>
+            </div>
+
+            <div className="relative mx-auto max-w-sm rounded-[28px] bg-white border border-slate-100 shadow-[0_30px_80px_-30px_rgba(15,23,42,0.35)] p-3">
+              <div className="aspect-[4/5]">
+                <VideoCallMock />
               </div>
               {/* AI summary chip */}
-              <div className="mt-3 flex items-center gap-2.5 rounded-xl bg-slate-50 border border-slate-100 px-3.5 py-3">
-                <span className="w-8 h-8 rounded-lg bg-white shadow-sm flex items-center justify-center text-violet-600 shrink-0">
-                  <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="3" /><path d="M12 2v3M12 19v3M2 12h3M19 12h3M5 5l2 2M17 17l2 2M19 5l-2 2M7 17l-2 2" /></svg>
+              <div className="mt-3 flex items-center gap-2.5 rounded-2xl bg-slate-50 border border-slate-100 px-3.5 py-3">
+                <span className="w-9 h-9 rounded-xl bg-white shadow-sm flex items-center justify-center text-violet-600 shrink-0">
+                  <svg className="w-[18px] h-[18px]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 3l1.9 5.8L20 10l-5.8 2.1L12 18l-2.1-5.9L4 10l5.9-1.2L12 3z" /></svg>
                 </span>
-                <div className="min-w-0">
-                  <p className="text-sm font-semibold text-slate-800">סיכום AI נשלח</p>
-                  <p className="text-xs text-slate-400">סיכום SOAP מלא לאחר הייעוץ</p>
+                <div className="min-w-0 flex-1">
+                  <p className="text-sm font-bold text-slate-800">סיכום AI נשלח</p>
+                  <p className="text-xs text-slate-400">סיכום SOAP מלא נשלח למטופל</p>
                 </div>
+                <span className="text-teal-600 shrink-0"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12" /></svg></span>
               </div>
             </div>
           </div>
@@ -202,9 +321,9 @@ export default function HomePage() {
               </Link>
             </div>
 
-            {/* Visual side — branded gradient, no stock photo */}
+            {/* Visual side — realistic product mockup, no stock photo */}
             <div className={i % 2 === 1 ? 'order-2 lg:order-1' : 'order-2'}>
-              <FeatureVisual icon={f.icon} gradient={f.gradient} side={i} />
+              <FeatureVisual icon={f.icon} />
             </div>
           </div>
         ))}
