@@ -7,6 +7,7 @@ import { loginSchema } from '@/lib/validation/schemas'
 import { toast } from 'sonner'
 import { Button, Input } from '@/components/ui'
 import { AuthLayout } from '@/components/layout/AuthLayout'
+import GoogleButton from '@/components/auth/GoogleButton'
 import { cn } from '@/lib/utils'
 import Link from 'next/link'
 
@@ -394,8 +395,11 @@ export default function LoginPage() {
         <div className="relative flex justify-center"><span className="bg-slate-50/50 px-3 text-xs text-slate-400">או</span></div>
       </div>
 
+      {/* Google OAuth */}
+      <GoogleButton redirect={redirect} label="התחבר עם Google" onError={setServerError} />
+
       {/* Register link */}
-      <div className="text-center">
+      <div className="text-center mt-6">
         <p className="text-sm text-slate-500">
           אין לך חשבון?{' '}
           <Link href={redirect ? `/auth/register?redirect=${encodeURIComponent(redirect)}` : '/auth/register'} className="text-teal-600 hover:text-teal-700 font-semibold hover:underline transition-colors">

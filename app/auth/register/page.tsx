@@ -7,6 +7,7 @@ import { registerSchema } from '@/lib/validation/schemas'
 import { toast } from 'sonner'
 import { Button, Input, Select } from '@/components/ui'
 import { AuthLayout } from '@/components/layout/AuthLayout'
+import GoogleButton from '@/components/auth/GoogleButton'
 import { cn } from '@/lib/utils'
 import { getTenantSubdomain } from '@/lib/tenant'
 import Link from 'next/link'
@@ -456,6 +457,15 @@ export default function RegisterPage() {
           </div>
         </div>
       </form>
+
+      {/* Divider */}
+      <div className="relative my-6">
+        <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-slate-200" /></div>
+        <div className="relative flex justify-center"><span className="bg-slate-50/50 px-3 text-xs text-slate-400">או</span></div>
+      </div>
+
+      {/* Google OAuth */}
+      <GoogleButton redirect={searchParams.get('redirect')} label="הרשמה עם Google" />
 
       <div className="text-center mt-6">
         <p className="text-sm text-slate-500">
