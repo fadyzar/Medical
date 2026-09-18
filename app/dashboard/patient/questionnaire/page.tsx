@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
-import { Button, Card, CardContent, CardHeader, Textarea, PageLoading, Spinner } from '@/components/ui'
+import { Button, Card, CardContent, Textarea, PageLoading, Spinner } from '@/components/ui'
 import { cn } from '@/lib/utils'
 import type { Questionnaire, QuestionItem } from '@/types/database'
 

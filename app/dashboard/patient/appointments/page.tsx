@@ -4,7 +4,8 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
-import { Button, Card, CardHeader, Badge, PageLoading, EmptyState } from '@/components/ui'
+import { useNow } from '@/lib/hooks/useNow'
+import { Button, Card, Badge, PageLoading, EmptyState } from '@/components/ui'
 import { STATUS_LABELS, formatDateTime, formatDate, getInitials, cn } from '@/lib/utils'
 import { toast } from 'sonner'
 import type { Appointment, User } from '@/types/database'
@@ -173,6 +174,7 @@ export default function PatientAppointmentsPage() {
   const [filter, setFilter]         = useState<FilterKey>('all')
   const [search, setSearch]         = useState('')
   const [expanded, setExpanded]     = useState<string | null>(null)
+  const now = useNow()
   const [ratingApt, setRatingApt]   = useState<string | null>(null)
   const [cancelId, setCancelId]     = useState<string | null>(null)
   const [cancelReason, setCancelReason] = useState('')
@@ -356,8 +358,8 @@ export default function PatientAppointmentsPage() {
             {filtered.map(apt => {
               const isExpanded = expanded === apt.id
               const doc = apt.doctor
-              const isNearTime = apt.scheduled_at
-                ? (new Date(apt.scheduled_at).getTime() - Date.now()) <= 15 * 60 * 1000
+              const isNearTime = apt.scheduled_at && now > 0
+                ? (new Date(apt.scheduled_at).getTime() - now) <= 15 * 60 * 1000
                 : false
               const canVideo = apt.status === 'in_progress' ||
                 ((['ready', 'scheduled', 'paid'].includes(apt.status)) && isNearTime)

@@ -25,7 +25,7 @@ const TRUST_BADGES = [
 export default function DoctorsHeroCarousel() {
   const [mounted, setMounted] = useState(false)
   const [active, setActive] = useState(1)
-  const [tick, setTick] = useState(0)
+  const [, setTick] = useState(0)
 
   useEffect(() => {
     setMounted(true)

@@ -67,13 +67,6 @@ function FeatureVisual({ icon, gradient, side }: { icon: 'video' | 'ai' | 'brand
 
 // ── Check icon ────────────────────────────────────────────────────────
 
-function Check() {
-  return (
-    <svg className="w-5 h-5 text-teal-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="20 6 9 17 4 12" />
-    </svg>
-  )
-}
 
 // ── Page ──────────────────────────────────────────────────────────────
 

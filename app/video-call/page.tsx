@@ -19,7 +19,7 @@ import {
   useRoomContext,
 } from '@livekit/components-react'
 import '@livekit/components-styles'
-import { Track, RoomEvent, ConnectionQuality, ConnectionState } from 'livekit-client'
+import { Track, RoomEvent, ConnectionQuality } from 'livekit-client'
 
 type VideoState = 'checking' | 'payment_required' | 'waiting' | 'connecting' | 'connected' | 'disconnected' | 'error'
 
@@ -41,8 +41,10 @@ export default function VideoCallPage() {
 
   const livekitUrl = process.env.NEXT_PUBLIC_LIVEKIT_URL
 
+  // Mirror the latest preview stream into a ref so the unmount cleanup below can stop
+  // its tracks without re-running (and thus tearing down) the init effect on every change.
   const previewStreamRef = React.useRef<MediaStream | null>(null)
-  previewStreamRef.current = previewStream
+  useEffect(() => { previewStreamRef.current = previewStream }, [previewStream])
 
   useEffect(() => {
     if (!id) { setError('חסר מזהה תור'); setState('error'); return }
@@ -227,7 +229,6 @@ export default function VideoCallPage() {
             supabase={supabase}
             onLeave={handleDisconnected}
             profile={profile}
-            router={router}
           />
         </LiveKitRoom>
       </div>
@@ -504,10 +505,9 @@ interface ActiveRoomProps {
   supabase: ReturnType<typeof getClient>
   onLeave: () => void
   profile: User | null
-  router: ReturnType<typeof useRouter>
 }
 
-function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName, supabase, onLeave, profile, router }: ActiveRoomProps) {
+function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName, supabase, onLeave, profile }: ActiveRoomProps) {
   const room = useRoomContext()
   const { localParticipant } = useLocalParticipant()
   const remoteParticipants = useRemoteParticipants()

@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
-import { Button, Input, Card, CardContent, CardHeader, Badge, PageLoading, EmptyState } from '@/components/ui'
+import { Button, Input, Card, Badge, PageLoading, EmptyState } from '@/components/ui'
 import { cn, formatDateTime, STATUS_LABELS, getInitials } from '@/lib/utils'
 import type { User, Appointment, Document } from '@/types/database'
 

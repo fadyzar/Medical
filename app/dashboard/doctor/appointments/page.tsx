@@ -1,11 +1,11 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
-import { useEffect, useState, useCallback } from 'react'
+import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
-import { Button, Card, CardContent, CardHeader, Badge, Textarea, Input, PageLoading, EmptyState, Spinner } from '@/components/ui'
-import { STATUS_LABELS, formatDateTime, formatDate, getInitials, cn } from '@/lib/utils'
+import { Button, Card, CardContent, CardHeader, Badge, Input, PageLoading, EmptyState, Spinner } from '@/components/ui'
+import { STATUS_LABELS, formatDateTime, getInitials, cn } from '@/lib/utils'
 import type { Appointment, User, QuestionnaireResponse, QuestionItem } from '@/types/database'
 
 type ResponseWithQuest = QuestionnaireResponse & {
@@ -325,10 +325,9 @@ function parseSummary(raw: string): { sections: { label: string; value: string; 
 }
 
 function AISummaryCard({
-  summary, appointmentId, onSend, sending, sendResult, onClearResult,
+  summary, onSend, sending, sendResult, onClearResult,
 }: {
   summary: string
-  appointmentId: string
   onSend: (channel: 'email' | 'whatsapp' | 'in_app') => void
   sending: boolean
   sendResult: { ok: boolean; error?: string } | null
@@ -1005,7 +1004,6 @@ export default function DoctorAppointmentsPage() {
                 {selected.ai_summary && (
                   <AISummaryCard
                     summary={selected.ai_summary}
-                    appointmentId={selected.id}
                     onSend={sendSummaryToPatient}
                     sending={sendingSummary}
                     sendResult={sendSummaryResult}
@@ -1079,7 +1077,7 @@ export default function DoctorAppointmentsPage() {
                         <svg className="w-4 h-4 text-slate-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                           <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" /><polyline points="14 2 14 8 20 8" />
                         </svg>
-                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">מסמכים שצורפו ע"י המטופל</p>
+                        <p className="text-xs font-semibold text-slate-600 uppercase tracking-wide">מסמכים שצורפו ע&quot;י המטופל</p>
                       </div>
                     </CardHeader>
                     <CardContent className="py-3 px-4">
@@ -1130,7 +1128,7 @@ export default function DoctorAppointmentsPage() {
                     ) : (
                       <CardContent className="py-3 px-4">
                         <p className="text-xs text-slate-400 leading-relaxed">
-                          לחץ "צור בריף" לקבלת סיכום AI של המטופל לפני הביקור — תלונה, היסטוריה, תשובות לשאלון ואזהרות דחיפות.
+                          לחץ &quot;צור בריף&quot; לקבלת סיכום AI של המטופל לפני הביקור — תלונה, היסטוריה, תשובות לשאלון ואזהרות דחיפות.
                         </p>
                       </CardContent>
                     )}

@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
+import { useNow } from '@/lib/hooks/useNow'
 import { Button, Card, CardContent, CardHeader, Badge, EmptyState, PageLoading } from '@/components/ui'
 import { ChartCard, AreaTrend, MED } from '@/components/ui/medical'
 import { STATUS_LABELS, formatDateTime, formatDate, cn, getInitials } from '@/lib/utils'
@@ -143,6 +144,7 @@ export default function PatientDashboard() {
   const [loading, setLoading]         = useState(true)
   const [ratedMap, setRatedMap]       = useState<Record<string, number>>({})
   const [notifications, setNotifications] = useState<{ id: string; title: string; content: string; created_at: string; read_at: string | null }[]>([])
+  const nowMs = useNow()
 
   useEffect(() => {
     const load = async () => {
@@ -174,7 +176,7 @@ export default function PatientDashboard() {
   if (loading) return <PageLoading />
   if (!profile) return null
 
-  const now = new Date()
+  const now = new Date(nowMs)
   const DONE = ['completed', 'cancelled_patient', 'cancelled_doctor', 'no_show_patient', 'no_show_doctor']
   const active    = appointments.filter(a => !DONE.includes(a.status))
   const completed = appointments.filter(a => a.status === 'completed')
@@ -451,8 +453,8 @@ export default function PatientDashboard() {
                 )}
                 {(nextApt.status === 'in_progress' ||
                   (['ready', 'scheduled', 'paid'].includes(nextApt.status) &&
-                    nextApt.scheduled_at &&
-                    (new Date(nextApt.scheduled_at).getTime() - Date.now()) <= 15 * 60 * 1000)
+                    nextApt.scheduled_at && nowMs > 0 &&
+                    (new Date(nextApt.scheduled_at).getTime() - nowMs) <= 15 * 60 * 1000)
                 ) && (
                   <Button size="sm" className="bg-green-600 hover:bg-green-700 gap-1.5" onClick={() => router.push(`/video-call?id=${nextApt.id}`)}>
                     <svg className="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

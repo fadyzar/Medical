@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
-import { Button, Card, CardContent, CardHeader, Input, Badge, PageLoading, EmptyState, Select } from '@/components/ui'
+import { Button, Card, CardContent, Input, Badge, PageLoading, EmptyState } from '@/components/ui'
 import { STATUS_LABELS, formatDateTime, formatTime, cn, getInitials, SPECIALTIES } from '@/lib/utils'
 import type { Appointment, User, AppointmentStatus } from '@/types/database'
 
@@ -59,7 +59,7 @@ export default function StaffAppointmentsPage() {
   const supabase = getClient()
 
   const [loading, setLoading] = useState(true)
-  const [orgId, setOrgId] = useState<string | null>(null)
+  const [, setOrgId] = useState<string | null>(null)
   const [appointments, setAppointments] = useState<StaffAppointment[]>([])
   const [doctors, setDoctors] = useState<DoctorOption[]>([])
   const [selected, setSelected] = useState<StaffAppointment | null>(null)

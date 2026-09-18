@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { getClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import { Button, Input, Select, Card, CardHeader, CardContent, Badge, PageLoading, EmptyState } from '@/components/ui'
+import { Button, Input, Select, Card, CardContent, Badge, PageLoading, EmptyState } from '@/components/ui'
 import { formatDateTime, SPECIALTIES, cn } from '@/lib/utils'
 import type { User, UserRole } from '@/types/database'
 
@@ -41,7 +41,7 @@ export default function AdminUsersPage() {
   const [patients, setPatients] = useState<User[]>([])
   const [aptCounts, setAptCounts] = useState<Record<string, number>>({})
   const [loading, setLoading] = useState(true)
-  const [orgId, setOrgId] = useState('')
+  const [, setOrgId] = useState('')
   const [search, setSearch] = useState('')
   const [roleFilter, setRoleFilter] = useState<string>('')
   const [activeTab, setActiveTab] = useState<'staff' | 'patients'>('staff')

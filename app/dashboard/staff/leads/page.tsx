@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState, useCallback } from 'react'
 import { getClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import { Button, Card, CardHeader, CardContent, Badge, PageLoading, EmptyState, Textarea, Input, Select } from '@/components/ui'
+import { Button, Card, CardHeader, CardContent, PageLoading, EmptyState, Textarea, Input, Select } from '@/components/ui'
 import { formatDateTime, formatDate, cn } from '@/lib/utils'
 import type { Lead, LeadStatus } from '@/types/database'
 

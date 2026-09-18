@@ -4,7 +4,7 @@ export const dynamic = 'force-dynamic'
 import React, { useEffect, useState, useCallback } from 'react'
 import { getClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import { Button, Input, Select, Card, CardHeader, CardContent, Badge, PageLoading, EmptyState, Textarea } from '@/components/ui'
+import { Button, Input, Select, Card, CardHeader, CardContent, PageLoading, EmptyState, Textarea } from '@/components/ui'
 import { formatDateTime, formatDate, SPECIALTIES, cn } from '@/lib/utils'
 import type { Lead, LeadStatus, LeadPriority, LeadSource, User } from '@/types/database'
 
@@ -248,7 +248,7 @@ export default function AdminLeadsPage() {
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <div>
           <h2 className="text-2xl font-bold">ניהול לידים</h2>
-          <p className="text-sm text-slate-500 mt-0.5">{leads.length} לידים סה"כ</p>
+          <p className="text-sm text-slate-500 mt-0.5">{leads.length} לידים סה&quot;כ</p>
         </div>
         <Button onClick={openNew}>+ ליד חדש</Button>
       </div>

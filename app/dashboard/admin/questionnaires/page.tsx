@@ -5,7 +5,7 @@ import { useEffect, useState, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
-import { Button, Input, Textarea, Select, Card, CardContent, CardHeader, Badge, PageLoading, EmptyState, Spinner } from '@/components/ui'
+import { Button, Input, Textarea, Select, Card, CardContent, CardHeader, Badge, PageLoading, EmptyState } from '@/components/ui'
 import { SPECIALTIES, cn, formatDateTime } from '@/lib/utils'
 import type { Questionnaire, QuestionItem } from '@/types/database'
 

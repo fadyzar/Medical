@@ -15,6 +15,9 @@ export default function Error({ error, reset }: { error: Error; reset: () => voi
           <button onClick={reset} className="bg-teal-600 text-white px-6 py-3 rounded-xl font-medium hover:bg-teal-700 transition-colors">
             נסה שוב
           </button>
+          {/* eslint-disable-next-line @next/next/no-html-link-for-pages --
+              A full page load is the recovery path here: client-side nav would keep the
+// broken React tree alive. Intentionally not next/link. */}
           <a href="/" className="bg-white text-slate-700 border px-6 py-3 rounded-xl font-medium hover:bg-slate-50 transition-colors">
             חזרה לדף הבית
           </a>

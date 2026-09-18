@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Card, CardContent, CardHeader, Badge, PageLoading, EmptyState } from '@/components/ui'
 import { SPECIALTIES, cn, formatDateTime } from '@/lib/utils'
-import type { Questionnaire, QuestionnaireResponse, QuestionItem, User } from '@/types/database'
+import type { Questionnaire, QuestionnaireResponse, User } from '@/types/database'
 
 type View = 'list' | 'responses' | 'response-detail'
 

@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
 import { getClient } from '@/lib/supabase/client'
-import { Button, Card, CardContent, CardHeader, Input, Badge, PageLoading, EmptyState, StatCard } from '@/components/ui'
+import { Button, Card, CardHeader, Badge, PageLoading, EmptyState, StatCard } from '@/components/ui'
 import { STATUS_LABELS, formatDateTime, formatTime, cn, getInitials } from '@/lib/utils'
 import type { Appointment, User, AppointmentStatus } from '@/types/database'
 

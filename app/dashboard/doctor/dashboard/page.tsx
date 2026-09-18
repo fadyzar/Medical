@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
+import { useNow } from '@/lib/hooks/useNow'
 import { Button, Card, CardContent, CardHeader, StatCard, Badge, PageLoading, EmptyState, Spinner } from '@/components/ui'
 import { ChartCard, BarTrend, MED } from '@/components/ui/medical'
 import { STATUS_LABELS, formatDateTime, formatTime, getInitials, cn } from '@/lib/utils'
@@ -150,6 +151,8 @@ export default function DoctorDashboard() {
   const [appointments, setAppointments] = useState<Appointment[]>([])
   const [notifications, setNotifications] = useState<Notif[]>([])
   const [loading, setLoading] = useState(true)
+  // Ticks so the day-boundary filters and the greeting stay correct without a reload.
+  const now = useNow(60_000)
   const [aiLoading, setAiLoading] = useState<string | null>(null)
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
@@ -230,13 +233,14 @@ export default function DoctorDashboard() {
 
   const pending   = appointments.filter(a => ['pending', 'payment_pending'].includes(a.status))
   const active    = appointments.filter(a => ['doctor_confirmed', 'scheduled', 'ready', 'in_progress'].includes(a.status))
-  const today     = appointments.filter(a => a.scheduled_at && new Date(a.scheduled_at).toDateString() === new Date().toDateString())
+  const todayKey  = new Date(now).toDateString()
+  const today     = appointments.filter(a => a.scheduled_at && new Date(a.scheduled_at).toDateString() === todayKey)
   const completed = appointments.filter(a => a.status === 'completed')
   const needSummary = completed.filter(a => !a.ai_summary)
 
   // Real 7-day appointment volume (by scheduled date, falling back to created)
   const weeklyData = Array.from({ length: 7 }).map((_, i) => {
-    const d = new Date(Date.now() - (6 - i) * 864e5)
+    const d = new Date(now - (6 - i) * 864e5)
     const key = d.toDateString()
     return {
       day: d.toLocaleDateString('he-IL', { weekday: 'short' }),
@@ -251,7 +255,7 @@ export default function DoctorDashboard() {
   })
 
   // greeting
-  const hour = new Date().getHours()
+  const hour = new Date(now).getHours()
   const greeting = hour < 12 ? 'בוקר טוב' : hour < 17 ? 'צהריים טובים' : 'ערב טוב'
   const doctorName = profile ? `ד"ר ${profile.first_name} ${profile.last_name}` : ''
 

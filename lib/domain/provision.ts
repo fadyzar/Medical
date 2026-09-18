@@ -60,7 +60,7 @@ export async function provisionSubdomain(orgId: string, subdomain: string): Prom
   const dnsResult = await addCnameToHostinger(subdomain)
 
   const dnsManual = !dnsResult.ok
-  const finalStatus: 'vercel_added' = 'vercel_added'
+  const finalStatus = 'vercel_added' as const
 
   await admin.from('organizations').update({
     domain_status: finalStatus,
