@@ -124,11 +124,11 @@ export default function NewAppointmentPage() {
   // Doctor deep-link: resolve the doctor's specialty so we land directly on their slots
   useEffect(() => {
     if (!pendingDoctorId || form.specialty) return
-    supabase.from('users')
+    // public_doctors exposes only bookable columns and already filters to
+    // active doctors — the users table no longer grants patients doctor rows.
+    supabase.from('public_doctors')
       .select('specialties')
       .eq('id', pendingDoctorId)
-      .eq('role', 'doctor')
-      .eq('is_active', true)
       .single()
       .then(({ data }) => {
         const specs = (data as { specialties: string[] | null } | null)?.specialties
@@ -152,10 +152,8 @@ export default function NewAppointmentPage() {
     const load = async () => {
       try {
         let query = supabase
-          .from('users')
+          .from('public_doctors')
           .select('id, first_name, last_name, specialties, bio, consultation_price, average_rating, total_ratings, avatar_url, languages, organization_id')
-          .eq('role', 'doctor')
-          .eq('is_active', true)
           .contains('specialties', [form.specialty])
 
         // ── Clinic mode: filter by org ──────────────────────────────
@@ -234,13 +232,22 @@ export default function NewAppointmentPage() {
       // - Marketplace: use the selected doctor's org_id, and assign patient to it
       let appointmentOrgId = orgCtx.id
 
-      if (orgCtx.isMarketplace && selectedDoctor?.organization_id) {
-        appointmentOrgId = selectedDoctor.organization_id
-
-        // Assign patient to this clinic on their first booking
-        await supabase.from('users')
-          .update({ organization_id: appointmentOrgId })
-          .eq('id', user.id)
+      if (orgCtx.isMarketplace && form.doctor_id) {
+        // Server-side: the org is derived from the doctor, not sent by the client.
+        // A patient can no longer write their own organization_id (migration 019).
+        const res = await fetch('/api/patient/join-clinic', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ doctorId: form.doctor_id }),
+        })
+        const joined = await res.json() as { organizationId?: string; error?: string }
+        if (!res.ok || !joined.organizationId) {
+          setErrors({ submit: joined.error || 'לא ניתן לשייך אותך למרפאה של הרופא' })
+          toast.error(joined.error || 'לא ניתן לשייך אותך למרפאה של הרופא')
+          setLoading(false)
+          return
+        }
+        appointmentOrgId = joined.organizationId
       }
 
       if (!appointmentOrgId) {
@@ -264,7 +271,19 @@ export default function NewAppointmentPage() {
         status: 'pending',
       }).select('id').single()
 
-      if (error || !apt) throw error
+      if (error || !apt) {
+        // 23505 = the appointments_doctor_slot_unique index (migration 019):
+        // someone else took this slot between loading the list and submitting.
+        if (error?.code === '23505') {
+          setErrors({ submit: 'המועד הזה נתפס זה עתה. בחר מועד אחר.' })
+          toast.error('המועד הזה נתפס זה עתה')
+          setStep('datetime')
+          setSelectedSlot(null)
+          setLoading(false)
+          return
+        }
+        throw error
+      }
 
       if (files.length > 0) {
         for (const file of files) {

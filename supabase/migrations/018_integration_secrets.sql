@@ -1,4 +1,4 @@
--- 017: Separate integration secrets from organizations.settings (security fix)
+-- 018: Separate integration secrets from organizations.settings (security fix)
 --
 -- Problem: the RLS policy "org_select" (id = get_my_org_id()) is role-agnostic, so any
 -- organization member (patient/doctor/staff) could SELECT the organizations row and read

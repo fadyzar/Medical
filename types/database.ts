@@ -16,7 +16,9 @@ export type Database = {
       leads: { Row: Lead; Insert: Partial<Lead>; Update: Partial<Lead>; Relationships: [] }
       organization_integrations: { Row: OrganizationIntegrations; Insert: Partial<OrganizationIntegrations>; Update: Partial<OrganizationIntegrations>; Relationships: [] }
     }
-    Views: Record<string, never>
+    Views: {
+      public_doctors: { Row: PublicDoctor; Relationships: [] }
+    }
     Functions: {
       get_my_org_id: { Args: Record<string, never>; Returns: string }
       get_my_role: { Args: Record<string, never>; Returns: string }
@@ -29,6 +31,28 @@ export type Database = {
 export type UserRole = 'patient' | 'doctor' | 'staff' | 'admin'
 export type AppointmentStatus = 'draft' | 'pending' | 'doctor_confirmed' | 'time_selected' | 'payment_pending' | 'paid' | 'scheduled' | 'ready' | 'in_progress' | 'completed' | 'cancelled_patient' | 'cancelled_doctor' | 'no_show_patient' | 'no_show_doctor'
 export type PaymentStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'refunded'
+
+/**
+ * Bookable columns of an active doctor (migration 019).
+ * The users table no longer exposes doctor rows to patients — it also holds
+ * license_number, id_number, phone and medical_history, which RLS cannot hide
+ * column-by-column. Patient-facing code reads this view instead.
+ */
+export type PublicDoctor = {
+  id: string
+  organization_id: string | null
+  first_name: string
+  last_name: string
+  avatar_url: string | null
+  specialties: string[] | null
+  bio: string | null
+  languages: string[] | null
+  consultation_price: number | null
+  average_rating: number | null
+  total_ratings: number
+  availability: AvailabilitySlot[]
+  metadata: Record<string, unknown>
+}
 
 export type OrganizationIntegrations = {
   organization_id: string

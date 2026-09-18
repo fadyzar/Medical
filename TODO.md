@@ -18,16 +18,12 @@
 
 ## Migrations שצריך להריץ ב-Supabase SQL Editor
 
-- [ ] **016** — עמודות סטטוס דומיין:
-  ```sql
-  ALTER TABLE organizations
-    ADD COLUMN IF NOT EXISTS domain_status text NOT NULL DEFAULT 'none',
-    ADD COLUMN IF NOT EXISTS domain_error text,
-    ADD COLUMN IF NOT EXISTS domain_last_checked_at timestamptz;
-  ```
-- [ ] **017** — `supabase/migrations/017_integration_secrets.sql` (תיקון אבטחה — סודות
-      אינטגרציה יוצאים מ-`organizations.settings` לטבלה עם RLS לאדמין בלבד).
-      **חשוב:** עד שזה ירוץ, דף האינטגרציות לא ישמור — הטבלה עוד לא קיימת.
+- [x] ~~016, 018~~ — כבר הורצו (אומת מול ה-DB: `organization_integrations` קיים)
+- [ ] **019_security_hardening.sql** — ⚠️ **דחוף, לפני כל לקוח אמיתי.**
+      מתקן 5 חורים שכולם ניתנים לניצול מה-console של הדפדפן עם ה-anon key בלבד:
+      הסלמת הרשאות בהרשמה, קידום עצמי ל-admin, קריאת תיקים רפואיים של מטופלים
+      אחרים באותה מרפאה, חשיפת רופאים בין מרפאות, וכפל הזמנה לאותו מועד.
+      **אחרי ההרצה:** לבדוק שהרשמה, קביעת תור ומסך הרופא עדיין עובדים.
 
 ## כבר בנוי (אל תבנה שוב)
 
@@ -45,4 +41,8 @@
 - [ ] **חשבוניות** — `lib/invoice/` קיים; לוודא חיבור ל-Green Invoice/iCount אמיתי
 - [ ] **דף `/doctors` ריק** — מציג "רופאים יצטרפו בקרוב" עד שיהיו רופאים ב-DB
 - [ ] **בלוג** — `lib/blog/posts.ts` הוא תוכן סטטי בקוד; לשקול CMS אם אושרית תרצה לערוך
+- [ ] **להוציא PII של רופאים מטבלת users** — `license_number`, `id_number`, `phone`
+      עדיין קריאים לכל משתמש מחובר על שורות של רופאים. RLS הוא row-level בלבד
+      ו-column GRANTs לא עוזרים כי כולם אותו role (`authenticated`). הפתרון:
+      טבלה נפרדת `doctor_private`. פירוט מלא ב-019.
 - [ ] **73 אזהרות lint** — בעיקר `react-hooks/exhaustive-deps`; לא דחוף, לא שובר כלום

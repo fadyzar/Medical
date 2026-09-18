@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServiceRole } from '@/lib/supabase/server'
-import { addDays, format, parseISO, setHours, setMinutes, isBefore, isAfter, addMinutes } from 'date-fns'
+import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
+import { addDays, format, parseISO, isAfter, addMinutes } from 'date-fns'
+import { fromZonedTime, toZonedTime } from 'date-fns-tz'
+import { APP_TIMEZONE } from '@/lib/utils'
 import type { AvailabilitySlot } from '@/types/database'
 
 export const dynamic = 'force-dynamic'
@@ -29,6 +31,13 @@ type AptRow = {
 
 export async function GET(req: NextRequest) {
   try {
+    // This route reads with the service role, so it must do its own authorization:
+    // middleware treats every /api/ path as public. Without this, anyone could pass
+    // an arbitrary orgId and enumerate a clinic's doctors and working hours.
+    const auth = await createServerSupabase()
+    const { data: { user } } = await auth.auth.getUser()
+    if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+
     const { searchParams } = new URL(req.url)
     const orgId    = searchParams.get('orgId')
     const doctorId = searchParams.get('doctorId')
@@ -67,25 +76,36 @@ export async function GET(req: NextRequest) {
       .gte('scheduled_at', rangeStart.toISOString())
       .lte('scheduled_at', rangeEnd.toISOString())
 
+    // ── All wall-clock maths happens in Israel time ──────────────────────────
+    // availability.start/end are bare "HH:mm" strings meaning Israel local time,
+    // but this ran through date-fns setHours/getDay, which use the *server's*
+    // timezone. Locally (Asia/Jerusalem) that looked right; on Vercel, which runs
+    // UTC, every slot came out 2-3 hours late — a doctor available 09:00-17:00
+    // was offered to patients as 12:00-20:00. Build each slot as an Israel
+    // wall-clock string and let fromZonedTime resolve the real instant (DST-aware).
+    const zonedKey = (d: Date) => format(toZonedTime(d, APP_TIMEZONE), 'yyyy-MM-dd_HH:mm')
+
     const bookedSlots = new Set<string>()
     for (const apt of (existingApts as unknown as AptRow[] || [])) {
       if (apt.scheduled_at) {
         // Block the 30-min slot of each existing appointment
-        const d = parseISO(apt.scheduled_at)
-        const key = `${apt.doctor_id}_${format(d, 'yyyy-MM-dd_HH:mm')}`
-        bookedSlots.add(key)
+        bookedSlots.add(`${apt.doctor_id}_${zonedKey(parseISO(apt.scheduled_at))}`)
       }
     }
 
     const slots: Slot[] = []
     const now = new Date()
+    const earliest = addMinutes(now, 30) // booking buffer
+    const nowInIsrael = toZonedTime(now, APP_TIMEZONE)
+    const pad = (n: number) => String(n).padStart(2, '0')
 
     for (const doctor of typedDoctors) {
       const availability: AvailabilitySlot[] = doctor.availability || []
       const vacations = doctor.metadata?.vacations || []
 
       for (let dayOffset = 0; dayOffset < days; dayOffset++) {
-        const day = addDays(now, dayOffset)
+        // Calendar day as seen in Israel, not on the server.
+        const day = addDays(nowInIsrael, dayOffset)
         const dayStr = format(day, 'yyyy-MM-dd')
         const dayOfWeek = day.getDay() // 0=Sunday
 
@@ -97,21 +117,21 @@ export async function GET(req: NextRequest) {
         const avail = availability.find(a => a.day === dayOfWeek)
         if (!avail) continue
 
-        // Parse working hours
+        // Working hours as minutes past midnight, Israel time
         const [startH, startM] = avail.start.split(':').map(Number)
         const [endH,   endM]   = avail.end.split(':').map(Number)
+        if ([startH, startM, endH, endM].some(Number.isNaN)) continue
 
-        let slotTime = setMinutes(setHours(day, startH), startM)
-        const endTime = setMinutes(setHours(day, endH), endM)
+        const startMinutes = startH * 60 + startM
+        const endMinutes   = endH * 60 + endM
 
-        while (isBefore(slotTime, endTime)) {
-          // Skip past slots (with 30-min buffer)
-          if (!isAfter(slotTime, addMinutes(now, 30))) {
-            slotTime = addMinutes(slotTime, 30)
-            continue
-          }
+        for (let m = startMinutes; m < endMinutes; m += 30) {
+          const wallClock = `${pad(Math.floor(m / 60))}:${pad(m % 60)}`
+          const slotTime = fromZonedTime(`${dayStr}T${wallClock}:00`, APP_TIMEZONE)
 
-          const key = `${doctor.id}_${format(slotTime, 'yyyy-MM-dd_HH:mm')}`
+          if (!isAfter(slotTime, earliest)) continue
+
+          const key = `${doctor.id}_${dayStr}_${wallClock}`
           if (!bookedSlots.has(key)) {
             slots.push({
               datetime: slotTime.toISOString(),
@@ -119,8 +139,6 @@ export async function GET(req: NextRequest) {
               doctorName: `ד"ר ${doctor.first_name} ${doctor.last_name}`,
             })
           }
-
-          slotTime = addMinutes(slotTime, 30)
         }
       }
     }
