@@ -6,156 +6,7 @@ import { getClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { Button, Card, CardHeader, CardContent, Badge, PageLoading } from '@/components/ui'
 import { cn } from '@/lib/utils'
-import type { Organization } from '@/types/database'
-
-// ── DomainCard (inline) ────────────────────────────────
-function DomainCard({ orgId, currentSubdomain }: { orgId: string; currentSubdomain: string | null }) {
-  const [subdomain, setSubdomain] = useState(currentSubdomain || '')
-  const [status, setStatus] = useState<string>('none')
-  const [loading, setLoading] = useState(false)
-  const [checking, setChecking] = useState(false)
-  const [result, setResult] = useState<{
-    url?: string
-    vercelVerified?: boolean
-    error?: string | null
-    manualDns?: { type: string; name: string; value: string; instructions: string }
-    lastChecked?: string
-  } | null>(null)
-
-  useEffect(() => { checkStatus() /* eslint-disable-next-line react-hooks/exhaustive-deps */ }, [])
-
-  async function checkStatus() {
-    setChecking(true)
-    try {
-      const res = await fetch('/api/admin/domain/status')
-      if (res.ok) {
-        const data = await res.json()
-        setStatus(data.status || 'none')
-        setResult(data)
-        if (data.subdomain) setSubdomain(data.subdomain)
-      }
-    } catch { /* non-critical */ } finally { setChecking(false) }
-  }
-
-  async function provision() {
-    if (!subdomain || subdomain.length < 3) { toast.error('יש להזין סאבדומיין (לפחות 3 תווים)'); return }
-    setLoading(true)
-    try {
-      const res = await fetch('/api/admin/domain/provision', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ subdomain: subdomain.toLowerCase().trim() }),
-      })
-      const data = await res.json()
-      if (res.ok) {
-        setStatus(data.status)
-        setResult(data)
-        if (data.status === 'active') toast.success('הדומיין מוכן ופעיל!')
-        else if (data.dnsManual) toast.success('נוסף ל-Vercel! יש להוסיף את רשומת DNS ידנית.')
-        else toast.success('הדומיין בתהליך הגדרה — בדוק שוב בעוד כמה דקות')
-      } else {
-        toast.error(data.error || 'שגיאה בהגדרת הדומיין')
-      }
-    } catch { toast.error('שגיאת רשת') } finally { setLoading(false) }
-  }
-
-  const STATUS_LABELS: Record<string, { label: string; color: string }> = {
-    none:         { label: 'לא הוגדר',      color: 'bg-slate-100 text-slate-600' },
-    pending:      { label: 'מגדיר...',       color: 'bg-yellow-100 text-yellow-700' },
-    vercel_added: { label: 'ממתין ל-DNS',    color: 'bg-teal-100 text-teal-700' },
-    active:       { label: 'פעיל',           color: 'bg-green-100 text-green-700' },
-    failed:       { label: 'שגיאה',          color: 'bg-red-100 text-red-700' },
-  }
-  const statusInfo = STATUS_LABELS[status] || STATUS_LABELS.none
-  const canEdit = status === 'none' || status === 'failed'
-
-  return (
-    <div className="space-y-4">
-      {/* Status badge */}
-      <div className="flex items-center gap-3">
-        <span className={`text-xs font-semibold px-2.5 py-1 rounded-full ${statusInfo.color}`}>{statusInfo.label}</span>
-        {checking && <span className="text-xs text-slate-400">בודק...</span>}
-      </div>
-
-      {/* Active */}
-      {status === 'active' && result?.url && (
-        <div className="flex items-center gap-3 p-4 bg-green-50 border border-green-200 rounded-xl">
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-semibold text-green-800">הדומיין פעיל</p>
-            <a href={result.url} target="_blank" rel="noopener noreferrer" className="text-sm text-green-700 hover:underline font-mono truncate block">{result.url}</a>
-          </div>
-        </div>
-      )}
-
-      {/* Input */}
-      {canEdit && (
-        <div>
-          <label className="block text-sm font-medium text-slate-700 mb-1.5">סאבדומיין</label>
-          <div className="flex items-center gap-0">
-            <input
-              type="text"
-              value={subdomain}
-              onChange={e => setSubdomain(e.target.value.toLowerCase().replace(/[^a-z0-9-]/g, ''))}
-              placeholder="shalom"
-              className="flex-1 rounded-r-xl border border-l-0 border-slate-300 px-4 py-2.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-purple-200 focus:border-purple-400"
-              dir="ltr"
-            />
-            <span className="bg-slate-100 border border-slate-300 rounded-l-xl px-3 py-2.5 text-sm text-slate-500 font-mono whitespace-nowrap">.cannaforyou.net</span>
-          </div>
-          <p className="text-xs text-slate-400 mt-1">אותיות קטנות באנגלית, מספרים ומקף בלבד</p>
-        </div>
-      )}
-
-      {/* Show subdomain when not editing */}
-      {!canEdit && subdomain && status !== 'active' && (
-        <div className="flex items-center gap-2 font-mono text-sm bg-slate-50 border border-slate-200 rounded-xl px-4 py-2.5">
-          <span className="text-slate-500">URL:</span>
-          <span className="text-slate-800">{subdomain}.cannaforyou.net</span>
-        </div>
-      )}
-
-      {/* vercel_added — waiting DNS */}
-      {status === 'vercel_added' && (
-        <div className="p-3 bg-teal-50 border border-teal-200 rounded-xl text-sm text-teal-700">
-          <p className="font-semibold mb-1">נוסף ל-Vercel — ממתין לאימות DNS</p>
-          <p className="text-xs text-teal-600">לאחר שה-DNS מתפשט (עד 5 דקות) לחץ ״בדוק סטטוס״.</p>
-        </div>
-      )}
-
-      {/* Manual DNS */}
-      {result?.manualDns && (
-        <div className="p-4 bg-amber-50 border border-amber-200 rounded-xl text-sm text-amber-800">
-          <p className="font-semibold mb-2">הוסף רשומת DNS ידנית בהוסטינגר:</p>
-          <div className="font-mono text-xs bg-white border border-amber-200 rounded-lg p-3 space-y-1">
-            <div><span className="text-slate-500">סוג:</span> {result.manualDns.type}</div>
-            <div><span className="text-slate-500">שם:</span> {result.manualDns.name}</div>
-            <div><span className="text-slate-500">ערך:</span> {result.manualDns.value}</div>
-          </div>
-        </div>
-      )}
-
-      {/* Buttons */}
-      <div className="flex gap-2 flex-wrap pt-1">
-        {canEdit && (
-          <button
-            onClick={provision}
-            disabled={loading || !subdomain}
-            className="px-4 py-2 rounded-lg bg-purple-600 text-white text-sm font-semibold hover:bg-purple-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-          >
-            {loading ? 'מגדיר...' : 'הפעל דומיין'}
-          </button>
-        )}
-        <button
-          onClick={checkStatus}
-          disabled={checking}
-          className="px-4 py-2 rounded-lg border border-slate-300 text-slate-700 text-sm font-medium hover:bg-slate-50 disabled:opacity-50 transition-colors"
-        >
-          {checking ? 'בודק...' : 'בדוק סטטוס'}
-        </button>
-      </div>
-    </div>
-  )
-}
+import Link from 'next/link'
 
 // ── WhatsApp Test Panel ────────────────────────────────
 function WhatsAppTestPanel({ isConfigured }: { isConfigured: boolean }) {
@@ -247,7 +98,7 @@ function WhatsAppTestPanel({ isConfigured }: { isConfigured: boolean }) {
 // ── Types ──────────────────────────────────────────────
 
 // Integrations provided by the platform — no config needed by clinic
-const PLATFORM_PROVIDED: IntegrationKey[] = ['email', 'video']
+const PLATFORM_PROVIDED: IntegrationKey[] = ['email', 'video', 'invoice']
 
 type IntegrationKey =
   | 'whatsapp'
@@ -306,12 +157,8 @@ const INTEGRATIONS: IntegrationConfig[] = [
       </svg>
     ),
     color: 'text-teal-600',
-    fields: [
-      { id: 'resend_api_key', label: 'Resend API Key', type: 'password', placeholder: 're_xxxxxxxxxxxxxxxx', required: true },
-      { id: 'email_from', label: 'כתובת שולח', type: 'text', placeholder: 'noreply@clinic.co.il', hint: 'חייב להיות מוגדר ב-Resend תחת דומיין מאומת' },
-      { id: 'email_from_name', label: 'שם השולח', type: 'text', placeholder: 'מרפאת שלום' },
-    ],
-    providerNote: 'נדרש חשבון Resend עצמאי בכתובת resend.com. המרפאה אחראית לאימות הדומיין ותשלום לספק.',
+    fields: [],
+    providerNote: 'שירות האימייל מסופק ומנוהל על ידי CANNA — אין צורך בהגדרת מפתחות. אישורים, תזכורות וסיכומים נשלחים אוטומטית.',
   },
   {
     key: 'video',
@@ -324,12 +171,8 @@ const INTEGRATIONS: IntegrationConfig[] = [
       </svg>
     ),
     color: 'text-purple-600',
-    fields: [
-      { id: 'livekit_url', label: 'LiveKit URL', type: 'url', placeholder: 'wss://your-project.livekit.cloud', required: true },
-      { id: 'livekit_api_key', label: 'LiveKit API Key', type: 'text', placeholder: 'APIxxxxxxxxxxxxxxxx', required: true },
-      { id: 'livekit_api_secret', label: 'LiveKit API Secret', type: 'password', placeholder: 'xxxxxxxxxxxxxxxx', required: true },
-    ],
-    providerNote: 'נדרש חשבון LiveKit Cloud עצמאי בכתובת livekit.io. המרפאה אחראית לפתיחת הפרויקט ותשלום לספק.',
+    fields: [],
+    providerNote: 'שיחות הווידאו מסופקות ומנוהלות על ידי CANNA — אין צורך בהגדרה. הפלטפורמה מנהלת את תשתית הווידאו המאובטחת.',
   },
   {
     key: 'payment',
@@ -362,29 +205,8 @@ const INTEGRATIONS: IntegrationConfig[] = [
       </svg>
     ),
     color: 'text-green-700',
-    fields: [
-      { id: 'green_invoice_id', label: 'Green Invoice ID', type: 'text', placeholder: 'xxxxxxx', required: true },
-      { id: 'green_invoice_secret', label: 'Green Invoice Secret', type: 'password', placeholder: 'xxxxxxxxxxxxxxxx', required: true },
-      { id: 'invoice_business_name', label: 'שם העסק לחשבונית', type: 'text', placeholder: 'מרפאת שלום בע"מ' },
-    ],
-    providerNote: 'נדרש חשבון Green Invoice עצמאי. המרפאה אחראית לניהול ספר החשבוניות ועמידה בדרישות מע"מ.',
-  },
-  {
-    key: 'subdomain',
-    title: 'דומיין / כתובת אישית',
-    description: 'הגדרת subdomain ייחודי או חיבור דומיין מותאם אישית',
-    icon: (
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-7 h-7">
-        <circle cx="12" cy="12" r="10"/>
-        <line x1="2" y1="12" x2="22" y2="12"/>
-        <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
-      </svg>
-    ),
-    color: 'text-indigo-600',
-    fields: [
-      { id: 'subdomain', label: 'Subdomain', type: 'text', placeholder: 'my-clinic', hint: 'כתובת הגישה: my-clinic.cannaforyou.net' },
-      { id: 'custom_domain', label: 'דומיין מותאם אישית (אופציונלי)', type: 'text', placeholder: 'portal.my-clinic.co.il', hint: 'דורש הגדרת CNAME בספק הדומיין שלך' },
-    ],
+    fields: [],
+    providerNote: 'הפקת חשבוניות מסופקת ומנוהלת על ידי CANNA — אין צורך בהגדרת מפתחות. חשבוניות וקבלות מופקות אוטומטית לאחר תשלום.',
   },
 ]
 
@@ -393,7 +215,6 @@ const INTEGRATIONS: IntegrationConfig[] = [
 export default function AdminIntegrationsPage() {
   const supabase = getClient()
   const [loading, setLoading] = useState(true)
-  const [org, setOrg] = useState<Organization | null>(null)
   const [orgId, setOrgId] = useState('')
   const [activeKey, setActiveKey] = useState<IntegrationKey | null>(null)
   const [values, setValues] = useState<Record<string, Record<string, string>>>({})
@@ -408,28 +229,24 @@ export default function AdminIntegrationsPage() {
       if (!profile) return
       setOrgId(profile.organization_id)
 
-      const { data } = await supabase.from('organizations').select('*').eq('id', profile.organization_id).single()
-      if (!data) return
-      const organization = data as unknown as Organization
-      setOrg(organization)
+      // Integration secrets live in the admin-only organization_integrations table.
+      // RLS grants read only to the org's admin — patients/doctors/staff are denied.
+      const { data: row } = await supabase
+        .from('organization_integrations')
+        .select('secrets')
+        .eq('organization_id', profile.organization_id)
+        .maybeSingle()
 
-      // Populate existing values from settings
-      const s = organization.settings || {}
+      const secrets = (row?.secrets || {}) as Record<string, Record<string, string>>
       const initial: Record<string, Record<string, string>> = {}
 
       INTEGRATIONS.forEach(integ => {
         initial[integ.key] = {}
         integ.fields.forEach(field => {
-          const stored = (s as Record<string, Record<string, string>>)[`integration_${integ.key}`]
+          const stored = secrets[`integration_${integ.key}`]
           initial[integ.key][field.id] = stored?.[field.id] || ''
         })
       })
-
-      // Populate subdomain/custom_domain directly from org
-      if (initial.subdomain) {
-        initial.subdomain.subdomain = organization.subdomain || ''
-        initial.subdomain.custom_domain = organization.custom_domain || ''
-      }
 
       setValues(initial)
     } catch {
@@ -442,29 +259,24 @@ export default function AdminIntegrationsPage() {
   useEffect(() => { loadOrg() }, [loadOrg])
 
   async function handleSave(key: IntegrationKey) {
-    if (!org) return
+    if (!orgId) return
     setSaving(true)
     try {
-      const currentSettings = org.settings || {}
+      // Merge into the admin-only secrets table (never organizations.settings).
+      const { data: row } = await supabase
+        .from('organization_integrations')
+        .select('secrets')
+        .eq('organization_id', orgId)
+        .maybeSingle()
 
-      const updatePayload: Record<string, unknown> = {
-        settings: {
-          ...currentSettings,
-          [`integration_${key}`]: values[key] || {},
-        },
-      }
+      const current = (row?.secrets || {}) as Record<string, Record<string, string>>
+      const nextSecrets: Record<string, Record<string, string>> = { ...current, [`integration_${key}`]: values[key] || {} }
 
-      // For subdomain integration, also update top-level fields
-      if (key === 'subdomain') {
-        if (values.subdomain?.subdomain) updatePayload.subdomain = values.subdomain.subdomain
-        if (values.subdomain?.custom_domain !== undefined) updatePayload.custom_domain = values.subdomain.custom_domain || null
-      }
-
-      const { error } = await supabase.from('organizations').update(updatePayload).eq('id', orgId)
+      const { error } = await supabase
+        .from('organization_integrations')
+        .upsert({ organization_id: orgId, secrets: nextSecrets, updated_at: new Date().toISOString() }, { onConflict: 'organization_id' })
       if (error) throw error
 
-      // Refresh org
-      setOrg((prev: Organization | null) => prev ? { ...prev, settings: updatePayload.settings as Record<string, unknown> } : prev)
       toast.success('הגדרות אינטגרציה נשמרו בהצלחה')
     } catch (err) {
       toast.error('שגיאה בשמירת ההגדרות')
@@ -503,7 +315,7 @@ export default function AdminIntegrationsPage() {
             </svg>
             <div>
               <p className="font-semibold">כלול בתוכנית — עובד מיד</p>
-              <p className="mt-0.5">וידאו HD ואימייל מסופקים על ידי הפלטפורמה. לא נדרשת הגדרה נוספת.</p>
+              <p className="mt-0.5">וידאו HD, אימייל וחשבוניות מסופקים ומנוהלים על ידי CANNA. לא נדרשת הגדרה נוספת.</p>
             </div>
           </div>
         </div>
@@ -514,7 +326,7 @@ export default function AdminIntegrationsPage() {
             </svg>
             <div>
               <p className="font-semibold">דורש הגדרה עצמאית</p>
-              <p className="mt-0.5">WhatsApp, תשלומים וחשבוניות דורשים חשבונות עצמאיים אצל הספקים.</p>
+              <p className="mt-0.5">WhatsApp ותשלומים דורשים חשבונות עצמאיים אצל הספקים.</p>
             </div>
           </div>
         </div>
@@ -552,6 +364,29 @@ export default function AdminIntegrationsPage() {
         })}
       </div>
 
+      {/* Domain — managed in the dedicated Settings flow (single source of truth) */}
+      <Link
+        href="/dashboard/admin/settings"
+        className="flex items-center justify-between gap-4 p-5 rounded-xl border bg-white border-slate-200 hover:border-teal-300 hover:shadow-md transition-all"
+      >
+        <div className="flex items-center gap-4">
+          <span className="text-indigo-600">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" className="w-7 h-7">
+              <circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/>
+              <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z"/>
+            </svg>
+          </span>
+          <div>
+            <h3 className="font-bold text-slate-900">דומיין / כתובת אישית</h3>
+            <p className="text-xs text-slate-500 mt-1 leading-relaxed">הגדרת subdomain וחיבור דומיין מותאם אישית מנוהלים בעמוד ההגדרות</p>
+          </div>
+        </div>
+        <span className="text-teal-600 shrink-0 inline-flex items-center gap-1 text-sm font-semibold">
+          פתח הגדרות
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+        </span>
+      </Link>
+
       {/* Expanded settings panel */}
       {activeKey && activeInteg && (
         <Card className="border-teal-200">
@@ -573,8 +408,8 @@ export default function AdminIntegrationsPage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-5">
-            {/* Provider note */}
-            {activeInteg.providerNote && (
+            {/* Provider note — only for self-service integrations (WhatsApp / Payments) */}
+            {activeInteg.providerNote && !PLATFORM_PROVIDED.includes(activeKey) && (
               <div className="bg-amber-50 border border-amber-200 rounded-lg p-3 text-sm text-amber-800">
                 <div className="flex gap-2">
                   <svg className="w-4 h-4 shrink-0 mt-0.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -585,9 +420,19 @@ export default function AdminIntegrationsPage() {
               </div>
             )}
 
-            {/* Subdomain — use DomainCard instead of generic fields */}
-            {activeKey === 'subdomain' ? (
-              <DomainCard orgId={orgId} currentSubdomain={org?.subdomain ?? null} />
+            {/* Platform-managed services (Email / Video / Invoice) — no clinic credentials */}
+            {PLATFORM_PROVIDED.includes(activeKey) ? (
+              <div className="bg-green-50 border border-green-200 rounded-xl p-4 text-sm text-green-800">
+                <div className="flex gap-3">
+                  <svg className="w-5 h-5 shrink-0 mt-0.5 text-green-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polyline points="20 6 9 17 4 12"/>
+                  </svg>
+                  <div>
+                    <p className="font-semibold">מנוהל על ידי CANNA</p>
+                    <p className="mt-0.5">{activeInteg.providerNote}</p>
+                  </div>
+                </div>
+              </div>
             ) : (
               <>
                 {/* Green API setup guide */}

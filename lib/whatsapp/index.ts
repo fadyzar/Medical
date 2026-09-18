@@ -68,14 +68,16 @@ export async function getOrgGreenApiCredentials(
   organizationId: string,
   admin: SupabaseClient,
 ): Promise<{ instanceId: string; apiToken: string } | null> {
-  const { data: org } = await admin
-    .from('organizations')
-    .select('settings')
-    .eq('id', organizationId)
-    .single()
+  // Integration secrets live in organization_integrations (admin-only RLS).
+  // Runtime reads them via the service-role client, so behavior is unchanged.
+  const { data: row } = await admin
+    .from('organization_integrations')
+    .select('secrets')
+    .eq('organization_id', organizationId)
+    .maybeSingle()
 
-  const settings = (org?.settings || {}) as Record<string, Record<string, string>>
-  const wa = settings['integration_whatsapp'] || {}
+  const secrets = (row?.secrets || {}) as Record<string, Record<string, string>>
+  const wa = secrets['integration_whatsapp'] || {}
   const instanceId = wa['green_api_instance_id']?.trim()
   const apiToken   = wa['green_api_token']?.trim()
 

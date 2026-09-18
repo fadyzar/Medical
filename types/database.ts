@@ -14,6 +14,7 @@ export type Database = {
       audit_logs: { Row: AuditLog; Insert: Partial<AuditLog>; Update: Partial<AuditLog>; Relationships: [] }
       payments: { Row: Payment; Insert: Partial<Payment>; Update: Partial<Payment>; Relationships: [] }
       leads: { Row: Lead; Insert: Partial<Lead>; Update: Partial<Lead>; Relationships: [] }
+      organization_integrations: { Row: OrganizationIntegrations; Insert: Partial<OrganizationIntegrations>; Update: Partial<OrganizationIntegrations>; Relationships: [] }
     }
     Views: Record<string, never>
     Functions: {
@@ -28,6 +29,12 @@ export type Database = {
 export type UserRole = 'patient' | 'doctor' | 'staff' | 'admin'
 export type AppointmentStatus = 'draft' | 'pending' | 'doctor_confirmed' | 'time_selected' | 'payment_pending' | 'paid' | 'scheduled' | 'ready' | 'in_progress' | 'completed' | 'cancelled_patient' | 'cancelled_doctor' | 'no_show_patient' | 'no_show_doctor'
 export type PaymentStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'refunded'
+
+export type OrganizationIntegrations = {
+  organization_id: string
+  secrets: Record<string, Record<string, string>>
+  updated_at: string
+}
 
 export type Organization = {
   id: string; name: string; subdomain: string; slug: string; custom_domain: string | null
