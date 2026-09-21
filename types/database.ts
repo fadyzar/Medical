@@ -173,6 +173,7 @@ export type AIConversation = {
   id: string; organization_id: string; user_id: string; appointment_id: string | null
   agent_type: string; messages: unknown[]; result: unknown; is_complete: boolean
   input_tokens: number; output_tokens: number; model_used: string | null; created_at: string
+  updated_at: string
 }
 
 export type AuditLog = {

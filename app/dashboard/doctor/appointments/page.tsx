@@ -4,6 +4,7 @@ export const dynamic = 'force-dynamic'
 import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
+import { toast } from 'sonner'
 import { Button, Card, CardContent, CardHeader, Badge, Input, PageLoading, EmptyState, Spinner } from '@/components/ui'
 import { STATUS_LABELS, formatDateTime, getInitials, cn } from '@/lib/utils'
 import type { Appointment, User, QuestionnaireResponse, QuestionItem } from '@/types/database'
@@ -121,23 +122,25 @@ function SchedulePanel({ apt, onScheduled }: {
     setSaving(true)
     try {
       const isoDate = new Date(altDate).toISOString()
-      const updates: Record<string, unknown> = {
-        status: 'doctor_confirmed',
+      // Server-side: validates the time, rejects a double-booking and writes the
+      // audit entry. The AI assistant reaches the same service.
+      const res = await fetch('/api/appointments/reschedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId: apt.id, scheduledAt: isoDate, durationMinutes: duration }),
+      })
+      const body = await res.json() as { error?: string; status?: string }
+      if (!res.ok) { toast.error(body.error || 'שגיאה בשינוי המועד'); return }
+
+      onScheduled({
+        status: body.status,
         scheduled_at: isoDate,
         doctor_proposed_at: new Date().toISOString(),
         doctor_accepted_at: new Date().toISOString(),
         duration_minutes: duration,
-      }
-      const { error } = await supabase.from('appointments').update(updates).eq('id', apt.id)
-      if (error) throw error
-      onScheduled(updates as Partial<Appointment>)
+      } as Partial<Appointment>)
       setMode('closed')
-      fetch('/api/notifications/trigger', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ appointmentId: apt.id, event: 'doctor_proposed_time' }),
-      }).catch(() => {})
-    } catch { /* ignore */ } finally { setSaving(false) }
+    } catch { toast.error('שגיאת רשת') } finally { setSaving(false) }
   }
 
   const openPanel = () => {

@@ -1,6 +1,7 @@
 'use client'
 
 import { useState, useEffect, useRef, type ReactNode } from 'react'
+import { CannaAssistant } from '@/components/ai/CannaAssistant'
 import { useRouter, usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { getClient } from '@/lib/supabase/client'
@@ -643,6 +644,9 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
         {/* Safe area for iOS */}
         <div className="h-[env(safe-area-inset-bottom)]" />
       </nav>
+
+      {/* One assistant for every role — the server decides what it can actually do. */}
+      <CannaAssistant role={role} />
     </div>
   )
 }
