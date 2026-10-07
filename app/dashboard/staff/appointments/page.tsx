@@ -5,8 +5,9 @@ import { useEffect, useState } from 'react'
 import { useSearchParams } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Card, CardContent, Input, Badge, PageLoading, EmptyState } from '@/components/ui'
-import { STATUS_LABELS, formatDateTime, formatTime, cn, getInitials, SPECIALTIES } from '@/lib/utils'
+import { STATUS_LABELS, formatDateTime, formatTime, cn, getInitials, SPECIALTIES, APP_TIMEZONE } from '@/lib/utils'
 import type { Appointment, User, AppointmentStatus } from '@/types/database'
+import { fromZonedTime, formatInTimeZone } from 'date-fns-tz'
 
 // ── Types ──────────────────────────────────────────────
 
@@ -130,9 +131,9 @@ export default function StaffAppointmentsPage() {
     setStaffNote('')
 
     if (apt.scheduled_at) {
-      const d = new Date(apt.scheduled_at)
-      setScheduleDate(d.toISOString().split('T')[0])
-      setScheduleTime(d.toTimeString().slice(0, 5))
+      // Israel wall-clock, not UTC (toISOString shifted late-evening times a day back).
+      setScheduleDate(formatInTimeZone(apt.scheduled_at, APP_TIMEZONE, 'yyyy-MM-dd'))
+      setScheduleTime(formatInTimeZone(apt.scheduled_at, APP_TIMEZONE, 'HH:mm'))
     } else {
       setScheduleDate('')
       setScheduleTime('')
@@ -145,9 +146,21 @@ export default function StaffAppointmentsPage() {
     if (!selected) return
     setActionLoading(true)
     try {
-      const updates: Record<string, unknown> = { status }
+      // Cancellations go through the server: it validates, notifies the patient
+      // and the doctor, and writes the audit log.
+      if (status === 'cancelled_patient' || status === 'cancelled_doctor') {
+        const res = await fetch('/api/appointments/cancel', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ appointmentId: selected.id, reason: 'בוטל על ידי צוות המרפאה' }),
+        })
+        const body = await res.json().catch(() => ({})) as { error?: string }
+        if (!res.ok) setMessage({ type: 'error', text: body.error || 'שגיאה בביטול התור' })
+        else { setMessage({ type: 'success', text: 'התור בוטל והמטופל קיבל הודעה' }); loadData() }
+        return
+      }
 
-      if (status === 'cancelled_patient') updates.cancelled_at = new Date().toISOString()
+      const updates: Record<string, unknown> = { status }
       if (status === 'no_show_patient') updates.no_show_recorded_at = new Date().toISOString()
 
       const { error } = await supabase.from('appointments').update(updates).eq('id', selected.id)
@@ -190,17 +203,18 @@ export default function StaffAppointmentsPage() {
     if (!selected || !scheduleDate || !scheduleTime) return
     setActionLoading(true)
     try {
-      const scheduled_at = new Date(`${scheduleDate}T${scheduleTime}:00`).toISOString()
-      const newStatus: AppointmentStatus = ['pending', 'doctor_confirmed', 'time_selected', 'paid'].includes(selected.status) ? 'scheduled' : selected.status
-
-      const { error } = await supabase.from('appointments')
-        .update({ scheduled_at, status: newStatus })
-        .eq('id', selected.id)
-
-      if (error) {
-        setMessage({ type: 'error', text: 'שגיאה בתזמון התור' })
+      // Server-side: Israel time, double-booking check, audit and patient notification.
+      const scheduledAt = fromZonedTime(`${scheduleDate}T${scheduleTime}:00`, APP_TIMEZONE).toISOString()
+      const res = await fetch('/api/appointments/reschedule', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId: selected.id, scheduledAt }),
+      })
+      const body = await res.json().catch(() => ({})) as { error?: string }
+      if (!res.ok) {
+        setMessage({ type: 'error', text: body.error || 'שגיאה בתזמון התור' })
       } else {
-        setMessage({ type: 'success', text: 'התור תוזמן בהצלחה' })
+        setMessage({ type: 'success', text: 'התור תוזמן והמטופל קיבל הודעה' })
         loadData()
       }
     } catch {

@@ -7,8 +7,9 @@ import { getClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { Button, Card, CardContent, CardHeader, StatCard, Badge, PageLoading, EmptyState } from '@/components/ui'
 import { ChartCard, AreaTrend, DonutChart, MED } from '@/components/ui/medical'
-import { STATUS_LABELS, formatDateTime, formatPrice, cn, getInitials } from '@/lib/utils'
+import { STATUS_LABELS, formatDateTime, formatPrice, cn, getInitials, APP_TIMEZONE } from '@/lib/utils'
 import type { Organization } from '@/types/database'
+import { formatInTimeZone } from 'date-fns-tz'
 
 // ── Types ──────────────────────────────────────────────
 
@@ -249,9 +250,10 @@ export default function AdminDashboard() {
       const days: Array<{ day: string; appointments: number; revenue: number }> = []
       for (let i = 13; i >= 0; i--) {
         const d = new Date(Date.now() - i * 864e5)
-        const key = d.toISOString().slice(0, 10)
-        const label = d.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric' })
-        const dayRows = trendRows.filter(r => r.created_at.slice(0, 10) === key)
+        // Bucket by the Israel calendar day, not UTC (00:00–03:00 used to land on the previous day).
+        const key = formatInTimeZone(d, APP_TIMEZONE, 'yyyy-MM-dd')
+        const label = d.toLocaleDateString('he-IL', { day: 'numeric', month: 'numeric', timeZone: APP_TIMEZONE })
+        const dayRows = trendRows.filter(r => formatInTimeZone(r.created_at, APP_TIMEZONE, 'yyyy-MM-dd') === key)
         days.push({
           day: label,
           appointments: dayRows.length,
