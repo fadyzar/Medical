@@ -399,7 +399,7 @@ export async function sendReminder24h(params: { appointmentId: string; admin: Su
     dashboardUrl: `${APP_URL()}/dashboard/patient/dashboard`,
   })
 
-  await sendEmail({
+  const sent = await sendEmail({
     to: patient.email,
     subject: `תזכורת: תור מחר - ${orgName}`,
     html,
@@ -410,6 +410,8 @@ export async function sendReminder24h(params: { appointmentId: string; admin: Su
     organizationName: orgName,
     variables: { scheduled_at: apt.scheduled_at },
   }, admin)
+  // Throw so the cron reverts its sent-stamp and retries on the next run.
+  if (!sent.success) throw new Error(sent.error || 'Reminder email failed')
 }
 
 export async function sendReminder1h(params: { appointmentId: string; admin: SupabaseClient }): Promise<void> {
@@ -433,7 +435,7 @@ export async function sendReminder1h(params: { appointmentId: string; admin: Sup
     videoCallUrl: `${APP_URL()}/video-call?id=${appointmentId}`,
   })
 
-  await sendEmail({
+  const sent = await sendEmail({
     to: patient.email,
     subject: `התור שלך בעוד שעה! - ${orgName}`,
     html,
@@ -444,6 +446,8 @@ export async function sendReminder1h(params: { appointmentId: string; admin: Sup
     organizationName: orgName,
     variables: { scheduled_at: apt.scheduled_at, video_url: `${APP_URL()}/video-call?id=${appointmentId}` },
   }, admin)
+  // Throw so the cron reverts its sent-stamp and retries on the next run.
+  if (!sent.success) throw new Error(sent.error || 'Reminder email failed')
 }
 
 export async function sendConsultationSummary(params: { appointmentId: string; admin: SupabaseClient }): Promise<void> {

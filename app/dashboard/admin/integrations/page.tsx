@@ -244,6 +244,55 @@ function WhatsAppTestPanel({ isConfigured }: { isConfigured: boolean }) {
   )
 }
 
+// ── Email Test Panel ───────────────────────────────────
+// Sends a real email to the admin's own address and shows Resend's answer, so
+// "not sent" and "sent but not received" can be told apart.
+function EmailTestPanel() {
+  const [loading, setLoading] = useState(false)
+  const [result, setResult] = useState<{ ok: true; messageId?: string; to: string } | { ok: false; error: string } | null>(null)
+
+  async function sendTest() {
+    setLoading(true)
+    setResult(null)
+    try {
+      const res = await fetch('/api/admin/email/test', { method: 'POST' })
+      const data = await res.json()
+      setResult(res.ok ? { ok: true, messageId: data.messageId, to: data.to } : { ok: false, error: data.error || 'השליחה נכשלה' })
+    } catch {
+      setResult({ ok: false, error: 'שגיאת רשת' })
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <div className="p-4 bg-teal-50 border border-teal-200 rounded-xl space-y-3">
+      <div className="flex items-center justify-between gap-3">
+        <div>
+          <p className="text-sm font-semibold text-teal-900">שלח אימייל בדיקה</p>
+          <p className="text-xs text-teal-700 mt-0.5">האימייל יישלח לכתובת של החשבון שלך</p>
+        </div>
+        <button
+          onClick={sendTest}
+          disabled={loading}
+          className="px-4 py-2 rounded-lg bg-teal-600 text-white text-sm font-semibold hover:bg-teal-700 disabled:opacity-50 transition-colors whitespace-nowrap focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
+        >
+          {loading ? 'שולח...' : 'שלח בדיקה'}
+        </button>
+      </div>
+      {result?.ok === true && (
+        <div className="text-sm text-green-700 space-y-1" role="status">
+          <p className="font-medium">ספק האימייל (Resend) קיבל את ההודעה ל-{result.to}. בדוק את תיבת הדואר (וגם ספאם).</p>
+          {result.messageId && <p className="text-xs text-slate-500" dir="ltr">Resend ID: {result.messageId}</p>}
+        </div>
+      )}
+      {result?.ok === false && (
+        <p className="text-sm text-red-600" role="alert">השליחה נכשלה: {result.error}</p>
+      )}
+    </div>
+  )
+}
+
 // ── Types ──────────────────────────────────────────────
 
 // Integrations provided by the platform — no config needed by clinic
@@ -584,6 +633,8 @@ export default function AdminIntegrationsPage() {
                 </div>
               </div>
             )}
+
+            {activeKey === 'email' && <div className="mb-4"><EmailTestPanel /></div>}
 
             {/* Subdomain — use DomainCard instead of generic fields */}
             {activeKey === 'subdomain' ? (
