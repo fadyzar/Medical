@@ -99,8 +99,14 @@ export function CannaAssistant({ role }: { role: string }) {
   const suggestions = hint ? [hint, ...base.filter(s => s !== hint)].slice(0, 4) : base
 
   // Keep the newest message in view as the conversation grows.
+  // Instant, not smooth: a smooth scroll started before a long reply finishes
+  // rendering stops short of the bottom (and of the confirmation card).
   useEffect(() => {
-    scrollRef.current?.scrollTo({ top: scrollRef.current.scrollHeight, behavior: 'smooth' })
+    const el = scrollRef.current
+    if (!el) return
+    el.scrollTop = el.scrollHeight
+    const id = requestAnimationFrame(() => { el.scrollTop = el.scrollHeight })
+    return () => cancelAnimationFrame(id)
   }, [messages, busy, status])
 
   useEffect(() => { if (open) inputRef.current?.focus() }, [open])
@@ -257,7 +263,7 @@ export function CannaAssistant({ role }: { role: string }) {
         ref={launcherRef}
         onClick={() => { setOpen(true); loadHistory() }}
         aria-label="פתח את העוזר החכם של CANNA"
-        className="fixed bottom-5 left-5 z-40 flex items-center gap-2.5 ps-3 pe-4 py-2.5 rounded-full bg-white border border-slate-200 shadow-lg hover:shadow-xl hover:border-teal-300 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
+        className="fixed bottom-6 left-[5.5rem] z-40 flex items-center gap-2.5 ps-3 pe-4 py-2.5 rounded-full bg-white border border-slate-200 shadow-lg hover:shadow-xl hover:border-teal-300 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
       >
         <CannaMark size={26} />
         <span className="text-sm font-semibold text-slate-800">עוזר חכם</span>
@@ -269,7 +275,8 @@ export function CannaAssistant({ role }: { role: string }) {
   return (
     <div
       className={cn(
-        'fixed z-50 flex flex-col bg-white',
+        // Above the global accessibility button (z 9998), which otherwise covers the composer.
+        'fixed z-[10000] flex flex-col bg-white',
         expanded
           ? 'inset-0'
           : 'inset-0 md:inset-auto md:bottom-4 md:left-4 md:top-4 md:w-[440px] md:rounded-2xl md:border md:border-slate-200 md:shadow-2xl md:overflow-hidden',
