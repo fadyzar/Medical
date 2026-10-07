@@ -79,3 +79,8 @@ test('isolation: notification triggers check appointment ownership', () => {
   assert.match(read('app/api/notifications/trigger-patient-created/route.ts'), /apt\.patient_id !== user\.id/)
   assert.match(read('app/api/notifications/trigger/route.ts'), /apt\.doctor_id === user\.id/)
 })
+
+test('seo: robots.txt, sitemap.xml and opengraph-image are public (were redirected to login)', () => {
+  const src = read('middleware.ts')
+  for (const p of ["'/robots.txt'", "'/sitemap.xml'", "'/opengraph-image'"]) assert.ok(src.includes(p), p)
+})
