@@ -17,6 +17,10 @@ const PUBLIC_PREFIXES = [
   '/privacy',
   '/accessibility',
   '/video-call',
+  // SEO + link previews: crawlers have no session, so these must never redirect to login
+  '/robots.txt',
+  '/sitemap.xml',
+  '/opengraph-image',
 ]
 
 // White-label clinic subdomain routing — off until wildcard DNS is configured.
