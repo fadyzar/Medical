@@ -7,7 +7,7 @@ import { getClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { Button, Card, CardContent, CardHeader, StatCard, Badge, PageLoading, EmptyState } from '@/components/ui'
 import { ChartCard, AreaTrend, DonutChart, MED } from '@/components/ui/medical'
-import { STATUS_LABELS, formatDateTime, formatPrice, cn, getInitials, APP_TIMEZONE } from '@/lib/utils'
+import { STATUS_LABELS, formatDateTime, formatPrice, cn, getInitials, APP_TIMEZONE, specialtyLabels } from '@/lib/utils'
 import type { Organization } from '@/types/database'
 import { formatInTimeZone } from 'date-fns-tz'
 
@@ -662,7 +662,7 @@ export default function AdminDashboard() {
                     <div className="min-w-0">
                       <p className="font-semibold text-sm text-slate-900 truncate">ד&quot;ר {doc.first_name} {doc.last_name}</p>
                       {doc.specialties && doc.specialties.length > 0 && (
-                        <p className="text-xs text-slate-400 truncate mt-0.5">{doc.specialties.join(' · ')}</p>
+                        <p className="text-xs text-slate-400 truncate mt-0.5">{specialtyLabels(doc.specialties)}</p>
                       )}
                     </div>
                   </div>

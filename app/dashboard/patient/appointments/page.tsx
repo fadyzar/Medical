@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { useNow } from '@/lib/hooks/useNow'
 import { Button, Card, Badge, PageLoading, EmptyState } from '@/components/ui'
-import { STATUS_LABELS, formatDateTime, formatDate, getInitials, cn } from '@/lib/utils'
+import { STATUS_LABELS, formatDateTime, formatDate, getInitials, cn, specialtyLabels } from '@/lib/utils'
 import { toast } from 'sonner'
 import type { Appointment, User } from '@/types/database'
 
@@ -527,7 +527,7 @@ export default function PatientAppointmentsPage() {
                               <div>
                                 <p className="font-semibold text-slate-900">ד&quot;ר {doc.first_name} {doc.last_name}</p>
                                 {doc.specialties?.length && (
-                                  <p className="text-xs text-slate-500">{doc.specialties.slice(0, 2).join(', ')}</p>
+                                  <p className="text-xs text-slate-500">{specialtyLabels(doc.specialties, 2)}</p>
                                 )}
                               </div>
                             </div>

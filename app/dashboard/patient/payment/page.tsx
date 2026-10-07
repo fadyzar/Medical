@@ -5,7 +5,7 @@ import { useEffect, useState, useRef, useCallback } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Card, CardContent, CardHeader, Badge, Spinner } from '@/components/ui'
-import { formatPrice, formatDateTime, cn } from '@/lib/utils'
+import { formatPrice, formatDateTime, cn, specialtyLabels } from '@/lib/utils'
 import type { Appointment, User } from '@/types/database'
 
 // ── Payment mode detection ────────────────────────────────────────
@@ -335,7 +335,7 @@ export default function PaymentPage() {
                 <div>
                   <p className="font-semibold text-slate-900">ד&quot;ר {doctor.first_name} {doctor.last_name}</p>
                   {doctor.specialties && (
-                    <p className="text-sm text-slate-500">{(doctor.specialties as string[]).join(' · ')}</p>
+                    <p className="text-sm text-slate-500">{specialtyLabels(doctor.specialties as string[])}</p>
                   )}
                 </div>
               </div>

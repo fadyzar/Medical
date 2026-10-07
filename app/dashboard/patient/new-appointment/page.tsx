@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Textarea, Card, CardContent, Spinner } from '@/components/ui'
-import { SPECIALTIES, formatPrice, cn } from '@/lib/utils'
+import { SPECIALTIES, formatPrice, cn, specialtyLabels, languageLabels } from '@/lib/utils'
 import { newAppointmentSchema } from '@/lib/validation/schemas'
 import { toast } from 'sonner'
 import { useOrgContext } from '@/lib/hooks/useOrgContext'
@@ -910,7 +910,7 @@ function DoctorCard({
         <div className="flex-1 min-w-0">
           <p className="font-bold text-slate-900">ד&quot;ר {doc.first_name} {doc.last_name}</p>
           {doc.specialties?.length && (
-            <p className="text-xs text-teal-600 font-medium mt-0.5">{doc.specialties.slice(0, 3).join(' · ')}</p>
+            <p className="text-xs text-teal-600 font-medium mt-0.5">{specialtyLabels(doc.specialties)}</p>
           )}
           {showClinic && doc.organization_id && (
             <ClinicName orgId={doc.organization_id} />
@@ -928,7 +928,7 @@ function DoctorCard({
               <span className="text-sm font-bold text-emerald-600">{formatPrice(doc.consultation_price)}</span>
             )}
             {doc.languages?.length && (
-              <span className="text-xs text-slate-400">{doc.languages.join(', ')}</span>
+              <span className="text-xs text-slate-400">{languageLabels(doc.languages)}</span>
             )}
           </div>
         </div>

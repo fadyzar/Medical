@@ -7,7 +7,7 @@ import { getClient } from '@/lib/supabase/client'
 import { useNow } from '@/lib/hooks/useNow'
 import { Button, Card, CardContent, CardHeader, Badge, EmptyState, PageLoading } from '@/components/ui'
 import { ChartCard, AreaTrend, MED } from '@/components/ui/medical'
-import { STATUS_LABELS, formatDateTime, formatDate, cn, getInitials } from '@/lib/utils'
+import { STATUS_LABELS, formatDateTime, formatDate, cn, getInitials, specialtyLabels } from '@/lib/utils'
 import type { Appointment, User, Document } from '@/types/database'
 
 type DoctorInfo = Pick<User, 'id' | 'first_name' | 'last_name' | 'specialties' | 'avatar_url' | 'average_rating' | 'total_ratings'>
@@ -437,7 +437,7 @@ export default function PatientDashboard() {
                         ד&quot;ר {(nextApt.doctor as DoctorInfo).first_name} {(nextApt.doctor as DoctorInfo).last_name}
                       </p>
                       {(nextApt.doctor as DoctorInfo).specialties?.length && (
-                        <p className="text-xs text-slate-500">{(nextApt.doctor as DoctorInfo).specialties!.slice(0,2).join(', ')}</p>
+                        <p className="text-xs text-slate-500">{specialtyLabels((nextApt.doctor as DoctorInfo).specialties, 2)}</p>
                       )}
                     </>
                   ) : (

@@ -73,3 +73,16 @@ export const SPECIALTIES = [
   { id: 'pain', label: 'רפואת כאב' },
   { id: 'oncology', label: 'אונקולוגיה' },
 ]
+
+/** Specialty ids stored on doctors → Hebrew labels for display. */
+export function specialtyLabels(ids: string[] | null | undefined, max = 3): string {
+  return (ids || []).slice(0, max).map(id => SPECIALTIES.find(s => s.id === id)?.label || id).join(' · ')
+}
+
+const LANGUAGE_LABELS: Record<string, string> = {
+  he: 'עברית', en: 'אנגלית', ar: 'ערבית', ru: 'רוסית', fr: 'צרפתית', es: 'ספרדית', am: 'אמהרית', uk: 'אוקראינית',
+}
+/** Language codes stored on doctors → Hebrew names for display. */
+export function languageLabels(codes: string[] | null | undefined): string {
+  return (codes || []).map(c => LANGUAGE_LABELS[c] || c).join(', ')
+}

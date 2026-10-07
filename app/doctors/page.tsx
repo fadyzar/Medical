@@ -2,7 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import PublicNav from '@/components/layout/PublicNav'
 import { createServiceRole } from '@/lib/supabase/server'
-import { SPECIALTIES, formatPrice } from '@/lib/utils'
+import { SPECIALTIES, formatPrice, languageLabels } from '@/lib/utils'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cannaforyou.net'
 
@@ -237,7 +237,7 @@ export default async function DoctorsPage() {
                       {/* Languages */}
                       {doc.languages && doc.languages.length > 0 && (
                         <p className="text-xs text-slate-400 mb-4">
-                          🌐 <span className="font-medium text-slate-500">שפות:</span> {doc.languages.join(' · ')}
+                          🌐 <span className="font-medium text-slate-500">שפות:</span> {languageLabels(doc.languages)}
                         </p>
                       )}
                     </div>

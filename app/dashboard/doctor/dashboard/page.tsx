@@ -7,7 +7,7 @@ import { getClient } from '@/lib/supabase/client'
 import { useNow } from '@/lib/hooks/useNow'
 import { Button, Card, CardContent, CardHeader, StatCard, Badge, PageLoading, EmptyState, Spinner } from '@/components/ui'
 import { ChartCard, BarTrend, MED } from '@/components/ui/medical'
-import { STATUS_LABELS, formatDateTime, formatTime, getInitials, cn } from '@/lib/utils'
+import { STATUS_LABELS, formatDateTime, formatTime, getInitials, cn, specialtyLabels } from '@/lib/utils'
 import type { Appointment, User } from '@/types/database'
 
 // ── small helpers ──────────────────────────────────────────────────
@@ -267,7 +267,7 @@ export default function DoctorDashboard() {
         <div>
           <h1 className="text-2xl font-bold text-slate-900">{greeting}{doctorName ? `, ${doctorName}` : ''}</h1>
           <p className="text-sm text-slate-500 mt-0.5">
-            {profile?.specialties?.length ? profile.specialties.join(' · ') : 'לוח בקרה רופא'}
+            {profile?.specialties?.length ? specialtyLabels(profile.specialties) : 'לוח בקרה רופא'}
             {' · '}
             {new Intl.DateTimeFormat('he-IL', { weekday: 'long', day: 'numeric', month: 'long' }).format(new Date())}
           </p>
