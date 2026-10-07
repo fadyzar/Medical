@@ -25,3 +25,20 @@ export function trimHistory(messages: Anthropic.MessageParam[], max: number): An
   }
   return []
 }
+
+/**
+ * The visible part of a stored conversation — what a reopened thread shows.
+ * Tool calls, tool results and thinking are internal; the "[העמוד הנוכחי: …]"
+ * context line the server prepends to user turns is stripped.
+ */
+export function transcriptForDisplay(messages: Anthropic.MessageParam[]): Array<{ role: 'user' | 'assistant'; text: string }> {
+  const out: Array<{ role: 'user' | 'assistant'; text: string }> = []
+  for (const m of messages) {
+    const text = typeof m.content === 'string'
+      ? m.content
+      : m.content.filter(b => b.type === 'text').map(b => (b as { text: string }).text).join('\n')
+    const clean = (m.role === 'user' ? text.replace(/^\[העמוד הנוכחי: [^\]\n]*\]\n/, '') : text).trim()
+    if (clean && (m.role === 'user' || m.role === 'assistant')) out.push({ role: m.role, text: clean })
+  }
+  return out
+}

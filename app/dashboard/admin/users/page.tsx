@@ -184,7 +184,10 @@ export default function AdminUsersPage() {
         body: JSON.stringify({ email: inviteEmail, role: inviteRole, name: inviteName || undefined }),
       })
       if (res.ok) {
-        setInviteSuccess(`הזמנה נשלחה ל-${inviteEmail}`)
+        const data = await res.json() as { emailSent?: boolean; inviteUrl?: string | null }
+        setInviteSuccess(data.emailSent === false
+          ? `ההזמנה נוצרה, אבל האימייל לא נשלח. שלח ל-${inviteEmail} את הקישור: ${data.inviteUrl ?? ''}`
+          : `הזמנה נשלחה ל-${inviteEmail}`)
         setInviteEmail('')
         setInviteName('')
       } else {

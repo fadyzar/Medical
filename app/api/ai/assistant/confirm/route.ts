@@ -84,7 +84,9 @@ export async function POST(req: Request) {
 
     // Permissions, appointment state and slot availability are all re-checked
     // inside runConfirmedAction — not taken on trust from when the card was made.
-    const result = await runConfirmedAction(user.id, pending.card.tool, pending.card.payload)
+    const result = await runConfirmedAction(user.id, pending.card.tool, pending.card.payload, {
+      baseUrl: new URL(req.url).origin,
+    })
 
     if (!result.ok) {
       messages.push({ role: 'user', content: `אישרתי את הפעולה אבל היא נכשלה: ${result.error}` })

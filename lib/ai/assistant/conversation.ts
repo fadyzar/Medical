@@ -14,6 +14,7 @@ import type Anthropic from '@anthropic-ai/sdk'
 import { createServiceRole } from '@/lib/supabase/server'
 import type { ConfirmationCard } from '@/lib/ai/assistant/executors'
 import { trimHistory } from '@/lib/ai/assistant/history'
+export { transcriptForDisplay } from '@/lib/ai/assistant/history'
 
 export type AssistantMemory = {
   /** Short notes the assistant keeps about the user across turns. */

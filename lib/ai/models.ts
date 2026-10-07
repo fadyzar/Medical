@@ -15,6 +15,11 @@ export const CLINICAL_EFFORT = 'low' as const
 
 /** The conversational CANNA assistant (tool use across the app). */
 export const ASSISTANT_MODEL = 'claude-opus-5'
+/**
+ * The assistant's work is lookups and short answers; at the default effort a
+ * simple "what do I have tomorrow" took ~40s. `low` keeps it conversational.
+ */
+export const ASSISTANT_EFFORT = 'low' as const
 
 /**
  * The reply text of a response. Read by block type, never by position: with

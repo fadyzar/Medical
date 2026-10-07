@@ -13,7 +13,7 @@
 import { createServiceRole } from '@/lib/supabase/server'
 import { APP_TIMEZONE, formatDateTime } from '@/lib/utils'
 import { toZonedTime, fromZonedTime } from 'date-fns-tz'
-import { addDays, format } from 'date-fns'
+import { addDays, format, subDays } from 'date-fns'
 import {
   type Caller, type ServiceResult,
   resolveCaller, rescheduleAppointment, cancelAppointment,
@@ -22,6 +22,9 @@ import {
 import { searchPatients } from '@/lib/services/patients'
 import { assertToolAllowed, WRITE_TOOLS, type ToolName } from '@/lib/ai/assistant/registry'
 import { TOPICS, type KnowledgeTopic } from '@/lib/ai/assistant/knowledge'
+import { resolvePage } from '@/lib/ai/assistant/navigation'
+import { inviteMember, INVITE_ROLE_LABELS, type InviteRole } from '@/lib/services/invitations'
+import { generateConsultationSummary } from '@/lib/ai/summary'
 import type { AppointmentStatus } from '@/types/database'
 
 /** What a write tool hands back instead of writing. Rendered as a card. */
@@ -38,8 +41,11 @@ export type ConfirmationCard = {
   payload: Record<string, unknown>
 }
 
+/** Something the client renders next to the reply, e.g. an "open page" button. */
+export type UiAction = { type: 'navigate'; label: string; href: string }
+
 export type ToolOutcome =
-  | { kind: 'data'; result: unknown }
+  | { kind: 'data'; result: unknown; ui?: UiAction }
   | { kind: 'confirmation'; card: ConfirmationCard }
   | { kind: 'error'; error: string }
 
@@ -326,6 +332,142 @@ async function findPatients(caller: Caller, args: Record<string, unknown>): Prom
   }
 }
 
+
+// ── Navigation, clinic insight, documents ────────────────────────────────────
+
+function navigateTo(caller: Caller, args: Record<string, unknown>): ToolOutcome {
+  const page = resolvePage(caller.role, String(args.page ?? ''))
+  if (!page) return { kind: 'error', error: 'העמוד הזה אינו זמין למשתמש הנוכחי' }
+  return {
+    kind: 'data',
+    result: { offered_button: page.label, note: 'כפתור מעבר לעמוד הוצג למשתמש.' },
+    ui: { type: 'navigate', label: page.label, href: page.href },
+  }
+}
+
+async function getClinicStatus(caller: Caller): Promise<ToolOutcome> {
+  const orgId = caller.organizationId
+  if (!orgId) return { kind: 'error', error: 'המשתמש אינו משויך למרפאה' }
+  const admin = createServiceRole()
+  const todayStr = format(israelNow(), 'yyyy-MM-dd')
+  const dayStart = fromZonedTime(`${todayStr}T00:00:00`, APP_TIMEZONE).toISOString()
+  const dayEnd = fromZonedTime(`${todayStr}T23:59:59`, APP_TIMEZONE).toISOString()
+  const weekAgo = subDays(new Date(), 7).toISOString()
+
+  const [org, integ, doctors, staff, today, needsAction, failed] = await Promise.all([
+    admin.from('organizations').select('name, subdomain, custom_domain, domain_status, settings').eq('id', orgId).single(),
+    admin.from('organization_integrations').select('secrets').eq('organization_id', orgId).maybeSingle(),
+    admin.from('users').select('id', { count: 'exact', head: true }).eq('organization_id', orgId).eq('role', 'doctor').eq('is_active', true),
+    admin.from('users').select('id', { count: 'exact', head: true }).eq('organization_id', orgId).in('role', ['staff', 'admin']),
+    admin.from('appointments').select('id', { count: 'exact', head: true }).eq('organization_id', orgId)
+      .in('status', ACTIVE_STATUSES).gte('scheduled_at', dayStart).lte('scheduled_at', dayEnd),
+    admin.from('appointments').select('id', { count: 'exact', head: true }).eq('organization_id', orgId)
+      .in('status', ['pending', 'doctor_confirmed', 'payment_pending']),
+    admin.from('notifications').select('type, template_name, error_message').eq('organization_id', orgId)
+      .eq('status', 'failed').gte('created_at', weekAgo).order('created_at', { ascending: false }).limit(50),
+  ])
+
+  // Only "is it set up" booleans leave this function — never the secret values.
+  const secrets = ((integ.data as { secrets?: Record<string, Record<string, string>> } | null)?.secrets) || {}
+  const has = (k: string, f: string[]) => f.every(x => !!secrets[k]?.[x]?.trim())
+  const o = org.data as { name: string; subdomain: string | null; custom_domain: string | null; domain_status: string | null; settings: Record<string, unknown> | null } | null
+  const pendingInvites = ((o?.settings?.pending_invites as unknown[]) || []).length
+  const failedRows = (failed.data || []) as Array<{ type: string; template_name: string | null; error_message: string | null }>
+
+  const whatsapp = has('integration_whatsapp', ['green_api_instance_id', 'green_api_token'])
+  const payments = has('integration_payment', ['tranzila_supplier'])
+  const warnings: string[] = []
+  if (!whatsapp) warnings.push('WhatsApp אינו מחובר — מטופלים מקבלים אימייל והתראות באפליקציה בלבד.')
+  if (!payments) warnings.push('סליקה (Tranzila) אינה מוגדרת — לא ניתן לגבות תשלום מראש.')
+  if ((doctors.count ?? 0) === 0) warnings.push('אין רופאים פעילים במרפאה — מטופלים לא יכולים לקבוע תור.')
+  if (failedRows.length) warnings.push(`${failedRows.length} הודעות נכשלו בשבוע האחרון.`)
+
+  return {
+    kind: 'data',
+    result: {
+      clinic: o?.name ?? null,
+      integrations: {
+        whatsapp: whatsapp ? 'מחובר' : 'לא מוגדר (הגדרה עצמית בעמוד האינטגרציות)',
+        payments: payments ? 'מוגדר' : 'לא מוגדר',
+        email: 'מנוהל ע"י CANNA',
+        video: 'מנוהל ע"י CANNA',
+        domain: o?.custom_domain || (o?.subdomain ? `${o.subdomain}.cannaforyou.net` : null),
+        domain_status: o?.domain_status ?? null,
+      },
+      team: { active_doctors: doctors.count ?? 0, staff_and_admins: staff.count ?? 0, pending_invites: pendingInvites },
+      today: { date: todayStr, appointments: today.count ?? 0 },
+      waiting_for_action: needsAction.count ?? 0,
+      failed_notifications_last_7_days: failedRows.length,
+      recent_failures: failedRows.slice(0, 5).map(f => ({ channel: f.type, event: f.template_name, error: f.error_message?.slice(0, 120) ?? null })),
+      warnings,
+    },
+  }
+}
+
+async function getClinicReport(caller: Caller, args: Record<string, unknown>): Promise<ToolOutcome> {
+  const orgId = caller.organizationId
+  if (!orgId) return { kind: 'error', error: 'המשתמש אינו משויך למרפאה' }
+  const days = clamp(args.days as number, 1, 365, 30)
+  const since = subDays(new Date(), days).toISOString()
+  const admin = createServiceRole()
+
+  const [apts, ai, notifs] = await Promise.all([
+    admin.from('appointments').select('status, payment_status, payment_amount, ai_summary_generated_at')
+      .eq('organization_id', orgId).gte('created_at', since).limit(5000),
+    admin.from('ai_conversations').select('agent_type, input_tokens, output_tokens')
+      .eq('organization_id', orgId).gte('created_at', since).limit(5000),
+    admin.from('notifications').select('type, status')
+      .eq('organization_id', orgId).gte('created_at', since).in('type', ['email', 'whatsapp']).limit(5000),
+  ])
+
+  const rows = (apts.data || []) as Array<{ status: string; payment_status: string | null; payment_amount: number | null; ai_summary_generated_at: string | null }>
+  const byStatus: Record<string, number> = {}
+  for (const r of rows) byStatus[r.status] = (byStatus[r.status] || 0) + 1
+  const revenue = rows.filter(r => r.payment_status === 'completed').reduce((s, r) => s + (r.payment_amount || 0), 0)
+  const aiRows = (ai.data || []) as Array<{ agent_type: string; input_tokens: number | null; output_tokens: number | null }>
+  const nRows = (notifs.data || []) as Array<{ type: string; status: string }>
+  const delivery = (t: string) => ({
+    sent: nRows.filter(n => n.type === t && n.status !== 'failed').length,
+    failed: nRows.filter(n => n.type === t && n.status === 'failed').length,
+  })
+
+  return {
+    kind: 'data',
+    result: {
+      period_days: days,
+      appointments_created: rows.length,
+      by_status: byStatus,
+      completed: byStatus.completed || 0,
+      cancelled: (byStatus.cancelled_patient || 0) + (byStatus.cancelled_doctor || 0),
+      paid_revenue_ils: revenue,
+      ai_summaries: rows.filter(r => r.ai_summary_generated_at).length,
+      ai_requests: aiRows.length,
+      email: delivery('email'),
+      whatsapp: delivery('whatsapp'),
+    },
+  }
+}
+
+async function listMyDocuments(caller: Caller): Promise<ToolOutcome> {
+  const admin = createServiceRole()
+  const { data, error } = await admin.from('documents')
+    .select('file_name, file_type, created_at, appointment_id')
+    .eq('patient_id', caller.id)
+    .order('created_at', { ascending: false })
+    .limit(50)
+  if (error) return { kind: 'error', error: 'שגיאה בטעינת המסמכים' }
+  const docs = (data || []) as Array<{ file_name: string; file_type: string | null; created_at: string; appointment_id: string | null }>
+  return {
+    kind: 'data',
+    result: {
+      count: docs.length,
+      documents: docs.map(d => ({
+        name: d.file_name, type: d.file_type, uploaded: formatDateTime(d.created_at), attached_to_appointment: !!d.appointment_id,
+      })),
+    },
+  }
+}
+
 // ── Write tools: validate, then ask ──────────────────────────────────────────
 
 function newActionId(): string {
@@ -392,7 +534,7 @@ async function prepareBooking(caller: Caller, args: Record<string, unknown>): Pr
         organizationId: doctor.organization_id,
         scheduledAt: when.toISOString(),
         chiefComplaint: complaint,
-        appointmentType: args.appointment_type ? String(args.appointment_type) : 'video',
+        appointmentType: args.appointment_type === 'clinic' ? 'clinic' : 'video',
         notes: args.notes ? String(args.notes) : null,
         paymentAmount: doctor.consultation_price,
       },
@@ -482,6 +624,74 @@ async function prepareCancel(caller: Caller, args: Record<string, unknown>): Pro
   }
 }
 
+
+async function prepareInvite(caller: Caller, args: Record<string, unknown>): Promise<ToolOutcome> {
+  if (caller.role !== 'admin') return { kind: 'error', error: 'רק מנהל מרפאה יכול להזמין משתמשים' }
+  const email = String(args.email ?? '').trim().toLowerCase()
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return { kind: 'error', error: 'כתובת האימייל אינה תקינה' }
+  const role = (['doctor', 'staff', 'admin'] as const).find(r => r === args.role)
+  if (!role) return { kind: 'error', error: 'יש לבחור תפקיד: רופא, צוות או מנהל' }
+  const name = args.name ? String(args.name).trim().slice(0, 80) : ''
+
+  const rows = [
+    { label: 'אימייל', value: email },
+    { label: 'תפקיד', value: INVITE_ROLE_LABELS[role] },
+  ]
+  if (name) rows.unshift({ label: 'שם', value: name })
+  return {
+    kind: 'confirmation',
+    card: {
+      actionId: newActionId(),
+      tool: 'invite_member',
+      title: 'אישור הזמנה למרפאה',
+      intent: 'create',
+      rows,
+      warning: role === 'admin' ? 'למנהל יש גישה מלאה לכל נתוני המרפאה.' : undefined,
+      confirmLabel: 'שלח הזמנה',
+      payload: { email, role, name },
+    },
+  }
+}
+
+async function prepareVisitSummary(caller: Caller, args: Record<string, unknown>): Promise<ToolOutcome> {
+  const admin = createServiceRole()
+  const id = String(args.appointment_id ?? '')
+  const { data } = await admin.from('appointments')
+    .select('id, organization_id, patient_id, doctor_id, status, scheduled_at, duration_minutes, chief_complaint, payment_status, subjective_notes, assessment, plan, ai_summary, patient:patient_id(first_name, last_name)')
+    .eq('id', id).maybeSingle()
+  const apt = data as unknown as {
+    id: string; organization_id: string; patient_id: string; doctor_id: string | null; status: string
+    scheduled_at: string | null; duration_minutes: number | null; chief_complaint: string | null; payment_status: string | null
+    subjective_notes: string | null; assessment: string | null; plan: string | null; ai_summary: string | null
+    patient: { first_name: string; last_name: string } | null
+  } | null
+  // Only the treating doctor — the same rule as RLS and /api/ai-summary.
+  if (!apt || caller.role !== 'doctor' || apt.doctor_id !== caller.id) {
+    return { kind: 'error', error: 'התור לא נמצא, או שאינו משויך אליך' }
+  }
+  if (!apt.subjective_notes && !apt.assessment && !apt.plan) {
+    return { kind: 'error', error: 'אין עדיין הערות רופא בתור הזה. כתוב הערות SOAP ואז אפשר ליצור סיכום.' }
+  }
+  return {
+    kind: 'confirmation',
+    card: {
+      actionId: newActionId(),
+      tool: 'generate_visit_summary',
+      title: apt.ai_summary ? 'אישור יצירת סיכום מחדש' : 'אישור יצירת טיוטת סיכום',
+      intent: apt.ai_summary ? 'update' : 'create',
+      rows: [
+        { label: 'מטופל', value: apt.patient ? `${apt.patient.first_name} ${apt.patient.last_name}` : '—' },
+        { label: 'מועד', value: fmt(apt.scheduled_at) },
+        { label: 'סיבת הפנייה', value: apt.chief_complaint || '—' },
+      ],
+      warning: 'טיוטה בלבד, על סמך ההערות שלך. היא לא תישלח למטופל עד שתעבור עליה ותשלח בעצמך.'
+        + (apt.ai_summary ? ' הסיכום הקודם יוחלף.' : ''),
+      confirmLabel: 'צור טיוטה',
+      payload: { appointmentId: id },
+    },
+  }
+}
+
 // ── Entry points ─────────────────────────────────────────────────────────────
 
 /**
@@ -511,6 +721,12 @@ export async function executeTool(
     case 'book_appointment':       return prepareBooking(caller, args)
     case 'reschedule_appointment': return prepareReschedule(caller, args)
     case 'cancel_appointment':     return prepareCancel(caller, args)
+    case 'navigate_to':            return navigateTo(caller, args)
+    case 'get_clinic_status':      return getClinicStatus(caller)
+    case 'get_clinic_report':      return getClinicReport(caller, args)
+    case 'list_my_documents':      return listMyDocuments(caller)
+    case 'invite_member':          return prepareInvite(caller, args)
+    case 'generate_visit_summary': return prepareVisitSummary(caller, args)
     default:                       return { kind: 'error', error: 'פעולה לא מוכרת' }
   }
 }
@@ -526,6 +742,7 @@ export async function runConfirmedAction(
   userId: string,
   tool: ToolName,
   payload: Record<string, unknown>,
+  context: { baseUrl: string } = { baseUrl: process.env.NEXT_PUBLIC_APP_URL || '' },
 ): Promise<ServiceResult<{ message: string; appointmentId?: string; byPatient?: boolean }>> {
   const caller = await resolveCaller(userId)
   if (!caller) return { ok: false, status: 404, error: 'פרופיל לא נמצא' }
@@ -619,6 +836,54 @@ export async function runConfirmedAction(
       return {
         ok: true,
         data: { message: 'התור בוטל.', appointmentId: String(payload.appointmentId), byPatient: res.data.status === 'cancelled_patient' },
+      }
+    }
+
+    case 'invite_member': {
+      const res = await inviteMember({
+        caller,
+        email: String(payload.email),
+        role: String(payload.role) as InviteRole,
+        name: payload.name ? String(payload.name) : undefined,
+        baseUrl: context.baseUrl,
+      })
+      if (!res.ok) return res
+      return {
+        ok: true,
+        data: {
+          message: res.data.emailSent
+            ? `ההזמנה נשלחה ל-${res.data.email}.`
+            : `ההזמנה נוצרה, אבל האימייל לא נשלח. שלח ל-${res.data.email} את הקישור: ${res.data.inviteUrl ?? ''}`,
+        },
+      }
+    }
+
+    case 'generate_visit_summary': {
+      const appointmentId = String(payload.appointmentId)
+      const admin = createServiceRole()
+      const { data } = await admin.from('appointments').select('doctor_id, organization_id').eq('id', appointmentId).maybeSingle()
+      const apt = data as { doctor_id: string | null; organization_id: string } | null
+      if (!apt || apt.doctor_id !== caller.id) return { ok: false, status: 403, error: 'התור אינו משויך אליך' }
+
+      // Draft for the doctor's review: saved, never sent to the patient from here.
+      const outcome = await generateConsultationSummary({ appointmentId, userId: caller.id, admin, force: true, notifyPatient: false })
+      if (!outcome.ok) return { ok: false, status: 502, error: 'יצירת הסיכום נכשלה. נסה שוב בעוד רגע.' }
+
+      try {
+        await admin.from('audit_logs').insert({
+          organization_id: apt.organization_id,
+          user_id: caller.id,
+          action: 'AI_SUMMARY_DRAFTED',
+          resource_type: 'appointment',
+          resource_id: appointmentId,
+          description: 'טיוטת סיכום AI נוצרה דרך העוזר החכם',
+          metadata: { via: 'ai_assistant' },
+        })
+      } catch { /* best-effort */ }
+
+      return {
+        ok: true,
+        data: { message: 'טיוטת הסיכום נשמרה בתור. עבור עליה, ערוך ושלח למטופל ממסך התורים.', appointmentId },
       }
     }
 

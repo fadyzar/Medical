@@ -270,6 +270,13 @@ export default function AdminIntegrationsPage() {
   const [saving, setSaving] = useState(false)
   const [showSecret, setShowSecret] = useState<Record<string, boolean>>({})
 
+  // Deep link: /dashboard/admin/integrations?tab=whatsapp opens that integration
+  // (used by the assistant's navigation and by configuration warnings).
+  useEffect(() => {
+    const tab = new URLSearchParams(window.location.search).get('tab')
+    if (tab && INTEGRATIONS.some(i => i.key === tab)) setActiveKey(tab as IntegrationKey)
+  }, [])
+
   const loadOrg = useCallback(async () => {
     try {
       const { data: { user } } = await supabase.auth.getUser()
