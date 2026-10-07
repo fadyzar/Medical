@@ -11,11 +11,12 @@ import {
 } from '@/lib/ai/assistant/conversation'
 import { rateLimit } from '@/lib/security/rate-limit'
 import { z } from 'zod'
+import { ASSISTANT_MODEL } from '@/lib/ai/models'
 
 export const dynamic = 'force-dynamic'
 export const maxDuration = 60
 
-const MODEL = 'claude-opus-5'
+const MODEL = ASSISTANT_MODEL
 /** Tool rounds per user turn. Enough to look something up, check it, then act. */
 const MAX_ROUNDS = 8
 

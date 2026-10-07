@@ -1,3 +1,11 @@
+// The configured Supabase origin (a local or staging stack is not on *.supabase.co).
+const supabaseOrigin = (() => {
+  try {
+    const u = new URL(process.env.NEXT_PUBLIC_SUPABASE_URL || '')
+    return `${u.origin} ${u.origin.replace(/^http/, 'ws')}`
+  } catch { return '' }
+})()
+
 /** @type {import('next').NextConfig} */
 const nextConfig = {
   reactStrictMode: true,
@@ -19,7 +27,7 @@ const nextConfig = {
           "style-src 'self' 'unsafe-inline'",
           "img-src 'self' data: https: blob:",
           "font-src 'self' data:",
-          "connect-src 'self' https://*.supabase.co wss://*.supabase.co https://*.livekit.cloud wss://*.livekit.cloud https://api.stripe.com https://api.anthropic.com",
+          `connect-src 'self' ${supabaseOrigin} https://*.supabase.co wss://*.supabase.co https://*.livekit.cloud wss://*.livekit.cloud https://api.stripe.com`,
           "media-src 'self' https: blob:",
           "frame-src 'self' https://direct.tranzila.com https://checkout.stripe.com",
           "worker-src 'self' blob:",

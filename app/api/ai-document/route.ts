@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
 import Anthropic from '@anthropic-ai/sdk'
+import { CLINICAL_MODEL, CLINICAL_EFFORT, responseText } from '@/lib/ai/models'
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY })
 
@@ -103,13 +104,17 @@ ${(medHistory.current_medications as string[] || []).length > 0 ? `תרופות 
 החזר רק את טקסט המסמך ללא הסברים נוספים.`
 
     const response = await anthropic.messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: 1500,
+      model: CLINICAL_MODEL,
+      max_tokens: 8000,
+      output_config: { effort: CLINICAL_EFFORT },
       messages: [{ role: 'user', content: userPrompt }],
       system: systemPrompt,
     })
 
-    const documentContent = response.content[0].type === 'text' ? response.content[0].text : ''
+    const documentContent = response.stop_reason === 'refusal' ? '' : responseText(response)
+    if (!documentContent) {
+      return NextResponse.json({ error: 'יצירת המסמך נכשלה. נסה שוב.' }, { status: 502 })
+    }
 
     // Save AI conversation for billing tracking
     await admin.from('ai_conversations').insert({
@@ -122,7 +127,7 @@ ${(medHistory.current_medications as string[] || []).length > 0 ? `תרופות 
       is_complete: true,
       input_tokens: response.usage.input_tokens,
       output_tokens: response.usage.output_tokens,
-      model_used: 'claude-sonnet-4-20250514',
+      model_used: CLINICAL_MODEL,
     })
 
     // Save as document record

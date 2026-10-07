@@ -449,3 +449,29 @@ function buildSimpleEmailHtml(title: string, body: string, appointmentId: string
 </body>
 </html>`
 }
+
+// ── Shared event fan-out ─────────────────────────────────────────
+// One definition of "who hears about this", used by the API routes and by the
+// AI assistant, so an action produces the same messages whichever way it ran.
+
+/** After a cancellation: the patient always; the doctor when the patient cancelled. */
+export async function notifyCancellation(appointmentId: string, byPatient: boolean, admin: SupabaseClient) {
+  const { data } = await admin.from('appointments').select('doctor_id').eq('id', appointmentId).maybeSingle()
+  const events: NotificationEvent[] = ['appointment_cancelled']
+  if (byPatient && (data as { doctor_id: string | null } | null)?.doctor_id) events.push('doctor_appointment_cancelled')
+  return Promise.allSettled(events.map(e => notify(e, appointmentId, admin)))
+}
+
+/**
+ * After a booking. A patient's booking is a request (patient: "received",
+ * doctor: "new request"); one made by the clinic is final (patient: "scheduled").
+ */
+export async function notifyBooking(appointmentId: string, admin: SupabaseClient) {
+  const { data } = await admin.from('appointments').select('status, doctor_id').eq('id', appointmentId).maybeSingle()
+  const apt = data as { status: string; doctor_id: string | null } | null
+  if (!apt) return []
+  const events: NotificationEvent[] = apt.status === 'pending'
+    ? ['appointment_created', ...(apt.doctor_id ? ['doctor_new_request' as const] : [])]
+    : ['appointment_scheduled']
+  return Promise.allSettled(events.map(e => notify(e, appointmentId, admin)))
+}

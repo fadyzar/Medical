@@ -3,6 +3,7 @@ import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
 import { triageAgent } from '@/lib/ai/agents'
 import { appointmentIdSchema } from '@/lib/validation/schemas'
 import { rateLimit } from '@/lib/security/rate-limit'
+import { CLINICAL_MODEL } from '@/lib/ai/models'
 
 export async function POST(req: Request) {
   try {
@@ -72,7 +73,7 @@ export async function POST(req: Request) {
       is_complete: true,
       input_tokens: result.tokens?.input || 0,
       output_tokens: result.tokens?.output || 0,
-      model_used: 'claude-sonnet-4-20250514',
+      model_used: CLINICAL_MODEL,
     })
 
     return NextResponse.json({ success: true, triage: result.parsed })

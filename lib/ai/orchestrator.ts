@@ -14,6 +14,7 @@
  */
 
 import Anthropic from '@anthropic-ai/sdk'
+import { CLINICAL_MODEL, CLINICAL_EFFORT, responseText } from '@/lib/ai/models'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -233,26 +234,28 @@ export async function orchestrate(
   messages.push({ role: 'user', content: prompt })
 
   // 3. Call AI with governance
-  const model = options?.model || 'claude-sonnet-4-20250514'
+  const model = options?.model || CLINICAL_MODEL
   const maxTokens = options?.maxTokens || 1200
 
   const abortController = new AbortController()
-  const timeoutMs = options?.timeout || 30000
+  const timeoutMs = options?.timeout || 60000
   const timeoutId = setTimeout(() => abortController.abort(), timeoutMs)
 
   let response: Anthropic.Message
   try {
     response = await anthropic.messages.create({
       model,
-      max_tokens: maxTokens,
+      // Thinking counts toward max_tokens; leave room for it on top of the reply.
+      max_tokens: maxTokens + 6000,
+      output_config: { effort: CLINICAL_EFFORT },
       system: SYSTEM_PROMPTS[agentType],
       messages,
-    })
+    }, { signal: abortController.signal }) // the timeout used to be created but never applied
   } finally {
     clearTimeout(timeoutId)
   }
 
-  const output = response.content[0].type === 'text' ? response.content[0].text : ''
+  const output = response.stop_reason === 'refusal' ? '' : responseText(response)
 
   // 4. Post-process: detect red flags
   const redFlags = detectRedFlags(output)

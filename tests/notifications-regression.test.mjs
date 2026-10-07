@@ -59,9 +59,11 @@ test('email: reminder senders throw on failure so the cron retries', () => {
 })
 
 test('email: cancelling an appointment notifies the patient and the doctor', () => {
-  const src = read('app/api/appointments/cancel/route.ts')
-  assert.match(src, /notify\('appointment_cancelled'/)
-  assert.match(src, /notify\('doctor_appointment_cancelled'/)
+  assert.match(read('app/api/appointments/cancel/route.ts'), /notifyCancellation\(/)
+  assert.match(read('app/api/ai/assistant/confirm/route.ts'), /notifyCancellation\(/)
+  const lib = read('lib/notifications/index.ts')
+  assert.match(lib, /'appointment_cancelled'/)
+  assert.match(lib, /'doctor_appointment_cancelled'/)
 })
 
 test('whatsapp: manual summary uses the clinic Green API, not the retired Infobip key', () => {

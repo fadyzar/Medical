@@ -13,6 +13,7 @@
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { summaryAgent } from '@/lib/ai/agents'
 import { notify } from '@/lib/notifications'
+import { CLINICAL_MODEL } from '@/lib/ai/models'
 
 export type SummaryOutcome =
   | { ok: true; skipped: boolean; data?: unknown }
@@ -52,7 +53,7 @@ export async function generateConsultationSummary(params: {
     agent_type: 'summary', messages: [{ role: 'user', content: apt.chief_complaint }],
     result: result.parsed || { raw: result.success ? result.content : null }, is_complete: result.success,
     input_tokens: result.tokens?.input || 0, output_tokens: result.tokens?.output || 0,
-    model_used: 'claude-sonnet-4-20250514',
+    model_used: CLINICAL_MODEL,
   })
 
   if (!result.success) return { ok: false, error: result.content }

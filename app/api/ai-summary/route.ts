@@ -5,6 +5,7 @@ import { generateConsultationSummary } from '@/lib/ai/summary'
 import { aiSummarySchema } from '@/lib/validation/schemas'
 import { rateLimit } from '@/lib/security/rate-limit'
 import { orchestrate } from '@/lib/ai/orchestrator'
+import { CLINICAL_MODEL } from '@/lib/ai/models'
 
 // The summary is a ~30s Claude call plus notifications; the default limit is too tight.
 export const maxDuration = 60
@@ -119,7 +120,7 @@ export async function POST(req: Request) {
       agent_type: 'prescription_draft', messages: [{ role: 'user', content: apt.chief_complaint }],
       result: result.parsed || { raw: result.content }, is_complete: true,
       input_tokens: result.tokens?.input || 0, output_tokens: result.tokens?.output || 0,
-      model_used: 'claude-sonnet-4-20250514',
+      model_used: CLINICAL_MODEL,
     })
 
     return NextResponse.json({ success: result.success, data: result.parsed || result.content })

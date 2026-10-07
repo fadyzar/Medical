@@ -6,9 +6,10 @@ import {
   loadConversation, saveConversation, PENDING_ACTION_TTL_MS,
   type ConversationState,
 } from '@/lib/ai/assistant/conversation'
-import { notify } from '@/lib/notifications'
+import { notify, notifyBooking, notifyCancellation } from '@/lib/notifications'
 import { rateLimit } from '@/lib/security/rate-limit'
 import { z } from 'zod'
+import { ASSISTANT_MODEL } from '@/lib/ai/models'
 
 export const dynamic = 'force-dynamic'
 
@@ -62,7 +63,7 @@ export async function POST(req: Request) {
         state: { ...state, pendingAction: null, memory: { ...state.memory, ...memoryPatch } },
         inputTokens: 0,
         outputTokens: 0,
-        model: 'claude-opus-5',
+        model: ASSISTANT_MODEL,
       })
     }
 
@@ -94,13 +95,15 @@ export async function POST(req: Request) {
     // Notify the other party. Best-effort — a failed email must not look like a
     // failed booking to the user.
     try {
-      if (result.data.appointmentId) {
-        const event = pending.card.tool === 'cancel_appointment'
-          ? 'appointment_cancelled'
-          : pending.card.tool === 'book_appointment'
-            ? 'appointment_created'
-            : 'appointment_scheduled'
-        await notify(event, result.data.appointmentId, createServiceRole())
+      const aptId = result.data.appointmentId
+      if (aptId) {
+        const admin = createServiceRole()
+        const tool = pending.card.tool
+        if (tool === 'cancel_appointment') await notifyCancellation(aptId, result.data.byPatient === true, admin)
+        else if (tool === 'book_appointment') await notifyBooking(aptId, admin)
+        else if (tool === 'reschedule_appointment') {
+          await notify(result.data.byPatient ? 'appointment_created' : 'appointment_scheduled', aptId, admin)
+        }
       }
     } catch { /* best-effort */ }
 

@@ -457,6 +457,9 @@ async function prepareCancel(caller: Caller, args: Record<string, unknown>): Pro
   } | null
   if (!apt) return { kind: 'error', error: 'התור לא נמצא' }
   if (!canAccessAppointment(caller, apt)) return { kind: 'error', error: 'אין לך הרשאה לתור הזה' }
+  if (!ACTIVE_STATUSES.includes(apt.status as AppointmentStatus)) {
+    return { kind: 'error', error: 'התור כבר אינו פעיל (הסתיים או בוטל) ולא ניתן לבטל אותו' }
+  }
 
   const rows = [
     { label: 'מועד', value: fmt(apt.scheduled_at) },
@@ -523,7 +526,7 @@ export async function runConfirmedAction(
   userId: string,
   tool: ToolName,
   payload: Record<string, unknown>,
-): Promise<ServiceResult<{ message: string; appointmentId?: string }>> {
+): Promise<ServiceResult<{ message: string; appointmentId?: string; byPatient?: boolean }>> {
   const caller = await resolveCaller(userId)
   if (!caller) return { ok: false, status: 404, error: 'פרופיל לא נמצא' }
   if (!WRITE_TOOLS.has(tool)) return { ok: false, status: 400, error: 'פעולה לא ניתנת לאישור' }
@@ -601,6 +604,7 @@ export async function runConfirmedAction(
         data: {
           message: res.data.isRequest ? 'הבקשה נשלחה למרפאה.' : 'המועד עודכן.',
           appointmentId: String(payload.appointmentId),
+          byPatient: res.data.isRequest,
         },
       }
     }
@@ -612,7 +616,10 @@ export async function runConfirmedAction(
         reason: payload.reason ? String(payload.reason) : undefined,
       })
       if (!res.ok) return res
-      return { ok: true, data: { message: 'התור בוטל.', appointmentId: String(payload.appointmentId) } }
+      return {
+        ok: true,
+        data: { message: 'התור בוטל.', appointmentId: String(payload.appointmentId), byPatient: res.data.status === 'cancelled_patient' },
+      }
     }
 
     default:
