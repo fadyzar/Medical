@@ -1,10 +1,11 @@
 // CHECKLIST: No PHI in console.log, try/catch on all, timeout configured
 import Anthropic from '@anthropic-ai/sdk'
 import { parseModelJson } from './parse-json'
+import { CLINICAL_MODEL, CLINICAL_EFFORT, responseText } from './models'
 
 let _client: Anthropic | null = null
 function getAI() {
-  if (!_client) _client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY!, timeout: 30_000 })
+  if (!_client) _client = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY!, timeout: 60_000, maxRetries: 1 })
   return _client
 }
 
@@ -18,13 +19,17 @@ export interface AIResult {
 async function callClaude(system: string, user: string, maxTokens = 2048): Promise<AIResult> {
   try {
     const res = await getAI().messages.create({
-      model: 'claude-sonnet-4-20250514',
-      max_tokens: maxTokens,
-      temperature: 0.3,
+      model: CLINICAL_MODEL,
+      // Thinking counts toward max_tokens; leave room for it on top of the reply.
+      max_tokens: maxTokens + 6000,
+      output_config: { effort: CLINICAL_EFFORT },
       system,
       messages: [{ role: 'user', content: user }],
     })
-    const text = res.content.find(b => b.type === 'text')?.text || ''
+    if (res.stop_reason === 'refusal') {
+      return { success: false, content: 'The AI service declined this request' }
+    }
+    const text = responseText(res)
     const parsed = parseModelJson(text)
     return { success: true, content: text, parsed, tokens: { input: res.usage.input_tokens, output: res.usage.output_tokens } }
   } catch (err: unknown) {
