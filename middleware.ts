@@ -40,6 +40,7 @@ const WEBHOOK_PATHS = [
   '/api/stripe/webhook',
   '/api/auth/callback',
   '/api/cron/',
+  '/api/email/webhook', // Resend delivery events — authenticated by signature
 ]
 
 // Build the base URL for a given subdomain (respects dev vs prod)
