@@ -6,14 +6,13 @@
 // Refuses to run against anything that is not localhost. All people are fictional;
 // emails use the reserved .test TLD so nothing can ever be delivered.
 import { createClient } from '@supabase/supabase-js'
+import { QA_PASSWORD } from './qa-config.mjs'
 
 const url = process.env.SUPABASE_URL
 const key = process.env.SUPABASE_SERVICE_ROLE_KEY
 if (!url || !key) throw new Error('SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required')
 if (!/^http:\/\/(127\.0\.0\.1|localhost)(:\d+)?$/.test(url)) throw new Error(`Refusing to seed non-local URL: ${url}`)
 
-/** Shared password for every local QA account (local stack only). */
-export const QA_PASSWORD = 'CannaQA-Local-2026!'
 
 const db = createClient(url, key, { auth: { persistSession: false } })
 
@@ -78,6 +77,10 @@ async function main() {
   const A1 = ids['doctor.a1@canna.test'], A2 = ids['doctor.a2@canna.test'], B1 = ids['doctor.b1@canna.test']
   const PA = ids['patient.a@canna.test'], PA2 = ids['patient.a2@canna.test'], PB = ids['patient.b@canna.test']
 
+  // Re-runnable: clear rows that reference the QA appointments first.
+  for (const t of ['notifications', 'ai_conversations', 'documents', 'questionnaire_responses', 'audit_logs']) {
+    await must(db.from(t).delete().in('organization_id', [ORG_A, ORG_B]), `clear ${t}`)
+  }
   await must(db.from('appointments').delete().in('organization_id', [ORG_A, ORG_B]), 'clear appointments')
   await must(db.from('appointments').insert([
     { organization_id: ORG_A, patient_id: PA, doctor_id: A1, status: 'scheduled', scheduled_at: at(1, 10), duration_minutes: 30,
