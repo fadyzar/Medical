@@ -250,14 +250,33 @@ function WhatsAppTestPanel({ isConfigured }: { isConfigured: boolean }) {
 function EmailTestPanel() {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<{ ok: true; messageId?: string; to: string } | { ok: false; error: string } | null>(null)
+  // What happened after Resend accepted it — "accepted" is not "arrived".
+  const [delivery, setDelivery] = useState<{ status: string; reason: string | null } | null>(null)
+
+  async function checkDelivery(id: string, attempt = 0) {
+    try {
+      const res = await fetch(`/api/admin/email/status?id=${id}`)
+      const data = await res.json() as { status?: string; reason?: string | null }
+      if (res.ok && data.status) {
+        setDelivery({ status: data.status, reason: data.reason ?? null })
+        if (data.status === 'sent' && attempt < 4) setTimeout(() => checkDelivery(id, attempt + 1), 4000)
+      }
+    } catch { /* the panel still shows the send result */ }
+  }
 
   async function sendTest() {
     setLoading(true)
     setResult(null)
+    setDelivery(null)
     try {
       const res = await fetch('/api/admin/email/test', { method: 'POST' })
       const data = await res.json()
-      setResult(res.ok ? { ok: true, messageId: data.messageId, to: data.to } : { ok: false, error: data.error || 'השליחה נכשלה' })
+      if (res.ok) {
+        setResult({ ok: true, messageId: data.messageId, to: data.to })
+        if (data.messageId) setTimeout(() => checkDelivery(data.messageId), 3000)
+      } else {
+        setResult({ ok: false, error: data.error || 'השליחה נכשלה' })
+      }
     } catch {
       setResult({ ok: false, error: 'שגיאת רשת' })
     } finally {
@@ -270,7 +289,7 @@ function EmailTestPanel() {
       <div className="flex items-center justify-between gap-3">
         <div>
           <p className="text-sm font-semibold text-teal-900">שלח אימייל בדיקה</p>
-          <p className="text-xs text-teal-700 mt-0.5">האימייל יישלח לכתובת של החשבון שלך</p>
+          <p className="text-xs text-teal-700 mt-0.5">האימייל יישלח לכתובת של החשבון שלך, ונבדוק אם הוא נמסר</p>
         </div>
         <button
           onClick={sendTest}
@@ -281,9 +300,16 @@ function EmailTestPanel() {
         </button>
       </div>
       {result?.ok === true && (
-        <div className="text-sm text-green-700 space-y-1" role="status">
-          <p className="font-medium">ספק האימייל (Resend) קיבל את ההודעה ל-{result.to}. בדוק את תיבת הדואר (וגם ספאם).</p>
-          {result.messageId && <p className="text-xs text-slate-500" dir="ltr">Resend ID: {result.messageId}</p>}
+        <div className="text-sm space-y-1" role="status">
+          <p className="text-slate-700">ספק האימייל קיבל את ההודעה ל-{result.to}.</p>
+          {!delivery || delivery.status === 'sent' ? (
+            <p className="text-slate-500">בודק אם ההודעה נמסרה…</p>
+          ) : delivery.status === 'delivered' ? (
+            <p className="text-green-700 font-medium">ההודעה נמסרה לשרת הדואר של הנמען. בדוק את התיבה (וגם ספאם).</p>
+          ) : (
+            <p className="text-red-600 font-medium">ההודעה לא נמסרה: {delivery.reason}</p>
+          )}
+          {result.messageId && <p className="text-xs text-slate-400" dir="ltr">Resend ID: {result.messageId}</p>}
         </div>
       )}
       {result?.ok === false && (
