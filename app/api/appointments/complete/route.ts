@@ -1,8 +1,14 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse, after } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
+import { generateConsultationSummary } from '@/lib/ai/summary'
+import { notify } from '@/lib/notifications'
 
-// Called when a video call ends (by either participant).
-// Marks the appointment completed and triggers AI summary generation.
+// The summary is a ~30s Claude call plus notifications; the default limit is too tight.
+export const maxDuration = 60
+
+// Called when a consultation ends: by either participant when a video call ends,
+// and by the doctor's "end consultation" button. Marks the appointment completed
+// and generates the clinic summary automatically.
 export async function POST(req: NextRequest) {
   try {
     const supabase = await createServerSupabase()
@@ -27,27 +33,48 @@ export async function POST(req: NextRequest) {
     const isPatient = apt.patient_id === user.id
     if (!isDoctor && !isPatient) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-    // Mark appointment completed (idempotent)
-    const updates: Record<string, unknown> = { status: 'completed' }
-    if (!apt.video_ended_at) updates.video_ended_at = new Date().toISOString()
-
-    await admin.from('appointments').update(updates).eq('id', appointmentId)
-
-    // Doctor ends call → trigger AI summary in background (fire and forget)
-    if (isDoctor) {
-      const origin = req.nextUrl.origin
-      fetch(`${origin}/api/ai-summary`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          // Forward the auth cookie so the doctor's session is validated
-          cookie: req.headers.get('cookie') || '',
-        },
-        body: JSON.stringify({ appointmentId, action: 'summarize' }),
-      }).catch(() => { /* non-critical — doctor can regenerate manually */ })
+    const TERMINAL = ['cancelled_patient', 'cancelled_doctor', 'no_show_patient', 'no_show_doctor']
+    if (TERMINAL.includes(apt.status)) {
+      return NextResponse.json({ error: 'התור אינו פעיל' }, { status: 409 })
     }
 
-    return NextResponse.json({ ok: true })
+    // Atomic claim: only the request that actually moves the appointment to
+    // `completed` runs the summary pipeline. Both video participants call this
+    // route when the call ends, and the doctor can also end it from the
+    // appointments screen — exactly one of those wins.
+    const now = new Date().toISOString()
+    const { data: claimed } = await admin
+      .from('appointments')
+      .update({
+        status: 'completed',
+        completed_at: now,
+        ...(apt.video_ended_at ? {} : { video_ended_at: now }),
+      })
+      .eq('id', appointmentId)
+      .neq('status', 'completed')
+      .select('id')
+
+    const transitioned = (claimed?.length ?? 0) > 0
+
+    // Automatic clinic summary, run through after(): Vercel keeps the function
+    // alive until it finishes. (The previous un-awaited fetch to /api/ai-summary
+    // was frozen with the function — and sent an action the route rejected.)
+    // The patient gets exactly one message: the summary, or a plain
+    // "consultation ended" if the summary could not be generated.
+    if (transitioned && apt.doctor_id) {
+      const doctorId = apt.doctor_id
+      after(async () => {
+        const outcome = await generateConsultationSummary({
+          appointmentId, userId: doctorId, admin, notifyPatient: true,
+        })
+        if (!outcome.ok) {
+          console.error('[appointments/complete] summary failed', appointmentId)
+          await notify('appointment_completed', appointmentId, admin)
+        }
+      })
+    }
+
+    return NextResponse.json({ ok: true, completed: transitioned })
   } catch (err) {
     console.error('[appointments/complete]', err instanceof Error ? err.message : err)
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })

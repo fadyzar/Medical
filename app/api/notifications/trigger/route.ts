@@ -17,7 +17,7 @@ export async function POST(req: NextRequest) {
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
   const { data: profile } = await supabase
-    .from('users').select('role').eq('id', user.id).single()
+    .from('users').select('role, organization_id').eq('id', user.id).single()
 
   if (!profile || !['doctor', 'staff', 'admin'].includes(profile.role)) {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
@@ -38,6 +38,18 @@ export async function POST(req: NextRequest) {
   }
 
   const admin = createServiceRole()
+
+  // Same scoping as RLS: a doctor only for their own appointments, staff/admin
+  // only inside their own clinic.
+  const { data: apt } = await admin
+    .from('appointments').select('doctor_id, organization_id').eq('id', appointmentId).maybeSingle()
+  const allowed = !!apt && (
+    profile.role === 'doctor'
+      ? apt.doctor_id === user.id
+      : apt.organization_id === profile.organization_id
+  )
+  if (!allowed) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+
   const result = await notify(event, appointmentId, admin, { extraContent })
 
   return NextResponse.json(result)

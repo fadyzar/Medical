@@ -25,6 +25,7 @@ export type NotificationEvent =
   | 'consultation_summary'      // doctor sends SOAP/AI summary
   | 'appointment_cancelled'     // appointment was cancelled
   | 'doctor_new_request'        // doctor gets notified of new patient request
+  | 'doctor_appointment_cancelled' // doctor: the patient cancelled
 
 // ── Appointment context (loaded once per notify call) ─────────────
 
@@ -274,6 +275,19 @@ function buildTemplate(event: NotificationEvent, ctx: AptContext): Template | nu
           `\n📲 לפרטים: ${dashboardUrl('doctor')}`,
       }
 
+    case 'doctor_appointment_cancelled':
+      return {
+        recipientRole: 'doctor',
+        inAppTitle: 'מטופל ביטל תור',
+        inAppBody: `${patientName} ביטל את ${aptType}${scheduledStr ? ` שנקבע ל${scheduledStr}` : ''}.`,
+        emailSubject: `תור בוטל על ידי המטופל — ${org}`,
+        whatsapp:
+          `שלום ${d?.first_name || ''},\n\n` +
+          `❌ *${patientName} ביטל את התור*\n` +
+          (scheduledStr ? `📅 ${scheduledStr}\n` : '') +
+          `\n📲 ${dashboardUrl('doctor')}`,
+      }
+
     default:
       return null
   }
@@ -364,16 +378,12 @@ export async function notify(
       }
     }
 
-    // 3. Email (if RESEND_API_KEY configured + email available)
+    // 3. Email (if RESEND_API_KEY configured + email available). sendEmail logs
+    //    both success (with the Resend message id) and failure to `notifications`.
     if (recipient.email && process.env.RESEND_API_KEY && tpl.emailSubject) {
       try {
-        const emailFn = isForPatient
-          ? (await import('@/lib/email')).sendConsultationSummary
-          : null
-
-        // Use generic email for events that don't have dedicated email functions
         const { sendEmail } = await import('@/lib/email')
-        await sendEmail({
+        const sent = await sendEmail({
           to: recipient.email,
           subject: tpl.emailSubject,
           html: buildSimpleEmailHtml(tpl.inAppTitle, content, appointmentId, isForPatient),
@@ -383,9 +393,7 @@ export async function notify(
           templateName: event,
           organizationName: ctx.org?.name || 'הפלטפורמה',
         }, admin)
-
-        void emailFn // suppress unused warning
-        results.email = true
+        results.email = sent.success
       } catch {
         // Email failure is non-critical
       }

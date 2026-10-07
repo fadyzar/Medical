@@ -1,10 +1,13 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
-import { summaryAgent, prescriptionAgent } from '@/lib/ai/agents'
-import { notify } from '@/lib/notifications'
+import { prescriptionAgent } from '@/lib/ai/agents'
+import { generateConsultationSummary } from '@/lib/ai/summary'
 import { aiSummarySchema } from '@/lib/validation/schemas'
 import { rateLimit } from '@/lib/security/rate-limit'
 import { orchestrate } from '@/lib/ai/orchestrator'
+
+// The summary is a ~30s Claude call plus notifications; the default limit is too tight.
+export const maxDuration = 60
 
 export async function POST(req: Request) {
   try {
@@ -30,12 +33,14 @@ export async function POST(req: Request) {
 
     const admin = createServiceRole()
     const { data: apt } = await admin.from('appointments')
-      .select('id, chief_complaint, complaint_description, subjective_notes, objective_notes, assessment, plan, diagnosis, organization_id, patient_id, video_duration_seconds')
+      .select('id, chief_complaint, complaint_description, subjective_notes, objective_notes, assessment, plan, diagnosis, organization_id, patient_id, doctor_id, video_duration_seconds')
       .eq('id', appointmentId).single()
     if (!apt) return NextResponse.json({ error: 'Not found' }, { status: 404 })
 
-    // Verify appointment belongs to doctor's organization
-    if (apt.organization_id !== (profile as unknown as { organization_id: string }).organization_id) {
+    // Same rule as RLS (apt_doctor_select): a doctor works only on appointments
+    // assigned to them — not on a colleague's patients in the same clinic.
+    if (apt.organization_id !== (profile as unknown as { organization_id: string }).organization_id
+      || apt.doctor_id !== user.id) {
       return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
     }
 
@@ -91,46 +96,33 @@ export async function POST(req: Request) {
       })
     }
 
-    let result
-    const agentType = action === 'prescription_draft' ? 'prescription_draft' : 'summary'
-
-    if (action === 'prescription_draft') {
-      const { data: patient } = await admin.from('users').select('date_of_birth, medical_history').eq('id', apt.patient_id).single()
-      const age = patient?.date_of_birth ? Math.floor((Date.now() - new Date(patient.date_of_birth).getTime()) / 31557600000) : undefined
-      const mh = patient?.medical_history as Record<string, string[]> | undefined
-      result = await prescriptionAgent({ diagnosis: apt.diagnosis || apt.chief_complaint, age, allergies: mh?.allergies, medications: mh?.current_medications })
-      if (result.success) await admin.from('appointments').update({ ai_prescription_draft: result.content, ai_used: true }).eq('id', appointmentId)
-    } else {
-      result = await summaryAgent({
-        complaint: apt.chief_complaint,
-        notes: [apt.subjective_notes, apt.objective_notes].filter(Boolean).join('\n'),
-        assessment: apt.assessment || undefined,
-        plan: apt.plan || undefined,
-        duration: apt.video_duration_seconds ? Math.round(apt.video_duration_seconds / 60) : undefined,
+    if (action === 'summary') {
+      // Explicit doctor request: regenerate even if one exists, and tell the patient.
+      const outcome = await generateConsultationSummary({
+        appointmentId, userId: user.id, admin, force: true, notifyPatient: true,
       })
-      if (result.success) {
-        const p = result.parsed as { soap?: { subjective?: string; assessment?: string; plan?: string } } | undefined
-        await admin.from('appointments').update({
-          ai_summary: result.content, ai_summary_generated_at: new Date().toISOString(), ai_used: true,
-          ...(!apt.subjective_notes && p?.soap?.subjective ? { subjective_notes: p.soap.subjective } : {}),
-          ...(!apt.assessment && p?.soap?.assessment ? { assessment: p.soap.assessment } : {}),
-          ...(!apt.plan && p?.soap?.plan ? { plan: p.soap.plan } : {}),
-        }).eq('id', appointmentId)
-
-        // Auto-notify patient: summary is ready (in-app only, doctor can also send WhatsApp manually)
-        notify('consultation_summary', appointmentId, admin).catch(() => {})
+      if (!outcome.ok) {
+        return NextResponse.json({ success: false, error: 'יצירת סיכום AI נכשלה. נסה שוב.' }, { status: 502 })
       }
+      return NextResponse.json({ success: true, data: outcome.data })
     }
+
+    // action === 'prescription_draft'
+    const { data: patient } = await admin.from('users').select('date_of_birth, medical_history').eq('id', apt.patient_id).single()
+    const age = patient?.date_of_birth ? Math.floor((Date.now() - new Date(patient.date_of_birth).getTime()) / 31557600000) : undefined
+    const mh = patient?.medical_history as Record<string, string[]> | undefined
+    const result = await prescriptionAgent({ diagnosis: apt.diagnosis || apt.chief_complaint, age, allergies: mh?.allergies, medications: mh?.current_medications })
+    if (result.success) await admin.from('appointments').update({ ai_prescription_draft: result.content, ai_used: true }).eq('id', appointmentId)
 
     await admin.from('ai_conversations').insert({
       organization_id: apt.organization_id, user_id: user.id, appointment_id: appointmentId,
-      agent_type: agentType, messages: [{ role: 'user', content: apt.chief_complaint }],
-      result: result?.parsed || { raw: result?.content }, is_complete: true,
-      input_tokens: result?.tokens?.input || 0, output_tokens: result?.tokens?.output || 0,
+      agent_type: 'prescription_draft', messages: [{ role: 'user', content: apt.chief_complaint }],
+      result: result.parsed || { raw: result.content }, is_complete: true,
+      input_tokens: result.tokens?.input || 0, output_tokens: result.tokens?.output || 0,
       model_used: 'claude-sonnet-4-20250514',
     })
 
-    return NextResponse.json({ success: result?.success, data: result?.parsed || result?.content })
+    return NextResponse.json({ success: result.success, data: result.parsed || result.content })
   } catch (err) {
     console.error('[AI Summary API]', err instanceof Error ? err.message : 'Unknown error')
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })

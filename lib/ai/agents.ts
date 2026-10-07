@@ -1,5 +1,6 @@
 // CHECKLIST: No PHI in console.log, try/catch on all, timeout configured
 import Anthropic from '@anthropic-ai/sdk'
+import { parseModelJson } from './parse-json'
 
 let _client: Anthropic | null = null
 function getAI() {
@@ -24,8 +25,7 @@ async function callClaude(system: string, user: string, maxTokens = 2048): Promi
       messages: [{ role: 'user', content: user }],
     })
     const text = res.content.find(b => b.type === 'text')?.text || ''
-    let parsed: Record<string, unknown> | undefined
-    try { parsed = JSON.parse(text) } catch { /* not JSON */ }
+    const parsed = parseModelJson(text)
     return { success: true, content: text, parsed, tokens: { input: res.usage.input_tokens, output: res.usage.output_tokens } }
   } catch (err: unknown) {
     // CHECKLIST: No PHI logged

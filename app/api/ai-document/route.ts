@@ -41,6 +41,7 @@ export async function POST(req: NextRequest) {
       .select('*, patient:patient_id(id, first_name, last_name, date_of_birth, gender, medical_history, id_number, phone, email, insurance_info)')
       .eq('id', appointmentId)
       .eq('organization_id', (profile as unknown as { organization_id: string }).organization_id)
+      .eq('doctor_id', user.id) // assigned doctor only — mirrors RLS apt_doctor_select
       .single()
 
     if (aptErr || !apt) {

@@ -1,10 +1,12 @@
 import { NextRequest, NextResponse } from 'next/server'
-import { createServerSupabase } from '@/lib/supabase/server'
+import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
+import { sendEmail } from '@/lib/email'
+import { sendWhatsApp } from '@/lib/whatsapp'
 
 // Send appointment summary to patient:
 //  1. Always creates an in-app notification
-//  2. Tries email if RESEND_API_KEY is set
-//  3. Tries WhatsApp if INFOBIP keys are set
+//  2. Email via Resend (CANNA-managed)
+//  3. WhatsApp via the clinic's own Green API instance
 
 export async function POST(req: NextRequest) {
   const supabase = await createServerSupabase()
@@ -21,7 +23,7 @@ export async function POST(req: NextRequest) {
     id: string; ai_summary: string | null; chief_complaint: string
     subjective_notes: string | null; assessment: string | null; plan: string | null
     diagnosis: string | null; follow_up_instructions: string | null
-    scheduled_at: string | null; organization_id: string
+    scheduled_at: string | null; organization_id: string; doctor_id: string | null
     patient: { id: string; first_name: string; last_name: string; email: string; phone: string } | null
     doctor:  { first_name: string; last_name: string } | null
   }
@@ -33,6 +35,7 @@ export async function POST(req: NextRequest) {
       id, ai_summary, chief_complaint, subjective_notes, assessment, plan, diagnosis,
       follow_up_instructions, scheduled_at, organization_id,
       patient:patient_id(id, first_name, last_name, email, phone),
+      doctor_id,
       doctor:doctor_id(id, first_name, last_name)
     `)
     .eq('id', appointmentId)
@@ -47,6 +50,10 @@ export async function POST(req: NextRequest) {
   if (role !== 'doctor' && role !== 'admin' && role !== 'staff') {
     return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
   }
+  if (role === 'doctor' && apt.doctor_id !== user.id) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+  const admin = createServiceRole()
 
   const patient = apt.patient
   const doctor  = apt.doctor
@@ -65,7 +72,7 @@ export async function POST(req: NextRequest) {
   }, doctor)
 
   // 1. Always create in-app notification
-  const { error: notifError } = await supabase.from('notifications').insert({
+  const { error: notifError } = await admin.from('notifications').insert({
     organization_id: apt.organization_id,
     user_id: patient.id,
     appointment_id: apt.id,
@@ -86,51 +93,48 @@ export async function POST(req: NextRequest) {
     in_app: { ok: !notifError },
   }
 
-  // 2. Email (if requested and configured)
+  // 2. Email — through the shared sender, which records the Resend message id
+  //    (or the provider's error) in `notifications`.
   if (channel === 'email') {
-    const resendKey = process.env.RESEND_API_KEY
-    if (!resendKey) {
-      results.email = { ok: false, error: 'שירות האימייל לא מחובר עדיין' }
+    if (!process.env.RESEND_API_KEY) {
+      results.email = { ok: false, error: 'שירות האימייל לא מוגדר בשרת' }
+    } else if (!patient.email) {
+      results.email = { ok: false, error: 'למטופל אין כתובת אימייל' }
     } else {
-      try {
-        const { Resend } = await import('resend')
-        const resend = new Resend(resendKey)
-        const fromEmail = process.env.RESEND_FROM_EMAIL || 'onboarding@resend.dev'
-        await resend.emails.send({
-          from: fromEmail,
-          to: patient.email,
-          subject: 'סיכום ייעוץ רפואי',
-          html: buildEmailHtml(summaryText, patient.first_name, doctor),
-        })
-        results.email = { ok: true }
-      } catch (e) {
-        results.email = { ok: false, error: e instanceof Error ? e.message : 'שגיאה בשליחת אימייל' }
-      }
+      const sent = await sendEmail({
+        to: patient.email,
+        subject: 'סיכום ייעוץ רפואי',
+        html: buildEmailHtml(summaryText, patient.first_name, doctor),
+        organizationId: apt.organization_id,
+        userId: patient.id,
+        appointmentId: apt.id,
+        templateName: 'consultation_summary_manual',
+      }, admin)
+      results.email = sent.success ? { ok: true } : { ok: false, error: sent.error || 'שגיאה בשליחת אימייל' }
     }
   }
 
-  // 3. WhatsApp (if requested and configured)
+  // 3. WhatsApp — the clinic's own Green API instance (per-clinic integration).
   if (channel === 'whatsapp') {
-    const infobipKey = process.env.INFOBIP_API_KEY
-    if (!infobipKey) {
-      results.whatsapp = { ok: false, error: 'שירות הוואטסאפ לא מחובר עדיין' }
+    if (!patient.phone) {
+      results.whatsapp = { ok: false, error: 'למטופל אין מספר טלפון' }
     } else {
-      try {
-        const { sendWhatsApp } = await import('@/lib/whatsapp')
-        const { createServiceRole } = await import('@/lib/supabase/server')
-        const adminClient = createServiceRole()
-        await sendWhatsApp({
-          to: patient.phone,
-          message: `שלום ${patient.first_name},\n\nסיכום הייעוץ שלך:\n\n${summaryText}`,
-          organizationId: apt.organization_id,
-          userId: patient.id,
-          appointmentId: apt.id,
-          templateName: 'consultation_summary',
-        }, adminClient)
-        results.whatsapp = { ok: true }
-      } catch (e) {
-        results.whatsapp = { ok: false, error: e instanceof Error ? e.message : 'שגיאה בשליחת וואטסאפ' }
-      }
+      const sent = await sendWhatsApp({
+        to: patient.phone,
+        message: `שלום ${patient.first_name},\n\nסיכום הייעוץ שלך:\n\n${summaryText}`,
+        organizationId: apt.organization_id,
+        userId: patient.id,
+        appointmentId: apt.id,
+        templateName: 'consultation_summary_manual',
+      }, admin)
+      results.whatsapp = sent.success
+        ? { ok: true }
+        : {
+            ok: false,
+            error: sent.error === 'Green API not configured for this organization'
+              ? 'WhatsApp לא מחובר במרפאה — יש להגדיר Green API בעמוד האינטגרציות'
+              : sent.error || 'שגיאה בשליחת וואטסאפ',
+          }
     }
   }
 

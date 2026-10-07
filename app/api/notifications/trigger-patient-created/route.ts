@@ -17,6 +17,13 @@ export async function POST(req: NextRequest) {
 
   const admin = createServiceRole()
 
+  // Only the patient who booked may trigger the booking notifications.
+  const { data: apt } = await admin
+    .from('appointments').select('patient_id').eq('id', appointmentId).maybeSingle()
+  if (!apt || apt.patient_id !== user.id) {
+    return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+  }
+
   // Send both notifications concurrently (non-blocking)
   await Promise.allSettled([
     notify('appointment_created', appointmentId, admin),

@@ -622,26 +622,40 @@ export default function DoctorAppointmentsPage() {
     if (!selected) return
     setSaving(true)
     setMessage(null)
-    const { error } = await supabase.from('appointments').update({ ...soapForm, status: 'completed', completed_at: new Date().toISOString() }).eq('id', selected.id)
-
+    // Save the notes first: the automatic summary is generated from them.
+    const { error } = await supabase.from('appointments').update(soapForm).eq('id', selected.id)
     if (error) {
-      setMessage({ type: 'error', text: 'שגיאה בסיום הייעוץ' })
+      setMessage({ type: 'error', text: 'שגיאה בשמירת הערות הייעוץ' })
       setSaving(false)
       return
     }
 
-    // Notify patient: appointment completed
-    fetch('/api/notifications/trigger', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ appointmentId: selected.id, event: 'appointment_completed' }),
-    }).catch(() => {})
+    // Server marks it completed, generates the clinic summary and notifies the patient.
+    try {
+      const res = await fetch('/api/appointments/complete', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId: selected.id }),
+      })
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({})) as { error?: string }
+        setMessage({ type: 'error', text: body.error || 'שגיאה בסיום הייעוץ' })
+        setSaving(false)
+        return
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'שגיאת רשת בסיום הייעוץ' })
+      setSaving(false)
+      return
+    }
 
     setSaving(false)
     setSelected(null)
-    setMessage({ type: 'success', text: 'הייעוץ הסתיים בהצלחה' })
-    setTimeout(() => setMessage(null), 3000)
+    setMessage({ type: 'success', text: 'הייעוץ הסתיים. סיכום AI נוצר כעת ברקע ויישלח למטופל' })
+    setTimeout(() => setMessage(null), 4000)
     loadData()
+    // The summary is generated in the background; refresh once it has landed.
+    setTimeout(() => loadData(), 20000)
   }
 
   const generateBrief = async (apt: Appointment) => {
@@ -649,14 +663,12 @@ export default function DoctorAppointmentsPage() {
     setBrief(null)
     setMessage(null)
     try {
-      console.log('[AI Brief] calling for apt:', apt.id)
       const res = await fetch('/api/ai-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ appointmentId: apt.id, action: 'brief' }),
       })
       const data = await res.json()
-      console.log('[AI Brief] response status:', res.status, 'data:', data)
       if (res.ok) {
         setBrief(data.brief || data.summary || 'הבריף נוצר בהצלחה')
       } else {
@@ -674,7 +686,6 @@ export default function DoctorAppointmentsPage() {
     setAiSummaryLoading(true)
     setMessage(null)
     try {
-      console.log('[AI Summary] calling for apt:', apt.id)
       const res = await fetch('/api/ai-summary', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },

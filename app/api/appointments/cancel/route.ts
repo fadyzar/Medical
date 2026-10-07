@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
+import { notify } from '@/lib/notifications'
 
 // Cancel an appointment (status-based, never a hard delete — medical history preserved).
 // Patient may cancel their OWN appointment; clinic admin/staff may cancel any
@@ -46,6 +47,7 @@ export async function POST(req: NextRequest) {
 
     await admin.from('appointments').update({
       status: newStatus,
+      cancelled_by: user.id,
       cancelled_at: new Date().toISOString(),
       cancellation_reason: trimmedReason || null,
     }).eq('id', appointmentId)
@@ -62,6 +64,14 @@ export async function POST(req: NextRequest) {
         metadata: { by_role: role, reason: trimmedReason || null, previous_status: apt.status },
       })
     } catch { /* audit is best-effort */ }
+
+    // Tell both sides. Best-effort: a failed email must not undo the cancellation.
+    await Promise.allSettled([
+      notify('appointment_cancelled', appointmentId, admin),
+      ...(isPatientOwner && apt.doctor_id
+        ? [notify('doctor_appointment_cancelled', appointmentId, admin)]
+        : []),
+    ])
 
     return NextResponse.json({ ok: true, status: newStatus })
   } catch (err) {
