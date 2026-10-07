@@ -3,7 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
-import ReactMarkdown from 'react-markdown'
+import { Markdown } from '@/components/ui/Markdown'
 import { cn } from '@/lib/utils'
 import { ConfirmationCard, type ConfirmationCardData } from '@/components/ai/ConfirmationCard'
 
@@ -52,27 +52,6 @@ function uid() { return Math.random().toString(36).slice(2) }
 function CannaMark({ size = 28 }: { size?: number }) {
   return (
     <Image src="/canna-mark.png" alt="" width={size} height={size} className="rounded-lg object-contain" priority />
-  )
-}
-
-/** Markdown for assistant replies. No raw HTML; links stay inside the app. */
-function Reply({ text }: { text: string }) {
-  return (
-    <ReactMarkdown
-      skipHtml
-      components={{
-        p: ({ children }) => <p className="mb-2 last:mb-0">{children}</p>,
-        ul: ({ children }) => <ul className="list-disc ps-5 mb-2 last:mb-0 space-y-0.5">{children}</ul>,
-        ol: ({ children }) => <ol className="list-decimal ps-5 mb-2 last:mb-0 space-y-0.5">{children}</ol>,
-        strong: ({ children }) => <strong className="font-semibold text-slate-900">{children}</strong>,
-        a: ({ children, href }) => (href?.startsWith('/')
-          ? <a href={href} className="text-teal-700 underline">{children}</a>
-          : <span>{children}</span>),
-        code: ({ children }) => <code className="px-1 rounded bg-slate-200 text-[13px]">{children}</code>,
-      }}
-    >
-      {text}
-    </ReactMarkdown>
   )
 }
 
@@ -407,7 +386,7 @@ export function CannaAssistant({ role }: { role: string }) {
                           : 'bg-slate-100 text-slate-800 rounded-ss-md',
                     )}
                   >
-                    {m.role === 'assistant' ? <Reply text={m.text} /> : m.text}
+                    {m.role === 'assistant' ? <Markdown text={m.text} /> : m.text}
                   </div>
                 )}
                 {m.retry && (

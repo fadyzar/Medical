@@ -5,6 +5,7 @@ import { useEffect, useState } from 'react'
 import { useRouter, useSearchParams } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
+import { Markdown } from '@/components/ui/Markdown'
 import { Button, Card, CardContent, CardHeader, Badge, Input, PageLoading, EmptyState, Spinner } from '@/components/ui'
 import { STATUS_LABELS, formatDateTime, getInitials, cn } from '@/lib/utils'
 import type { Appointment, User, QuestionnaireResponse, QuestionItem } from '@/types/database'
@@ -1137,7 +1138,7 @@ export default function DoctorAppointmentsPage() {
                       </div>
                     ) : brief ? (
                       <CardContent className="py-4 px-4">
-                        <p className="text-sm text-slate-700 whitespace-pre-wrap leading-relaxed">{brief}</p>
+                        <Markdown text={brief} className="text-slate-700" />
                       </CardContent>
                     ) : (
                       <CardContent className="py-3 px-4">
