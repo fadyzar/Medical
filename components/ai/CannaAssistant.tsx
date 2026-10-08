@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import Image from 'next/image'
 import { usePathname, useRouter } from 'next/navigation'
 import { Markdown } from '@/components/ui/Markdown'
+import { announceDataChanged } from '@/lib/hooks/useDataChanged'
 import { cn } from '@/lib/utils'
 import { ConfirmationCard, type ConfirmationCardData } from '@/components/ai/ConfirmationCard'
 
@@ -197,7 +198,7 @@ export function CannaAssistant({ role }: { role: string }) {
         { id: uid(), role: 'assistant' as const, text: data.message || data.error || '' },
       ])
       // A confirmed change should be visible on the page behind the panel.
-      if (res.ok && decision === 'confirm') router.refresh()
+      if (res.ok && decision === 'confirm') { announceDataChanged(); router.refresh() }
     } catch {
       setMessages(prev => [
         ...prev.map(m => m.id === messageId ? { ...m, cardState: 'failed' as CardState } : m),

@@ -9,6 +9,7 @@ import { Button, Card, CardContent, CardHeader, StatCard, Badge, PageLoading, Em
 import { ChartCard, BarTrend, MED } from '@/components/ui/medical'
 import { STATUS_LABELS, formatDateTime, formatTime, getInitials, cn, specialtyLabels } from '@/lib/utils'
 import type { Appointment, User } from '@/types/database'
+import { useDataChanged } from '@/lib/hooks/useDataChanged'
 
 // ── small helpers ──────────────────────────────────────────────────
 function PatientAvatar({ first, last, size = 'md' }: { first: string; last: string; size?: 'sm' | 'md' | 'lg' }) {
@@ -159,6 +160,7 @@ export default function DoctorDashboard() {
   const supabase = getClient()
 
   useEffect(() => { loadData() }, [])
+  useDataChanged(() => { loadData() })
 
   const loadData = async () => {
     try {

@@ -9,6 +9,7 @@ import { Markdown } from '@/components/ui/Markdown'
 import { Button, Card, CardContent, CardHeader, Badge, Input, PageLoading, EmptyState, Spinner } from '@/components/ui'
 import { STATUS_LABELS, formatDateTime, getInitials, cn } from '@/lib/utils'
 import type { Appointment, User, QuestionnaireResponse, QuestionItem } from '@/types/database'
+import { useDataChanged } from '@/lib/hooks/useDataChanged'
 
 type ResponseWithQuest = QuestionnaireResponse & {
   questionnaire?: { id: string; title: string; questions: QuestionItem[] }
@@ -505,6 +506,7 @@ export default function DoctorAppointmentsPage() {
   ]
 
   useEffect(() => { loadData() }, [])
+  useDataChanged(() => { loadData() })
 
   const loadData = async () => {
     try {

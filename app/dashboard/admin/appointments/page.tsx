@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { Button, Card, CardHeader, Badge, PageLoading, EmptyState } from '@/components/ui'
 import { STATUS_LABELS, formatDateTime, formatDate, formatPrice, getInitials, cn } from '@/lib/utils'
 import type { Appointment, User, AppointmentStatus } from '@/types/database'
+import { useDataChanged } from '@/lib/hooks/useDataChanged'
 
 // ── Types ──────────────────────────────────────────────────────────
 
@@ -86,6 +87,7 @@ export default function AdminAppointmentsPage() {
   const [expanded, setExpanded]     = useState<string | null>(null)
   const [actionLoading, setActionLoading] = useState<string | null>(null)
   const [orgId, setOrgId]           = useState('')
+  useDataChanged(() => { if (orgId) loadAppointments(orgId) })
 
   useEffect(() => { init() }, [])
 

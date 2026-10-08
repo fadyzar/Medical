@@ -8,6 +8,7 @@ import { Button, Card, CardContent, Input, Badge, PageLoading, EmptyState } from
 import { STATUS_LABELS, formatDateTime, formatTime, cn, getInitials, SPECIALTIES, APP_TIMEZONE } from '@/lib/utils'
 import type { Appointment, User, AppointmentStatus } from '@/types/database'
 import { fromZonedTime, formatInTimeZone } from 'date-fns-tz'
+import { useDataChanged } from '@/lib/hooks/useDataChanged'
 
 // ── Types ──────────────────────────────────────────────
 
@@ -78,6 +79,7 @@ export default function StaffAppointmentsPage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
 
   useEffect(() => { loadData() }, [])
+  useDataChanged(() => { loadData() })
 
   const loadData = async () => {
     try {

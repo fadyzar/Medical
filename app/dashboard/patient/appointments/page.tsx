@@ -9,6 +9,7 @@ import { Button, Card, Badge, PageLoading, EmptyState } from '@/components/ui'
 import { STATUS_LABELS, formatDateTime, formatDate, getInitials, cn, specialtyLabels } from '@/lib/utils'
 import { toast } from 'sonner'
 import type { Appointment, User } from '@/types/database'
+import { useDataChanged } from '@/lib/hooks/useDataChanged'
 
 type AptWithDoctor = Appointment & {
   doctor: Pick<User, 'id' | 'first_name' | 'last_name' | 'specialties' | 'avatar_url'> | null
@@ -181,6 +182,7 @@ export default function PatientAppointmentsPage() {
   const [cancelBusy, setCancelBusy] = useState(false)
 
   useEffect(() => { load() }, [])
+  useDataChanged(() => { load() })
 
   const CANCELLABLE = ['pending', 'doctor_confirmed', 'time_selected', 'payment_pending', 'paid', 'scheduled', 'ready']
 
