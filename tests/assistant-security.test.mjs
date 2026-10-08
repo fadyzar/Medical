@@ -107,3 +107,9 @@ test('clinic status never returns integration secrets', () => {
   assert.doesNotMatch(fn, /result:[\s\S]*secrets\[/, 'secrets must only feed booleans')
   assert.doesNotMatch(fn, /green_api_token['"]?\s*[,}]/)
 })
+
+test('a turn\'s reply keeps every text block, not only the last round', () => {
+  const src = read('app/api/ai/assistant/route.ts')
+  assert.doesNotMatch(src, /finalText = /)
+  assert.match(src, /replyParts\.join/)
+})

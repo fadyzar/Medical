@@ -143,7 +143,11 @@ export async function POST(req: Request) {
 
         let pendingCard: ConfirmationCard | null = null
         const actions: UiAction[] = []
-        let finalText = ''
+        // Every text block of the turn, in order. The model often writes the
+        // substance of its answer in the same round as a tool call (e.g. the
+        // WhatsApp setup steps + the navigation button), then adds a short note
+        // in the last round — keeping only the last text dropped the answer.
+        const replyParts: string[] = []
         let inputTokens = 0
         let outputTokens = 0
 
@@ -162,12 +166,12 @@ export async function POST(req: Request) {
           messages.push({ role: 'assistant', content: response.content })
 
           if (response.stop_reason === 'refusal') {
-            finalText = 'אני לא יכול לעזור בבקשה הזו. נסה לנסח אותה אחרת.'
+            replyParts.push('אני לא יכול לעזור בבקשה הזו. נסה לנסח אותה אחרת.')
             break
           }
 
           const text = responseText(response)
-          if (text) finalText = text
+          if (text) replyParts.push(text)
 
           if (response.stop_reason !== 'tool_use') break
 
@@ -237,7 +241,7 @@ export async function POST(req: Request) {
             outputTokens += closing.usage.output_tokens
             messages.push({ role: 'assistant', content: closing.content })
             const closingText = responseText(closing)
-            if (closingText) finalText = closingText
+            if (closingText) replyParts.push(closingText)
             break
           }
         }
@@ -254,7 +258,7 @@ export async function POST(req: Request) {
         send({
           type: 'done',
           conversationId,
-          reply: finalText || 'לא הצלחתי לנסח תשובה. נסה לנסח מחדש.',
+          reply: replyParts.join('\n\n') || 'לא הצלחתי לנסח תשובה. נסה לנסח מחדש.',
           // The card the client renders. `payload` is stripped — the browser never
           // sees or sends back what will actually be executed.
           confirmation: pendingCard
