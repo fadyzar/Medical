@@ -86,3 +86,10 @@ test('seo: robots.txt, sitemap.xml and opengraph-image are public (were redirect
   const src = read('middleware.ts')
   for (const p of ["'/robots.txt'", "'/sitemap.xml'", "'/opengraph-image'"]) assert.ok(src.includes(p), p)
 })
+
+test('whatsapp: Green API errors are read safely (401 has an empty body)', () => {
+  for (const f of ['lib/whatsapp/index.ts', 'app/api/admin/whatsapp/test/route.ts']) {
+    assert.doesNotMatch(read(f).replace(/\/\/.*$/gm, ''), /await res\.json\(\)/, f)
+  }
+  assert.match(read('lib/whatsapp/index.ts'), /status === 401 \|\| status === 403/)
+})
