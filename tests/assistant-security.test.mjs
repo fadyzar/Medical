@@ -7,7 +7,7 @@ import { readFileSync } from 'node:fs'
 import { join } from 'node:path'
 import { toolsForRole, isToolAllowed, WRITE_TOOLS } from '../lib/ai/assistant/registry.ts'
 import { resolvePage, pagesForRole, describeCurrentPage } from '../lib/ai/assistant/navigation.ts'
-import { transcriptForDisplay } from '../lib/ai/assistant/history.ts'
+import { transcriptForDisplay, joinReplyParts } from '../lib/ai/assistant/history.ts'
 
 const ROLES = ['patient', 'doctor', 'staff', 'admin']
 const root = new URL('..', import.meta.url).pathname
@@ -111,5 +111,11 @@ test('clinic status never returns integration secrets', () => {
 test('a turn\'s reply keeps every text block, not only the last round', () => {
   const src = read('app/api/ai/assistant/route.ts')
   assert.doesNotMatch(src, /finalText = /)
-  assert.match(src, /replyParts\.join/)
+  assert.match(src, /joinReplyParts\(replyParts\)/)
+})
+
+test('English pre-tool narration is dropped from a Hebrew reply; real content kept', () => {
+  assert.equal(joinReplyParts(["I'll check the details.", 'במרפאה שלך WhatsApp לא מחובר.', 'כדאי גם להגדיר סליקה.']),
+    'במרפאה שלך WhatsApp לא מחובר.\n\nכדאי גם להגדיר סליקה.')
+  assert.equal(joinReplyParts(['Your next appointment is tomorrow at 10:00.']), 'Your next appointment is tomorrow at 10:00.')
 })

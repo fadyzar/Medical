@@ -42,3 +42,17 @@ export function transcriptForDisplay(messages: Anthropic.MessageParam[]): Array<
   }
   return out
 }
+
+/**
+ * Joins the text the model wrote across the rounds of one turn, dropping
+ * narration like "I'll check the details." that it sometimes writes before a
+ * tool call: a short part with no Hebrew letters, when the reply is Hebrew.
+ */
+export function joinReplyParts(parts: string[]): string {
+  const isHebrew = (t: string) => /[\u0590-\u05FF]/.test(t)
+  const anyHebrew = parts.some(isHebrew)
+  return parts
+    .map(p => p.trim())
+    .filter(p => p && !(anyHebrew && !isHebrew(p) && p.length < 80))
+    .join('\n\n')
+}

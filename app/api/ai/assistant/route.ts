@@ -6,6 +6,7 @@ import { toolsForRole, type ToolName } from '@/lib/ai/assistant/registry'
 import { executeTool, type ConfirmationCard, type UiAction } from '@/lib/ai/assistant/executors'
 import { systemForRole } from '@/lib/ai/assistant/prompt'
 import { describeCurrentPage } from '@/lib/ai/assistant/navigation'
+import { joinReplyParts } from '@/lib/ai/assistant/history'
 import {
   loadConversation, createConversation, saveConversation, listConversations, transcriptForDisplay,
   type ConversationState,
@@ -258,7 +259,7 @@ export async function POST(req: Request) {
         send({
           type: 'done',
           conversationId,
-          reply: replyParts.join('\n\n') || 'לא הצלחתי לנסח תשובה. נסה לנסח מחדש.',
+          reply: joinReplyParts(replyParts) || 'לא הצלחתי לנסח תשובה. נסה לנסח מחדש.',
           // The card the client renders. `payload` is stripped — the browser never
           // sees or sends back what will actually be executed.
           confirmation: pendingCard
