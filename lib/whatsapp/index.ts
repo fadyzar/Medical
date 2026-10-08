@@ -62,6 +62,28 @@ function toGreenApiChatId(phone: string): string {
   return `${number}@c.us`
 }
 
+// ── Green API response handling ──────────────────────
+// Green API answers bad credentials with HTTP 401 and an EMPTY body, so a bare
+// res.json() threw and the clinic saw "internal error" instead of the cause.
+
+export function greenApiErrorMessage(status: number, body: { message?: string } | null): string {
+  if (status === 401 || status === 403) {
+    return 'Green API דחה את הפרטים: ה-Instance ID או ה-Token שגויים, או שה-instance לא מחובר ל-WhatsApp (יש לסרוק QR)'
+  }
+  if (status === 466) return 'מכסת ההודעות של חשבון ה-Green API הסתיימה'
+  if (status === 429) return 'Green API מגביל כרגע את קצב השליחה. נסה שוב בעוד דקה'
+  if (status >= 500) return 'שירות Green API אינו זמין כרגע. נסה שוב מאוחר יותר'
+  return body?.message || `Green API החזיר שגיאה (${status})`
+}
+
+export async function readGreenApiResponse(res: Response): Promise<{ ok: boolean; idMessage: string | null; error: string | null }> {
+  const text = await res.text()
+  let body: { idMessage?: string; message?: string } | null = null
+  try { body = text ? JSON.parse(text) : null } catch { body = null }
+  if (!res.ok) return { ok: false, idMessage: null, error: greenApiErrorMessage(res.status, body) }
+  return { ok: true, idMessage: body?.idMessage ?? null, error: null }
+}
+
 // ── Fetch Green API credentials for an org ───────────
 
 export async function getOrgGreenApiCredentials(
@@ -110,8 +132,8 @@ export async function sendWhatsApp(
       signal: AbortSignal.timeout(15000),
     })
 
-    const result = await res.json()
-    const messageId: string | null = result?.idMessage || null
+    const result = await readGreenApiResponse(res)
+    const messageId: string | null = result.idMessage
 
     // Record notification
     await admin.from('notifications').insert({
@@ -123,17 +145,16 @@ export async function sendWhatsApp(
       content: params.message,
       variables: params.variables || null,
       recipient_phone: params.to,
-      status: res.ok ? 'sent' : 'failed',
-      sent_at: res.ok ? new Date().toISOString() : null,
-      error_message: res.ok ? null : (result?.message || 'Send failed'),
+      status: result.ok ? 'sent' : 'failed',
+      sent_at: result.ok ? new Date().toISOString() : null,
+      error_message: result.error,
       provider: 'green-api',
       external_id: messageId,
     })
 
-    if (!res.ok) {
-      const errMsg = result?.message || `HTTP ${res.status}`
-      console.error('[WhatsApp/GreenAPI]', errMsg)
-      return { success: false, error: errMsg }
+    if (!result.ok) {
+      console.error('[WhatsApp/GreenAPI]', res.status)
+      return { success: false, error: result.error ?? `HTTP ${res.status}` }
     }
 
     return { success: true, messageId: messageId ?? undefined }

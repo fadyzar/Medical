@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
-import { getOrgGreenApiCredentials } from '@/lib/whatsapp'
+import { getOrgGreenApiCredentials, readGreenApiResponse } from '@/lib/whatsapp'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -71,14 +71,10 @@ export async function POST(req: NextRequest) {
       signal: AbortSignal.timeout(15000),
     })
 
-    const result = await res.json()
+    const result = await readGreenApiResponse(res)
+    if (!result.ok) return NextResponse.json({ error: result.error }, { status: 502 })
 
-    if (!res.ok) {
-      const errMsg = result?.message || `Green API error: ${res.status}`
-      return NextResponse.json({ error: errMsg }, { status: 502 })
-    }
-
-    return NextResponse.json({ ok: true, messageId: result?.idMessage })
+    return NextResponse.json({ ok: true, messageId: result.idMessage })
   } catch (err) {
     console.error('[whatsapp/test]', err instanceof Error ? err.message : err)
     return NextResponse.json({ error: 'שגיאה פנימית' }, { status: 500 })
