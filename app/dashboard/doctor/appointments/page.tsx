@@ -477,6 +477,8 @@ export default function DoctorAppointmentsPage() {
   const [saving, setSaving] = useState(false)
   const [filter, setFilter] = useState<string>('all')
   const [search, setSearch] = useState('')
+  // Consultations just ended whose automatic AI summary is still being written.
+  const [summaryPending, setSummaryPending] = useState<string[]>([])
   const [soapForm, setSoapForm] = useState({ subjective_notes: '', objective_notes: '', assessment: '', plan: '', diagnosis: '', follow_up_instructions: '' })
   const [questResponses, setQuestResponses] = useState<ResponseWithQuest[]>([])
   const [showQuestionnaire, setShowQuestionnaire] = useState(false)
@@ -650,13 +652,34 @@ export default function DoctorAppointmentsPage() {
       return
     }
 
+    const endedId = selected.id
     setSaving(false)
     setSelected(null)
     setMessage({ type: 'success', text: 'הייעוץ הסתיים. סיכום AI נוצר כעת ברקע ויישלח למטופל' })
     setTimeout(() => setMessage(null), 4000)
     loadData()
-    // The summary is generated in the background; refresh once it has landed.
-    setTimeout(() => loadData(), 20000)
+    waitForSummary(endedId)
+  }
+
+  /** Polls until the background summary lands (max ~2 min), then refreshes the view. */
+  const waitForSummary = (id: string) => {
+    setSummaryPending(p => (p.includes(id) ? p : [...p, id]))
+    let tries = 0
+    const tick = async () => {
+      tries++
+      const { data } = await supabase.from('appointments')
+        .select('ai_summary, ai_summary_generated_at, subjective_notes, assessment, plan')
+        .eq('id', id).single()
+      const row = data as Partial<Appointment> | null
+      if (row?.ai_summary || tries >= 24) {
+        setSummaryPending(p => p.filter(x => x !== id))
+        if (row?.ai_summary) setSelected(prev => (prev && prev.id === id ? { ...prev, ...row } : prev))
+        loadData()
+        return
+      }
+      setTimeout(tick, 5000)
+    }
+    setTimeout(tick, 5000)
   }
 
   const generateBrief = async (apt: Appointment) => {
@@ -1240,7 +1263,13 @@ export default function DoctorAppointmentsPage() {
                     </Button>
                   )}
 
-                  {selected.status === 'completed' && !selected.ai_summary && (
+                  {selected.status === 'completed' && !selected.ai_summary && summaryPending.includes(selected.id) && (
+                    <span className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 text-purple-700 text-sm font-medium" role="status">
+                      <Spinner size="sm" /> סיכום AI בהכנה…
+                    </span>
+                  )}
+
+                  {selected.status === 'completed' && !selected.ai_summary && !summaryPending.includes(selected.id) && (
                     <Button
                       onClick={() => generateAISummaryLocal(selected)}
                       loading={aiSummaryLoading}
