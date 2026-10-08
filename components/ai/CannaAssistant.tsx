@@ -243,7 +243,7 @@ export function CannaAssistant({ role }: { role: string }) {
         ref={launcherRef}
         onClick={() => { setOpen(true); loadHistory() }}
         aria-label="פתח את העוזר החכם של CANNA"
-        className="fixed bottom-6 left-[5.5rem] z-40 flex items-center gap-2.5 ps-3 pe-4 py-2.5 rounded-full bg-white border border-slate-200 shadow-lg hover:shadow-xl hover:border-teal-300 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
+        className="fixed bottom-20 lg:bottom-6 left-[5.5rem] z-40 flex items-center gap-2.5 ps-3 pe-4 py-2.5 rounded-full bg-white border border-slate-200 shadow-lg hover:shadow-xl hover:border-teal-300 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
       >
         <CannaMark size={26} />
         <span className="text-sm font-semibold text-slate-800">עוזר חכם</span>

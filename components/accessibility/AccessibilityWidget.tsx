@@ -166,7 +166,7 @@ export default function AccessibilityWidget() {
   return (
     <>
       {/* ── Floating trigger button ── */}
-      <div className="fixed bottom-6 left-6 z-[9998]" dir="rtl">
+      <div className="fixed bottom-20 lg:bottom-6 left-6 z-[9998]" dir="rtl">
         <button
           ref={triggerRef}
           onClick={() => setOpen(p => !p)}
@@ -224,7 +224,7 @@ export default function AccessibilityWidget() {
             aria-label="הגדרות נגישות"
             dir="rtl"
             className="
-              fixed bottom-24 left-6 z-[9999]
+              fixed bottom-36 lg:bottom-24 left-6 z-[9999]
               w-80 bg-white rounded-2xl shadow-2xl shadow-slate-400/30
               border border-slate-200
               animate-fadeIn
