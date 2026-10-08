@@ -13,3 +13,4 @@ supabase/.temp/
 .vercel
 .env.development.local
 .env*.local
+demo-videos/
