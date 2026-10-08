@@ -86,3 +86,15 @@ const LANGUAGE_LABELS: Record<string, string> = {
 export function languageLabels(codes: string[] | null | undefined): string {
   return (codes || []).map(c => LANGUAGE_LABELS[c] || c).join(', ')
 }
+
+/**
+ * Audit descriptions written before migration 021 read "Status: pending → paid".
+ * Shown in Hebrew with the same labels as the rest of the UI.
+ */
+export function describeAudit(description: string | null | undefined): string {
+  if (!description) return ''
+  const m = description.match(/^Status: (\w+) → (\w+)$/)
+  if (!m) return description
+  const label = (s: string) => (STATUS_LABELS as Record<string, string>)[s] || s
+  return `סטטוס התור: ${label(m[1])} ← ${label(m[2])}`
+}

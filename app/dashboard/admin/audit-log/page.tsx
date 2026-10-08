@@ -6,7 +6,7 @@ import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { Button, Input, Select, Card, CardContent, Badge, PageLoading, EmptyState } from '@/components/ui'
-import { formatDateTime, cn } from '@/lib/utils'
+import { formatDateTime, cn, describeAudit } from '@/lib/utils'
 import type { AuditLog } from '@/types/database'
 
 // ── Labels ──────────────────────────────────────────
@@ -37,6 +37,13 @@ const ACTION_LABELS: Record<string, string> = {
   video_ended: 'שיחת וידאו הסתיימה',
   email_sent: 'אימייל נשלח',
   whatsapp_sent: 'WhatsApp נשלח',
+  // Written by server routes / DB triggers
+  APPOINTMENT_STATUS_CHANGED: 'שינוי סטטוס תור',
+  APPOINTMENT_CREATED: 'יצירת תור',
+  APPOINTMENT_CANCELLED: 'ביטול תור',
+  APPOINTMENT_RESCHEDULED: 'שינוי מועד תור',
+  APPOINTMENT_COMPLETED: 'סיום ייעוץ',
+  AI_SUMMARY_DRAFTED: 'טיוטת סיכום AI',
 }
 
 const RESOURCE_TYPE_LABELS: Record<string, string> = {
@@ -318,6 +325,7 @@ function LogRow({ log, userName, expanded, onToggle }: {
   const hasMetadata = log.metadata && Object.keys(log.metadata).length > 0
 
   const getActionBadgeVariant = (action: string): 'default' | 'success' | 'warning' | 'danger' | 'info' => {
+    action = action.toLowerCase()
     if (action.includes('created') || action.includes('completed') || action.includes('activated')) return 'success'
     if (action.includes('cancelled') || action.includes('deleted') || action.includes('deactivated') || action.includes('failed')) return 'danger'
     if (action.includes('updated') || action.includes('settings')) return 'warning'
@@ -347,7 +355,7 @@ function LogRow({ log, userName, expanded, onToggle }: {
           {resourceLabel}
         </td>
         <td className="p-3 text-slate-600 max-w-xs truncate">
-          {log.description || '—'}
+          {describeAudit(log.description) || '—'}
         </td>
         <td className="p-3">
           {hasMetadata && (

@@ -56,6 +56,20 @@ export async function POST(req: NextRequest) {
 
     const transitioned = (claimed?.length ?? 0) > 0
 
+    if (transitioned) {
+      try {
+        await admin.from('audit_logs').insert({
+          organization_id: apt.organization_id,
+          user_id: user.id,
+          action: 'APPOINTMENT_COMPLETED',
+          resource_type: 'appointment',
+          resource_id: appointmentId,
+          description: isDoctor ? 'הרופא סיים את הייעוץ' : 'הייעוץ הסתיים (המטופל סגר את השיחה)',
+          metadata: { by_role: isDoctor ? 'doctor' : 'patient' },
+        })
+      } catch { /* audit is best-effort */ }
+    }
+
     // Automatic clinic summary, run through after(): Vercel keeps the function
     // alive until it finishes. (The previous un-awaited fetch to /api/ai-summary
     // was frozen with the function — and sent an action the route rejected.)

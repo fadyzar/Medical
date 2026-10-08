@@ -7,7 +7,7 @@ import { getClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { Button, Card, CardContent, CardHeader, StatCard, Badge, PageLoading, EmptyState } from '@/components/ui'
 import { ChartCard, AreaTrend, DonutChart, MED } from '@/components/ui/medical'
-import { STATUS_LABELS, formatDateTime, formatPrice, cn, getInitials, APP_TIMEZONE, specialtyLabels } from '@/lib/utils'
+import { STATUS_LABELS, formatDateTime, formatPrice, cn, getInitials, APP_TIMEZONE, specialtyLabels, describeAudit } from '@/lib/utils'
 import type { Organization } from '@/types/database'
 import { formatInTimeZone } from 'date-fns-tz'
 
@@ -731,7 +731,7 @@ export default function AdminDashboard() {
                   {/* Content */}
                   <div className="pb-4 min-w-0 flex-1">
                     <p className="text-sm text-slate-700 font-medium leading-snug">
-                      {entry.description || entry.action}
+                      {describeAudit(entry.description) || entry.action}
                     </p>
                     <p className="text-xs text-slate-400 mt-0.5">{formatDateTime(entry.created_at)}</p>
                   </div>
