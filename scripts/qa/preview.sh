@@ -33,6 +33,7 @@ export NEXT_PUBLIC_SUPABASE_ANON_KEY=$(echo $STATUS | python3 -c 'import sys,jso
 export SUPABASE_SERVICE_ROLE_KEY=$(echo $STATUS | python3 -c 'import sys,json;print(json.load(sys.stdin)["SERVICE_ROLE_KEY"])')
 export NEXT_PUBLIC_APP_URL=http://localhost:3100
 export RESEND_API_KEY=            # no real email from the preview
+export HOSTINGER_API_KEY= VERCEL_TOKEN= VERCEL_PROJECT_ID= VERCEL_TEAM_ID=   # no real DNS/domains from the preview
 export CRON_SECRET=local-qa-cron
 
 if [[ "$(psql $DB -Atc "select count(*) from users where email like '%@canna.test'")" == "0" ]]; then

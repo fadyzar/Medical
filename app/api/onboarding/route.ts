@@ -1,8 +1,9 @@
-import { NextResponse } from 'next/server'
+import { NextResponse, after } from 'next/server'
 import { createServiceRole } from '@/lib/supabase/server'
 import { onboardingFullSchema } from '@/lib/validation/onboarding-schema'
 import { PLANS, RESERVED_SUBDOMAINS } from '@/lib/config/plans'
-import { sendDoctorInvite, sendWelcomeEmail } from '@/lib/email'
+import { sendWelcomeEmail } from '@/lib/email'
+import { inviteMember } from '@/lib/services/invitations'
 import { onboardingLimiter } from '@/lib/security/rate-limit'
 import { provisionSubdomain } from '@/lib/domain/provision'
 
@@ -111,9 +112,33 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: message }, { status: 400 })
     }
 
-    // Provision subdomain automatically (Vercel + Hostinger DNS) — fire-and-forget
-    provisionSubdomain(org.id, data.subdomain).catch(err => {
-      console.error('[Onboarding] Domain provision failed:', err instanceof Error ? err.message : 'Unknown')
+    // Make the founder the clinic's admin. Signup metadata is deliberately
+    // ignored by handle_new_user (migration 019: clients must not choose their
+    // own role), so the role is set here, server-side, by the service role.
+    const { error: roleErr } = await admin.from('users').upsert({
+      id: authUser.user.id,
+      organization_id: org.id,
+      email: data.email,
+      first_name: data.first_name,
+      last_name: data.last_name,
+      role: 'admin',
+    }, { onConflict: 'id' })
+    if (roleErr) {
+      await admin.auth.admin.deleteUser(authUser.user.id).catch(() => {})
+      await admin.from('organizations').delete().eq('id', org.id)
+      console.error('[Onboarding] Admin profile failed:', roleErr.message)
+      return NextResponse.json({ error: 'שגיאה ביצירת מנהל המרפאה' }, { status: 500 })
+    }
+
+    // Side effects run after the response, inside after() so Vercel does not
+    // freeze them (un-awaited promises were frequently lost).
+    const founderId = authUser.user.id
+    const baseUrl = new URL(req.url).origin
+    after(async () => {
+      // Subdomain (Vercel + Hostinger DNS)
+      await provisionSubdomain(org.id, data.subdomain).catch(err => {
+        console.error('[Onboarding] Domain provision failed:', err instanceof Error ? err.message : 'Unknown')
+      })
     })
 
     // Audit log
@@ -127,38 +152,35 @@ export async function POST(req: Request) {
       metadata: { plan: data.plan, subdomain: data.subdomain },
     })
 
-    // Send welcome email to admin (fire-and-forget)
-    sendWelcomeEmail({
-      userId: authUser.user.id,
-      email: data.email,
-      firstName: data.first_name,
-      lastName: data.last_name,
-      role: 'admin',
-      organizationId: org.id,
-      organizationName: data.name,
-      admin,
-    }).catch(err => {
-      console.error('[Onboarding] Welcome email failed:', err instanceof Error ? err.message : 'Unknown')
-    })
+    after(async () => {
+      await sendWelcomeEmail({
+        userId: founderId,
+        email: data.email,
+        firstName: data.first_name,
+        lastName: data.last_name,
+        role: 'admin',
+        organizationId: org.id,
+        organizationName: data.name,
+        admin,
+      }).catch(err => {
+        console.error('[Onboarding] Welcome email failed:', err instanceof Error ? err.message : 'Unknown')
+      })
 
-    // Send doctor invite emails (fire-and-forget)
-    if (data.doctors && data.doctors.length > 0) {
-      for (const doc of data.doctors) {
-        if (doc.email) {
-          sendDoctorInvite({
-            doctorName: doc.name || 'רופא',
-            doctorEmail: doc.email,
-            organizationId: org.id,
-            organizationName: data.name,
-            inviterName: `${data.first_name} ${data.last_name}`,
-            inviterUserId: authUser.user.id,
-            admin,
-          }).catch(err => {
-            console.error('[Onboarding] Invite email failed:', err instanceof Error ? err.message : 'Unknown')
-          })
-        }
+      // Doctors named in the wizard get a real, single-use invitation (token),
+      // the same as an invite from the Users screen — so they join as doctors.
+      for (const doc of data.doctors || []) {
+        if (!doc.email) continue
+        await inviteMember({
+          caller: { id: founderId, role: 'admin', organizationId: org.id },
+          email: doc.email,
+          role: 'doctor',
+          name: doc.name || undefined,
+          baseUrl,
+        }).catch(err => {
+          console.error('[Onboarding] Invite failed:', err instanceof Error ? err.message : 'Unknown')
+        })
       }
-    }
+    })
 
     // Stripe Checkout for paid plans
     if (data.plan !== 'free' && plan.stripe_price_id && process.env.STRIPE_SECRET_KEY) {
