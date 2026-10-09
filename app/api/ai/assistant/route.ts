@@ -41,6 +41,7 @@ const TOOL_STATUS: Record<ToolName, string> = {
   list_my_documents: 'טוען את המסמכים שלך…',
   invite_member: 'מכין את ההזמנה לאישורך…',
   generate_visit_summary: 'מכין את הבקשה לאישורך…',
+  check_whatsapp_connection: 'בודק את החיבור ל-Green API…',
 }
 
 const bodySchema = z.object({
@@ -72,6 +73,7 @@ export async function GET(req: Request) {
 
 type StreamEvent =
   | { type: 'status'; text: string }
+  | { type: 'delta'; text: string }
   | { type: 'done'; conversationId: string; reply: string; confirmation: Omit<ConfirmationCard, 'payload' | 'tool'> | null; actions: UiAction[] }
   | { type: 'error'; error: string }
 
@@ -153,7 +155,10 @@ export async function POST(req: Request) {
         let outputTokens = 0
 
         for (let round = 0; round < MAX_ROUNDS; round++) {
-          const response = await client.messages.create({
+          // Streamed: the user sees Claude's words as they are written.
+          // A blank line separates the text of successive rounds.
+          if (round > 0 && replyParts.length) send({ type: 'delta', text: '\n\n' })
+          const stream = client.messages.stream({
             model: MODEL,
             max_tokens: 8192,
             output_config: { effort: ASSISTANT_EFFORT },
@@ -161,6 +166,8 @@ export async function POST(req: Request) {
             tools,
             messages,
           })
+          stream.on('text', (delta) => send({ type: 'delta', text: delta }))
+          const response = await stream.finalMessage()
 
           inputTokens += response.usage.input_tokens
           outputTokens += response.usage.output_tokens

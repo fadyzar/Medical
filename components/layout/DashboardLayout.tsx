@@ -289,6 +289,22 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
   const [org, setOrg] = useState<OrgBranding | null>(null)
   const [sidebarCollapsed, setSidebarCollapsed] = useState(false)
   const [userMenuOpen, setUserMenuOpen] = useState(false)
+  // The Copilot panel. Open by default on wide screens the first time, then
+  // whatever the user last chose (kept per browser).
+  const [assistantOpen, setAssistantOpenState] = useState(false)
+  useEffect(() => {
+    let saved: string | null = null
+    try { saved = localStorage.getItem('canna.copilot.open') } catch { /* private mode */ }
+    const shouldOpen = saved === null ? window.innerWidth >= 1280 : saved === '1'
+    if (shouldOpen) {
+      const id = requestAnimationFrame(() => setAssistantOpenState(true))
+      return () => cancelAnimationFrame(id)
+    }
+  }, [])
+  const setAssistantOpen = (open: boolean) => {
+    setAssistantOpenState(open)
+    try { localStorage.setItem('canna.copilot.open', open ? '1' : '0') } catch { /* private mode */ }
+  }
   const supabaseRef = useRef<ReturnType<typeof getClient> | null>(null)
   function getSupabase() {
     if (!supabaseRef.current) supabaseRef.current = getClient()
@@ -487,7 +503,10 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
       {/* ─── Top Header ──────────────────────────────────── */}
       <header className={cn(
         'fixed top-0 left-0 z-30 bg-white/80 backdrop-blur-md border-b border-slate-200/60 h-16 transition-all duration-300',
-        sidebarCollapsed ? 'lg:right-[72px]' : 'lg:right-64',
+        // Desktop: sidebar width, plus the docked Copilot panel (400px) when open.
+        assistantOpen
+          ? (sidebarCollapsed ? 'lg:right-[472px]' : 'lg:right-[656px]')
+          : (sidebarCollapsed ? 'lg:right-[72px]' : 'lg:right-64'),
         'right-0' // mobile: full width
       )}>
         <div className="h-full px-4 lg:px-6 flex items-center justify-between">
@@ -522,6 +541,21 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
 
           {/* Left side: notification + avatar */}
           <div className="flex items-center gap-2">
+            {/* Copilot — always one click away */}
+            <button
+              onClick={() => setAssistantOpen(!assistantOpen)}
+              aria-pressed={assistantOpen}
+              className={cn(
+                'h-10 px-3 rounded-xl flex items-center gap-2 text-sm font-semibold transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500',
+                assistantOpen ? 'bg-teal-600 text-white hover:bg-teal-700' : 'bg-teal-50 text-teal-700 hover:bg-teal-100',
+              )}
+            >
+              <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+                <path d="M12 3l1.9 4.6L18.5 9.5 13.9 11.4 12 16l-1.9-4.6L5.5 9.5l4.6-1.9z" /><path d="M19 15l.9 2.1L22 18l-2.1.9L19 21l-.9-2.1L16 18l2.1-.9z" />
+              </svg>
+              <span className="hidden sm:inline">עוזר AI</span>
+            </button>
+
             {/* Notification bell */}
             <button
               className="relative w-10 h-10 rounded-xl flex items-center justify-center text-slate-500 hover:bg-slate-100 hover:text-slate-700 transition-colors"
@@ -604,7 +638,9 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
       {/* ─── Main Content ────────────────────────────────── */}
       <main className={cn(
         'pt-16 pb-20 lg:pb-6 transition-all duration-300 min-h-screen',
-        sidebarCollapsed ? 'lg:mr-[72px]' : 'lg:mr-64'
+        assistantOpen
+          ? (sidebarCollapsed ? 'lg:mr-[472px]' : 'lg:mr-[656px]')
+          : (sidebarCollapsed ? 'lg:mr-[72px]' : 'lg:mr-64')
       )}>
         <div className="p-4 lg:p-6 max-w-7xl mx-auto">
           {children}
@@ -646,7 +682,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
       </nav>
 
       {/* One assistant for every role — the server decides what it can actually do. */}
-      <CannaAssistant role={role} />
+      <CannaAssistant role={role} open={assistantOpen} onOpenChange={setAssistantOpen} sidebarCollapsed={sidebarCollapsed} />
     </div>
   )
 }

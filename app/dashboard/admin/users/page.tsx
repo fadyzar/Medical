@@ -7,6 +7,7 @@ import { toast } from 'sonner'
 import { Button, Input, Select, Card, CardContent, Badge, PageLoading, EmptyState } from '@/components/ui'
 import { formatDateTime, SPECIALTIES, cn } from '@/lib/utils'
 import type { User, UserRole } from '@/types/database'
+import { useDataChanged } from '@/lib/hooks/useDataChanged'
 
 type UserForm = {
   first_name: string
@@ -57,11 +58,14 @@ export default function AdminUsersPage() {
   const [showInvite, setShowInvite] = useState(false)
   const [inviting, setInviting] = useState(false)
   const [inviteSuccess, setInviteSuccess] = useState('')
+  const [pendingInvites, setPendingInvites] = useState<Array<{ id: string; email: string; role: string; first_name: string | null; token: string; expires_at: string }>>([])
   const supabase = getClient()
 
   useEffect(() => {
     loadUsers()
   }, [])
+  // An invitation sent from the AI assistant shows up here without a reload.
+  useDataChanged(() => { loadUsers() })
 
   async function loadUsers() {
     try {
@@ -83,6 +87,16 @@ export default function AdminUsersPage() {
           .eq('role', 'patient')
           .order('created_at', { ascending: false }),
       ])
+
+      // Invitations not yet accepted (RLS: admin/staff of this clinic only).
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: inv } = await (supabase as any).from('invitations')
+        .select('id, email, role, first_name, token, expires_at')
+        .eq('organization_id', profile.organization_id)
+        .is('used_at', null)
+        .gt('expires_at', new Date().toISOString())
+        .order('created_at', { ascending: false })
+      setPendingInvites((inv || []) as typeof pendingInvites)
 
       setUsers((staffRes.data || []) as unknown as User[])
       setPatients((patientsRes.data || []) as unknown as User[])
@@ -252,6 +266,33 @@ export default function AdminUsersPage() {
       )}
 
       {/* Invite panel */}
+      {activeTab === 'staff' && pendingInvites.length > 0 && (
+        <Card>
+          <CardContent className="p-4 space-y-2">
+            <p className="text-sm font-semibold text-slate-800">הזמנות ממתינות ({pendingInvites.length})</p>
+            <ul className="divide-y divide-slate-100">
+              {pendingInvites.map(inv => (
+                <li key={inv.id} className="py-2 flex flex-wrap items-center justify-between gap-2 text-sm">
+                  <span className="text-slate-700">
+                    <span className="font-medium">{inv.first_name || inv.email.split('@')[0]}</span>
+                    <span className="text-slate-400"> · {inv.email} · {inv.role === 'doctor' ? 'רופא' : inv.role === 'admin' ? 'מנהל' : 'צוות'}</span>
+                  </span>
+                  <span className="flex items-center gap-3">
+                    <span className="text-xs text-slate-400">בתוקף עד {new Date(inv.expires_at).toLocaleDateString('he-IL')}</span>
+                    <button
+                      onClick={() => { navigator.clipboard?.writeText(`${window.location.origin}/auth/invite/${inv.token}`); setInviteSuccess('קישור ההזמנה הועתק') }}
+                      className="text-xs font-semibold text-teal-700 hover:underline"
+                    >
+                      העתק קישור
+                    </button>
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </CardContent>
+        </Card>
+      )}
+
       {showInvite && (
         <Card>
           <CardContent>

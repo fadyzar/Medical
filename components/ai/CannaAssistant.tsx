@@ -26,6 +26,7 @@ type ConversationSummary = { id: string; title: string; updatedAt: string; messa
 
 type StreamEvent =
   | { type: 'status'; text: string }
+  | { type: 'delta'; text: string }
   | { type: 'done'; conversationId: string; reply: string; confirmation: ConfirmationCardData | null; actions: NavAction[] }
   | { type: 'error'; error: string }
 
@@ -56,10 +57,20 @@ function CannaMark({ size = 28 }: { size?: number }) {
   )
 }
 
-export function CannaAssistant({ role }: { role: string }) {
+/**
+ * The CANNA Copilot. Open/closed is owned by the dashboard layout so that on
+ * desktop the panel docks on the right (beside the navigation sidebar) and the
+ * page content makes room for it; on mobile it is a full-screen drawer.
+ */
+export function CannaAssistant({ role, open, onOpenChange, sidebarCollapsed = false }: {
+  role: string
+  open: boolean
+  onOpenChange: (open: boolean) => void
+  sidebarCollapsed?: boolean
+}) {
   const router = useRouter()
   const pathname = usePathname()
-  const [open, setOpen] = useState(false)
+  const setOpen = onOpenChange
   const [expanded, setExpanded] = useState(false)
   const [messages, setMessages] = useState<ChatMessage[]>([])
   const [input, setInput] = useState('')
@@ -69,6 +80,8 @@ export function CannaAssistant({ role }: { role: string }) {
   const [history, setHistory] = useState<ConversationSummary[]>([])
   const [historyOpen, setHistoryOpen] = useState(false)
   const [loadingThread, setLoadingThread] = useState(false)
+  /** True once the reply's first words arrived — the typing indicator gives way to them. */
+  const [streaming, setStreaming] = useState(false)
 
   const scrollRef = useRef<HTMLDivElement>(null)
   const inputRef = useRef<HTMLTextAreaElement>(null)
@@ -96,7 +109,7 @@ export function CannaAssistant({ role }: { role: string }) {
     setHistoryOpen(false)
     // Return focus to where the user was.
     requestAnimationFrame(() => launcherRef.current?.focus())
-  }, [])
+  }, [setOpen])
 
   // Escape closes the panel, matching every other overlay in the app.
   useEffect(() => {
@@ -123,6 +136,9 @@ export function CannaAssistant({ role }: { role: string }) {
     setInput('')
     setBusy(true)
     setStatus('חושב…')
+    // The reply bubble is created on the first streamed word and filled live.
+    const draftId = uid()
+    let draftStarted = false
     setMessages(prev => [...prev, { id: uid(), role: 'user', text: trimmed }])
 
     const fail = (error: string) => setMessages(prev => [...prev, { id: uid(), role: 'assistant', text: error, retry: trimmed }])
@@ -156,17 +172,31 @@ export function CannaAssistant({ role }: { role: string }) {
           if (!line) continue
           const event = JSON.parse(line) as StreamEvent
           if (event.type === 'status') setStatus(event.text)
-          else if (event.type === 'error') { fail(event.error); finished = true }
+          else if (event.type === 'delta') {
+            if (!draftStarted) {
+              draftStarted = true
+              setStreaming(true)
+              setMessages(prev => [...prev, { id: draftId, role: 'assistant', text: event.text }])
+            } else {
+              setMessages(prev => prev.map(m => m.id === draftId ? { ...m, text: m.text + event.text } : m))
+            }
+          }
+          else if (event.type === 'error') {
+            if (draftStarted) setMessages(prev => prev.filter(m => m.id !== draftId))
+            fail(event.error); finished = true
+          }
           else if (event.type === 'done') {
             setConversationId(event.conversationId)
-            setMessages(prev => [...prev, {
-              id: uid(),
+            // The final reply replaces the live draft (cleaned of tool-call narration).
+            const final: ChatMessage = {
+              id: draftId,
               role: 'assistant',
               text: event.reply,
               card: event.confirmation ?? undefined,
               cardState: event.confirmation ? 'pending' : undefined,
               actions: event.actions?.length ? event.actions : undefined,
-            }])
+            }
+            setMessages(prev => draftStarted ? prev.map(m => m.id === draftId ? final : m) : [...prev, final])
             finished = true
           }
         }
@@ -176,6 +206,7 @@ export function CannaAssistant({ role }: { role: string }) {
       fail('שגיאת רשת. בדוק את החיבור ונסה שוב.')
     } finally {
       setBusy(false)
+      setStreaming(false)
       setStatus(null)
     }
   }, [busy, conversationId, pathname])
@@ -241,7 +272,7 @@ export function CannaAssistant({ role }: { role: string }) {
     return (
       <button
         ref={launcherRef}
-        onClick={() => { setOpen(true); loadHistory() }}
+        onClick={() => setOpen(true)}
         aria-label="פתח את העוזר החכם של CANNA"
         className="fixed bottom-20 lg:bottom-6 left-[5.5rem] z-40 flex items-center gap-2.5 ps-3 pe-4 py-2.5 rounded-full bg-white border border-slate-200 shadow-lg hover:shadow-xl hover:border-teal-300 transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-teal-500 focus-visible:ring-offset-2"
       >
@@ -259,10 +290,14 @@ export function CannaAssistant({ role }: { role: string }) {
         'fixed z-[10000] flex flex-col bg-white',
         expanded
           ? 'inset-0'
-          : 'inset-0 md:inset-auto md:bottom-4 md:left-4 md:top-4 md:w-[440px] md:rounded-2xl md:border md:border-slate-200 md:shadow-2xl md:overflow-hidden',
+          // Mobile: full-screen drawer. Desktop: docked on the right, beside the sidebar.
+          : cn(
+              'inset-0 lg:inset-auto lg:top-0 lg:bottom-0 lg:w-[400px] lg:border-l lg:border-slate-200 lg:shadow-[0_0_24px_rgba(15,23,42,0.06)] lg:z-30',
+              sidebarCollapsed ? 'lg:right-[72px]' : 'lg:right-64',
+            ),
       )}
-      role="dialog"
-      aria-modal={expanded}
+      role={expanded ? 'dialog' : 'complementary'}
+      aria-modal={expanded || undefined}
       aria-label="העוזר החכם של CANNA"
     >
       {/* Header */}
@@ -275,7 +310,7 @@ export function CannaAssistant({ role }: { role: string }) {
           </div>
 
           <button
-            onClick={() => setHistoryOpen(v => !v)}
+            onClick={() => { if (!historyOpen) loadHistory(); setHistoryOpen(v => !v) }}
             aria-label="היסטוריית שיחות"
             aria-expanded={historyOpen}
             className="p-2 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
@@ -287,7 +322,7 @@ export function CannaAssistant({ role }: { role: string }) {
           <button
             onClick={() => setExpanded(v => !v)}
             aria-label={expanded ? 'הקטן חלון' : 'הגדל למסך מלא'}
-            className="hidden md:inline-flex p-2 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
+            className="hidden lg:inline-flex p-2 rounded-lg text-slate-500 hover:bg-slate-100 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal-500"
           >
             {expanded ? (
               <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -427,7 +462,7 @@ export function CannaAssistant({ role }: { role: string }) {
             </div>
           ))}
 
-          {busy && (
+          {busy && !streaming && (
             <div className="flex gap-2.5">
               <div className="shrink-0 mt-0.5"><CannaMark size={26} /></div>
               <div className="bg-slate-100 rounded-2xl rounded-ss-md px-4 py-2.5 flex items-center gap-2.5" role="status">

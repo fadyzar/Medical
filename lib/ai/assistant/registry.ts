@@ -39,6 +39,7 @@ export type ToolName =
   | 'list_my_documents'
   | 'invite_member'
   | 'generate_visit_summary'
+  | 'check_whatsapp_connection'
 
 /**
  * Tools that change data. These never execute inside the model loop: the
@@ -75,6 +76,7 @@ const ROLE_ACCESS: Record<ToolName, ReadonlySet<CallerRole>> = {
   invite_member:          new Set(['admin']),
   // Clinical drafting is the treating doctor's job, never staff or admin.
   generate_visit_summary: new Set(['doctor']),
+  check_whatsapp_connection: new Set(['admin']),
 }
 
 export function isToolAllowed(role: CallerRole, tool: string): tool is ToolName {
@@ -152,8 +154,8 @@ const DEFINITIONS: Record<ToolName, Anthropic.Tool> = {
       properties: {
         scope: {
           type: 'string',
-          enum: ['upcoming', 'past', 'all', 'needs_action'],
-          description: 'upcoming = future and active; needs_action = awaiting confirmation or payment.',
+          enum: ['upcoming', 'past', 'all', 'needs_action', 'cancelled'],
+          description: 'upcoming = future and active; needs_action = awaiting confirmation or payment; cancelled = cancelled appointments, with from/to applied to the cancellation time (e.g. "cancelled this week").',
         },
         patient_id: { type: 'string', description: 'Restrict to one patient. Staff, admin and doctors only.' },
         from: { type: 'string', description: `Start of range. ${ISO_HINT}` },
@@ -169,6 +171,8 @@ const DEFINITIONS: Record<ToolName, Anthropic.Tool> = {
     name: 'get_appointment',
     description:
       'Full detail of one appointment: status, time, doctor, patient, complaint, payment state. ' +
+      'For the treating doctor it also returns their own clinical notes (SOAP, diagnosis, follow-up) and the ' +
+      'AI summary, so you can recap them on request — restate what the doctor wrote, never add diagnoses. ' +
       'Call before proposing a change so the confirmation card shows the real current values.',
     strict: true,
     input_schema: {
@@ -406,6 +410,16 @@ const DEFINITIONS: Record<ToolName, Anthropic.Tool> = {
       required: ['appointment_id'],
       additionalProperties: false,
     },
+  },
+
+  check_whatsapp_connection: {
+    name: 'check_whatsapp_connection',
+    description:
+      'Live check of the clinic\'s own Green API (WhatsApp) instance: asks Green API whether the saved Instance ID ' +
+      'and Token are valid and whether the WhatsApp account is linked (QR scanned). Use it for "is our WhatsApp / ' +
+      'Green API configured correctly?". Never reveals the credentials.',
+    strict: true,
+    input_schema: { type: 'object', properties: {}, required: [], additionalProperties: false },
   },
 }
 

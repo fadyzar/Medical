@@ -25,6 +25,7 @@ import { TOPICS, type KnowledgeTopic } from '@/lib/ai/assistant/knowledge'
 import { resolvePage } from '@/lib/ai/assistant/navigation'
 import { inviteMember, INVITE_ROLE_LABELS, type InviteRole } from '@/lib/services/invitations'
 import { generateConsultationSummary } from '@/lib/ai/summary'
+import { getOrgGreenApiCredentials } from '@/lib/whatsapp'
 import type { AppointmentStatus } from '@/types/database'
 
 /** What a write tool hands back instead of writing. Rendered as a card. */
@@ -65,7 +66,7 @@ function clamp(n: number | null | undefined, lo: number, hi: number, dflt: numbe
 function scopedAppointmentQuery(caller: Caller) {
   const admin = createServiceRole()
   const q = admin.from('appointments').select(
-    'id, status, scheduled_at, duration_minutes, chief_complaint, payment_status, payment_amount, created_at, ' +
+    'id, status, scheduled_at, duration_minutes, chief_complaint, payment_status, payment_amount, created_at, cancelled_at, cancellation_reason, ' +
     'organization_id, patient_id, doctor_id, ' +
     'patient:patient_id(id, first_name, last_name, phone), ' +
     'doctor:doctor_id(id, first_name, last_name, specialties)'
@@ -81,6 +82,7 @@ type AptJoin = {
   id: string; status: string; scheduled_at: string | null; duration_minutes: number | null
   chief_complaint: string | null; payment_status: string | null; payment_amount: number | null
   created_at: string; organization_id: string; patient_id: string; doctor_id: string | null
+  cancelled_at?: string | null; cancellation_reason?: string | null
   patient: { id: string; first_name: string; last_name: string; phone: string | null } | null
   doctor: { id: string; first_name: string; last_name: string; specialties: string[] | null } | null
 }
@@ -97,6 +99,7 @@ function shapeAppointment(a: AptJoin) {
     doctor: a.doctor ? { id: a.doctor.id, name: `ד"ר ${a.doctor.first_name} ${a.doctor.last_name}` } : null,
     payment_status: a.payment_status,
     payment_amount: a.payment_amount,
+    ...(a.cancelled_at ? { cancelled: formatDateTime(a.cancelled_at), cancellation_reason: a.cancellation_reason ?? null } : {}),
   }
 }
 
@@ -144,6 +147,8 @@ async function listAppointments(caller: Caller, args: Record<string, unknown>): 
     q = q.in('status', ACTIVE_STATUSES).order('scheduled_at', { ascending: true, nullsFirst: false })
   } else if (scope === 'past') {
     q = q.lt('scheduled_at', nowIso).order('scheduled_at', { ascending: false })
+  } else if (scope === 'cancelled') {
+    q = q.in('status', ['cancelled_patient', 'cancelled_doctor']).order('cancelled_at', { ascending: false, nullsFirst: false })
   } else if (scope === 'needs_action') {
     q = q.in('status', ['pending', 'doctor_confirmed', 'payment_pending']).order('created_at', { ascending: false })
   } else {
@@ -153,8 +158,10 @@ async function listAppointments(caller: Caller, args: Record<string, unknown>): 
   // A patient may never filter to someone else — the scope above already pins
   // them to their own rows, so this only applies to staff, admin and doctors.
   if (args.patient_id && caller.role !== 'patient') q = q.eq('patient_id', String(args.patient_id))
-  if (args.from) q = q.gte('scheduled_at', new Date(String(args.from)).toISOString())
-  if (args.to) q = q.lte('scheduled_at', new Date(String(args.to)).toISOString())
+  // For cancellations the range means "cancelled between", otherwise "scheduled between".
+  const rangeCol = scope === 'cancelled' ? 'cancelled_at' : 'scheduled_at'
+  if (args.from) q = q.gte(rangeCol, new Date(String(args.from)).toISOString())
+  if (args.to) q = q.lte(rangeCol, new Date(String(args.to)).toISOString())
 
   const { data, error } = await q.limit(limit)
   if (error) return { kind: 'error', error: 'שגיאה בטעינת התורים' }
@@ -167,7 +174,31 @@ async function getAppointment(caller: Caller, args: Record<string, unknown>): Pr
   const { data, error } = await scopedAppointmentQuery(caller).eq('id', id).maybeSingle()
   if (error) return { kind: 'error', error: 'שגיאה בטעינת התור' }
   if (!data) return { kind: 'error', error: 'התור לא נמצא, או שאין לך הרשאה אליו' }
-  return { kind: 'data', result: shapeAppointment(data as unknown as AptJoin) }
+  const base = shapeAppointment(data as unknown as AptJoin)
+
+  // The treating doctor also gets their own clinical notes (same rule as RLS:
+  // scopedAppointmentQuery already pinned this row to doctor_id = caller).
+  if (caller.role === 'doctor') {
+    const { data: notes } = await createServiceRole().from('appointments')
+      .select('subjective_notes, objective_notes, assessment, plan, diagnosis, follow_up_instructions, ai_summary')
+      .eq('id', id).eq('doctor_id', caller.id).maybeSingle()
+    const n = notes as Record<string, string | null> | null
+    if (n) {
+      let aiSummary: string | null = null
+      try { aiSummary = n.ai_summary ? (JSON.parse(n.ai_summary).summary ?? null) : null } catch { aiSummary = n.ai_summary }
+      return {
+        kind: 'data',
+        result: {
+          ...base,
+          clinical_notes: {
+            subjective: n.subjective_notes, objective: n.objective_notes, assessment: n.assessment,
+            plan: n.plan, diagnosis: n.diagnosis, follow_up: n.follow_up_instructions, ai_summary: aiSummary,
+          },
+        },
+      }
+    }
+  }
+  return { kind: 'data', result: base }
 }
 
 async function getTodaySchedule(caller: Caller, args: Record<string, unknown>): Promise<ToolOutcome> {
@@ -468,6 +499,37 @@ async function listMyDocuments(caller: Caller): Promise<ToolOutcome> {
   }
 }
 
+
+async function checkWhatsappConnection(caller: Caller): Promise<ToolOutcome> {
+  if (caller.role !== 'admin' || !caller.organizationId) return { kind: 'error', error: 'רק מנהל מרפאה יכול לבדוק את חיבור ה-WhatsApp' }
+  const creds = await getOrgGreenApiCredentials(caller.organizationId, createServiceRole())
+  if (!creds) {
+    return { kind: 'data', result: { configured: false, status: 'לא הוגדר — לא נשמרו Instance ID ו-Token בעמוד האינטגרציות' } }
+  }
+  try {
+    // Read-only status call; the credentials never leave the server or reach the model.
+    const res = await fetch(`https://api.green-api.com/waInstance${creds.instanceId}/getStateInstance/${creds.apiToken}`, {
+      signal: AbortSignal.timeout(10_000),
+    })
+    if (res.status === 401 || res.status === 403) {
+      return { kind: 'data', result: { configured: true, connected: false, status: 'Green API דחה את הפרטים — ה-Instance ID או ה-Token שגויים' } }
+    }
+    const body = await res.json().catch(() => null) as { stateInstance?: string } | null
+    const state = body?.stateInstance ?? 'unknown'
+    const labels: Record<string, string> = {
+      authorized: 'מחובר ופעיל — הודעות WhatsApp יישלחו',
+      notAuthorized: 'הפרטים תקינים אבל ה-WhatsApp לא מקושר — יש לסרוק QR ב-Green API',
+      blocked: 'החשבון חסום ע"י WhatsApp',
+      sleepMode: 'הטלפון כבוי או לא מחובר לאינטרנט',
+      starting: 'ה-instance מופעל כרגע — נסה שוב בעוד דקה',
+      yellowCard: 'WhatsApp הגביל זמנית את השליחה',
+    }
+    return { kind: 'data', result: { configured: true, connected: state === 'authorized', state, status: labels[state] ?? `מצב לא מוכר (${state})` } }
+  } catch {
+    return { kind: 'data', result: { configured: true, connected: false, status: 'לא ניתן היה להגיע ל-Green API כרגע' } }
+  }
+}
+
 // ── Write tools: validate, then ask ──────────────────────────────────────────
 
 function newActionId(): string {
@@ -727,6 +789,7 @@ export async function executeTool(
     case 'list_my_documents':      return listMyDocuments(caller)
     case 'invite_member':          return prepareInvite(caller, args)
     case 'generate_visit_summary': return prepareVisitSummary(caller, args)
+    case 'check_whatsapp_connection': return checkWhatsappConnection(caller)
     default:                       return { kind: 'error', error: 'פעולה לא מוכרת' }
   }
 }
