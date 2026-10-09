@@ -9,6 +9,7 @@ import { Button, Card, CardContent, CardHeader, Badge, EmptyState, PageLoading }
 import { ChartCard, AreaTrend, MED } from '@/components/ui/medical'
 import { STATUS_LABELS, formatDateTime, formatDate, cn, getInitials, specialtyLabels } from '@/lib/utils'
 import type { Appointment, User, Document } from '@/types/database'
+import { withPublicDoctors } from '@/lib/doctors/public'
 
 type DoctorInfo = Pick<User, 'id' | 'first_name' | 'last_name' | 'specialties' | 'avatar_url' | 'average_rating' | 'total_ratings'>
 type PatientAppointment = Appointment & { doctor: DoctorInfo | null }
@@ -154,7 +155,7 @@ export default function PatientDashboard() {
         const [{ data: prof }, { data: apts }, { data: docs }, { data: notifs }] = await Promise.all([
           supabase.from('users').select('*').eq('id', user.id).single(),
           supabase.from('appointments')
-            .select('*, doctor:doctor_id(id, first_name, last_name, specialties, avatar_url, average_rating, total_ratings)')
+            .select('*')
             .eq('patient_id', user.id)
             .order('created_at', { ascending: false }).limit(50),
           supabase.from('documents').select('*').eq('patient_id', user.id).order('created_at', { ascending: false }).limit(5),
@@ -164,7 +165,7 @@ export default function PatientDashboard() {
             .order('created_at', { ascending: false }).limit(10),
         ])
         if (prof) setProfile(prof as unknown as User)
-        if (apts) setAppointments(apts as unknown as PatientAppointment[])
+        if (apts) setAppointments(await withPublicDoctors(supabase, apts) as unknown as PatientAppointment[])
         if (docs) setRecentDocs(docs as unknown as Document[])
         if (notifs) setNotifications(notifs as typeof notifications)
       } catch { /* Error boundary will handle rendering errors */ }

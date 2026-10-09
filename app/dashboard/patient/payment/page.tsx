@@ -7,6 +7,7 @@ import { getClient } from '@/lib/supabase/client'
 import { Button, Card, CardContent, CardHeader, Badge, Spinner } from '@/components/ui'
 import { formatPrice, formatDateTime, cn, specialtyLabels } from '@/lib/utils'
 import type { Appointment, User } from '@/types/database'
+import { withPublicDoctors } from '@/lib/doctors/public'
 
 // ── Payment mode detection ────────────────────────────────────────
 // If TRANZILA terminal is configured → real payment, otherwise → fake card form
@@ -81,13 +82,14 @@ export default function PaymentPage() {
 
       const { data: apt } = await supabase
         .from('appointments')
-        .select('*, doctor:doctor_id(id, first_name, last_name, specialties, avatar_url, consultation_price)')
+        .select('*')
         .eq('id', id)
         .single()
 
       if (!apt) { setError('תור לא נמצא'); setState('error'); return }
 
-      const typedApt = apt as unknown as Appointment
+      const [withDoctor] = await withPublicDoctors(supabase, [apt])
+      const typedApt = withDoctor as unknown as Appointment
       setAppointment(typedApt)
       if (typedApt.doctor) setDoctor(typedApt.doctor as unknown as User)
       if (typedApt.invoice_url) setInvoiceUrl(typedApt.invoice_url as string)

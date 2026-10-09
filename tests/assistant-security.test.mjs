@@ -119,3 +119,13 @@ test('English pre-tool narration is dropped from a Hebrew reply; real content ke
     'במרפאה שלך WhatsApp לא מחובר.\n\nכדאי גם להגדיר סליקה.')
   assert.equal(joinReplyParts(['Your next appointment is tomorrow at 10:00.']), 'Your next appointment is tomorrow at 10:00.')
 })
+
+test('patients never read doctor rows from users (migration 022): patient screens use public_doctors', () => {
+  for (const f of ['app/dashboard/patient/appointments/page.tsx', 'app/dashboard/patient/dashboard/page.tsx',
+                   'app/dashboard/patient/payment/page.tsx', 'app/video-call/page.tsx']) {
+    const src = read(f)
+    assert.doesNotMatch(src, /doctor:doctor_id\(/, `${f} joins doctor rows from users`)
+    assert.match(src, /withPublicDoctors\(/, f)
+  }
+  assert.match(read('supabase/migrations/022_doctor_private_fields.sql'), /drop policy if exists "users_select_doctors"/)
+})

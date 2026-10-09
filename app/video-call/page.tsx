@@ -20,6 +20,7 @@ import {
 } from '@livekit/components-react'
 import '@livekit/components-styles'
 import { Track, RoomEvent, ConnectionQuality } from 'livekit-client'
+import { withPublicDoctors } from '@/lib/doctors/public'
 
 type VideoState = 'checking' | 'payment_required' | 'waiting' | 'connecting' | 'connected' | 'disconnected' | 'error'
 
@@ -62,12 +63,13 @@ export default function VideoCallPage() {
       const [{ data: prof }, { data: apt }] = await Promise.all([
         supabase.from('users').select('*').eq('id', user.id).single(),
         supabase.from('appointments')
-          .select('*, patient:patient_id(first_name, last_name), doctor:doctor_id(first_name, last_name)')
+          .select('*, patient:patient_id(first_name, last_name)')
           .eq('id', appointmentId).single(),
       ])
 
       if (!apt) { setError('תור לא נמצא'); setState('error'); return }
-      const typedApt = apt as unknown as Appointment
+      const [withDoctor] = await withPublicDoctors(supabase, [apt])
+      const typedApt = withDoctor as unknown as Appointment
       setProfile(prof as unknown as User)
       setAppointment(typedApt)
 

@@ -10,6 +10,7 @@ import { STATUS_LABELS, formatDateTime, formatDate, getInitials, cn, specialtyLa
 import { toast } from 'sonner'
 import type { Appointment, User } from '@/types/database'
 import { useDataChanged } from '@/lib/hooks/useDataChanged'
+import { withPublicDoctors } from '@/lib/doctors/public'
 
 type AptWithDoctor = Appointment & {
   doctor: Pick<User, 'id' | 'first_name' | 'last_name' | 'specialties' | 'avatar_url'> | null
@@ -211,11 +212,12 @@ export default function PatientAppointmentsPage() {
       const { data: { user } } = await supabase.auth.getUser()
       if (!user) { router.push('/auth/login'); return }
       const { data } = await supabase.from('appointments')
-        .select('*, doctor:doctor_id(id, first_name, last_name, specialties, avatar_url)')
+        .select('*')
         .eq('patient_id', user.id)
         .order('created_at', { ascending: false })
         .limit(100)
-      setAppointments((data || []) as unknown as AptWithDoctor[])
+      // Doctor display fields come from public_doctors, never from users (migration 022).
+      setAppointments(await withPublicDoctors(supabase, data || []) as unknown as AptWithDoctor[])
     } catch {
       // Prevents infinite loading
     } finally {
