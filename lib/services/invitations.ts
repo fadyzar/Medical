@@ -24,6 +24,12 @@ export type InviteOutcome = {
   emailError?: string
 }
 
+/** First name without a title: "ד"ר רון כהן" -> "רון", "Dr. Ron Cohen" -> "Ron". */
+export function firstNameOf(fullName: string): string | null {
+  const parts = fullName.trim().split(/\s+/).filter(p => !/^(ד["״']?ר['׳]?|דר['׳]|פרופ['׳]?|dr\.?|prof\.?)$/i.test(p))
+  return parts[0] || null
+}
+
 export async function inviteMember(params: {
   caller: Caller
   email: string
@@ -71,7 +77,7 @@ export async function inviteMember(params: {
     token = (existing as { token: string }).token
   } else {
     const { data: created, error } = await invitations()
-      .insert({ organization_id: orgId, email, role, invited_by: caller.id, first_name: name.split(' ')[0] ?? null })
+      .insert({ organization_id: orgId, email, role, invited_by: caller.id, first_name: firstNameOf(name) })
       .select('token').single()
     if (error) return { ok: false, status: 500, error: 'יצירת ההזמנה נכשלה' }
     token = (created as { token: string }).token
