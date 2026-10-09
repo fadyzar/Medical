@@ -14,3 +14,4 @@ supabase/.temp/
 .env.development.local
 .env*.local
 demo-videos/
+backups/

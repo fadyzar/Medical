@@ -96,7 +96,7 @@ test('whatsapp: Green API errors are read safely (401 has an empty body)', () =>
 
 test('onboarding: founder is made admin server-side (019 ignores signup metadata) and side effects run in after()', () => {
   const src = read('app/api/onboarding/route.ts')
-  assert.match(src, /role: 'admin',\s*\n\s*\}, \{ onConflict: 'id' \}\)/)
+  assert.match(src, /role: 'admin',\s*\}, \{ onConflict: 'id' \}\)/)
   assert.match(src, /after\(async/)
   assert.match(src, /inviteMember\(/, 'wizard doctors must get real invitation tokens')
   assert.doesNotMatch(src, /provisionSubdomain\([^)]*\)\.catch\([\s\S]{0,200}\}\)\n\n    \/\/ Audit/, 'no fire-and-forget provisioning')
