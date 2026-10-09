@@ -104,12 +104,14 @@ create policy "users_update_own" on users
 -- ─────────────────────────────────────────────────────────────────────────────
 drop policy if exists "users_select_org" on users;
 
+drop policy if exists "users_select_org_staff" on users;
 create policy "users_select_org_staff" on users
   for select using (
     organization_id = get_my_org_id()
     and get_my_role() in ('staff', 'admin')
   );
 
+drop policy if exists "users_select_own_patients" on users;
 create policy "users_select_own_patients" on users
   for select using (
     get_my_role() = 'doctor'
