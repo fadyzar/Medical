@@ -295,7 +295,10 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
   useEffect(() => {
     let saved: string | null = null
     try { saved = localStorage.getItem('canna.copilot.open') } catch { /* private mode */ }
-    const shouldOpen = saved === null ? window.innerWidth >= 1280 : saved === '1'
+    // Docked panel only on desktop; on phones/tablets it is a full-screen drawer
+    // and must never open by itself.
+    const desktop = window.innerWidth >= 1024
+    const shouldOpen = desktop && (saved === null ? window.innerWidth >= 1280 : saved === '1')
     if (shouldOpen) {
       const id = requestAnimationFrame(() => setAssistantOpenState(true))
       return () => cancelAnimationFrame(id)
