@@ -129,3 +129,13 @@ test('patients never read doctor rows from users (migration 022): patient screen
   }
   assert.match(read('supabase/migrations/022_doctor_private_fields.sql'), /drop policy if exists "users_select_doctors"/)
 })
+
+test('invitations are read-only for clients and admin-only (migration 024); secrets swept out of settings (023)', () => {
+  const sql = read('supabase/migrations/024_invitations_policy.sql')
+  assert.match(sql, /drop policy if exists "admin can manage own org invitations"/)
+  assert.match(sql, /for select using \(organization_id = get_my_org_id\(\) and get_my_role\(\) = 'admin'\)/)
+  assert.doesNotMatch(sql, /for (all|insert|update|delete)/i)
+  const sweep = read('supabase/migrations/023_integration_secrets_resweep.sql')
+  assert.match(sweep, /'_previous'/, 'replaced credentials must be kept, not dropped')
+  assert.match(sweep, /update organizations set settings = settings\s*- 'integration_whatsapp'/)
+})
