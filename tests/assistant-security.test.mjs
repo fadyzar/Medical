@@ -131,7 +131,7 @@ test('patients never read doctor rows from users (migration 022): patient screen
 })
 
 test('invitations are read-only for clients and admin-only (migration 024); secrets swept out of settings (023)', () => {
-  const sql = read('supabase/migrations/024_invitations_policy.sql')
+  const sql = read('supabase/migrations/024_invitations_policy.sql').replace(/--.*$/gm, '')
   assert.match(sql, /drop policy if exists "admin can manage own org invitations"/)
   assert.match(sql, /for select using \(organization_id = get_my_org_id\(\) and get_my_role\(\) = 'admin'\)/)
   assert.doesNotMatch(sql, /for (all|insert|update|delete)/i)
