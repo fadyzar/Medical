@@ -16,7 +16,7 @@ export default async function InvitePage({ params }: Props) {
   // eslint-disable-next-line @typescript-eslint/no-explicit-any
   const { data: inviteRaw } = await (admin as any)
     .from('invitations')
-    .select('id, email, role, expires_at, used_at, organization_id')
+    .select('id, email, role, first_name, expires_at, used_at, organization_id')
     .eq('token', token)
     .maybeSingle()
 
@@ -27,6 +27,7 @@ export default async function InvitePage({ params }: Props) {
     expires_at: string
     used_at: string | null
     organization_id: string
+    first_name: string | null
   }
   const invite = inviteRaw as InviteRow | null
 
@@ -113,6 +114,7 @@ export default async function InvitePage({ params }: Props) {
         role={invite.role}
         orgName={orgName}
         orgId={invite.organization_id}
+        firstName={invite.first_name}
       />
     </AuthLayout>
   )

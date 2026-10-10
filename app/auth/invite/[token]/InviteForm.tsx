@@ -25,12 +25,13 @@ interface Props {
   role: string
   orgName: string
   orgId: string
+  firstName?: string | null
 }
 
-export default function InviteForm({ token, email, role, orgName, orgId }: Props) {
+export default function InviteForm({ token, email, role, orgName, orgId, firstName }: Props) {
   const router = useRouter()
   const [form, setForm] = useState({
-    first_name: '',
+    first_name: firstName || '',
     last_name: '',
     password: '',
     confirm_password: '',
