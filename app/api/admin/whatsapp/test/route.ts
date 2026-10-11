@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
-import { getOrgGreenApiCredentials, readGreenApiResponse } from '@/lib/whatsapp'
+import { getOrgGreenApiCredentials, greenApiUrl, readGreenApiResponse } from '@/lib/whatsapp'
 import { z } from 'zod'
 
 const schema = z.object({
@@ -50,7 +50,7 @@ export async function POST(req: NextRequest) {
     }
 
     const { instanceId, apiToken } = creds
-    const url = `https://api.green-api.com/waInstance${instanceId}/sendMessage/${apiToken}`
+    const url = greenApiUrl(instanceId, 'sendMessage', apiToken)
 
     const { data: org } = await admin
       .from('organizations')

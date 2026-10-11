@@ -25,7 +25,7 @@ import { TOPICS, type KnowledgeTopic } from '@/lib/ai/assistant/knowledge'
 import { resolvePage } from '@/lib/ai/assistant/navigation'
 import { inviteMember, INVITE_ROLE_LABELS, type InviteRole } from '@/lib/services/invitations'
 import { generateConsultationSummary } from '@/lib/ai/summary'
-import { getOrgGreenApiCredentials } from '@/lib/whatsapp'
+import { getOrgGreenApiCredentials, greenApiUrl } from '@/lib/whatsapp'
 import type { AppointmentStatus } from '@/types/database'
 
 /** What a write tool hands back instead of writing. Rendered as a card. */
@@ -508,7 +508,7 @@ async function checkWhatsappConnection(caller: Caller): Promise<ToolOutcome> {
   }
   try {
     // Read-only status call; the credentials never leave the server or reach the model.
-    const res = await fetch(`https://api.green-api.com/waInstance${creds.instanceId}/getStateInstance/${creds.apiToken}`, {
+    const res = await fetch(greenApiUrl(creds.instanceId, 'getStateInstance', creds.apiToken), {
       signal: AbortSignal.timeout(10_000),
     })
     if (res.status === 401 || res.status === 403) {

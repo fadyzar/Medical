@@ -84,6 +84,19 @@ export async function readGreenApiResponse(res: Response): Promise<{ ok: boolean
   return { ok: true, idMessage: body?.idMessage ?? null, error: null }
 }
 
+// ── Green API endpoint ───────────────────────────────
+
+/**
+ * Green API host. The old api.green-api.com host no longer answers (requests
+ * time out), which made every WhatsApp send fail; api.greenapi.com is the
+ * current general host. GREEN_API_URL overrides it (e.g. the instance-specific
+ * apiUrl shown in console.green-api.com).
+ */
+export function greenApiUrl(instanceId: string, method: string, apiToken: string): string {
+  const base = (process.env.GREEN_API_URL || 'https://api.greenapi.com').replace(/\/+$/, '')
+  return `${base}/waInstance${instanceId}/${method}/${apiToken}`
+}
+
 // ── Fetch Green API credentials for an org ───────────
 
 export async function getOrgGreenApiCredentials(
@@ -121,7 +134,7 @@ export async function sendWhatsApp(
   }
 
   const { instanceId, apiToken } = creds
-  const url = `https://api.green-api.com/waInstance${instanceId}/sendMessage/${apiToken}`
+  const url = greenApiUrl(instanceId, 'sendMessage', apiToken)
 
   try {
     const res = await fetch(url, {

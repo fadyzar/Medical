@@ -101,3 +101,12 @@ test('onboarding: founder is made admin server-side (019 ignores signup metadata
   assert.match(src, /inviteMember\(/, 'wizard doctors must get real invitation tokens')
   assert.match(src, /after\(async \(\) => \{\s*\/\/[^\n]*\n\s*await provisionSubdomain\(/, 'provisioning must run awaited inside after()')
 })
+
+test('WhatsApp uses the live Green API host everywhere (api.green-api.com no longer answers)', () => {
+  for (const f of ['lib/whatsapp/index.ts', 'app/api/admin/whatsapp/test/route.ts', 'lib/ai/assistant/executors.ts']) {
+    const src = readFileSync(new URL(`../${f}`, import.meta.url), 'utf8')
+    assert.doesNotMatch(src, /https:\/\/api\.green-api\.com/, f)
+  }
+  const wa = readFileSync(new URL('../lib/whatsapp/index.ts', import.meta.url), 'utf8')
+  assert.match(wa, /'https:\/\/api\.greenapi\.com'/)
+})
