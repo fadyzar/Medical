@@ -5,22 +5,21 @@
 -- organizations.settings, which every member of the clinic can read (org_select).
 -- This repeats 018's move for whatever was written since.
 --
--- The settings copy is the newer one (the old UI wrote only there), so it wins.
+-- The settings copy is the newer one (the old UI wrote only there), so it wins,
+-- unless it is blank.
 -- Any value it replaces is kept under secrets->'_previous' so nothing is lost.
 -- Re-runnable: after the first run there is nothing left to move.
 
 with moved as (
-  select id as organization_id, jsonb_strip_nulls(jsonb_build_object(
-      'integration_whatsapp',  settings->'integration_whatsapp',
-      'integration_payment',   settings->'integration_payment',
-      'integration_email',     settings->'integration_email',
-      'integration_video',     settings->'integration_video',
-      'integration_invoice',   settings->'integration_invoice',
-      'integration_subdomain', settings->'integration_subdomain'
-    )) as secrets
-  from organizations
-  where settings ?| array['integration_whatsapp','integration_payment','integration_email',
-                          'integration_video','integration_invoice','integration_subdomain']
+  -- Only blocks holding at least one non-blank value. An empty form saved by an
+  -- old build must never replace working credentials (see 025).
+  select o.id as organization_id, jsonb_object_agg(e.key, e.value) as secrets
+  from organizations o, jsonb_each(o.settings) e
+  where e.key in ('integration_whatsapp','integration_payment','integration_email',
+                  'integration_video','integration_invoice','integration_subdomain')
+    and jsonb_typeof(e.value) = 'object'
+    and exists (select 1 from jsonb_each_text(e.value) f where coalesce(trim(f.value), '') <> '')
+  group by o.id
 )
 insert into organization_integrations (organization_id, secrets)
 select organization_id, secrets from moved

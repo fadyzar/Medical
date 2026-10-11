@@ -2,6 +2,10 @@ import { NextResponse } from 'next/server'
 import { createServiceRole } from '@/lib/supabase/server'
 import { sendReminder24h, sendReminder1h } from '@/lib/email'
 import { sendReminder1hWhatsApp } from '@/lib/whatsapp'
+import { reconcileEmailDelivery } from '@/lib/email/reconcile'
+
+// Reminders plus a delivery check of up to 25 emails (~0.3s apart).
+export const maxDuration = 60
 
 export async function GET(req: Request) {
   try {
@@ -118,7 +122,11 @@ export async function GET(req: Request) {
       }
     }
 
-    return NextResponse.json({ success: true, ...results })
+    // ── Delivery truth without a webhook: ask Resend what happened to recent
+    //    emails still recorded as "sent" (delivered, suppressed, bounced…).
+    const delivery = await reconcileEmailDelivery(admin).catch(() => null)
+
+    return NextResponse.json({ success: true, ...results, delivery })
   } catch (err) {
     console.error('[Cron Reminders]', err instanceof Error ? err.message : 'Unknown error')
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })

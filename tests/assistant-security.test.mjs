@@ -139,3 +139,12 @@ test('invitations are read-only for clients and admin-only (migration 024); secr
   assert.match(sweep, /'_previous'/, 'replaced credentials must be kept, not dropped')
   assert.match(sweep, /update organizations set settings = settings\s*- 'integration_whatsapp'/)
 })
+
+test('a blank settings block never replaces working credentials (023); blanked blocks are restored (025)', () => {
+  const sweep = read('supabase/migrations/023_integration_secrets_resweep.sql').replace(/--.*$/gm, '')
+  assert.match(sweep, /jsonb_each_text\(e\.value\) f where coalesce\(trim\(f\.value\), ''\) <> ''/, 'only non-blank blocks may move')
+  const fix = read('supabase/migrations/025_restore_blanked_integrations.sql').replace(/--.*$/gm, '')
+  assert.match(fix, /secrets->'_previous'->k/)
+  assert.match(fix, /not exists \(select 1 from jsonb_each_text\(secrets->k\)/, 'restore only when the current block is entirely blank')
+  assert.doesNotMatch(fix, /\b(delete|drop|truncate)\b/i)
+})

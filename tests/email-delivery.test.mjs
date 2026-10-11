@@ -39,3 +39,12 @@ test('rejects tampered body, wrong secret, missing headers and replays', () => {
   assert.equal(verifyResendSignature({ secret, id: null, timestamp: ts, signatureHeader: sig, body, nowSeconds: 1700000010 }), false)
   assert.equal(verifyResendSignature({ secret, id: 'msg_1', timestamp: ts, signatureHeader: sig, body, nowSeconds: 1700000000 + 3600 }), false)
 })
+
+test('the reminder cron settles "sent" emails with Resend even without a webhook', async () => {
+  const { readFileSync } = await import('node:fs')
+  const cron = readFileSync(new URL('../app/api/cron/reminders/route.ts', import.meta.url), 'utf8')
+  assert.match(cron, /await reconcileEmailDelivery\(admin\)/)
+  const rec = readFileSync(new URL('../lib/email/reconcile.ts', import.meta.url), 'utf8')
+  assert.match(rec, /\.eq\('status', 'sent'\)/)
+  assert.match(rec, /mapResendEvent\(/)
+})
