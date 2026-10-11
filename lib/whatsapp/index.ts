@@ -87,14 +87,18 @@ export async function readGreenApiResponse(res: Response): Promise<{ ok: boolean
 // ── Green API endpoint ───────────────────────────────
 
 /**
- * Green API host. The old api.green-api.com host no longer answers (requests
- * time out), which made every WhatsApp send fail; api.greenapi.com is the
- * current general host. GREEN_API_URL overrides it (e.g. the instance-specific
- * apiUrl shown in console.green-api.com).
+ * Green API endpoint for an instance. Each instance is served from its own
+ * pool host, https://{first 4 digits of the instance id}.api.greenapi.com (the
+ * apiUrl shown in console.green-api.com). The old api.green-api.com host no
+ * longer answers and the general api.greenapi.com host hangs, which made every
+ * WhatsApp send fail. GREEN_API_URL overrides the host when set.
  */
 export function greenApiUrl(instanceId: string, method: string, apiToken: string): string {
-  const base = (process.env.GREEN_API_URL || 'https://api.greenapi.com').replace(/\/+$/, '')
-  return `${base}/waInstance${instanceId}/${method}/${apiToken}`
+  const id = instanceId.trim()
+  const base = (process.env.GREEN_API_URL
+    || (/^\d{10}$/.test(id) ? `https://${id.slice(0, 4)}.api.greenapi.com` : 'https://api.greenapi.com')
+  ).replace(/\/+$/, '')
+  return `${base}/waInstance${id}/${method}/${apiToken}`
 }
 
 // ── Fetch Green API credentials for an org ───────────

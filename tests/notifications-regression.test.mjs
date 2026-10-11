@@ -108,5 +108,5 @@ test('WhatsApp uses the live Green API host everywhere (api.green-api.com no lon
     assert.doesNotMatch(src, /https:\/\/api\.green-api\.com/, f)
   }
   const wa = readFileSync(new URL('../lib/whatsapp/index.ts', import.meta.url), 'utf8')
-  assert.match(wa, /'https:\/\/api\.greenapi\.com'/)
+  assert.match(wa, /\$\{id\.slice\(0, 4\)\}\.api\.greenapi\.com/, 'per-instance pool host')
 })
