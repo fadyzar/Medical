@@ -2,7 +2,7 @@
 
 Production app: **https://app.cannaforyou.net**. Supabase project `igkffvtzjkwpjxmldlzh`.
 QA clinic: **מרפאת QA הדגמה**, id `c0f2bda2-…`, subdomain `qa-demo`. QA inbox: Gmail aliases `fadyzarka978+canna-*`.
-Status as of 11 Oct 2026. Every row in §1 was checked against production, not against a local copy.
+Status as of 12 Oct 2026. Every row in §1 was checked against production, not against a local copy.
 
 ## 1. Production tests executed
 
@@ -38,18 +38,29 @@ Status as of 11 Oct 2026. Every row in §1 was checked against production, not a
 | P28 | Email to a missing mailbox is reported as failed, not "sent" | PASS | demo admin test email → "bounce — the address does not exist"; video 03 |
 | P29 | WhatsApp credentials of מרפאת שלום restored (migration 025) | PASS | backup `pre-025-20261011`; fields 10/50 characters as before 023; integrations page shows "מחובר" |
 | P30 | WhatsApp reaches Green API with the clinic's credentials | PASS | after fixes `f91b873`/`c74a95d` Green API answers; state: credentials valid, WhatsApp account **not linked** (QR); video 04 |
+| P32 | Scheduled delivery reconciliation (cron, no webhook) | PASS | run at 20:00 UTC on 11 Oct settled every recent email: 2 `delivered` (Gmail), 4 `failed` with the reason (missing demo mailboxes) |
+| P33 | Admin sees the clinic's pending invitations (migration 024) | PASS | users page lists "הזמנות ממתינות (3)" for the demo admin; video 05 |
+| P34 | Admin Copilot confirmed action: invite a doctor | PASS | confirmation card → "בוצע"; invitation row bound to the clinic; audit `user_invited`; email arrived in the Gmail inbox of `+canna-doctor2`; video 06 |
+| P35 | Admin Copilot refuses another clinic's data and a mass deletion | PASS | answers that it has no access to the other clinic and that deleting all appointments is not allowed; video 06 |
 | P31 | Admin Copilot in production: Hebrew, live clinic data, live integration checks, navigation buttons, conversation stored | PASS | demo admin of מרפאת שלום; `ai_conversations` row (`claude-opus-5`); video 04 |
 
-## 2. Production videos
+## 2. Video library
 
-| File | Duration | Shows |
+Folder `/Users/fadyzarka/Desktop/OSHIASHURI/demo-videos/`. **production/** = recorded on app.cannaforyou.net. **qa-local/** = recorded on a local copy of the system with fictional data; demonstration only, not production evidence. Phone numbers are masked on screen; no passwords or real medical data appear.
+
+| Agreed functionality | Production video | QA video (labeled) |
 |---|---|---|
-| `/Users/fadyzarka/Desktop/OSHIASHURI/demo-videos/production/CANNA_PROD_00_public_entry.mp4` | 0:07 | Landing page, doctors, clinic signup wizard, patient registration, invalid invitation |
-| `/Users/fadyzarka/Desktop/OSHIASHURI/demo-videos/production/CANNA_PROD_01_clinic_onboarding.mp4` | 0:57 | Clinic wizard (details, Pro trial plan, branding, first doctor) → the invitation email in Gmail. Password fields stay masked |
-| `/Users/fadyzarka/Desktop/OSHIASHURI/demo-videos/production/CANNA_PROD_03_email_delivery_truth.mp4` | 0:09 | Integrations → email test from the demo admin → the screen reports the bounce from the missing demo mailbox |
-| `/Users/fadyzarka/Desktop/OSHIASHURI/demo-videos/production/CANNA_PROD_04_admin_copilot_whatsapp.mp4` | 0:19 | Admin Copilot answers in Hebrew from live clinic data; WhatsApp check before and after the Green API fix |
-
-Earlier recordings `demo-videos/CANNA_01…11` were made against a **local** database. They are not production evidence.
+| Public site, clinic signup, patient registration page | `production/CANNA_PROD_00_public_entry.mp4` (0:06) | — |
+| Clinic registration and activation, doctor invitation email | `production/CANNA_PROD_01_clinic_onboarding.mp4` (0:57) | — |
+| Doctor registration, clinic assignment, availability | **missing**: QA doctor not registered | — |
+| Email delivery and bounce reporting | `production/CANNA_PROD_03_email_delivery_truth.mp4` (0:08) | `qa-local/QA_LOCAL_05_email_delivery.mp4` |
+| WhatsApp integration status (credentials valid, account not linked) | `production/CANNA_PROD_04_admin_copilot_whatsapp.mp4` (0:19) | `qa-local/QA_LOCAL_08_whatsapp_and_domain.mp4` |
+| Clinic administration: dashboard, appointments, users, reports, activity log, templates, settings, domain | `production/CANNA_PROD_05_clinic_admin_tour.mp4` (0:23) | `qa-local/QA_LOCAL_04_clinic_admin.mp4` |
+| Copilot (admin): live data, confirmed action, invitation email received, refusals | `production/CANNA_PROD_04…`, `production/CANNA_PROD_06_copilot_action_invite_email.mp4` (0:21) | `qa-local/QA_LOCAL_07…`, `qa-local/QA_LOCAL_09_copilot_admin.mp4` |
+| Patient registration, booking, cancellation, rescheduling | **missing** | `qa-local/QA_LOCAL_01_patient_journey.mp4` |
+| Consultation and video call | **missing** | `qa-local/QA_LOCAL_02_doctor_consultation.mp4` |
+| Automatic AI summary after completion | **missing (critical)** | `qa-local/QA_LOCAL_03_automatic_ai_summary.mp4` |
+| Copilot (doctor, patient) | **missing** | `qa-local/QA_LOCAL_10_copilot_doctor.mp4`, `qa-local/QA_LOCAL_11_copilot_patient.mp4`, `qa-local/QA_LOCAL_06_copilot_explains.mp4` |
 
 ## 3. Oshrit's complaints: root causes
 
