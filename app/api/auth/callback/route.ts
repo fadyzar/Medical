@@ -53,15 +53,10 @@ export async function GET(request: Request) {
             // invitations table may not exist yet — fall through to metadata fallback
           }
 
-          // Fallback: use role from signup metadata (set by InviteForm)
-          if (!resolvedRole) {
-            const roleFromMeta = meta.role as string | undefined
-            if (roleFromMeta && validRoles.includes(roleFromMeta as UserRole) && roleFromMeta !== 'patient') {
-              resolvedRole = roleFromMeta as UserRole
-            }
-            // org_id from metadata (InviteForm doesn't set this, but future-proof)
-            if (meta.organization_id) resolvedOrgId = meta.organization_id as string
-          }
+          // No fallback to the signup metadata: it is written by the browser, so a
+          // forged `role`/`organization_id` would make anyone an admin of any
+          // clinic once their email was confirmed. Elevated roles come only from
+          // a valid, unused invitation for this exact email (same rule as 019).
 
           // Apply resolved role + org to the user profile
           if (resolvedRole) {
@@ -78,9 +73,8 @@ export async function GET(request: Request) {
 
         if (!profile) {
           isNewProfile = true
-          const roleFromMeta = (meta.role as string) || 'patient'
-          const validRoles = ['patient', 'doctor', 'staff', 'admin']
-          const safeRole = validRoles.includes(roleFromMeta) ? roleFromMeta : 'patient'
+          // Self-service profiles are always patients (see the invite rule above).
+          const safeRole = 'patient'
 
           // Get first org as fallback
           const { data: org } = await admin.from('organizations').select('id').order('created_at').limit(1).single()

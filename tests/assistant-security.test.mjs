@@ -148,3 +148,10 @@ test('a blank settings block never replaces working credentials (023); blanked b
   assert.match(fix, /not exists \(select 1 from jsonb_each_text\(secrets->k\)/, 'restore only when the current block is entirely blank')
   assert.doesNotMatch(fix, /\b(delete|drop|truncate)\b/i)
 })
+
+test('email confirmation never grants a role or clinic from browser-written signup metadata', () => {
+  const cb = read('app/api/auth/callback/route.ts').replace(/\/\/.*$/gm, '')
+  assert.doesNotMatch(cb, /meta\.role/)
+  assert.doesNotMatch(cb, /meta\.organization_id/)
+  assert.match(cb, /invite\.email\.toLowerCase\(\) === user\.email\?\.toLowerCase\(\)/)
+})

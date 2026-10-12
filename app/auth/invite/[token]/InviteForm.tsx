@@ -39,6 +39,8 @@ export default function InviteForm({ token, email, role, orgName, orgId, firstNa
   const [showPassword, setShowPassword] = useState(false)
   const [loading, setLoading] = useState(false)
   const [errors, setErrors] = useState<Record<string, string>>({})
+  // Set when the account was created but email confirmation is still required.
+  const [awaitingConfirmation, setAwaitingConfirmation] = useState(false)
 
   const update = (field: string, value: string) => {
     setForm(p => ({ ...p, [field]: value }))
@@ -128,15 +130,29 @@ export default function InviteForm({ token, email, role, orgName, orgId, firstNa
         }
         router.push(dashboards[role] || '/dashboard/patient/dashboard')
       } else {
-        // Email confirmation required — show message
-        toast.success('נרשמת! בדוק את האימייל לאימות החשבון.')
-        router.push('/auth/login')
+        // Email confirmation required: the confirmation link completes the
+        // invitation (role + clinic) in /api/auth/callback. Say so on the page;
+        // a toast plus a jump to the login screen left doctors unsure.
+        setAwaitingConfirmation(true)
       }
     } catch {
       toast.error('שגיאה לא צפויה')
     } finally {
       setLoading(false)
     }
+  }
+
+  if (awaitingConfirmation) {
+    return (
+      <div className="w-full" role="status">
+        <h2 className="text-xl font-bold text-slate-900 mb-3">כמעט סיימנו — אמת את האימייל</h2>
+        <p className="text-sm text-slate-600 leading-relaxed">
+          שלחנו אימייל אימות לכתובת <span className="font-semibold" dir="ltr">{email}</span>.
+          לחץ על הקישור שבאימייל כדי להשלים את ההצטרפות ל{orgName} — החשבון יופעל אוטומטית בתפקיד {ROLE_LABELS[role] ?? role}.
+        </p>
+        <p className="text-xs text-slate-500 mt-3">לא קיבלת? בדוק בתיקיית הספאם או קידומי מכירות.</p>
+      </div>
+    )
   }
 
   return (
