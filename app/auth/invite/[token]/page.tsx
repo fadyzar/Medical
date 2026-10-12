@@ -1,6 +1,7 @@
-import { createServiceRole } from '@/lib/supabase/server'
+import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
 import { AuthLayout } from '@/components/layout/AuthLayout'
 import InviteForm from './InviteForm'
+import AcceptInvite from './AcceptInvite'
 import Link from 'next/link'
 
 interface Props {
@@ -101,6 +102,30 @@ export default async function InvitePage({ params }: Props) {
     doctor: 'השלמת הרשמה כרופא',
     staff:  'השלמת הרשמה כצוות',
     admin:  'השלמת הרשמה כמנהל',
+  }
+
+  const ROLE_LABELS: Record<string, string> = { doctor: 'רופא', staff: 'איש צוות', admin: 'מנהל' }
+
+  // ── Already has an account ─────────────────────────────
+  // An invitee who registered earlier (e.g. the email confirmation link failed
+  // or expired) signs in and completes the invitation here. invite-accept
+  // re-validates token, email, expiry and single use on the server.
+  const supabase = await createServerSupabase()
+  const { data: { user } } = await supabase.auth.getUser()
+  if (user) {
+    const matches = user.email?.toLowerCase() === invite.email.toLowerCase()
+    return (
+      <AuthLayout title={ROLE_TITLES[invite.role] ?? 'השלמת הרשמה'} subtitle={`הוזמנת להצטרף ל${orgName}`}>
+        {matches ? (
+          <AcceptInvite token={token} roleLabel={ROLE_LABELS[invite.role] ?? invite.role} orgName={orgName} email={invite.email} />
+        ) : (
+          <p className="text-sm text-slate-600 leading-relaxed">
+            ההזמנה נשלחה לכתובת <span className="font-semibold" dir="ltr">{invite.email}</span>, אבל את/ה מחובר/ת בחשבון אחר.
+            התנתק/י והתחבר/י עם הכתובת שאליה נשלחה ההזמנה.
+          </p>
+        )}
+      </AuthLayout>
+    )
   }
 
   return (

@@ -6,6 +6,13 @@ export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/dashboard/patient/dashboard'
+  // Set by the invite form. When the confirmation link fails (already used,
+  // expired, opened in another browser) the invitee is sent to sign in and is
+  // brought back to the invitation to complete it, instead of a dead end.
+  const inviteParam = searchParams.get('invite')
+  const inviteRetry = inviteParam && /^[0-9a-f-]{36}$/i.test(inviteParam)
+    ? `/auth/login?error=confirm_link&redirect=${encodeURIComponent(`/auth/invite/${inviteParam}`)}`
+    : null
 
   if (code) {
     const supabase = await createServerSupabase()
@@ -135,5 +142,5 @@ export async function GET(request: Request) {
     }
   }
 
-  return NextResponse.redirect(`${origin}/auth/login?error=auth_failed`)
+  return NextResponse.redirect(`${origin}${inviteRetry ?? '/auth/login?error=auth_failed'}`)
 }

@@ -155,3 +155,17 @@ test('email confirmation never grants a role or clinic from browser-written sign
   assert.doesNotMatch(cb, /meta\.organization_id/)
   assert.match(cb, /invite\.email\.toLowerCase\(\) === user\.email\?\.toLowerCase\(\)/)
 })
+
+test('an invitee who already has an account can complete the invitation after signing in', () => {
+  const page = read('app/auth/invite/[token]/page.tsx')
+  assert.match(page, /user\.email\?\.toLowerCase\(\) === invite\.email\.toLowerCase\(\)/, 'only the invited email')
+  assert.match(page, /<AcceptInvite /)
+  const accept = read('app/auth/invite/[token]/AcceptInvite.tsx')
+  assert.match(accept, /fetch\('\/api\/auth\/invite-accept'/, 'completion goes through the server-side checks')
+  const route = read('app/api/auth/invite-accept/route.ts')
+  for (const check of [/inv\.used_at/, /expires_at\) < new Date\(\)/, /inv\.email\.toLowerCase\(\) !== user\.email\?\.toLowerCase\(\)/]) assert.match(route, check)
+  const cb = read('app/api/auth/callback/route.ts')
+  assert.match(cb, /\/\^\[0-9a-f-\]\{36\}\$\/i\.test\(inviteParam\)/, 'invite param validated before use in a redirect')
+  const form = read('app/auth/invite/[token]/InviteForm.tsx')
+  assert.match(form, /setAccountExists\(true\)/)
+})

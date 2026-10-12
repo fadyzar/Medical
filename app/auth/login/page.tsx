@@ -27,7 +27,8 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false)
   const [serverError, setServerError] = useState(
     errorParam === 'suspended' ? 'החשבון שלך הושעה. פנה למנהל.' :
-    errorParam === 'auth_failed' ? 'שגיאה באימות. נסה להתחבר שוב.' : ''
+    errorParam === 'auth_failed' ? 'שגיאה באימות. נסה להתחבר שוב.' :
+    errorParam === 'confirm_link' ? 'קישור האימות כבר נוצל או שפג תוקפו. אם אישרת את האימייל — התחבר עם הסיסמה שבחרת, ותועבר להשלמת ההצטרפות.' : ''
   )
 
   // OTP state

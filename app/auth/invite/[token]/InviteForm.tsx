@@ -41,6 +41,8 @@ export default function InviteForm({ token, email, role, orgName, orgId, firstNa
   const [errors, setErrors] = useState<Record<string, string>>({})
   // Set when the account was created but email confirmation is still required.
   const [awaitingConfirmation, setAwaitingConfirmation] = useState(false)
+  // Set when this email already has an account: sign in, then complete here.
+  const [accountExists, setAccountExists] = useState(false)
 
   const update = (field: string, value: string) => {
     setForm(p => ({ ...p, [field]: value }))
@@ -77,21 +79,20 @@ export default function InviteForm({ token, email, role, orgName, orgId, firstNa
             invite_token: token,
             organization_id: orgId,
           },
-          emailRedirectTo: `${window.location.origin}/api/auth/callback`,
+          // `invite` lets the callback send a failed or reused link back here.
+          emailRedirectTo: `${window.location.origin}/api/auth/callback?invite=${encodeURIComponent(token)}`,
         },
       })
 
       if (error) {
-        const msg = error.message.includes('already registered')
-          ? 'משתמש עם אימייל זה כבר קיים. נסה להתחבר.'
-          : 'שגיאה בהרשמה: ' + error.message
-        toast.error(msg)
+        if (error.message.includes('already registered')) setAccountExists(true)
+        else toast.error('שגיאה בהרשמה: ' + error.message)
         setLoading(false)
         return
       }
 
       if (data.user && data.user.identities && data.user.identities.length === 0) {
-        toast.error('משתמש עם אימייל זה כבר קיים. נסה להתחבר.')
+        setAccountExists(true)
         setLoading(false)
         return
       }
@@ -140,6 +141,21 @@ export default function InviteForm({ token, email, role, orgName, orgId, firstNa
     } finally {
       setLoading(false)
     }
+  }
+
+  if (accountExists) {
+    const loginHref = `/auth/login?redirect=${encodeURIComponent(`/auth/invite/${token}`)}`
+    return (
+      <div className="w-full" role="status">
+        <h2 className="text-xl font-bold text-slate-900 mb-3">כבר יש חשבון לכתובת הזו</h2>
+        <p className="text-sm text-slate-600 leading-relaxed mb-5">
+          התחבר/י עם <span className="font-semibold" dir="ltr">{email}</span> והסיסמה שבחרת — מיד אחרי הכניסה תחזור/י לכאן ותשלים/י את ההצטרפות ל{orgName}.
+        </p>
+        <Link href={loginHref} className="inline-flex w-full justify-center rounded-xl bg-teal-600 px-4 py-3 text-sm font-semibold text-white hover:bg-teal-700">
+          התחבר והשלם הצטרפות
+        </Link>
+      </div>
+    )
   }
 
   if (awaitingConfirmation) {
