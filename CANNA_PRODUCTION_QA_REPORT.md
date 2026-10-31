@@ -1,5 +1,7 @@
 # CANNA — Production Acceptance Report
 
+> **Superseded on 1 Nov 2026** by `CANNA_OSHRIT_FINAL_HANDOVER/FINAL_QA_REPORT_HE.md` (43-item acceptance matrix, re-verified in production) and `CANNA_VIDEO_INVENTORY_INTERNAL.md`. New on 1 Nov: critical storage-isolation fix (migration 026); the QA doctor invitation expired on 17 Oct; simulated payment mode is active in production.
+
 Production app: **https://app.cannaforyou.net**. Supabase project `igkffvtzjkwpjxmldlzh`.
 QA clinic: **מרפאת QA הדגמה**, id `c0f2bda2-…`, subdomain `qa-demo`. QA inbox: Gmail aliases `fadyzarka978+canna-*`.
 Status as of 12 Oct 2026. Every row in §1 was checked against production, not against a local copy.
