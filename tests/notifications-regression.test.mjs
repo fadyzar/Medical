@@ -110,3 +110,10 @@ test('WhatsApp uses the live Green API host everywhere (api.green-api.com no lon
   const wa = readFileSync(new URL('../lib/whatsapp/index.ts', import.meta.url), 'utf8')
   assert.match(wa, /\$\{id\.slice\(0, 4\)\}\.api\.greenapi\.com/, 'per-instance pool host')
 })
+
+test('clinic sign-up buttons open the clinic onboarding wizard, not the patient form', () => {
+  const page = readFileSync(new URL('../app/for-clinics/page.tsx', import.meta.url), 'utf8')
+  assert.doesNotMatch(page, /type=clinic/)
+  const mw = readFileSync(new URL('../middleware.ts', import.meta.url), 'utf8')
+  assert.match(mw, /searchParams\.get\('type'\) === 'clinic'[\s\S]{0,80}\/onboarding/)
+})

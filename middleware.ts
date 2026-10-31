@@ -65,6 +65,13 @@ export async function middleware(req: NextRequest) {
   // ── Detect tenant subdomain ────────────────────────────
   const tenantSubdomain = getTenantSubdomain(host)
 
+  // Clinic sign-up links used to point at the patient registration form
+  // (/auth/register?type=clinic), so new clinics were registered as patients.
+  // Links already sent out still land on the clinic onboarding wizard.
+  if (path === '/auth/register' && req.nextUrl.searchParams.get('type') === 'clinic') {
+    return NextResponse.redirect(new URL('/onboarding', req.url))
+  }
+
   // ── CSRF protection ───────────────────────────────────
   if (
     path.startsWith('/api/') &&

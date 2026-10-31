@@ -101,7 +101,7 @@ export default function ForClinicsPage() {
 
             <div className="flex flex-col sm:flex-row gap-3 mt-9">
               <Link
-                href="/auth/register?type=clinic"
+                href="/onboarding"
                 className="inline-flex items-center justify-center bg-teal-600 hover:bg-teal-700 text-white font-bold text-base px-8 py-4 rounded-2xl transition-all shadow-lg shadow-teal-600/25 hover:-translate-y-0.5"
               >
                 התחל ניסיון חינם — 14 יום
@@ -192,7 +192,7 @@ export default function ForClinicsPage() {
               </h2>
               <p className="text-slate-500 mt-5 text-lg leading-relaxed">{f.body}</p>
               <Link
-                href="/auth/register?type=clinic"
+                href="/onboarding"
                 className="inline-flex items-center gap-2 mt-8 text-teal-600 font-semibold hover:gap-3 transition-all group"
               >
                 התחל עכשיו
@@ -364,7 +364,7 @@ export default function ForClinicsPage() {
                   {plan.sub && <span className={`text-sm mr-1 ${plan.highlight ? 'text-teal-200' : 'text-slate-400'}`}>{plan.sub}</span>}
                 </div>
                 <Link
-                  href={plan.price === 'צור קשר' ? '/contact' : '/auth/register?type=clinic'}
+                  href={plan.price === 'צור קשר' ? '/contact' : '/onboarding'}
                   className={`block text-center font-bold py-3 rounded-xl mb-6 text-sm transition-all hover:scale-105 ${
                     plan.highlight
                       ? 'bg-white text-teal-600 hover:bg-teal-50'
@@ -407,7 +407,7 @@ export default function ForClinicsPage() {
             </div>
             <div className="flex flex-col gap-3 shrink-0">
               <Link
-                href="/auth/register?type=clinic"
+                href="/onboarding"
                 className="inline-flex items-center justify-center bg-white text-teal-700 font-bold text-base px-8 py-4 rounded-2xl transition-all shadow-lg hover:-translate-y-0.5"
               >
                 התחל ניסיון חינם — 14 יום
@@ -450,7 +450,7 @@ export default function ForClinicsPage() {
             <div>
               <p className="text-white font-bold mb-4">חשבון</p>
               <nav className="space-y-3 text-slate-500">
-                <p><Link href="/auth/register?type=clinic" className="hover:text-white transition-colors">הרשמה חינם</Link></p>
+                <p><Link href="/onboarding" className="hover:text-white transition-colors">הרשמה חינם</Link></p>
                 <p><Link href="/auth/login" className="hover:text-white transition-colors">התחברות</Link></p>
                 <p><Link href="/contact" className="hover:text-white transition-colors">יצירת קשר</Link></p>
               </nav>
