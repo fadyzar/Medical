@@ -15,3 +15,6 @@ supabase/.temp/
 .env*.local
 demo-videos/
 backups/
+
+# Client handover videos (large binaries)
+CANNA_OSHRIT_FINAL_HANDOVER/VIDEOS*/

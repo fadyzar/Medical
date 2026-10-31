@@ -169,3 +169,13 @@ test('an invitee who already has an account can complete the invitation after si
   const form = read('app/auth/invite/[token]/InviteForm.tsx')
   assert.match(form, /setAccountExists\(true\)/)
 })
+
+test('medical files are scoped to the owner and their clinic (migration 026)', () => {
+  const sql = read('supabase/migrations/026_storage_tenant_isolation.sql').replace(/--.*$/gm, '')
+  assert.match(sql, /drop policy if exists "docs_auth_select"/)
+  assert.match(sql, /drop policy if exists "docs_auth_delete"/)
+  assert.match(sql, /\(storage\.foldername\(name\)\)\[1\] = public\.get_my_org_id\(\)::text\s+and public\.get_my_role\(\) in \('doctor', 'staff', 'admin'\)/)
+  assert.match(sql, /"docs_delete_owner"[\s\S]*?\(storage\.foldername\(name\)\)\[2\] = auth\.uid\(\)::text/)
+  assert.doesNotMatch(sql, /bucket_id = 'medical-documents' and auth\.role\(\) = 'authenticated'/)
+  assert.match(sql, /drop policy if exists "logos_auth_delete"/)
+})
