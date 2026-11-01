@@ -15,6 +15,8 @@ export type Database = {
       payments: { Row: Payment; Insert: Partial<Payment>; Update: Partial<Payment>; Relationships: [] }
       leads: { Row: Lead; Insert: Partial<Lead>; Update: Partial<Lead>; Relationships: [] }
       organization_integrations: { Row: OrganizationIntegrations; Insert: Partial<OrganizationIntegrations>; Update: Partial<OrganizationIntegrations>; Relationships: [] }
+      consultation_summaries: { Row: ConsultationSummaryRow; Insert: Partial<ConsultationSummaryRow>; Update: Partial<ConsultationSummaryRow>; Relationships: [] }
+      consultation_transcripts: { Row: ConsultationTranscriptRow; Insert: Partial<ConsultationTranscriptRow>; Update: Partial<ConsultationTranscriptRow>; Relationships: [] }
     }
     Views: {
       public_doctors: { Row: PublicDoctor; Relationships: [] }
@@ -114,7 +116,7 @@ export type Appointment = {
   assessment: string | null; plan: string | null; doctor_notes: string | null
   diagnosis: string | null; treatment_plan: string | null
   follow_up_instructions: string | null
-  ai_summary: string | null; ai_summary_generated_at: string | null
+  ai_summary: string | null; ai_summary_generated_at: string | null; ai_summary_released_at: string | null
   ai_prescription_draft: string | null; ai_used: boolean | null
   doctor_accepted_at: string | null
   doctor_proposed_at: string | null
@@ -218,4 +220,31 @@ export type Lead = {
   updated_at: string
   // Joined
   assignee?: Pick<User, 'id' | 'first_name' | 'last_name'> | null
+}
+
+// ── Clinician-reviewed AI summaries (027) and consented transcripts (028) ──
+export type ConsultationSummaryRow = {
+  id: string; organization_id: string; appointment_id: string; version: number
+  status: 'draft' | 'approved' | 'released' | 'superseded' | 'legacy_unreviewed'
+  ai_output: unknown; content: unknown; sources: Record<string, unknown>; warnings: unknown[]
+  model_used: string | null; input_tokens: number | null; output_tokens: number | null
+  generated_by: string | null; generated_at: string
+  edited_by: string | null; edited_at: string | null; edit_count: number
+  approved_by: string | null; approved_at: string | null
+  released_by: string | null; released_at: string | null
+  superseded_at: string | null; created_at: string; updated_at: string
+}
+
+export type TranscriptSegment = { speaker: 'doctor' | 'patient'; start: number; end: number; text: string }
+
+export type ConsultationTranscriptRow = {
+  id: string; organization_id: string; appointment_id: string
+  status: 'consent_pending' | 'recording' | 'processing' | 'completed' | 'failed' | 'withdrawn'
+  consent_text_version: string
+  doctor_consent_at: string | null; patient_consent_at: string | null
+  withdrawn_at: string | null; withdrawn_by: string | null
+  provider: string | null; language: string | null; model: string | null
+  segments: TranscriptSegment[] | null; duration_seconds: number | null
+  audio_deleted_at: string | null; error: string | null; retention_until: string | null
+  created_at: string; updated_at: string
 }

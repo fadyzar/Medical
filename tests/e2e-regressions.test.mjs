@@ -23,8 +23,7 @@ test('AI summary: patients never get raw JSON, plain text passes through', () =>
   assert.equal(parseAiSummary(null), null)
 })
 
-test('AI summary: stored as clean JSON, not the fenced model output', () => {
-  assert.match(read('lib/ai/summary.ts'), /ai_summary: result\.parsed \? JSON\.stringify\(result\.parsed\)/)
+test('AI summary: readers never JSON.parse the column directly', () => {
   for (const f of ['lib/notifications/index.ts', 'app/api/notifications/send-summary/route.ts', 'lib/ai/assistant/executors.ts']) {
     assert.doesNotMatch(read(f), /JSON\.parse\([^)]*ai_summary/, f)
   }
@@ -104,20 +103,27 @@ test('booking: no promise of automatic doctor assignment that does not exist', (
 
 test('clinical safety: an unreviewed AI summary is never sent or shown to the patient', () => {
   // The automatic summary emailed the patient 10s after the call, as the doctor's assessment.
-  for (const f of ['app/api/appointments/complete/route.ts', 'app/api/ai-summary/route.ts']) {
-    assert.doesNotMatch(read(f), /notifyPatient: true/, f)
-  }
-  for (const f of ['lib/notifications/index.ts', 'app/api/notifications/send-summary/route.ts']) {
-    assert.doesNotMatch(read(f), /parseAiSummary|apt\.ai_summary|ctx\.ai_summary/, f)
-  }
-  for (const f of ['app/dashboard/patient/appointments/page.tsx', 'app/dashboard/staff/appointments/page.tsx']) {
-    assert.doesNotMatch(read(f), /apt\.ai_summary/, f)
-  }
+  const complete = read('app/api/appointments/complete/route.ts')
+  assert.match(complete, /generateSummaryDraft\(admin, \{ appointmentId, userId: doctorId, trigger: 'auto' \}\)/)
+  assert.doesNotMatch(complete, /notify\('consultation_summary'/)
+  // The only place that tells the patient about a summary is the release step.
+  const service = read('lib/clinical-summary/service.ts')
+  assert.equal(service.match(/notify\('consultation_summary'/g)?.length, 1)
+  assert.match(service.slice(service.indexOf('export async function releaseSummary')), /notify\('consultation_summary'/)
+  // Patient-facing readers require the release timestamp.
+  assert.match(read('lib/notifications/index.ts'), /ctx\.ai_summary_released_at \? patientSummary\(ctx\.ai_summary\)/)
+  assert.match(read('app/api/notifications/send-summary/route.ts'), /apt\.ai_summary_released_at \? patientSummary\(apt\.ai_summary\)/)
+  assert.match(read('app/dashboard/patient/appointments/page.tsx'), /if \(!apt\.ai_summary_released_at \|\| !apt\.ai_summary\) return null/)
+  assert.doesNotMatch(read('app/dashboard/staff/appointments/page.tsx'), /apt\.ai_summary/)
 })
 
 test('clinical safety: AI text is not written into the doctor\'s own SOAP fields', () => {
-  const s = read('lib/ai/summary.ts')
-  assert.doesNotMatch(s, /subjective_notes: p\.soap|assessment: p\.soap|plan: p\.soap/)
+  const s = read('lib/clinical-summary/service.ts')
+  const aptUpdates = [...s.matchAll(/from\('appointments'\)\s*\.update\(\{[^}]*\}/g)].map(m => m[0])
+  assert.ok(aptUpdates.length >= 2)
+  for (const u of aptUpdates) assert.doesNotMatch(u, /subjective_notes|objective_notes|assessment|plan|diagnosis/, u)
+  // Drafts are written to consultation_summaries; the appointment only gets the released patient text.
+  assert.match(s, /ai_summary: JSON\.stringify\(view\), ai_summary_released_at: now/)
 })
 
 test('summary email escapes the clinical text it embeds in HTML', () => {

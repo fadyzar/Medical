@@ -33,3 +33,18 @@ export function patientSummary(raw: string | null | undefined): { summary: strin
     : typeof p.follow_up === 'string' && p.follow_up ? [p.follow_up] : []
   return { summary: typeof p.summary === 'string' ? p.summary : null, followUp }
 }
+
+/**
+ * The released instructions plus the doctor's own follow-up field, without
+ * repeating an instruction the approved text already contains.
+ */
+export function mergeInstructions(released: string[], doctorFollowUp: string | null | undefined): string[] {
+  const norm = (s: string) => s.replace(/[\s.,;:!?"'()״׳-]+/g, '').replace(/בדוי/g, '')
+  const out = released.map(s => s.trim()).filter(Boolean)
+  const extra = doctorFollowUp?.trim()
+  if (extra) {
+    const n = norm(extra)
+    if (!out.some(s => norm(s).includes(n) || n.includes(norm(s)))) out.push(extra)
+  }
+  return out
+}

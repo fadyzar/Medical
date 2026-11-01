@@ -271,6 +271,7 @@ export default function AdminSettingsPage() {
   const [defaultPrice, setDefaultPrice] = useState('')
   const [autoReminder24h, setAutoReminder24h] = useState(true)
   const [autoReminder1h, setAutoReminder1h] = useState(true)
+  const [transcriptionEnabled, setTranscriptionEnabled] = useState(false)
   const [emailNotifications, setEmailNotifications] = useState(true)
 
   const supabase = getClient()
@@ -310,6 +311,7 @@ export default function AdminSettingsPage() {
       setDefaultPrice(String(settings.default_consultation_price || ''))
       setAutoReminder24h(settings.auto_reminder_24h !== false)
       setAutoReminder1h(settings.auto_reminder_1h !== false)
+      setTranscriptionEnabled(settings.transcription_enabled === true)
 
       // Features
       const features = organization.features || {}
@@ -371,6 +373,7 @@ export default function AdminSettingsPage() {
       default_consultation_price: defaultPrice ? Number(defaultPrice) : null,
       auto_reminder_24h: autoReminder24h,
       auto_reminder_1h: autoReminder1h,
+      transcription_enabled: transcriptionEnabled,
     }
 
     const features: Record<string, boolean> = {
@@ -731,6 +734,21 @@ export default function AdminSettingsPage() {
               <div>
                 <span className="text-sm font-medium">תזכורת שעה לפני תור</span>
                 <p className="text-xs text-slate-500">שליחת תזכורת אוטומטית עם קישור וידאו</p>
+              </div>
+            </label>
+            <label className="flex items-start gap-3 cursor-pointer">
+              <input
+                type="checkbox"
+                checked={transcriptionEnabled}
+                onChange={e => setTranscriptionEnabled(e.target.checked)}
+                className="mt-0.5 rounded border-slate-300 text-teal-600 focus:ring-teal-500 h-4 w-4"
+              />
+              <div>
+                <span className="text-sm font-medium">תמלול שיחות וידאו לסיכום הייעוץ (ניסיוני)</span>
+                <p className="text-xs text-slate-500">
+                  הרופא והמטופל יתבקשו להסכים לפני כל שיחה; בלי הסכמת שניהם אין תמלול.
+                  פועל רק כששירות תמלול הוגדר בשרת. יש לוודא מדיניות פרטיות ותקופת שמירה לפני הפעלה.
+                </p>
               </div>
             </label>
           </div>

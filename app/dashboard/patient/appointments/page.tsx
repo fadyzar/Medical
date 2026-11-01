@@ -1,6 +1,7 @@
 'use client'
 export const dynamic = 'force-dynamic'
 
+import { parseAiSummary, patientSummary } from '@/lib/ai/summary-format'
 import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
@@ -161,6 +162,15 @@ function DoctorProposedBanner({ apt, onConfirm }: {
       </div>
     </div>
   )
+}
+
+/** The doctor-approved, released summary; drafts never reach this page. */
+function releasedSummary(apt: { ai_summary?: string | null; ai_summary_released_at?: string | null }) {
+  if (!apt.ai_summary_released_at || !apt.ai_summary) return null
+  const { summary, followUp } = patientSummary(apt.ai_summary)
+  if (!summary) return null
+  const approvedBy = parseAiSummary(apt.ai_summary)?.approved_by
+  return { summary, followUp, approvedBy: typeof approvedBy === 'string' ? approvedBy : null }
 }
 
 export default function PatientAppointmentsPage() {
@@ -536,8 +546,23 @@ export default function PatientAppointmentsPage() {
                       </div>
 
                       {/* Medical summary (completed) */}
-                      {isCompleted && (apt.diagnosis || apt.follow_up_instructions) && (
+                      {isCompleted && (apt.diagnosis || apt.follow_up_instructions || releasedSummary(apt)) && (
                         <div className="space-y-3">
+                          {/* Shown only after the treating doctor approved and released it. */}
+                          {releasedSummary(apt) && (
+                            <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100" data-testid="released-summary">
+                              <p className="text-xs font-semibold text-indigo-600 mb-1.5">סיכום הייעוץ</p>
+                              <p className="text-sm text-indigo-900 leading-relaxed">{releasedSummary(apt)!.summary}</p>
+                              {releasedSummary(apt)!.followUp.length > 0 && (
+                                <ul className="mt-2 text-sm text-indigo-800 list-disc ps-5 space-y-0.5">
+                                  {releasedSummary(apt)!.followUp.map((f, i) => <li key={i}>{f}</li>)}
+                                </ul>
+                              )}
+                              <p className="mt-2 text-[11px] text-indigo-500">
+                                נכתב בסיוע AI, ונבדק ואושר ע&quot;י {releasedSummary(apt)!.approvedBy || 'הרופא המטפל'}
+                              </p>
+                            </div>
+                          )}
                           {apt.diagnosis && (
                             <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
                               <p className="text-xs font-semibold text-emerald-600 uppercase tracking-wide mb-1.5">סיכום רפואי</p>

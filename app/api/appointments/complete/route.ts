@@ -1,6 +1,6 @@
 import { NextRequest, NextResponse, after } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
-import { generateConsultationSummary } from '@/lib/ai/summary'
+import { generateSummaryDraft } from '@/lib/clinical-summary/service'
 import { notify } from '@/lib/notifications'
 
 // The summary is a ~30s Claude call plus notifications; the default limit is too tight.
@@ -73,15 +73,20 @@ export async function POST(req: NextRequest) {
     // Automatic clinic summary, run through after(): Vercel keeps the function
     // alive until it finishes. (The previous un-awaited fetch to /api/ai-summary
     // was frozen with the function — and sent an action the route rejected.)
-    // The AI summary is a draft for the doctor only: an unreviewed AI text must
-    // never reach the patient. The patient gets the plain "consultation ended".
+    // The AI summary is a draft for the treating doctor (consultation_summaries):
+    // it reaches the patient only after the doctor approves and releases it.
+    // The patient now gets the plain "consultation ended" notice.
     if (transitioned && apt.doctor_id) {
       const doctorId = apt.doctor_id
       after(async () => {
-        const outcome = await generateConsultationSummary({
-          appointmentId, userId: doctorId, admin, notifyPatient: false,
-        })
-        if (!outcome.ok) console.error('[appointments/complete] summary failed', appointmentId)
+        // A consented transcript still being processed: the draft is generated when it lands.
+        const { data: tr } = await admin.from('consultation_transcripts')
+          .select('status').eq('appointment_id', appointmentId).maybeSingle()
+        const waitForTranscript = tr?.status === 'recording' || tr?.status === 'processing'
+        if (!waitForTranscript) {
+          const outcome = await generateSummaryDraft(admin, { appointmentId, userId: doctorId, trigger: 'auto' })
+          if (!outcome.ok) console.error('[appointments/complete] summary draft failed', appointmentId)
+        }
         await notify('appointment_completed', appointmentId, admin)
       })
     }

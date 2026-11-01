@@ -51,15 +51,7 @@ export async function triageAgent(input: { complaint: string; description?: stri
   )
 }
 
-// ---- SUMMARY ----
-export async function summaryAgent(input: { complaint: string; notes?: string; assessment?: string; plan?: string; duration?: number }) {
-  return callClaude(
-    `אתה מסכם ייעוצים רפואיים בפורמט SOAP. ענה JSON בלבד:
-{"summary":"<סיכום>","soap":{"subjective":"","objective":"","assessment":"","plan":""},"key_findings":[],"follow_up":[],"icd_suggestions":[]}`,
-    `תלונה: ${input.complaint}${input.notes ? `\nהערות רופא: ${input.notes}` : ''}${input.assessment ? `\nהערכה: ${input.assessment}` : ''}${input.plan ? `\nתוכנית: ${input.plan}` : ''}`,
-    3000
-  )
-}
+// The consultation summary lives in lib/clinical-summary (clinician-reviewed lifecycle).
 
 // ---- PRESCRIPTION DRAFT ----
 export async function prescriptionAgent(input: { diagnosis: string; age?: number; allergies?: string[]; medications?: string[] }) {

@@ -10,7 +10,7 @@ import { Button, Card, CardContent, CardHeader, Badge, Input, PageLoading, Empty
 import { STATUS_LABELS, formatDateTime, getInitials, cn } from '@/lib/utils'
 import type { Appointment, User, QuestionnaireResponse, QuestionItem } from '@/types/database'
 import { useDataChanged } from '@/lib/hooks/useDataChanged'
-import { parseAiSummary } from '@/lib/ai/summary-format'
+import { SummaryReviewPanel } from '@/components/clinical/SummaryReviewPanel'
 
 type ResponseWithQuest = QuestionnaireResponse & {
   questionnaire?: { id: string; title: string; questions: QuestionItem[] }
@@ -283,152 +283,6 @@ function statusBadgeVariant(status: string): 'success' | 'danger' | 'warning' | 
 }
 
 // ── AI Summary Card ────────────────────────────────────────────────
-function parseSummary(raw: string): { sections: { label: string; value: string; warning?: boolean }[]; structured: Record<string, unknown> | null } {
-  try {
-    const p = parseAiSummary(raw) as Record<string, unknown> | null
-    if (!p) throw new Error('not JSON')
-    const soap = (p.soap || {}) as Record<string, string>
-    const sections: { label: string; value: string; warning?: boolean }[] = []
-
-    if (p.summary) sections.push({ label: 'סיכום', value: String(p.summary) })
-    if (soap.subjective) sections.push({ label: 'תלונות סובייקטיביות', value: soap.subjective })
-    if (soap.objective)  sections.push({ label: 'ממצאים אובייקטיביים', value: soap.objective })
-    if (soap.assessment) sections.push({ label: 'הערכה', value: soap.assessment })
-    if (soap.plan)       sections.push({ label: 'תוכנית טיפול', value: soap.plan })
-
-    // fallback fields (other AI schema variants)
-    if (!soap.assessment && p.diagnosis)      sections.push({ label: 'אבחנה', value: String(p.diagnosis) })
-    if (!soap.plan && p.treatment_plan)       sections.push({ label: 'תוכנית טיפול', value: String(p.treatment_plan) })
-    if (p.medications && Array.isArray(p.medications)) {
-      const meds = p.medications as string[]
-      if (meds.length) sections.push({ label: 'תרופות', value: meds.join(', ') })
-    }
-
-    const followUp = p.follow_up
-    if (followUp) {
-      if (Array.isArray(followUp) && followUp.length) {
-        sections.push({ label: 'המשך טיפול', value: (followUp as string[]).join(' | ') })
-      } else if (typeof followUp === 'string') {
-        sections.push({ label: 'המשך טיפול', value: followUp })
-      }
-    }
-
-    const findings = p.key_findings
-    if (Array.isArray(findings) && (findings as string[]).length) {
-      sections.push({ label: 'ממצאים עיקריים', value: (findings as string[]).join(' · ') })
-    }
-
-    const redFlags = p.red_flags
-    if (Array.isArray(redFlags) && (redFlags as string[]).length) {
-      sections.push({ label: '⚠️ סימנים לדאגה', value: (redFlags as string[]).join(', '), warning: true })
-    }
-
-    if (sections.length === 0) sections.push({ label: 'סיכום', value: raw })
-
-    return { sections, structured: p }
-  } catch {
-    return { sections: [{ label: 'סיכום', value: raw }], structured: null }
-  }
-}
-
-function AISummaryCard({
-  summary, onSend, sending, sendResult, onClearResult,
-}: {
-  summary: string
-  onSend: (channel: 'email' | 'whatsapp' | 'in_app') => void
-  sending: boolean
-  sendResult: { ok: boolean; error?: string } | null
-  onClearResult: () => void
-}) {
-  const [showJson, setShowJson] = useState(false)
-  const { sections, structured } = parseSummary(summary)
-
-  return (
-    <Card className="border-teal-200">
-      <CardHeader className="py-3 px-4 border-b border-teal-100 bg-teal-50/60">
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <svg className="w-4 h-4 text-teal-600 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22" />
-            </svg>
-            <p className="text-sm font-semibold text-teal-800">סיכום ייעוץ — AI</p>
-          </div>
-          {structured && (
-            <button
-              onClick={() => setShowJson(v => !v)}
-              className="text-xs text-teal-500 hover:text-teal-700 font-medium transition-colors"
-            >
-              {showJson ? 'הצג טקסט' : 'הצג JSON'}
-            </button>
-          )}
-        </div>
-      </CardHeader>
-      <CardContent className="py-4 px-4 space-y-4">
-        {/* Natural language sections view */}
-        {!showJson && (
-          <div className="space-y-3">
-            {sections.map((sec, i) => (
-              <div key={i} className={cn('rounded-lg p-3', sec.warning ? 'bg-amber-50 border border-amber-200' : 'bg-slate-50 border border-slate-100')}>
-                <p className={cn('text-xs font-bold uppercase tracking-wide mb-1', sec.warning ? 'text-amber-700' : 'text-teal-600')}>{sec.label}</p>
-                <p className={cn('text-sm leading-relaxed', sec.warning ? 'text-amber-900' : 'text-slate-800')}>{sec.value}</p>
-              </div>
-            ))}
-          </div>
-        )}
-
-        {/* JSON view */}
-        {showJson && structured && (
-          <pre className="text-xs text-slate-600 bg-slate-50 rounded-xl p-3 overflow-auto max-h-60 border border-slate-200">
-            {JSON.stringify(structured, null, 2)}
-          </pre>
-        )}
-
-        {/* Send summary to patient */}
-        <div className="pt-3 border-t border-teal-100 space-y-2">
-          <p className="text-xs font-semibold text-slate-500 uppercase tracking-wide">שלח סיכום למטופל</p>
-          <div className="grid grid-cols-3 gap-2">
-            {[
-              { channel: 'in_app' as const, label: 'בעמוד', icon: '🔔', cls: 'bg-teal-50 hover:bg-teal-100 text-teal-700 border-teal-200' },
-              { channel: 'whatsapp' as const, label: 'WhatsApp', icon: '💬', cls: 'bg-green-50 hover:bg-green-100 text-green-700 border-green-200' },
-              { channel: 'email' as const, label: 'אימייל', icon: '📧', cls: 'bg-indigo-50 hover:bg-indigo-100 text-indigo-700 border-indigo-200' },
-            ].map(opt => (
-              <button
-                key={opt.channel}
-                onClick={() => { onClearResult(); onSend(opt.channel) }}
-                disabled={sending}
-                className={cn(
-                  'flex flex-col items-center gap-1 py-2.5 rounded-xl border text-xs font-medium transition-all disabled:opacity-40',
-                  opt.cls
-                )}
-              >
-                <span className="text-base">{opt.icon}</span>
-                <span>{opt.label}</span>
-              </button>
-            ))}
-          </div>
-          {sending && (
-            <div className="flex items-center gap-2 text-xs text-slate-500">
-              <Spinner size="sm" /> שולח...
-            </div>
-          )}
-          {sendResult && (
-            <div className={cn(
-              'rounded-xl px-3 py-2 text-xs flex items-center gap-2 font-medium',
-              sendResult.ok ? 'bg-green-50 text-green-700 border border-green-200' : 'bg-red-50 text-red-700 border border-red-200'
-            )}>
-              {sendResult.ok ? (
-                <><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="20 6 9 17 4 12"/></svg>נשלח בהצלחה ✓</>
-              ) : (
-                <><svg className="w-3.5 h-3.5 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>{sendResult.error || 'שגיאה בשליחה'}</>
-              )}
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
-
 // ── SOAP field definitions ─────────────────────────────────────────
 const SOAP_FIELDS = [
   {
@@ -480,8 +334,6 @@ export default function DoctorAppointmentsPage() {
   const [saving, setSaving] = useState(false)
   const [filter, setFilter] = useState<string>('all')
   const [search, setSearch] = useState('')
-  // Consultations just ended whose automatic AI summary is still being written.
-  const [summaryPending, setSummaryPending] = useState<string[]>([])
   const [soapForm, setSoapForm] = useState({ subjective_notes: '', objective_notes: '', assessment: '', plan: '', diagnosis: '', follow_up_instructions: '' })
   const [questResponses, setQuestResponses] = useState<ResponseWithQuest[]>([])
   const [showQuestionnaire, setShowQuestionnaire] = useState(false)
@@ -491,11 +343,8 @@ export default function DoctorAppointmentsPage() {
   const [docLoading, setDocLoading] = useState(false)
   const [generatedDoc, setGeneratedDoc] = useState<{ content: string; label: string } | null>(null)
   const [docType, setDocType] = useState('medical_letter')
-  const [aiSummaryLoading, setAiSummaryLoading] = useState(false)
   const [patientDocs, setPatientDocs] = useState<{ id: string; file_name: string; file_type: string; storage_path: string; created_at: string }[]>([])
   const [docsLoading, setDocsLoading] = useState(false)
-  const [sendingSummary, setSendingSummary] = useState(false)
-  const [sendSummaryResult, setSendSummaryResult] = useState<{ ok: boolean; error?: string } | null>(null)
   const supabase = getClient()
 
   const DOC_TYPES = [
@@ -586,30 +435,6 @@ export default function DoctorAppointmentsPage() {
     }
   }
 
-  const sendSummaryToPatient = async (channel: 'email' | 'whatsapp' | 'in_app') => {
-    if (!selected) return
-    setSendingSummary(true)
-    setSendSummaryResult(null)
-    try {
-      const res = await fetch('/api/notifications/send-summary', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ appointmentId: selected.id, channel }),
-      })
-      const data = await res.json()
-      if (res.ok) {
-        const channelResult = data.results?.[channel] || data.results?.in_app
-        setSendSummaryResult(channelResult || { ok: true })
-      } else {
-        setSendSummaryResult({ ok: false, error: data.error || 'שגיאה בשליחה' })
-      }
-    } catch {
-      setSendSummaryResult({ ok: false, error: 'שגיאה בשליחה' })
-    } finally {
-      setSendingSummary(false)
-    }
-  }
-
   const saveSOAP = async () => {
     if (!selected) return
     setSaving(true)
@@ -637,7 +462,7 @@ export default function DoctorAppointmentsPage() {
       return
     }
 
-    // Server marks it completed, generates the clinic summary and notifies the patient.
+    // Server marks it completed and drafts the AI summary for the doctor's review.
     try {
       const res = await fetch('/api/appointments/complete', {
         method: 'POST',
@@ -659,31 +484,10 @@ export default function DoctorAppointmentsPage() {
     const endedId = selected.id
     setSaving(false)
     setSelected(null)
-    setMessage({ type: 'success', text: 'הייעוץ הסתיים. סיכום AI נוצר כעת ברקע ויישלח למטופל' })
-    setTimeout(() => setMessage(null), 4000)
+    setMessage({ type: 'success', text: 'הייעוץ הסתיים. טיוטת סיכום AI נוצרת ברקע; היא תגיע למטופל רק אחרי שתאשר ותשחרר אותה' })
+    setTimeout(() => setMessage(null), 5000)
     loadData()
-    waitForSummary(endedId)
-  }
-
-  /** Polls until the background summary lands (max ~2 min), then refreshes the view. */
-  const waitForSummary = (id: string) => {
-    setSummaryPending(p => (p.includes(id) ? p : [...p, id]))
-    let tries = 0
-    const tick = async () => {
-      tries++
-      const { data } = await supabase.from('appointments')
-        .select('ai_summary, ai_summary_generated_at, subjective_notes, assessment, plan')
-        .eq('id', id).single()
-      const row = data as Partial<Appointment> | null
-      if (row?.ai_summary || tries >= 24) {
-        setSummaryPending(p => p.filter(x => x !== id))
-        if (row?.ai_summary) setSelected(prev => (prev && prev.id === id ? { ...prev, ...row } : prev))
-        loadData()
-        return
-      }
-      setTimeout(tick, 5000)
-    }
-    setTimeout(tick, 5000)
+    router.push(`/dashboard/doctor/appointments?id=${endedId}`)
   }
 
   const generateBrief = async (apt: Appointment) => {
@@ -707,29 +511,6 @@ export default function DoctorAppointmentsPage() {
       setMessage({ type: 'error', text: 'שגיאה ביצירת בריף AI' })
     } finally {
       setBriefLoading(false)
-    }
-  }
-
-  const generateAISummaryLocal = async (apt: Appointment) => {
-    setAiSummaryLoading(true)
-    setMessage(null)
-    try {
-      const res = await fetch('/api/ai-summary', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ appointmentId: apt.id, action: 'summary' }),
-      })
-      if (res.ok) {
-        setMessage({ type: 'success', text: 'סיכום AI נוצר בהצלחה' })
-        setTimeout(() => setMessage(null), 3000)
-        loadData()
-      } else {
-        setMessage({ type: 'error', text: 'שגיאה ביצירת סיכום AI' })
-      }
-    } catch {
-      setMessage({ type: 'error', text: 'שגיאה ביצירת סיכום AI' })
-    } finally {
-      setAiSummaryLoading(false)
     }
   }
 
@@ -1042,15 +823,9 @@ export default function DoctorAppointmentsPage() {
                   </CardContent>
                 </Card>
 
-                {/* ── AI summary (if exists) ── */}
-                {selected.ai_summary && (
-                  <AISummaryCard
-                    summary={selected.ai_summary}
-                    onSend={sendSummaryToPatient}
-                    sending={sendingSummary}
-                    sendResult={sendSummaryResult}
-                    onClearResult={() => setSendSummaryResult(null)}
-                  />
+                {/* ── AI summary: draft → doctor review → approve → release ── */}
+                {['in_progress', 'completed'].includes(selected.status) && (
+                  <SummaryReviewPanel key={selected.id} appointmentId={selected.id} appointmentStatus={selected.status} />
                 )}
 
                 {/* ── questionnaire responses ── */}
@@ -1264,25 +1039,6 @@ export default function DoctorAppointmentsPage() {
                         <polygon points="23 7 16 12 23 17 23 7" /><rect x="1" y="5" width="15" height="14" rx="2" ry="2" />
                       </svg>
                       שיחת וידאו
-                    </Button>
-                  )}
-
-                  {selected.status === 'completed' && !selected.ai_summary && summaryPending.includes(selected.id) && (
-                    <span className="inline-flex items-center gap-2 px-3 py-2 rounded-lg bg-purple-50 text-purple-700 text-sm font-medium" role="status">
-                      <Spinner size="sm" /> סיכום AI בהכנה…
-                    </span>
-                  )}
-
-                  {selected.status === 'completed' && !selected.ai_summary && !summaryPending.includes(selected.id) && (
-                    <Button
-                      onClick={() => generateAISummaryLocal(selected)}
-                      loading={aiSummaryLoading}
-                      className="bg-purple-600 hover:bg-purple-700 gap-2"
-                    >
-                      <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                        <path d="M12 2a4 4 0 014 4v1h2a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2h2V6a4 4 0 014-4z" /><circle cx="9" cy="13" r="1" /><circle cx="15" cy="13" r="1" />
-                      </svg>
-                      צור סיכום AI
                     </Button>
                   )}
 

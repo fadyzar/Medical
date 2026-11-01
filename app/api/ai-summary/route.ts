@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
 import { prescriptionAgent } from '@/lib/ai/agents'
-import { generateConsultationSummary } from '@/lib/ai/summary'
+import { generateSummaryDraft } from '@/lib/clinical-summary/service'
 import { aiSummarySchema } from '@/lib/validation/schemas'
 import { rateLimit } from '@/lib/security/rate-limit'
 import { orchestrate } from '@/lib/ai/orchestrator'
@@ -98,13 +98,10 @@ export async function POST(req: Request) {
     }
 
     if (action === 'summary') {
-      // Explicit doctor request: regenerate even if one exists. The draft is the
-      // doctor's; the patient is not told about an unreviewed AI text.
-      const outcome = await generateConsultationSummary({
-        appointmentId, userId: user.id, admin, force: true, notifyPatient: false,
-      })
+      // A new draft version for the doctor's review; nothing reaches the patient until release.
+      const outcome = await generateSummaryDraft(admin, { appointmentId, userId: user.id, trigger: 'doctor' })
       if (!outcome.ok) {
-        return NextResponse.json({ success: false, error: 'יצירת סיכום AI נכשלה. נסה שוב.' }, { status: 502 })
+        return NextResponse.json({ success: false, error: outcome.error }, { status: outcome.status })
       }
       return NextResponse.json({ success: true, data: outcome.data })
     }

@@ -7,6 +7,7 @@ import { getClient } from '@/lib/supabase/client'
 import { Button, Input, Card, Badge, PageLoading, EmptyState } from '@/components/ui'
 import { cn, formatDateTime, STATUS_LABELS, getInitials } from '@/lib/utils'
 import type { User, Appointment, Document } from '@/types/database'
+import { patientSummary } from '@/lib/ai/summary-format'
 
 // ── Types ──────────────────────────────────────────────
 
@@ -458,10 +459,10 @@ function PatientVisits({ visits }: { visits: PatientAppointment[] }) {
           )}
 
           {/* AI summary */}
-          {visit.ai_summary && (
+          {visit.ai_summary_released_at && patientSummary(visit.ai_summary).summary && (
             <div className="mt-3 p-2.5 bg-purple-50 rounded-lg">
-              <p className="text-xs font-medium text-purple-700 mb-0.5">סיכום AI</p>
-              <p className="text-xs text-purple-600 line-clamp-3">{visit.ai_summary}</p>
+              <p className="text-xs font-medium text-purple-700 mb-0.5">סיכום שאושר ונשלח למטופל</p>
+              <p className="text-xs text-purple-600 line-clamp-3">{patientSummary(visit.ai_summary).summary}</p>
             </div>
           )}
         </div>

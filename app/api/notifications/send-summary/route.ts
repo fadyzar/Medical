@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email'
 import { sendWhatsApp } from '@/lib/whatsapp'
+import { mergeInstructions, patientSummary } from '@/lib/ai/summary-format'
 
 // Send appointment summary to patient:
 //  1. Always creates an in-app notification
@@ -20,7 +21,7 @@ export async function POST(req: NextRequest) {
   if (!appointmentId) return NextResponse.json({ error: 'Missing appointmentId' }, { status: 400 })
 
   type AptRow = {
-    id: string; ai_summary: string | null; chief_complaint: string
+    id: string; ai_summary: string | null; ai_summary_released_at: string | null; chief_complaint: string
     subjective_notes: string | null; assessment: string | null; plan: string | null
     diagnosis: string | null; follow_up_instructions: string | null
     scheduled_at: string | null; organization_id: string; doctor_id: string | null
@@ -32,7 +33,7 @@ export async function POST(req: NextRequest) {
   const { data: aptRaw } = await supabase
     .from('appointments')
     .select(`
-      id, ai_summary, chief_complaint, subjective_notes, assessment, plan, diagnosis,
+      id, ai_summary, ai_summary_released_at, chief_complaint, subjective_notes, assessment, plan, diagnosis,
       follow_up_instructions, scheduled_at, organization_id,
       patient:patient_id(id, first_name, last_name, email, phone),
       doctor_id,
@@ -61,7 +62,9 @@ export async function POST(req: NextRequest) {
   if (!patient) return NextResponse.json({ error: 'Patient not found' }, { status: 404 })
 
   // Build human-readable summary from SOAP + AI
+  const released = apt.ai_summary_released_at ? patientSummary(apt.ai_summary) : null
   const summaryText = buildSummaryText({
+    released: released?.summary ? released : undefined,
     chief_complaint: apt.chief_complaint,
     subjective_notes: apt.subjective_notes ?? undefined,
     assessment: apt.assessment ?? undefined,
@@ -141,7 +144,7 @@ export async function POST(req: NextRequest) {
 }
 
 function buildSummaryText(
-  apt: { chief_complaint?: string; subjective_notes?: string; assessment?: string; plan?: string; diagnosis?: string; follow_up_instructions?: string },
+  apt: { released?: { summary: string | null; followUp: string[] }; chief_complaint?: string; subjective_notes?: string; assessment?: string; plan?: string; diagnosis?: string; follow_up_instructions?: string },
   doctor: { first_name: string; last_name: string } | null
 ): string {
   const lines: string[] = []
@@ -153,8 +156,16 @@ function buildSummaryText(
     lines.push(`תלונה עיקרית: ${apt.chief_complaint}`)
   }
 
-  // The unreviewed AI summary is never sent to a patient: only what the
-  // doctor wrote in the record goes out.
+  // Only a summary the treating doctor approved and released; a draft is never sent.
+  if (apt.released?.summary) {
+    lines.push(`\n${apt.released.summary}`)
+    if (apt.diagnosis) lines.push(`אבחנה: ${apt.diagnosis}`)
+    const followUp = mergeInstructions(apt.released.followUp, apt.follow_up_instructions)
+    if (followUp.length) lines.push(`הנחיות:\n${followUp.map(f => `• ${f}`).join('\n')}`)
+    lines.push('\nהסיכום נכתב בסיוע AI, ונבדק ואושר על ידי הרופא המטפל.')
+    return lines.join('\n')
+  }
+
   // SOAP notes
   if (apt.subjective_notes) lines.push(`\nתלונות סובייקטיביות:\n${apt.subjective_notes}`)
   if (apt.assessment) lines.push(`הערכה: ${apt.assessment}`)

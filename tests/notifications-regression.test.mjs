@@ -25,7 +25,7 @@ test('summaries: no API route calls another API route over HTTP (frozen on Verce
 test('summaries: consultation completion generates the summary via after()', () => {
   const src = read('app/api/appointments/complete/route.ts')
   assert.match(src, /after\(/)
-  assert.match(src, /generateConsultationSummary\(/)
+  assert.match(src, /generateSummaryDraft\(/)
   assert.doesNotMatch(src, /action:\s*'summarize'/, "'summarize' is rejected by aiSummarySchema")
 })
 

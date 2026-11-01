@@ -25,7 +25,7 @@ import { assertToolAllowed, WRITE_TOOLS, type ToolName } from '@/lib/ai/assistan
 import { TOPICS, type KnowledgeTopic } from '@/lib/ai/assistant/knowledge'
 import { resolvePage } from '@/lib/ai/assistant/navigation'
 import { inviteMember, INVITE_ROLE_LABELS, type InviteRole } from '@/lib/services/invitations'
-import { generateConsultationSummary } from '@/lib/ai/summary'
+import { generateSummaryDraft } from '@/lib/clinical-summary/service'
 import { getOrgGreenApiCredentials, greenApiUrl } from '@/lib/whatsapp'
 import type { AppointmentStatus } from '@/types/database'
 
@@ -185,8 +185,15 @@ async function getAppointment(caller: Caller, args: Record<string, unknown>): Pr
       .eq('id', id).eq('doctor_id', caller.id).maybeSingle()
     const n = notes as Record<string, string | null> | null
     if (n) {
-      const parsedSummary = parseAiSummary(n.ai_summary)
-      const aiSummary: string | null = parsedSummary ? (parsedSummary.summary ?? null) : n.ai_summary
+      const { data: versions } = await createServiceRole().from('consultation_summaries')
+        .select('version, status').eq('appointment_id', id).order('version', { ascending: false }).limit(1)
+      const latest = (versions || [])[0] as { version: number; status: string } | undefined
+      const released = parseAiSummary(n.ai_summary)
+      const aiSummary = {
+        latest_version: latest?.version ?? null,
+        status: latest?.status ?? 'none',
+        released_patient_text: released?.summary ?? null,
+      }
       return {
         kind: 'data',
         result: {
@@ -733,9 +740,6 @@ async function prepareVisitSummary(caller: Caller, args: Record<string, unknown>
   if (!apt || caller.role !== 'doctor' || apt.doctor_id !== caller.id) {
     return { kind: 'error', error: 'התור לא נמצא, או שאינו משויך אליך' }
   }
-  if (!apt.subjective_notes && !apt.assessment && !apt.plan) {
-    return { kind: 'error', error: 'אין עדיין הערות רופא בתור הזה. כתוב הערות SOAP ואז אפשר ליצור סיכום.' }
-  }
   return {
     kind: 'confirmation',
     card: {
@@ -748,8 +752,9 @@ async function prepareVisitSummary(caller: Caller, args: Record<string, unknown>
         { label: 'מועד', value: fmt(apt.scheduled_at) },
         { label: 'סיבת הפנייה', value: apt.chief_complaint || '—' },
       ],
-      warning: 'טיוטה בלבד, על סמך ההערות שלך. היא לא תישלח למטופל עד שתעבור עליה ותשלח בעצמך.'
-        + (apt.ai_summary ? ' הסיכום הקודם יוחלף.' : ''),
+      warning: 'טיוטה בלבד, מההזמנה, ההיסטוריה, השאלון וההערות שלך. המטופל לא יראה אותה עד שתאשר ותשחרר אותה.'
+        + (!apt.subjective_notes && !apt.assessment && !apt.plan ? ' עדיין אין הערות רופא, ולכן ההערכה והתוכנית יישארו ריקות.' : '')
+        + (apt.ai_summary ? ' תיווצר גרסה חדשה; הגרסה ששוחררה תישאר אצל המטופל עד שתשחרר את החדשה.' : ''),
       confirmLabel: 'צור טיוטה',
       payload: { appointmentId: id },
     },
@@ -931,24 +936,13 @@ export async function runConfirmedAction(
       if (!apt || apt.doctor_id !== caller.id) return { ok: false, status: 403, error: 'התור אינו משויך אליך' }
 
       // Draft for the doctor's review: saved, never sent to the patient from here.
-      const outcome = await generateConsultationSummary({ appointmentId, userId: caller.id, admin, force: true, notifyPatient: false })
+      const outcome = await generateSummaryDraft(admin, { appointmentId, userId: caller.id, trigger: 'doctor' })
       if (!outcome.ok) return { ok: false, status: 502, error: 'יצירת הסיכום נכשלה. נסה שוב בעוד רגע.' }
 
-      try {
-        await admin.from('audit_logs').insert({
-          organization_id: apt.organization_id,
-          user_id: caller.id,
-          action: 'AI_SUMMARY_DRAFTED',
-          resource_type: 'appointment',
-          resource_id: appointmentId,
-          description: 'טיוטת סיכום AI נוצרה דרך העוזר החכם',
-          metadata: { via: 'ai_assistant' },
-        })
-      } catch { /* best-effort */ }
 
       return {
         ok: true,
-        data: { message: 'טיוטת הסיכום נשמרה בתור. עבור עליה, ערוך ושלח למטופל ממסך התורים.', appointmentId },
+        data: { message: 'טיוטת הסיכום נשמרה. היא לא נשלחה למטופל: עבור עליה במסך התורים, ערוך, אשר ושחרר.', appointmentId },
       }
     }
 

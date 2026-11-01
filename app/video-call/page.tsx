@@ -1,5 +1,6 @@
 'use client'
 
+import { TranscriptionConsentCard, TranscriptionIndicator } from '@/components/clinical/TranscriptionConsent'
 import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
@@ -163,13 +164,11 @@ export default function VideoCallPage() {
       const deadline = Date.now() + 45_000 // 45s timeout
       const poll = setInterval(async () => {
         try {
-          const { data } = await supabase
-            .from('appointments')
-            .select('ai_summary')
-            .eq('id', id)
-            .single()
-          if (data?.ai_summary) {
-            setAiSummary(data.ai_summary as string)
+          // The draft is the doctor's; it reaches the patient only after approval.
+          const res = await fetch(`/api/consultation-summary?appointmentId=${id}`, { cache: 'no-store' })
+          const data = res.ok ? await res.json() as { current: { version: number } | null } : null
+          if (data?.current) {
+            setAiSummary(`גרסה ${data.current.version}`)
             setSummaryLoading(false)
             clearInterval(poll)
           } else if (Date.now() > deadline) {
@@ -328,6 +327,8 @@ export default function VideoCallPage() {
                 <p className="text-yellow-400 text-xs">שגיאת תצורה: כתובת LiveKit לא הוגדרה</p>
               )}
 
+              {id && <TranscriptionConsentCard appointmentId={id} otherLabel={profile?.role === 'doctor' ? 'המטופל' : 'הרופא'} />}
+
               <Button
                 onClick={joinCall}
                 size="lg"
@@ -374,18 +375,18 @@ export default function VideoCallPage() {
                 {summaryLoading && (
                   <div className="flex items-center gap-3 py-3 text-slate-400">
                     <Spinner size="sm" />
-                    <span className="text-sm">מייצר סיכום אוטומטי...</span>
+                    <span className="text-sm">מכין טיוטת סיכום לבדיקתך…</span>
                   </div>
                 )}
 
                 {aiSummary && !summaryLoading && (
-                  <div className="bg-slate-900 rounded-xl p-4 text-sm text-slate-200 leading-relaxed max-h-48 overflow-y-auto whitespace-pre-wrap">
-                    {aiSummary}
+                  <div className="bg-slate-900 rounded-xl p-4 text-sm text-slate-200 leading-relaxed">
+                    טיוטת הסיכום מוכנה ({aiSummary}). <strong>היא לא נשלחה למטופל:</strong> עבור עליה, ערוך, אשר ושחרר.
                   </div>
                 )}
 
                 {!summaryLoading && !aiSummary && (
-                  <p className="text-sm text-slate-500">הסיכום לא נוצר אוטומטית — ניתן לייצר ידנית מדף התורים.</p>
+                  <p className="text-sm text-slate-500">הטיוטה עדיין לא מוכנה — היא תופיע בדף התור, וניתן גם ליצור אותה משם.</p>
                 )}
               </CardContent>
             </Card>
@@ -398,7 +399,7 @@ export default function VideoCallPage() {
                 className="w-full bg-teal-600 hover:bg-teal-700"
               >
                 <svg className="w-4 h-4 ml-2" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 013 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
-                השלם רשימות SOAP ושלח למטופל
+                השלם רשימות ובדוק את טיוטת הסיכום
               </Button>
               <Button
                 onClick={() => router.push('/dashboard/doctor/dashboard')}
@@ -433,7 +434,7 @@ export default function VideoCallPage() {
                 </div>
                 <div>
                   <p className="text-sm font-semibold text-white">סיכום הייעוץ בדרך</p>
-                  <p className="text-xs text-slate-400 mt-0.5">הרופא יכין סיכום ותשלח אליך הודעה. תוכל לראות אותו גם ב״המסמכים שלי״.</p>
+                  <p className="text-xs text-slate-400 mt-0.5">הרופא יבדוק ויאשר את סיכום הייעוץ, ואז תקבל הודעה. הסיכום יופיע ב״התורים שלי״.</p>
                 </div>
               </CardContent>
             </Card>
@@ -762,6 +763,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
           <span className="text-slate-400 text-xs hidden sm:inline">{complaint}</span>
         </div>
         <div className="flex items-center gap-3">
+          <TranscriptionIndicator appointmentId={appointmentId} />
           {recording && (
             <span className="flex items-center gap-1.5 bg-red-600/90 px-2.5 py-1 rounded-md text-xs font-medium">
               <span className="w-2 h-2 rounded-full bg-white animate-pulse" />

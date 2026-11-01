@@ -5,7 +5,7 @@ import { useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { useNow } from '@/lib/hooks/useNow'
-import { Button, Card, CardContent, CardHeader, StatCard, Badge, PageLoading, EmptyState, Spinner } from '@/components/ui'
+import { Button, Card, CardContent, CardHeader, StatCard, Badge, PageLoading, EmptyState } from '@/components/ui'
 import { ChartCard, BarTrend, MED } from '@/components/ui/medical'
 import { STATUS_LABELS, formatDateTime, formatTime, getInitials, cn, specialtyLabels } from '@/lib/utils'
 import type { Appointment, User } from '@/types/database'
@@ -154,7 +154,6 @@ export default function DoctorDashboard() {
   const [loading, setLoading] = useState(true)
   // Ticks so the day-boundary filters and the greeting stay correct without a reload.
   const now = useNow(60_000)
-  const [aiLoading, setAiLoading] = useState<string | null>(null)
   const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const supabase = getClient()
@@ -214,22 +213,6 @@ export default function DoctorDashboard() {
     loadData()
   }
 
-  const generateAISummary = async (id: string) => {
-    setAiLoading(id)
-    setMessage(null)
-    try {
-      const res = await fetch('/api/ai-summary', { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ appointmentId: id, action: 'summary' }) })
-      if (res.ok) {
-        setMessage({ type: 'success', text: 'סיכום AI נוצר בהצלחה' })
-        setTimeout(() => setMessage(null), 3000)
-        loadData()
-      } else {
-        setMessage({ type: 'error', text: 'שגיאה ביצירת סיכום AI' })
-      }
-    } catch {
-      setMessage({ type: 'error', text: 'שגיאה ביצירת סיכום AI' })
-    } finally { setAiLoading(null) }
-  }
 
   if (loading) return <PageLoading />
 
@@ -238,7 +221,8 @@ export default function DoctorDashboard() {
   const todayKey  = new Date(now).toDateString()
   const today     = appointments.filter(a => a.scheduled_at && new Date(a.scheduled_at).toDateString() === todayKey)
   const completed = appointments.filter(a => a.status === 'completed')
-  const needSummary = completed.filter(a => !a.ai_summary)
+  // Completed consultations whose summary the doctor has not yet approved and released.
+  const needSummary = completed.filter(a => !a.ai_summary_released_at)
 
   // Real 7-day appointment volume (by scheduled date, falling back to created)
   const weeklyData = Array.from({ length: 7 }).map((_, i) => {
@@ -599,8 +583,8 @@ export default function DoctorDashboard() {
                   </svg>
                 </div>
                 <div>
-                  <h3 className="font-bold text-purple-900">ממתינים לסיכום AI</h3>
-                  <p className="text-xs text-purple-600">ייעוצים שהסתיימו ועדיין לא קיבלו סיכום אוטומטי</p>
+                  <h3 className="font-bold text-purple-900">סיכומים ממתינים לאישורך</h3>
+                  <p className="text-xs text-purple-600">ייעוצים שהסתיימו והסיכום שלהם עדיין לא אושר ושוחרר למטופל</p>
                 </div>
               </div>
               <span className="bg-purple-500 text-white text-sm font-bold w-7 h-7 rounded-full flex items-center justify-center shrink-0">
@@ -623,19 +607,13 @@ export default function DoctorDashboard() {
                     )}
                   </div>
                   <div className="flex gap-2 shrink-0">
-                    {aiLoading === apt.id ? (
-                      <div className="flex items-center gap-2 text-sm text-purple-600">
-                        <Spinner size="sm" />
-                        <span>מייצר...</span>
-                      </div>
-                    ) : (
-                      <>
+                    <>
                         <Button
                           size="sm"
                           className="bg-purple-600 hover:bg-purple-700 text-xs"
-                          onClick={() => generateAISummary(apt.id)}
+                          onClick={() => router.push(`/dashboard/doctor/appointments?id=${apt.id}`)}
                         >
-                          צור סיכום AI
+                          בדוק ואשר סיכום
                         </Button>
                         <Button
                           size="sm"
@@ -645,8 +623,7 @@ export default function DoctorDashboard() {
                         >
                           פרטים
                         </Button>
-                      </>
-                    )}
+                    </>
                   </div>
                 </div>
               )

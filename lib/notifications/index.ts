@@ -10,6 +10,7 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { formatDateTime, formatPrice, SPECIALTIES } from '@/lib/utils'
+import { mergeInstructions, patientSummary } from '@/lib/ai/summary-format'
 
 // ── Event types ───────────────────────────────────────────────────
 
@@ -41,6 +42,7 @@ type AptContext = {
   payment_status: string | null
   status: string
   ai_summary: string | null
+  ai_summary_released_at: string | null
   subjective_notes: string | null
   assessment: string | null
   plan: string | null
@@ -58,7 +60,7 @@ async function loadContext(appointmentId: string, admin: SupabaseClient): Promis
     .select(`
       id, organization_id, patient_id, doctor_id, chief_complaint,
       requested_specialty, scheduled_at, payment_amount, payment_status,
-      status, ai_summary, subjective_notes, assessment, plan,
+      status, ai_summary, ai_summary_released_at, subjective_notes, assessment, plan,
       diagnosis, follow_up_instructions, appointment_type,
       patient:patient_id(id, first_name, last_name, phone, email),
       doctor:doctor_id(id, first_name, last_name, phone, email),
@@ -221,14 +223,14 @@ function buildTemplate(event: NotificationEvent, ctx: AptContext): Template | nu
       return {
         recipientRole: 'patient',
         inAppTitle: 'הייעוץ הסתיים',
-        inAppBody: `הייעוץ עם ${doctorName} הסתיים. ${ctx.diagnosis ? `אבחנה: ${ctx.diagnosis}.` : ''} ${ctx.follow_up_instructions ? ctx.follow_up_instructions : ''}`,
+        inAppBody: `הייעוץ עם ${doctorName} הסתיים. ${ctx.diagnosis ? `אבחנה: ${ctx.diagnosis}.` : ''} ${ctx.follow_up_instructions ? ctx.follow_up_instructions : ''} סיכום הייעוץ יישלח אליך לאחר שהרופא יבדוק ויאשר אותו.`,
         emailSubject: `סיכום הייעוץ — ${org}`,
         whatsapp:
           `שלום ${p?.first_name || ''}! ✅\n\n` +
           `*הייעוץ עם ${doctorName} הסתיים*\n\n` +
           (ctx.diagnosis ? `📋 אבחנה: ${ctx.diagnosis}\n` : '') +
           (ctx.follow_up_instructions ? `📌 המשך טיפול: ${ctx.follow_up_instructions}\n` : '') +
-          `\n📲 לסיכום מלא: ${dashboardUrl('patient')}`,
+          `\nסיכום הייעוץ יישלח אליך לאחר שהרופא יבדוק ויאשר אותו.`,
       }
 
     case 'consultation_summary': {
@@ -297,12 +299,20 @@ function buildTemplate(event: NotificationEvent, ctx: AptContext): Template | nu
 
 function buildSummaryNaturalText(ctx: AptContext): string {
   const lines: string[] = []
+  // Only a summary the treating doctor approved and released; drafts never leave the doctor's screen.
+  const released = ctx.ai_summary_released_at ? patientSummary(ctx.ai_summary) : null
+  if (released?.summary) {
+    lines.push(released.summary)
+    if (ctx.diagnosis) lines.push(`אבחנה: ${ctx.diagnosis}`)
+    const followUp = mergeInstructions(released.followUp, ctx.follow_up_instructions)
+    if (followUp.length) lines.push(`הנחיות: ${followUp.join(' · ')}`)
+    lines.push('הסיכום נכתב בסיוע AI, ונבדק ואושר על ידי הרופא המטפל.')
+    return lines.join('\n')
+  }
   if (ctx.diagnosis) lines.push(`אבחנה: ${ctx.diagnosis}`)
   if (ctx.assessment) lines.push(`הערכה: ${ctx.assessment}`)
   if (ctx.plan) lines.push(`תוכנית טיפול: ${ctx.plan}`)
   if (ctx.follow_up_instructions) lines.push(`המשך טיפול: ${ctx.follow_up_instructions}`)
-
-  // The AI summary is a draft for the doctor; it is never part of a patient message.
   if (ctx.subjective_notes && !lines.length) lines.push(ctx.subjective_notes)
   return lines.join('\n') || 'הייעוץ הסתיים. פנה לרופא לפרטים נוספים.'
 }
