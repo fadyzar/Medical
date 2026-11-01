@@ -58,12 +58,10 @@ export async function generateConsultationSummary(params: {
 
   if (!result.success) return { ok: false, error: result.content }
 
-  const p = result.parsed as { soap?: { subjective?: string; assessment?: string; plan?: string } } | undefined
+  // The AI draft never goes into the doctor's own SOAP fields: those are the
+  // clinician's record, and patient-facing messages present them as the doctor's.
   const { error } = await admin.from('appointments').update({
     ai_summary: result.parsed ? JSON.stringify(result.parsed) : result.content, ai_summary_generated_at: new Date().toISOString(), ai_used: true,
-    ...(!apt.subjective_notes && p?.soap?.subjective ? { subjective_notes: p.soap.subjective } : {}),
-    ...(!apt.assessment && p?.soap?.assessment ? { assessment: p.soap.assessment } : {}),
-    ...(!apt.plan && p?.soap?.plan ? { plan: p.soap.plan } : {}),
   }).eq('id', appointmentId)
   if (error) return { ok: false, error: error.message }
 

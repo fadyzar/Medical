@@ -2,7 +2,6 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email'
 import { sendWhatsApp } from '@/lib/whatsapp'
-import { parseAiSummary } from '@/lib/ai/summary-format'
 
 // Send appointment summary to patient:
 //  1. Always creates an in-app notification
@@ -63,7 +62,6 @@ export async function POST(req: NextRequest) {
 
   // Build human-readable summary from SOAP + AI
   const summaryText = buildSummaryText({
-    ai_summary: apt.ai_summary ?? undefined,
     chief_complaint: apt.chief_complaint,
     subjective_notes: apt.subjective_notes ?? undefined,
     assessment: apt.assessment ?? undefined,
@@ -143,7 +141,7 @@ export async function POST(req: NextRequest) {
 }
 
 function buildSummaryText(
-  apt: { ai_summary?: string; chief_complaint?: string; subjective_notes?: string; assessment?: string; plan?: string; diagnosis?: string; follow_up_instructions?: string },
+  apt: { chief_complaint?: string; subjective_notes?: string; assessment?: string; plan?: string; diagnosis?: string; follow_up_instructions?: string },
   doctor: { first_name: string; last_name: string } | null
 ): string {
   const lines: string[] = []
@@ -155,21 +153,8 @@ function buildSummaryText(
     lines.push(`תלונה עיקרית: ${apt.chief_complaint}`)
   }
 
-  // Try AI summary first
-  if (apt.ai_summary) {
-    const parsed = parseAiSummary(apt.ai_summary)
-    if (parsed) {
-      if (parsed.summary) lines.push(`\nסיכום:\n${parsed.summary}`)
-      if (parsed.diagnosis) lines.push(`אבחנה: ${parsed.diagnosis}`)
-      if (parsed.treatment_plan) lines.push(`תוכנית טיפול: ${parsed.treatment_plan}`)
-      if (parsed.follow_up) lines.push(`המשך טיפול: ${Array.isArray(parsed.follow_up) ? parsed.follow_up.join(', ') : parsed.follow_up}`)
-      if (Array.isArray(parsed.medications) && parsed.medications.length) lines.push(`תרופות: ${parsed.medications.join(', ')}`)
-    } else if (!apt.ai_summary.trim().startsWith('{') && !apt.ai_summary.trim().startsWith('```')) {
-      // Plain text — never send raw JSON
-      lines.push(`\nסיכום AI:\n${apt.ai_summary}`)
-    }
-  }
-
+  // The unreviewed AI summary is never sent to a patient: only what the
+  // doctor wrote in the record goes out.
   // SOAP notes
   if (apt.subjective_notes) lines.push(`\nתלונות סובייקטיביות:\n${apt.subjective_notes}`)
   if (apt.assessment) lines.push(`הערכה: ${apt.assessment}`)
@@ -189,11 +174,15 @@ function buildEmailHtml(
 <div dir="rtl" style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; color: #1f2937;">
   <div style="background: linear-gradient(135deg, #3b82f6, #6366f1); padding: 32px; border-radius: 12px 12px 0 0;">
     <h1 style="color: white; margin: 0; font-size: 24px;">סיכום ייעוץ רפואי</h1>
-    <p style="color: rgba(255,255,255,0.8); margin: 8px 0 0;">שלום ${patientFirstName}, הנה סיכום הייעוץ שלך</p>
+    <p style="color: rgba(255,255,255,0.8); margin: 8px 0 0;">שלום ${escapeHtml(patientFirstName)}, הנה סיכום הייעוץ שלך</p>
   </div>
   <div style="background: white; padding: 32px; border: 1px solid #e5e7eb; border-radius: 0 0 12px 12px;">
-    <pre style="font-family: Arial, sans-serif; white-space: pre-wrap; line-height: 1.7; color: #374151; font-size: 14px;">${summaryText}</pre>
+    <pre style="font-family: Arial, sans-serif; white-space: pre-wrap; line-height: 1.7; color: #374151; font-size: 14px;">${escapeHtml(summaryText)}</pre>
     ${doctor ? `<p style="margin-top: 24px; color: #6b7280; font-size: 12px;">נשלח על ידי ד"ר ${doctor.first_name} ${doctor.last_name}</p>` : ''}
   </div>
 </div>`
+}
+
+function escapeHtml(s: string): string {
+  return s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;')
 }

@@ -98,9 +98,10 @@ export async function POST(req: Request) {
     }
 
     if (action === 'summary') {
-      // Explicit doctor request: regenerate even if one exists, and tell the patient.
+      // Explicit doctor request: regenerate even if one exists. The draft is the
+      // doctor's; the patient is not told about an unreviewed AI text.
       const outcome = await generateConsultationSummary({
-        appointmentId, userId: user.id, admin, force: true, notifyPatient: true,
+        appointmentId, userId: user.id, admin, force: true, notifyPatient: false,
       })
       if (!outcome.ok) {
         return NextResponse.json({ success: false, error: 'יצירת סיכום AI נכשלה. נסה שוב.' }, { status: 502 })

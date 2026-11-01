@@ -101,3 +101,25 @@ test('video call: in-call chat is Hebrew (no LiveKit <Chat> with fixed English t
 test('booking: no promise of automatic doctor assignment that does not exist', () => {
   assert.doesNotMatch(read('app/dashboard/patient/new-appointment/page.tsx'), /יושבץ אוטומטית/)
 })
+
+test('clinical safety: an unreviewed AI summary is never sent or shown to the patient', () => {
+  // The automatic summary emailed the patient 10s after the call, as the doctor's assessment.
+  for (const f of ['app/api/appointments/complete/route.ts', 'app/api/ai-summary/route.ts']) {
+    assert.doesNotMatch(read(f), /notifyPatient: true/, f)
+  }
+  for (const f of ['lib/notifications/index.ts', 'app/api/notifications/send-summary/route.ts']) {
+    assert.doesNotMatch(read(f), /parseAiSummary|apt\.ai_summary|ctx\.ai_summary/, f)
+  }
+  for (const f of ['app/dashboard/patient/appointments/page.tsx', 'app/dashboard/staff/appointments/page.tsx']) {
+    assert.doesNotMatch(read(f), /apt\.ai_summary/, f)
+  }
+})
+
+test('clinical safety: AI text is not written into the doctor\'s own SOAP fields', () => {
+  const s = read('lib/ai/summary.ts')
+  assert.doesNotMatch(s, /subjective_notes: p\.soap|assessment: p\.soap|plan: p\.soap/)
+})
+
+test('summary email escapes the clinical text it embeds in HTML', () => {
+  assert.match(read('app/api/notifications/send-summary/route.ts'), /escapeHtml\(summaryText\)/)
+})

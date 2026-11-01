@@ -10,7 +10,6 @@
 
 import type { SupabaseClient } from '@supabase/supabase-js'
 import { formatDateTime, formatPrice, SPECIALTIES } from '@/lib/utils'
-import { parseAiSummary } from '@/lib/ai/summary-format'
 
 // ── Event types ───────────────────────────────────────────────────
 
@@ -303,22 +302,7 @@ function buildSummaryNaturalText(ctx: AptContext): string {
   if (ctx.plan) lines.push(`תוכנית טיפול: ${ctx.plan}`)
   if (ctx.follow_up_instructions) lines.push(`המשך טיפול: ${ctx.follow_up_instructions}`)
 
-  // Try AI summary (may be JSON)
-  if (ctx.ai_summary) {
-    const parsed = parseAiSummary(ctx.ai_summary)
-    if (parsed) {
-      if (parsed.summary && !lines.length) lines.push(parsed.summary)
-      if (parsed.diagnosis && !ctx.diagnosis) lines.push(`אבחנה: ${parsed.diagnosis}`)
-      if (parsed.treatment_plan && !ctx.plan) lines.push(`תוכנית: ${parsed.treatment_plan}`)
-      const followUp = Array.isArray(parsed.follow_up) ? parsed.follow_up.join(', ') : parsed.follow_up
-      if (followUp && !ctx.follow_up_instructions) lines.push(`המשך: ${followUp}`)
-      if (Array.isArray(parsed.medications) && parsed.medications.length) lines.push(`תרופות: ${(parsed.medications as string[]).join(', ')}`)
-    } else if (!lines.length && !ctx.ai_summary.trim().startsWith('{') && !ctx.ai_summary.trim().startsWith('```')) {
-      // Plain-text summaries only; never send a patient raw JSON.
-      lines.push(ctx.ai_summary)
-    }
-  }
-
+  // The AI summary is a draft for the doctor; it is never part of a patient message.
   if (ctx.subjective_notes && !lines.length) lines.push(ctx.subjective_notes)
   return lines.join('\n') || 'הייעוץ הסתיים. פנה לרופא לפרטים נוספים.'
 }

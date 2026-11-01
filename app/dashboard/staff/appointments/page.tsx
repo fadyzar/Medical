@@ -658,14 +658,6 @@ function DetailPanel({
         </div>
       )}
 
-      {/* AI Summary */}
-      {apt.ai_summary && (
-        <div className="bg-teal-50 rounded-lg p-3">
-          <p className="text-xs font-medium text-teal-700 mb-1">סיכום AI</p>
-          <p className="text-sm text-teal-600 whitespace-pre-wrap">{apt.ai_summary}</p>
-        </div>
-      )}
-
       {/* Internal notes */}
       <div className="border border-slate-200 rounded-lg p-3 space-y-2">
         <p className="text-sm font-medium text-slate-700">הערות פנימיות</p>

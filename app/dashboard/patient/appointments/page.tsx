@@ -11,7 +11,6 @@ import { toast } from 'sonner'
 import type { Appointment, User } from '@/types/database'
 import { useDataChanged } from '@/lib/hooks/useDataChanged'
 import { withPublicDoctors } from '@/lib/doctors/public'
-import { patientSummary } from '@/lib/ai/summary-format'
 
 type AptWithDoctor = Appointment & {
   doctor: Pick<User, 'id' | 'first_name' | 'last_name' | 'specialties' | 'avatar_url'> | null
@@ -537,7 +536,7 @@ export default function PatientAppointmentsPage() {
                       </div>
 
                       {/* Medical summary (completed) */}
-                      {isCompleted && (apt.diagnosis || apt.follow_up_instructions || apt.ai_summary) && (
+                      {isCompleted && (apt.diagnosis || apt.follow_up_instructions) && (
                         <div className="space-y-3">
                           {apt.diagnosis && (
                             <div className="bg-emerald-50 rounded-xl p-4 border border-emerald-100">
@@ -548,20 +547,6 @@ export default function PatientAppointmentsPage() {
                                   <span className="font-semibold">הנחיות מעקב: </span>
                                   {apt.follow_up_instructions}
                                 </p>
-                              )}
-                            </div>
-                          )}
-                          {patientSummary(apt.ai_summary).summary && (
-                            <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
-                              <div className="flex items-center gap-2 mb-2">
-                                <svg className="w-4 h-4 text-indigo-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M12 2a4 4 0 014 4v1h2a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2h2V6a4 4 0 014-4z" /></svg>
-                                <p className="text-xs font-semibold text-indigo-600">סיכום מסייע AI</p>
-                              </div>
-                              <p className="text-sm text-indigo-700 leading-relaxed">{patientSummary(apt.ai_summary).summary}</p>
-                              {patientSummary(apt.ai_summary).followUp.length > 0 && (
-                                <ul className="mt-2 text-sm text-indigo-700 list-disc ps-5 space-y-0.5">
-                                  {patientSummary(apt.ai_summary).followUp.map((f, i) => <li key={i}>{f}</li>)}
-                                </ul>
                               )}
                             </div>
                           )}

@@ -73,18 +73,16 @@ export async function POST(req: NextRequest) {
     // Automatic clinic summary, run through after(): Vercel keeps the function
     // alive until it finishes. (The previous un-awaited fetch to /api/ai-summary
     // was frozen with the function — and sent an action the route rejected.)
-    // The patient gets exactly one message: the summary, or a plain
-    // "consultation ended" if the summary could not be generated.
+    // The AI summary is a draft for the doctor only: an unreviewed AI text must
+    // never reach the patient. The patient gets the plain "consultation ended".
     if (transitioned && apt.doctor_id) {
       const doctorId = apt.doctor_id
       after(async () => {
         const outcome = await generateConsultationSummary({
-          appointmentId, userId: doctorId, admin, notifyPatient: true,
+          appointmentId, userId: doctorId, admin, notifyPatient: false,
         })
-        if (!outcome.ok) {
-          console.error('[appointments/complete] summary failed', appointmentId)
-          await notify('appointment_completed', appointmentId, admin)
-        }
+        if (!outcome.ok) console.error('[appointments/complete] summary failed', appointmentId)
+        await notify('appointment_completed', appointmentId, admin)
       })
     }
 
