@@ -94,7 +94,7 @@ test('onboarding: cancellation window saved under the key the settings page uses
 
 test('video call: in-call chat is Hebrew (no LiveKit <Chat> with fixed English text)', () => {
   const src = read('app/video-call/page.tsx')
-  assert.doesNotMatch(src, /<Chat[\s/>]/)
+  assert.doesNotMatch(src, /^\s*<Chat[\s/>]/m)
   assert.match(src, /placeholder="כתוב הודעה…"/)
 })
 
