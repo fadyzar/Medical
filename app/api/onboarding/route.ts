@@ -6,6 +6,22 @@ import { sendWelcomeEmail } from '@/lib/email'
 import { inviteMember } from '@/lib/services/invitations'
 import { onboardingLimiter } from '@/lib/security/rate-limit'
 import { provisionSubdomain } from '@/lib/domain/provision'
+import { uploadLogo, ALLOWED_LOGO_TYPES, MAX_IMAGE_SIZE } from '@/lib/supabase/storage'
+
+const LOGO_EXT: Record<string, string> = {
+  'image/png': 'png', 'image/jpeg': 'jpg', 'image/svg+xml': 'svg', 'image/webp': 'webp',
+}
+
+// The wizard runs before the founder has an account, so the logo arrives as a
+// data URL and is stored here once the clinic exists.
+function decodeLogo(dataUrl: unknown): File | null {
+  if (typeof dataUrl !== 'string') return null
+  const m = /^data:([a-z+/]+);base64,([A-Za-z0-9+/=]+)$/.exec(dataUrl)
+  if (!m || !ALLOWED_LOGO_TYPES.includes(m[1])) return null
+  const bytes = Buffer.from(m[2], 'base64')
+  if (bytes.length === 0 || bytes.length > MAX_IMAGE_SIZE) return null
+  return new File([bytes], `logo.${LOGO_EXT[m[1]]}`, { type: m[1] })
+}
 
 export async function POST(req: Request) {
   try {
@@ -30,6 +46,7 @@ export async function POST(req: Request) {
     }
 
     const data = parsed.data
+    const logoFile = decodeLogo(body.logo_data)
 
     // Check reserved subdomains
     if (RESERVED_SUBDOMAINS.includes(data.subdomain)) {
@@ -128,6 +145,15 @@ export async function POST(req: Request) {
       await admin.from('organizations').delete().eq('id', org.id)
       console.error('[Onboarding] Admin profile failed:', roleErr.message)
       return NextResponse.json({ error: 'שגיאה ביצירת מנהל המרפאה' }, { status: 500 })
+    }
+
+    if (logoFile) {
+      const { publicUrl, error: logoErr } = await uploadLogo(admin, logoFile, { orgId: org.id })
+      if (publicUrl) {
+        await admin.from('organizations').update({ logo_url: publicUrl }).eq('id', org.id)
+      } else {
+        console.error('[Onboarding] Logo upload failed:', logoErr)
+      }
     }
 
     // Side effects run after the response, inside after() so Vercel does not

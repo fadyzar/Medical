@@ -7,7 +7,6 @@ import { cn, formatPrice } from '@/lib/utils'
 import { PLANS, FEATURE_LABELS, type PlanId } from '@/lib/config/plans'
 import { onboardingClinicSchema, onboardingAdminSchema, onboardingBrandingSchema } from '@/lib/validation/onboarding-schema'
 import { toast } from 'sonner'
-import { getClient } from '@/lib/supabase/client'
 
 type Step = 'clinic' | 'plan' | 'branding' | 'doctor' | 'complete'
 
@@ -55,6 +54,7 @@ export default function OnboardingPage() {
   const [logoFile, setLogoFile] = useState<File | null>(null)
   const [logoPreview, setLogoPreview] = useState<string | null>(null)
   const [uploadingLogo, setUploadingLogo] = useState(false)
+  const [logoData, setLogoData] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
   // Subdomain availability
@@ -106,31 +106,20 @@ export default function OnboardingPage() {
     setLogoPreview(URL.createObjectURL(file))
     setErrors(prev => { const n = { ...prev }; delete n.logo; return n })
 
-    // Upload to Supabase Storage
+    // The visitor has no account yet, so storage would refuse the upload.
+    // The file is sent with the final submit and stored server-side once the
+    // clinic exists.
     setUploadingLogo(true)
-    try {
-      const supabase = getClient()
-      const ext = file.name.split('.').pop() || 'png'
-      const fileName = `onboarding/${Date.now()}-${Math.random().toString(36).slice(2)}.${ext}`
-
-      const { data, error } = await supabase.storage
-        .from('logos')
-        .upload(fileName, file, { contentType: file.type, upsert: false })
-
-      if (error) {
-        // Storage not configured — just use preview, logo will be optional
-        console.warn('Logo upload skipped:', error.message)
-      } else if (data) {
-        const { data: urlData } = supabase.storage.from('logos').getPublicUrl(data.path)
-        if (urlData?.publicUrl) {
-          setForm(prev => ({ ...prev, logo_url: urlData.publicUrl }))
-        }
-      }
-    } catch {
-      // Non-critical — logo is optional
-    } finally {
+    const reader = new FileReader()
+    reader.onload = () => {
+      setLogoData(typeof reader.result === 'string' ? reader.result : null)
       setUploadingLogo(false)
     }
+    reader.onerror = () => {
+      setErrors(prev => ({ ...prev, logo: 'לא ניתן לקרוא את הקובץ' }))
+      setUploadingLogo(false)
+    }
+    reader.readAsDataURL(file)
   }
 
   const handleDrop = (e: React.DragEvent) => {
@@ -143,6 +132,7 @@ export default function OnboardingPage() {
     setLogoFile(null)
     if (logoPreview) URL.revokeObjectURL(logoPreview)
     setLogoPreview(null)
+    setLogoData(null)
     setForm(prev => ({ ...prev, logo_url: '' }))
     if (fileInputRef.current) fileInputRef.current.value = ''
   }
@@ -250,6 +240,7 @@ export default function OnboardingPage() {
         body: JSON.stringify({
           ...form,
           logo_url: form.logo_url || undefined,
+          logo_data: logoData || undefined,
           doctors,
         }),
       })
@@ -529,8 +520,7 @@ export default function OnboardingPage() {
                         <p className="text-xs text-slate-500">
                           {logoFile && (logoFile.size / 1024).toFixed(0)} KB
                           {uploadingLogo && ' — מעלה...'}
-                          {!uploadingLogo && form.logo_url && ' — הועלה בהצלחה ✓'}
-                          {!uploadingLogo && !form.logo_url && logoFile && ' — שמור מקומית'}
+                          {!uploadingLogo && logoData && ' — יישמר עם יצירת המרפאה'}
                         </p>
                         <button
                           onClick={removeLogo}
