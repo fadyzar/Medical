@@ -502,7 +502,7 @@ export default function NewAppointmentPage() {
                       onClick={() => { setForm(p => ({ ...p, doctor_id: '' })); setStep('datetime') }}
                       className="w-full py-3 rounded-2xl border-2 border-dashed border-slate-200 text-sm text-slate-500 hover:border-slate-300 hover:text-slate-700 transition-all"
                     >
-                      המשך ללא בחירת רופא ← יושבץ אוטומטית
+                      המשך ללא בחירת רופא ← צוות המרפאה ישבץ רופא
                     </button>
                   )}
                 </div>

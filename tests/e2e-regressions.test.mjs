@@ -91,3 +91,13 @@ test('copilot overview: saved WhatsApp credentials are not reported as "connecte
 test('onboarding: cancellation window saved under the key the settings page uses', () => {
   assert.match(read('app/api/onboarding/route.ts'), /cancellation_hours: 24/)
 })
+
+test('video call: in-call chat is Hebrew (no LiveKit <Chat> with fixed English text)', () => {
+  const src = read('app/video-call/page.tsx')
+  assert.doesNotMatch(src, /<Chat[\s/>]/)
+  assert.match(src, /placeholder="כתוב הודעה…"/)
+})
+
+test('booking: no promise of automatic doctor assignment that does not exist', () => {
+  assert.doesNotMatch(read('app/dashboard/patient/new-appointment/page.tsx'), /יושבץ אוטומטית/)
+})

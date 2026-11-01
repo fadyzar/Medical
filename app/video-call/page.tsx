@@ -1,6 +1,6 @@
 'use client'
 
-import React, { useEffect, useState, useCallback } from 'react'
+import React, { useEffect, useState, useCallback, useRef } from 'react'
 import { useSearchParams, useRouter } from 'next/navigation'
 import { getClient } from '@/lib/supabase/client'
 import { Button, Card, CardContent, Spinner } from '@/components/ui'
@@ -11,7 +11,6 @@ import {
   GridLayout,
   ParticipantTile,
   TrackToggle,
-  Chat,
   useTracks,
   useChat,
   useLocalParticipant,
@@ -21,6 +20,7 @@ import {
 import '@livekit/components-styles'
 import { Track, RoomEvent, ConnectionQuality } from 'livekit-client'
 import { withPublicDoctors } from '@/lib/doctors/public'
+import { cn } from '@/lib/utils'
 
 type VideoState = 'checking' | 'payment_required' | 'waiting' | 'connecting' | 'connected' | 'disconnected' | 'error'
 
@@ -549,7 +549,7 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
 
   // Chat state
   const [chatOpen, setChatOpen] = useState(false)
-  const { chatMessages } = useChat()
+  const { chatMessages, send: sendChat, isSending: chatSending } = useChat()
   const [lastSeenCount, setLastSeenCount] = useState(0)
   const unreadCount = chatOpen ? 0 : chatMessages.length - lastSeenCount
 
@@ -822,9 +822,12 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
               <h3 className="font-bold text-sm">צ&apos;אט</h3>
               <button onClick={() => setChatOpen(false)} className="text-slate-400 hover:text-white text-lg">✕</button>
             </div>
-            <div className="flex-1 overflow-hidden [&_.lk-chat]:h-full [&_.lk-chat]:bg-transparent [&_.lk-chat-messages]:text-white [&_.lk-chat-form-input]:bg-slate-700 [&_.lk-chat-form-input]:text-white [&_.lk-chat-form-input]:border-slate-600 [&_.lk-chat-form-button]:bg-teal-600">
-              <Chat style={{ height: '100%' }} />
-            </div>
+            <CallChat
+              messages={chatMessages}
+              onSend={sendChat}
+              sending={chatSending}
+              localIdentity={localParticipant.identity}
+            />
           </div>
         )}
 
@@ -1039,6 +1042,54 @@ function RoomConnectionIndicator() {
         ))}
       </div>
       <span className="text-xs hidden sm:inline">{cfg.label}</span>
+    </div>
+  )
+}
+
+// In-call chat in Hebrew. LiveKit's ready-made <Chat> has fixed English text
+// ("Enter a message…", "Send") that cannot be translated.
+function CallChat({ messages, onSend, sending, localIdentity }: {
+  messages: ReturnType<typeof useChat>['chatMessages']
+  onSend: (text: string) => Promise<unknown>
+  sending: boolean
+  localIdentity: string
+}) {
+  const [text, setText] = useState('')
+  const listRef = useRef<HTMLDivElement>(null)
+  useEffect(() => { listRef.current?.scrollTo({ top: listRef.current.scrollHeight }) }, [messages.length])
+
+  const submit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    const value = text.trim()
+    if (!value || sending) return
+    await onSend(value)
+    setText('')
+  }
+
+  return (
+    <div className="flex-1 flex flex-col min-h-0" dir="rtl">
+      <div ref={listRef} className="flex-1 overflow-y-auto p-3 space-y-2" aria-live="polite">
+        {messages.length === 0 && <p className="text-xs text-slate-400 text-center mt-6">אין הודעות עדיין</p>}
+        {messages.map(m => {
+          const mine = m.from?.identity === localIdentity
+          return (
+            <div key={m.id} className={cn('max-w-[85%] rounded-xl px-3 py-2 text-sm', mine ? 'bg-teal-600 text-white ms-auto' : 'bg-slate-700 text-white me-auto')}>
+              {!mine && <p className="text-[11px] text-slate-300 mb-0.5">{m.from?.name || 'משתתף'}</p>}
+              <p className="whitespace-pre-wrap break-words">{m.message}</p>
+            </div>
+          )
+        })}
+      </div>
+      <form onSubmit={submit} className="p-3 border-t border-slate-700/50 flex gap-2">
+        <input
+          value={text}
+          onChange={e => setText(e.target.value)}
+          placeholder="כתוב הודעה…"
+          aria-label="הודעה בצ'אט"
+          className="flex-1 rounded-lg bg-slate-700 border border-slate-600 px-3 py-2 text-sm text-white placeholder:text-slate-400 focus:outline-none focus:ring-2 focus:ring-teal-500"
+        />
+        <button type="submit" disabled={sending || !text.trim()} className="rounded-lg bg-teal-600 px-3 py-2 text-sm font-medium text-white disabled:opacity-50">שלח</button>
+      </form>
     </div>
   )
 }
