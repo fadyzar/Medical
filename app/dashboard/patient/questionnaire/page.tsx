@@ -155,11 +155,28 @@ export default function PatientQuestionnairePage() {
       if (!profile) { setState('error'); setError('פרופיל לא נמצא'); return }
 
       const timeTaken = Math.floor((Date.now() - startedAt.current.getTime()) / 1000)
+      const orgId = (profile as unknown as { organization_id: string }).organization_id
+
+      // A link copied from the doctor's questionnaires page carries no
+      // appointment, and doctors can only read responses tied to their own
+      // appointments — so the answers were invisible to them. Attach the
+      // response to the patient's next active appointment in this clinic.
+      let linkedAppointment = appointmentId
+      if (!linkedAppointment) {
+        const { data: next } = await supabase.from('appointments')
+          .select('id')
+          .eq('patient_id', user.id)
+          .eq('organization_id', orgId)
+          .not('status', 'in', '(completed,cancelled_patient,cancelled_doctor,no_show_patient,no_show_doctor)')
+          .order('scheduled_at', { ascending: true, nullsFirst: false })
+          .limit(1)
+        linkedAppointment = (next as { id: string }[] | null)?.[0]?.id ?? null
+      }
 
       const { error: insertError } = await supabase.from('questionnaire_responses').insert({
-        organization_id: (profile as unknown as { organization_id: string }).organization_id,
+        organization_id: orgId,
         questionnaire_id: questionnaireId!,
-        appointment_id: appointmentId || undefined,
+        appointment_id: linkedAppointment || undefined,
         patient_id: user.id,
         responses: answers,
         is_complete: true,

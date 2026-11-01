@@ -399,21 +399,21 @@ export async function sendAppointmentConfirmationWhatsApp(params: {
 export async function sendReminder1hWhatsApp(params: {
   appointmentId: string
   admin: SupabaseClient
-}): Promise<void> {
+}): Promise<boolean> {  // true only when a message actually went out
   const { appointmentId, admin } = params
   const templateName = 'wa_reminder_1h'
 
-  if (await alreadySent(appointmentId, templateName, admin)) return
+  if (await alreadySent(appointmentId, templateName, admin)) return false
 
   const context = await fetchContext(appointmentId, admin)
-  if (!context.doctor || !context.apt.scheduled_at) return
+  if (!context.doctor || !context.apt.scheduled_at) return false
 
   const { eligible, phone } = isWhatsAppEligible(context)
-  if (!eligible || !phone) return
+  if (!eligible || !phone) return false
 
   const message = buildReminder1h(context)
 
-  await sendWhatsApp({
+  const result = await sendWhatsApp({
     to: phone,
     message,
     organizationId: context.apt.organization_id,
@@ -425,6 +425,7 @@ export async function sendReminder1hWhatsApp(params: {
       video_url: `${APP_URL()}/video-call?id=${appointmentId}`,
     },
   }, admin)
+  return result.success
 }
 
 export async function sendVideoCallLinkWhatsApp(params: {

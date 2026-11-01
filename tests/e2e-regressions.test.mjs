@@ -64,3 +64,30 @@ test('onboarding: wizard logo is sent with the submit, not uploaded anonymously'
 test('questionnaire builder: preview of an unsaved questionnaire returns to the editor', () => {
   assert.match(read('app/dashboard/admin/questionnaires/page.tsx'), /onBack=\{\(\) => setView\(previewFrom\)\}/)
 })
+
+test('cron: WhatsApp 1h reminders are counted only when actually sent', () => {
+  assert.match(read('lib/whatsapp/index.ts'), /sendReminder1hWhatsApp[\s\S]{0,200}Promise<boolean>/)
+  assert.match(read('app/api/cron/reminders/route.ts'), /if \(await sendReminder1hWhatsApp\(/)
+})
+
+test('WhatsApp test: an unreachable Green API host gets an explained 502, not "internal error"', () => {
+  assert.match(read('app/api/admin/whatsapp/test/route.ts'), /לא ניתן להתחבר לשרת Green API/)
+})
+
+test('questionnaire: a response without an appointment link is attached to the next appointment', () => {
+  assert.match(read('app/dashboard/patient/questionnaire/page.tsx'), /appointment_id: linkedAppointment/)
+})
+
+test('lead analysis: knows whether contact details exist, without sending them', () => {
+  const src = read('app/api/ai-lead-analysis/route.ts')
+  assert.match(src, /יש טלפון: \$\{lead\.phone \? 'כן' : 'לא'\}/)
+  assert.doesNotMatch(src, /\$\{lead\.phone\}/)
+})
+
+test('copilot overview: saved WhatsApp credentials are not reported as "connected"', () => {
+  assert.doesNotMatch(read('lib/ai/assistant/executors.ts'), /whatsapp: whatsapp \? 'מחובר'/)
+})
+
+test('onboarding: cancellation window saved under the key the settings page uses', () => {
+  assert.match(read('app/api/onboarding/route.ts'), /cancellation_hours: 24/)
+})

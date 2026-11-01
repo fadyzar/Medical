@@ -43,9 +43,14 @@ export async function POST(req: NextRequest) {
           source: lead.source,
           specialtyInterest: lead.specialty_interest,
           message: lead.message,
+          hasPhone: !!lead.phone,
+          hasEmail: !!lead.email,
         },
       },
-      `נתח ליד: ${lead.first_name} ${lead.last_name}, מקור: ${lead.source}${lead.specialty_interest ? `, מעוניין ב: ${lead.specialty_interest}` : ''}${lead.message ? `, הודעה: ${lead.message}` : ''}`,
+      `נתח ליד: ${lead.first_name} ${lead.last_name}, מקור: ${lead.source}${lead.specialty_interest ? `, מעוניין ב: ${lead.specialty_interest}` : ''}${lead.message ? `, הודעה: ${lead.message}` : ''}` +
+        // Only whether contact details exist — the analysis claimed a phone was
+        // missing when one was on file; the details themselves stay out of the prompt.
+        `, יש טלפון: ${lead.phone ? 'כן' : 'לא'}, יש אימייל: ${lead.email ? 'כן' : 'לא'}`,
       { maxTokens: 500 }
     )
 

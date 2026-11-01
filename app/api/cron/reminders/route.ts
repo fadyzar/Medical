@@ -113,8 +113,9 @@ export async function GET(req: Request) {
       // WhatsApp 1h reminder (best-effort, doesn't affect email flow)
       if (features.whatsapp_notifications) {
         try {
-          await sendReminder1hWhatsApp({ appointmentId: apt.id, admin })
-          results.whatsapp1h++
+          // Count only messages that went out — ineligible patients and
+          // unlinked accounts used to be reported as sent.
+          if (await sendReminder1hWhatsApp({ appointmentId: apt.id, admin })) results.whatsapp1h++
         } catch {
           // WhatsApp failure is non-critical — don't revert the email lock
           results.errors++

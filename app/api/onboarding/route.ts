@@ -95,7 +95,7 @@ export async function POST(req: Request) {
       settings: {
         timezone: 'Asia/Jerusalem',
         currency: 'ILS',
-        cancellation_policy_hours: 24,
+        cancellation_hours: 24, // the key the settings page reads and writes
         pending_invites: data.doctors || [],
       },
     }).select('id').single()

@@ -61,15 +61,25 @@ export async function POST(req: NextRequest) {
     const orgName = (org as { name?: string } | null)?.name || 'המרפאה'
     const message = `✅ הודעת טסט ממרפאת ${orgName}\n\nחיבור ה-WhatsApp עובד בהצלחה! המטופלים שלך יקבלו התראות מספר זה.`
 
-    const res = await fetch(url, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chatId: toGreenApiChatId(parsed.data.phone),
-        message,
-      }),
-      signal: AbortSignal.timeout(15000),
-    })
+    let res: Response
+    try {
+      res = await fetch(url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          chatId: toGreenApiChatId(parsed.data.phone),
+          message,
+        }),
+        signal: AbortSignal.timeout(15000),
+      })
+    } catch (err) {
+      // A mistyped Instance ID points at a Green API host that does not exist;
+      // that used to surface as a bare "internal error".
+      console.error('[whatsapp/test] unreachable:', err instanceof Error ? err.message : err)
+      return NextResponse.json({
+        error: 'לא ניתן להתחבר לשרת Green API של ה-Instance הזה. בדקו שה-Instance ID הועתק נכון מ-console.green-api.com.',
+      }, { status: 502 })
+    }
 
     const result = await readGreenApiResponse(res)
     if (!result.ok) return NextResponse.json({ error: result.error }, { status: 502 })

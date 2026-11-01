@@ -409,7 +409,7 @@ async function getClinicStatus(caller: Caller): Promise<ToolOutcome> {
   const whatsapp = has('integration_whatsapp', ['green_api_instance_id', 'green_api_token'])
   const payments = has('integration_payment', ['tranzila_supplier'])
   const warnings: string[] = []
-  if (!whatsapp) warnings.push('WhatsApp אינו מחובר — מטופלים מקבלים אימייל והתראות באפליקציה בלבד.')
+  if (!whatsapp) warnings.push('WhatsApp אינו מוגדר — מטופלים מקבלים אימייל והתראות באפליקציה בלבד.')
   if (!payments) warnings.push('סליקה (Tranzila) אינה מוגדרת — לא ניתן לגבות תשלום מראש.')
   if ((doctors.count ?? 0) === 0) warnings.push('אין רופאים פעילים במרפאה — מטופלים לא יכולים לקבוע תור.')
   if (failedRows.length) warnings.push(`${failedRows.length} הודעות נכשלו בשבוע האחרון.`)
@@ -419,7 +419,8 @@ async function getClinicStatus(caller: Caller): Promise<ToolOutcome> {
     result: {
       clinic: o?.name ?? null,
       integrations: {
-        whatsapp: whatsapp ? 'מחובר' : 'לא מוגדר (הגדרה עצמית בעמוד האינטגרציות)',
+        // Saved credentials are not a linked phone; check_whatsapp_connection asks Green API.
+        whatsapp: whatsapp ? 'פרטי חשבון הוגדרו (מצב הקישור נבדק בבדיקת חיבור)' : 'לא מוגדר (הגדרה עצמית בעמוד האינטגרציות)',
         payments: payments ? 'מוגדר' : 'לא מוגדר',
         email: 'מנוהל ע"י CANNA',
         video: 'מנוהל ע"י CANNA',
