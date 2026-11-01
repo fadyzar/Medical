@@ -1,9 +1,12 @@
 import { z } from 'zod'
 
+// "03-1234567" and "050 123 4567" are how people write numbers; store digits only.
+const stripPhone = (v: unknown) => (typeof v === 'string' ? v.replace(/[\s-]/g, '') : v)
+
 export const onboardingClinicSchema = z.object({
   name: z.string().min(2, 'שם המרפאה חייב להכיל לפחות 2 תווים'),
   contact_email: z.string().email('כתובת אימייל לא תקינה'),
-  contact_phone: z.string().regex(/^0[2-9]\d{7,8}$/, 'מספר טלפון ישראלי לא תקין'),
+  contact_phone: z.preprocess(stripPhone, z.string().regex(/^0[2-9]\d{7,8}$/, 'מספר טלפון ישראלי לא תקין')),
   subdomain: z.string()
     .min(3, 'תת-דומיין חייב להכיל לפחות 3 תווים')
     .max(30, 'תת-דומיין יכול להכיל עד 30 תווים')
@@ -35,7 +38,7 @@ export const onboardingFullSchema = z.object({
   // Clinic
   name: z.string().min(2),
   contact_email: z.string().email(),
-  contact_phone: z.string().regex(/^0[2-9]\d{7,8}$/),
+  contact_phone: z.preprocess(stripPhone, z.string().regex(/^0[2-9]\d{7,8}$/)),
   subdomain: z.string().min(3).max(30).regex(/^[a-z0-9]([a-z0-9-]*[a-z0-9])?$/),
   // Plan
   plan: z.enum(['free', 'basic', 'pro', 'enterprise']),

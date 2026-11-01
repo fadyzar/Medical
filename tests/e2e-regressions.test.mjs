@@ -1,0 +1,66 @@
+// Guards for the defects found in the 1 Nov 2026 zero-to-end acceptance run.
+// Each test names the symptom it prevents.
+import { test } from 'node:test'
+import assert from 'node:assert/strict'
+import { readFileSync } from 'node:fs'
+import { join } from 'node:path'
+import { parseAiSummary, patientSummary } from '../lib/ai/summary-format.ts'
+import { onboardingClinicSchema } from '../lib/validation/onboarding-schema.ts'
+
+const root = new URL('..', import.meta.url).pathname
+const read = (p) => readFileSync(join(root, p), 'utf8')
+
+test('AI summary: a ```json fenced answer still parses (patient saw raw JSON)', () => {
+  const fenced = '```json\n{"summary":"סיכום קצר","follow_up":["מנוחה","שתייה"]}\n```'
+  assert.equal(parseAiSummary(fenced)?.summary, 'סיכום קצר')
+  assert.deepEqual(patientSummary(fenced), { summary: 'סיכום קצר', followUp: ['מנוחה', 'שתייה'] })
+})
+
+test('AI summary: patients never get raw JSON, plain text passes through', () => {
+  assert.equal(patientSummary('{"broken": ').summary, null)
+  assert.equal(patientSummary('```json\n{oops').summary, null)
+  assert.equal(patientSummary('סיכום בטקסט חופשי').summary, 'סיכום בטקסט חופשי')
+  assert.equal(parseAiSummary(null), null)
+})
+
+test('AI summary: stored as clean JSON, not the fenced model output', () => {
+  assert.match(read('lib/ai/summary.ts'), /ai_summary: result\.parsed \? JSON\.stringify\(result\.parsed\)/)
+  for (const f of ['lib/notifications/index.ts', 'app/api/notifications/send-summary/route.ts', 'lib/ai/assistant/executors.ts']) {
+    assert.doesNotMatch(read(f), /JSON\.parse\([^)]*ai_summary/, f)
+  }
+})
+
+test('video call: camera and microphone are published on join', () => {
+  const src = read('app/video-call/page.tsx')
+  assert.match(src, /video=\{hasCamera\}/)
+  assert.match(src, /audio=\{hasMic\}/)
+})
+
+test('video call: only the doctor leaving completes the consultation', () => {
+  const src = read('app/video-call/page.tsx')
+  const i = src.indexOf("fetch('/api/appointments/complete'")
+  assert.ok(i > 0)
+  assert.match(src.slice(Math.max(0, i - 300), i), /profile\?\.role === 'doctor'/)
+})
+
+test('reschedule proposal: patient answers through the server (RLS blocks paid appointments)', () => {
+  const src = read('app/dashboard/patient/appointments/page.tsx')
+  assert.match(src, /\/api\/appointments\/proposal/)
+  assert.doesNotMatch(src, /patient_confirmed_proposed_at: new Date\(\)\.toISOString\(\),\s*status: 'scheduled' as const,\s*\}\s*await supabase/)
+})
+
+test('onboarding: clinic phone accepts the hyphen its own placeholder shows', () => {
+  const base = { name: 'מרפאה', contact_email: 'a@b.test', subdomain: 'abc-clinic' }
+  const ok = onboardingClinicSchema.safeParse({ ...base, contact_phone: '03-5550202' })
+  if (!ok.success) assert.ok(!ok.error.issues.some(i => i.path[0] === 'contact_phone'), JSON.stringify(ok.error.issues))
+  else assert.equal(ok.data.contact_phone, '035550202')
+})
+
+test('onboarding: wizard logo is sent with the submit, not uploaded anonymously', () => {
+  assert.match(read('app/onboarding/page.tsx'), /logo_data: logoData/)
+  assert.match(read('app/api/onboarding/route.ts'), /uploadLogo\(admin, logoFile/)
+})
+
+test('questionnaire builder: preview of an unsaved questionnaire returns to the editor', () => {
+  assert.match(read('app/dashboard/admin/questionnaires/page.tsx'), /onBack=\{\(\) => setView\(previewFrom\)\}/)
+})

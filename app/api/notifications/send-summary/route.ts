@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
 import { sendEmail } from '@/lib/email'
 import { sendWhatsApp } from '@/lib/whatsapp'
+import { parseAiSummary } from '@/lib/ai/summary-format'
 
 // Send appointment summary to patient:
 //  1. Always creates an in-app notification
@@ -156,15 +157,15 @@ function buildSummaryText(
 
   // Try AI summary first
   if (apt.ai_summary) {
-    try {
-      const parsed = JSON.parse(apt.ai_summary)
+    const parsed = parseAiSummary(apt.ai_summary)
+    if (parsed) {
       if (parsed.summary) lines.push(`\nסיכום:\n${parsed.summary}`)
       if (parsed.diagnosis) lines.push(`אבחנה: ${parsed.diagnosis}`)
       if (parsed.treatment_plan) lines.push(`תוכנית טיפול: ${parsed.treatment_plan}`)
-      if (parsed.follow_up) lines.push(`המשך טיפול: ${parsed.follow_up}`)
-      if (parsed.medications?.length) lines.push(`תרופות: ${parsed.medications.join(', ')}`)
-    } catch {
-      // Not JSON — use as plain text
+      if (parsed.follow_up) lines.push(`המשך טיפול: ${Array.isArray(parsed.follow_up) ? parsed.follow_up.join(', ') : parsed.follow_up}`)
+      if (Array.isArray(parsed.medications) && parsed.medications.length) lines.push(`תרופות: ${parsed.medications.join(', ')}`)
+    } else if (!apt.ai_summary.trim().startsWith('{') && !apt.ai_summary.trim().startsWith('```')) {
+      // Plain text — never send raw JSON
       lines.push(`\nסיכום AI:\n${apt.ai_summary}`)
     }
   }

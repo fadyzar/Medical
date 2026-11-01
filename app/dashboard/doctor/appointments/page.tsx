@@ -10,6 +10,7 @@ import { Button, Card, CardContent, CardHeader, Badge, Input, PageLoading, Empty
 import { STATUS_LABELS, formatDateTime, getInitials, cn } from '@/lib/utils'
 import type { Appointment, User, QuestionnaireResponse, QuestionItem } from '@/types/database'
 import { useDataChanged } from '@/lib/hooks/useDataChanged'
+import { parseAiSummary } from '@/lib/ai/summary-format'
 
 type ResponseWithQuest = QuestionnaireResponse & {
   questionnaire?: { id: string; title: string; questions: QuestionItem[] }
@@ -284,7 +285,8 @@ function statusBadgeVariant(status: string): 'success' | 'danger' | 'warning' | 
 // ── AI Summary Card ────────────────────────────────────────────────
 function parseSummary(raw: string): { sections: { label: string; value: string; warning?: boolean }[]; structured: Record<string, unknown> | null } {
   try {
-    const p = JSON.parse(raw) as Record<string, unknown>
+    const p = parseAiSummary(raw) as Record<string, unknown> | null
+    if (!p) throw new Error('not JSON')
     const soap = (p.soap || {}) as Record<string, string>
     const sections: { label: string; value: string; warning?: boolean }[] = []
 

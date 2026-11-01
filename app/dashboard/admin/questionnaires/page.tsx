@@ -44,6 +44,9 @@ export default function AdminQuestionnairesPage() {
   const supabase = getClient()
 
   const [view, setView] = useState<View>('list')
+  // Where "back" from the preview returns to. A new, unsaved questionnaire has no
+  // editId, so deciding by editId sent the admin to the list and lost the draft.
+  const [previewFrom, setPreviewFrom] = useState<View>('list')
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
   const [questionnaires, setQuestionnaires] = useState<Questionnaire[]>([])
@@ -308,7 +311,7 @@ export default function AdminQuestionnairesPage() {
 
                   <div className="flex gap-2 pt-3 border-t border-slate-100">
                     <Button size="sm" variant="outline" onClick={() => startEdit(q)}>ערוך</Button>
-                    <Button size="sm" variant="ghost" onClick={() => { setEditId(null); setTitle(q.title); setDescription(q.description || ''); setQuestions(q.questions); setSpecialties(q.specialties || []); setIsPublished(q.is_published); setView('preview') }}>תצוגה מקדימה</Button>
+                    <Button size="sm" variant="ghost" onClick={() => { setEditId(null); setTitle(q.title); setDescription(q.description || ''); setQuestions(q.questions); setSpecialties(q.specialties || []); setIsPublished(q.is_published); setPreviewFrom('list'); setView('preview') }}>תצוגה מקדימה</Button>
                     <Button size="sm" variant="ghost" onClick={() => duplicateQuestionnaire(q)}>שכפל</Button>
                     {deleteConfirm === q.id ? (
                       <div className="flex gap-1">
@@ -335,7 +338,7 @@ export default function AdminQuestionnairesPage() {
       title={title}
       description={description}
       questions={questions}
-      onBack={() => setView(editId !== null ? 'editor' : 'list')}
+      onBack={() => setView(previewFrom)}
     />
   }
 
@@ -347,7 +350,7 @@ export default function AdminQuestionnairesPage() {
         <h2 className="text-2xl font-bold">{editId ? 'עריכת שאלון' : 'שאלון חדש'}</h2>
         <div className="flex gap-2">
           <Button variant="ghost" onClick={() => setView('list')}>ביטול</Button>
-          <Button variant="outline" onClick={() => setView('preview')}>תצוגה מקדימה</Button>
+          <Button variant="outline" onClick={() => { setPreviewFrom('editor'); setView('preview') }}>תצוגה מקדימה</Button>
           <Button onClick={saveQuestionnaire} loading={saving}>שמור</Button>
         </div>
       </div>
@@ -501,7 +504,7 @@ export default function AdminQuestionnairesPage() {
       <div className="flex justify-between">
         <Button variant="ghost" onClick={() => setView('list')}>ביטול</Button>
         <div className="flex gap-2">
-          <Button variant="outline" onClick={() => setView('preview')}>תצוגה מקדימה</Button>
+          <Button variant="outline" onClick={() => { setPreviewFrom('editor'); setView('preview') }}>תצוגה מקדימה</Button>
           <Button onClick={saveQuestionnaire} loading={saving} size="lg">שמור שאלון</Button>
         </div>
       </div>

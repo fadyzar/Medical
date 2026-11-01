@@ -20,6 +20,7 @@ import {
   findSlotConflict, canAccessAppointment, SLOT_MINUTES,
 } from '@/lib/services/appointments'
 import { searchPatients } from '@/lib/services/patients'
+import { parseAiSummary } from '@/lib/ai/summary-format'
 import { assertToolAllowed, WRITE_TOOLS, type ToolName } from '@/lib/ai/assistant/registry'
 import { TOPICS, type KnowledgeTopic } from '@/lib/ai/assistant/knowledge'
 import { resolvePage } from '@/lib/ai/assistant/navigation'
@@ -184,8 +185,8 @@ async function getAppointment(caller: Caller, args: Record<string, unknown>): Pr
       .eq('id', id).eq('doctor_id', caller.id).maybeSingle()
     const n = notes as Record<string, string | null> | null
     if (n) {
-      let aiSummary: string | null = null
-      try { aiSummary = n.ai_summary ? (JSON.parse(n.ai_summary).summary ?? null) : null } catch { aiSummary = n.ai_summary }
+      const parsedSummary = parseAiSummary(n.ai_summary)
+      const aiSummary: string | null = parsedSummary ? (parsedSummary.summary ?? null) : n.ai_summary
       return {
         kind: 'data',
         result: {

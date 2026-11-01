@@ -25,7 +25,7 @@ const nextConfig = {
           "default-src 'self'",
           "script-src 'self' 'unsafe-eval' 'unsafe-inline'",
           "style-src 'self' 'unsafe-inline'",
-          "img-src 'self' data: https: blob:",
+          `img-src 'self' data: https: blob: ${supabaseOrigin.split(' ')[0]}`,
           "font-src 'self' data:",
           `connect-src 'self' ${supabaseOrigin} https://*.supabase.co wss://*.supabase.co https://*.livekit.cloud wss://*.livekit.cloud https://api.stripe.com`,
           "media-src 'self' https: blob:",

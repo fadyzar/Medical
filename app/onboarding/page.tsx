@@ -573,11 +573,13 @@ export default function OnboardingPage() {
                   <div className="flex items-center gap-3">
                     <input
                       type="color"
+                      aria-label="צבע ראשי — בחירה מלוח צבעים"
                       value={form.primary_color}
                       onChange={e => updateForm('primary_color', e.target.value)}
                       className="w-12 h-12 rounded-lg border-2 border-slate-200 cursor-pointer"
                     />
                     <Input
+                      aria-label="צבע ראשי"
                       value={form.primary_color}
                       onChange={e => updateForm('primary_color', e.target.value)}
                       error={errors.primary_color}
@@ -590,11 +592,13 @@ export default function OnboardingPage() {
                   <div className="flex items-center gap-3">
                     <input
                       type="color"
+                      aria-label="צבע משני — בחירה מלוח צבעים"
                       value={form.secondary_color}
                       onChange={e => updateForm('secondary_color', e.target.value)}
                       className="w-12 h-12 rounded-lg border-2 border-slate-200 cursor-pointer"
                     />
                     <Input
+                      aria-label="צבע משני"
                       value={form.secondary_color}
                       onChange={e => updateForm('secondary_color', e.target.value)}
                       error={errors.secondary_color}

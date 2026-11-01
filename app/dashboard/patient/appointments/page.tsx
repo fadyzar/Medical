@@ -11,6 +11,7 @@ import { toast } from 'sonner'
 import type { Appointment, User } from '@/types/database'
 import { useDataChanged } from '@/lib/hooks/useDataChanged'
 import { withPublicDoctors } from '@/lib/doctors/public'
+import { patientSummary } from '@/lib/ai/summary-format'
 
 type AptWithDoctor = Appointment & {
   doctor: Pick<User, 'id' | 'first_name' | 'last_name' | 'specialties' | 'avatar_url'> | null
@@ -90,7 +91,6 @@ function DoctorProposedBanner({ apt, onConfirm }: {
   apt: AptWithDoctor
   onConfirm: (updated: Partial<AptWithDoctor>) => void
 }) {
-  const supabase = getClient()
   const [saving, setSaving] = useState<'accept' | 'reject' | null>(null)
 
   const formatProposed = (iso: string) => {
@@ -101,31 +101,28 @@ function DoctorProposedBanner({ apt, onConfirm }: {
     return `יום ${days[d.getDay()]}, ${d.getDate()} ב${months[d.getMonth()]} — ${t}`
   }
 
-  const accept = async () => {
-    setSaving('accept')
+  // Server-side: RLS does not let a patient update a paid appointment directly.
+  const respond = async (decision: 'accept' | 'reject') => {
+    setSaving(decision)
     try {
-      const updates = {
-        patient_confirmed_proposed_at: new Date().toISOString(),
-        status: 'scheduled' as const,
+      const res = await fetch('/api/appointments/proposal', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ appointmentId: apt.id, decision }),
+      })
+      const data = await res.json().catch(() => ({}))
+      if (!res.ok) {
+        toast.error(data.error || 'שמירת התשובה נכשלה')
+        return
       }
-      await supabase.from('appointments').update(updates).eq('id', apt.id)
-      onConfirm(updates)
-    } catch { /* ignore */ } finally { setSaving(null) }
+      onConfirm(data.updates)
+      toast.success(decision === 'accept' ? 'המועד אושר' : 'המועד נדחה — הרופא יציע מועד אחר')
+    } catch {
+      toast.error('שגיאה בחיבור לשרת')
+    } finally { setSaving(null) }
   }
-
-  const reject = async () => {
-    setSaving('reject')
-    try {
-      const updates = {
-        scheduled_at: null,
-        doctor_proposed_at: null,
-        patient_confirmed_proposed_at: null,
-        status: 'pending' as const,
-      }
-      await supabase.from('appointments').update(updates).eq('id', apt.id)
-      onConfirm(updates)
-    } catch { /* ignore */ } finally { setSaving(null) }
-  }
+  const accept = () => respond('accept')
+  const reject = () => respond('reject')
 
   return (
     <div className="rounded-xl border-2 border-amber-300 bg-amber-50 p-4 space-y-3">
@@ -554,13 +551,18 @@ export default function PatientAppointmentsPage() {
                               )}
                             </div>
                           )}
-                          {apt.ai_summary && (
+                          {patientSummary(apt.ai_summary).summary && (
                             <div className="bg-indigo-50 rounded-xl p-4 border border-indigo-100">
                               <div className="flex items-center gap-2 mb-2">
                                 <svg className="w-4 h-4 text-indigo-500 shrink-0" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.75"><path d="M12 2a4 4 0 014 4v1h2a2 2 0 012 2v9a2 2 0 01-2 2H6a2 2 0 01-2-2V9a2 2 0 012-2h2V6a4 4 0 014-4z" /></svg>
                                 <p className="text-xs font-semibold text-indigo-600">סיכום מסייע AI</p>
                               </div>
-                              <p className="text-sm text-indigo-700 leading-relaxed">{apt.ai_summary}</p>
+                              <p className="text-sm text-indigo-700 leading-relaxed">{patientSummary(apt.ai_summary).summary}</p>
+                              {patientSummary(apt.ai_summary).followUp.length > 0 && (
+                                <ul className="mt-2 text-sm text-indigo-700 list-disc ps-5 space-y-0.5">
+                                  {patientSummary(apt.ai_summary).followUp.map((f, i) => <li key={i}>{f}</li>)}
+                                </ul>
+                              )}
                             </div>
                           )}
                         </div>

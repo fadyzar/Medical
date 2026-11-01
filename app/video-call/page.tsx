@@ -142,14 +142,18 @@ export default function VideoCallPage() {
   const handleDisconnected = useCallback(async () => {
     if (!id) return
 
-    // Mark appointment completed + trigger AI summary (background)
-    try {
-      await fetch('/api/appointments/complete', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ appointmentId: id }),
-      })
-    } catch { /* non-critical */ }
+    // Only the doctor leaving ends the consultation (completes it and starts the
+    // AI summary). A patient whose connection drops or who closes the tab used to
+    // complete it too, and could not rejoin; now they can.
+    if (profile?.role === 'doctor') {
+      try {
+        await fetch('/api/appointments/complete', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ appointmentId: id }),
+        })
+      } catch { /* non-critical */ }
+    }
 
     setState('disconnected')
 
@@ -216,6 +220,11 @@ export default function VideoCallPage() {
           serverUrl={livekitUrl}
           token={token}
           connect={true}
+          // Publish what the hardware check found. Without these LiveKit joins
+          // with camera and microphone off, so neither side saw or heard the
+          // other until they found the toggles.
+          video={hasCamera}
+          audio={hasMic}
           onConnected={handleConnected}
           onDisconnected={handleDisconnected}
           onError={(err) => { setError(err.message); setState('error') }}
@@ -523,6 +532,20 @@ function ActiveRoom({ appointmentId, otherParty, complaint, patientId, roomName,
 
   const [elapsed, setElapsed] = useState(0)
   const [screenSharing, setScreenSharing] = useState(false)
+
+  // The patient leaves the room once the doctor has completed the consultation,
+  // so they reach the end screen instead of waiting in an empty room.
+  useEffect(() => {
+    if (profile?.role === 'doctor') return
+    const timer = setInterval(async () => {
+      const { data } = await supabase.from('appointments').select('status').eq('id', appointmentId).single()
+      if (data?.status === 'completed') {
+        clearInterval(timer)
+        room.disconnect()
+      }
+    }, 5000)
+    return () => clearInterval(timer)
+  }, [profile?.role, supabase, appointmentId, room])
 
   // Chat state
   const [chatOpen, setChatOpen] = useState(false)
