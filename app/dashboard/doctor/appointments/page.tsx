@@ -746,7 +746,7 @@ export default function DoctorAppointmentsPage() {
       if (res.ok) {
         const data = await res.json()
         setGeneratedDoc({ content: data.document, label: data.label })
-        setMessage({ type: 'success', text: `${data.label} נוצר ונשמר בתיק המטופל` })
+        setMessage({ type: 'success', text: `טיוטת ${data.label} נוצרה. יש לבדוק ולערוך אותה; היא לא נשמרה בתיק המטופל` })
         setTimeout(() => setMessage(null), 4000)
       } else {
         const err = await res.json()

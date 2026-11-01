@@ -39,7 +39,7 @@ export async function POST(req: NextRequest) {
     // Fetch appointment + patient data
     const { data: apt, error: aptErr } = await admin
       .from('appointments')
-      .select('*, patient:patient_id(id, first_name, last_name, date_of_birth, gender, medical_history, id_number, phone, email, insurance_info)')
+      .select('*, patient:patient_id(id, first_name, last_name, date_of_birth, gender, medical_history, phone, email, insurance_info)')
       .eq('id', appointmentId)
       .eq('organization_id', (profile as unknown as { organization_id: string }).organization_id)
       .eq('doctor_id', user.id) // assigned doctor only — mirrors RLS apt_doctor_select
@@ -79,7 +79,6 @@ ${profile.license_number ? `מספר רישיון: ${profile.license_number}` : 
 **פרטי המטופל:**
 שם: ${patient?.first_name} ${patient?.last_name}
 ${patient?.date_of_birth ? `תאריך לידה: ${patient.date_of_birth}` : ''}
-${patient?.id_number ? `ת.ז.: ${patient.id_number}` : ''}
 ${patient?.gender ? `מגדר: ${patient.gender}` : ''}
 
 **מידע רפואי:**
@@ -90,7 +89,6 @@ ${aptRecord.assessment ? `הערכה קלינית: ${aptRecord.assessment}` : ''
 ${aptRecord.plan ? `תוכנית טיפול: ${aptRecord.plan}` : ''}
 ${aptRecord.treatment_plan ? `מהלך הטיפול: ${aptRecord.treatment_plan}` : ''}
 ${aptRecord.follow_up_instructions ? `הוראות מעקב: ${aptRecord.follow_up_instructions}` : ''}
-${aptRecord.ai_prescription_draft ? `המלצות תרופתיות: ${aptRecord.ai_prescription_draft}` : ''}
 
 **היסטוריה רפואית רלוונטית:**
 ${(medHistory.allergies as string[] || []).length > 0 ? `אלרגיות: ${(medHistory.allergies as string[]).join(', ')}` : ''}
@@ -130,28 +128,11 @@ ${(medHistory.current_medications as string[] || []).length > 0 ? `תרופות 
       model_used: CLINICAL_MODEL,
     })
 
-    // Save as document record
-    const fileName = `${docLabel} — ${patient?.first_name} ${patient?.last_name} — ${today}.txt`
-    const { data: docRecord } = await admin.from('documents').insert({
-      organization_id: orgId,
-      patient_id: aptRecord.patient_id as string,
-      appointment_id: appointmentId,
-      uploaded_by: user.id,
-      file_name: fileName,
-      file_type: 'text/plain',
-      file_size_bytes: documentContent.length,
-      storage_path: '',
-      document_type: documentType,
-      category: 'מסמך רפואי',
-      tags: [docLabel],
-      ocr_text: documentContent,
-      is_verified: true,
-    }).select().single()
-
+    // A draft for the doctor only. It is not filed in the patient's record
+    // (which the patient can read) until the doctor has reviewed it.
     return NextResponse.json({
       success: true,
       document: documentContent,
-      documentId: docRecord?.id || null,
       documentType,
       label: docLabel,
     })

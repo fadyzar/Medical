@@ -123,3 +123,11 @@ test('clinical safety: AI text is not written into the doctor\'s own SOAP fields
 test('summary email escapes the clinical text it embeds in HTML', () => {
   assert.match(read('app/api/notifications/send-summary/route.ts'), /escapeHtml\(summaryText\)/)
 })
+
+test('clinical safety: AI documents and prescription drafts stay with the doctor until reviewed', () => {
+  // An AI sick-leave note was filed in the patient's record as verified, with no review.
+  const doc = read('app/api/ai-document/route.ts')
+  assert.doesNotMatch(doc, /from\('documents'\)\.insert/)
+  assert.doesNotMatch(doc, /id_number/)
+  assert.doesNotMatch(read('app/api/ai-summary/route.ts'), /ai_prescription_draft: result/)
+})

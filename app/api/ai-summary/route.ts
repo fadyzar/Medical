@@ -114,7 +114,8 @@ export async function POST(req: Request) {
     const age = patient?.date_of_birth ? Math.floor((Date.now() - new Date(patient.date_of_birth).getTime()) / 31557600000) : undefined
     const mh = patient?.medical_history as Record<string, string[]> | undefined
     const result = await prescriptionAgent({ diagnosis: apt.diagnosis || apt.chief_complaint, age, allergies: mh?.allergies, medications: mh?.current_medications })
-    if (result.success) await admin.from('appointments').update({ ai_prescription_draft: result.content, ai_used: true }).eq('id', appointmentId)
+    // The draft is returned to the doctor only; appointments rows are readable by the patient.
+    if (result.success) await admin.from('appointments').update({ ai_used: true }).eq('id', appointmentId)
 
     await admin.from('ai_conversations').insert({
       organization_id: apt.organization_id, user_id: user.id, appointment_id: appointmentId,
