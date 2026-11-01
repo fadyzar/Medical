@@ -18,3 +18,6 @@ backups/
 
 # Client handover videos (large binaries)
 CANNA_OSHRIT_FINAL_HANDOVER/VIDEOS*/
+
+# Recorded acceptance videos (large binaries)
+CANNA_COMPLETE_VIDEO_LIBRARY/*.mp4
