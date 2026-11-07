@@ -82,3 +82,27 @@ test('onboarding: redirects to the clinic address only once it answers', () => {
   assert.match(api, /SUBDOMAIN_RE\.test\(sub\)/)
   assert.doesNotMatch(api, /\.update\(|\.insert\(|\.delete\(/, 'readiness check must be read-only')
 })
+
+test('db: public_doctors is closed to anon/authenticated; appointment_doctors scoped (030)', () => {
+  const sql = read('supabase/migrations/030_public_doctors_lockdown.sql')
+  assert.match(sql, /revoke all on public\.public_doctors from anon, authenticated, public/)
+  assert.match(sql, /security_invoker = true/)
+  assert.match(sql, /revoke all on function public\.appointment_doctors\(uuid\[\]\) from public, anon/)
+  assert.match(sql, /a\.patient_id = auth\.uid\(\)/)
+  assert.doesNotMatch(read('supabase/rollback/030_down.sql'), /grant (all|insert|update|delete)/i, 'rollback must never restore write grants')
+})
+
+test('browsers never read public_doctors directly; scope is decided server-side', () => {
+  for (const f of ['app/dashboard/patient/new-appointment/page.tsx', 'lib/doctors/public.ts']) {
+    assert.doesNotMatch(read(f), /from\('public_doctors'\)/, f)
+  }
+  const api = read('app/api/doctors/route.ts')
+  assert.match(api, /resolveTenantFromHost\(req\.headers\.get\('host'\)\)/)
+  assert.doesNotMatch(api, /searchParams\.get\('(organization_id|orgId|org)'\)/, 'org must not come from the client')
+  const cols = /const COLUMNS = '([^']+)'/.exec(api)?.[1] ?? ''
+  assert.ok(cols.includes('first_name'))
+  assert.doesNotMatch(cols, /license_number|id_number|phone|email|availability|metadata/)
+  const ai = read('lib/ai/assistant/executors.ts')
+  assert.match(ai, /caller\.tenantOrgId && doctor\.organization_id !== caller\.tenantOrgId/)
+  assert.match(read('app/api/ai/assistant/route.ts'), /executeTool\(toolCaller,/)
+})

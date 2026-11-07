@@ -124,14 +124,13 @@ export default function NewAppointmentPage() {
   // Doctor deep-link: resolve the doctor's specialty so we land directly on their slots
   useEffect(() => {
     if (!pendingDoctorId || form.specialty) return
-    // public_doctors exposes only bookable columns and already filters to
-    // active doctors — the users table no longer grants patients doctor rows.
-    supabase.from('public_doctors')
-      .select('specialties')
-      .eq('id', pendingDoctorId)
-      .single()
-      .then(({ data }) => {
-        const specs = (data as { specialties: string[] | null } | null)?.specialties
+    // Doctors come from /api/doctors, which scopes them to the clinic server-side
+    // (direct reads of public_doctors were revoked in migration 030).
+    fetch(`/api/doctors?id=${encodeURIComponent(pendingDoctorId)}`, { cache: 'no-store' })
+      .then(r => r.ok ? r.json() : { doctors: [] })
+      .catch(() => ({ doctors: [] }))
+      .then((res: { doctors?: Array<{ specialties: string[] | null }> }) => {
+        const specs = res.doctors?.[0]?.specialties
         if (specs && specs.length > 0) {
           setForm(p => ({ ...p, specialty: specs[0] }))
         } else {
@@ -151,20 +150,12 @@ export default function NewAppointmentPage() {
 
     const load = async () => {
       try {
-        let query = supabase
-          .from('public_doctors')
-          .select('id, first_name, last_name, specialties, bio, consultation_price, average_rating, total_ratings, avatar_url, languages, organization_id')
-          .contains('specialties', [form.specialty])
-
-        // ── Clinic mode: filter by org ──────────────────────────────
-        if (orgCtx.id) {
-          query = query.eq('organization_id', orgCtx.id)
-        }
-        // ── Marketplace mode: all active doctors ────────────────────
-        // no additional filter
-
-        const { data } = await query
-        const loaded = (data || []) as unknown as DoctorRow[]
+        // The server decides which clinic's doctors this visitor may see (host +
+        // session); the org context below only narrows it further for display.
+        const r = await fetch(`/api/doctors?specialty=${encodeURIComponent(form.specialty)}`, { cache: 'no-store' })
+        const res = r.ok ? await r.json() as { doctors?: DoctorRow[] } : { doctors: [] }
+        let loaded = (res.doctors || []) as DoctorRow[]
+        if (orgCtx.id) loaded = loaded.filter(d => d.organization_id === orgCtx.id)
         setDoctors(loaded)
 
         // Deep-link: auto-select the requested doctor and skip ahead to slots

@@ -243,6 +243,8 @@ async function listDoctors(caller: Caller, args: Record<string, unknown>): Promi
   // Everyone inside a clinic sees that clinic's doctors. A patient with no clinic
   // yet (marketplace signup) sees all bookable doctors, as the booking flow does.
   if (caller.organizationId) q = q.eq('organization_id', caller.organizationId)
+  // On a clinic's own site, only that clinic's doctors (none if it does not match).
+  if (caller.tenantOrgId) q = q.eq('organization_id', caller.tenantOrgId)
   if (args.specialty) q = q.contains('specialties', [String(args.specialty)])
 
   const { data, error } = await q
@@ -566,6 +568,10 @@ async function prepareBooking(caller: Caller, args: Record<string, unknown>): Pr
   // Staff and doctors may only book inside their own clinic.
   if (caller.role !== 'patient' && caller.organizationId && doctor.organization_id !== caller.organizationId) {
     return { kind: 'error', error: 'הרופא אינו שייך למרפאה שלך' }
+  }
+  // On a clinic's own site, only that clinic's doctors can be booked.
+  if (caller.tenantOrgId && doctor.organization_id !== caller.tenantOrgId) {
+    return { kind: 'error', error: 'הרופא אינו שייך למרפאה הזו' }
   }
   // A patient who already belongs to a clinic books only that clinic's doctors
   // (the same rule list_doctors applies); marketplace patients may book anyone.

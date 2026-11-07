@@ -1,0 +1,151 @@
+PASS anon: SELECT public_doctors denied 42501
+PASS anon: UPDATE public_doctors denied 42501
+PASS anon: DELETE public_doctors denied 42501
+PASS anon: INSERT public_doctors denied 42501
+PASS anon: users table returns no doctors (RLS) 0
+PASS anon: appointment_doctors not executable 42501
+PASS patient.a@canna.test: SELECT public_doctors denied 42501
+PASS patient.a@canna.test: UPDATE public_doctors denied 42501
+PASS rpc: patient A sees only doctors of own appointments ["7642"]
+PASS rpc: patient.a@canna.test gets display fields only id,first_name,last_name,avatar_url,specialties,consultation_price,average_rating,total_ratings
+PASS patient.a@canna.test: users table exposes no other clinic's doctors []
+PASS patient.b@canna.test: SELECT public_doctors denied 42501
+PASS patient.b@canna.test: UPDATE public_doctors denied 42501
+PASS rpc: patient B sees only doctors of own appointments ["9643"]
+PASS rpc: patient.b@canna.test gets display fields only id,first_name,last_name,avatar_url,specialties,consultation_price,average_rating,total_ratings
+PASS patient.b@canna.test: users table exposes no other clinic's doctors []
+PASS doctor.a1@canna.test: SELECT public_doctors denied 42501
+PASS doctor.a1@canna.test: UPDATE public_doctors denied 42501
+PASS rpc: doctor A sees self + own-clinic doctors ["2578","7642"]
+PASS rpc: doctor.a1@canna.test gets display fields only id,first_name,last_name,avatar_url,specialties,consultation_price,average_rating,total_ratings
+PASS doctor.a1@canna.test: users table exposes no other clinic's doctors ["7642"]
+PASS doctor.b1@canna.test: SELECT public_doctors denied 42501
+PASS doctor.b1@canna.test: UPDATE public_doctors denied 42501
+PASS rpc: doctor B sees only own clinic ["9643"]
+PASS rpc: doctor.b1@canna.test gets display fields only id,first_name,last_name,avatar_url,specialties,consultation_price,average_rating,total_ratings
+PASS doctor.b1@canna.test: users table exposes no other clinic's doctors ["9643"]
+PASS admin.a@canna.test: SELECT public_doctors denied 42501
+PASS admin.a@canna.test: UPDATE public_doctors denied 42501
+PASS rpc: admin A sees only own clinic ["2578","7642"]
+PASS rpc: admin.a@canna.test gets display fields only id,first_name,last_name,avatar_url,specialties,consultation_price,average_rating,total_ratings
+PASS admin.a@canna.test: users table exposes no other clinic's doctors ["2578","7642"]
+PASS admin.b@canna.test: SELECT public_doctors denied 42501
+PASS admin.b@canna.test: UPDATE public_doctors denied 42501
+PASS rpc: admin B sees only own clinic ["9643"]
+PASS rpc: admin.b@canna.test gets display fields only id,first_name,last_name,avatar_url,specialties,consultation_price,average_rating,total_ratings
+PASS admin.b@canna.test: users table exposes no other clinic's doctors ["9643"]
+PASS staff.a@canna.test: SELECT public_doctors denied 42501
+PASS staff.a@canna.test: UPDATE public_doctors denied 42501
+PASS rpc: staff A sees only own clinic ["2578","7642"]
+PASS rpc: staff.a@canna.test gets display fields only id,first_name,last_name,avatar_url,specialties,consultation_price,average_rating,total_ratings
+PASS staff.a@canna.test: users table exposes no other clinic's doctors ["2578","7642"]
+PASS api anon @shaked-qa: only that clinic ["2578","7642"]
+PASS api anon @shaked-qa: client-supplied org ignored 
+PASS api anon @oren-qa: only that clinic ["9643"]
+PASS api anon @oren-qa: client-supplied org ignored 
+PASS api anon @gefen-qa: only that clinic ["2785"]
+PASS api anon @gefen-qa: client-supplied org ignored 
+PASS api anon @alon-qa: only that clinic []
+PASS api anon @alon-qa: client-supplied org ignored 
+PASS api anon @no-such-clinic: only that clinic []
+PASS api anon @no-such-clinic: client-supplied org ignored 
+PASS api anon @central: marketplace lists all clinics 6
+PASS api anon @central: public profile lookup works 
+PASS api: display fields only id,organization_id,first_name,last_name,avatar_url,specialties,bio,languages,consultation_price,average_rating,total_ratings
+PASS api: bad params rejected 
+PASS api anon @shaked: foreign doctor by id → none 
+PASS api @central as patient.a@canna.test: clinic patient → own clinic ["2578","7642"]
+PASS UI: patient appointments page still shows the doctor name 
+PASS UI: patient dashboard still shows the doctor name 
+PASS api @central as patient.b@canna.test: clinic patient B → own clinic ["9643"]
+PASS api @central as admin.a@canna.test: admin → own clinic ["2578","7642"]
+PASS api @central as doctor.b1@canna.test: doctor → own clinic ["9643"]
+PASS no doctor data was changed by any attempt 
+PASS doctor a2 still exists (delete attempts failed) 
+== 64/64 passed
+PASS public /doctors on shaked-qa lists only its doctors ["2578f361-8918-47cc-be34-f7f2adb49f48","7642d2c1-1466-44b0-bd26-ad5bdc19ad74"]
+PASS public /doctors on oren-qa lists only its doctors ["9643928b-e735-4f23-b565-cb630e1c3a55"]
+PASS public /doctors on gefen-qa lists only its doctors ["2785b39d-4d14-4eae-bdeb-7948d52494ff"]
+PASS public /doctors on alon-qa lists only its doctors []
+PASS public /doctors on no-such-clinic lists only its doctors []
+PASS public /doctors on central site (marketplace) still lists all clinics 6 doctors
+PASS central doctor profile still opens 
+PASS foreign doctor profile on clinic site → not found, no doctor data 
+PASS own doctor profile on clinic site shows the doctor 
+PASS specialty page on clinic site excludes foreign doctors []
+PASS specialty page on clinic site shows its own doctor ["7642d2c1-1466-44b0-bd26-ad5bdc19ad74"]
+PASS unknown clinic host: doctor profile → not found, no doctor data 
+PASS oren clinic: own doctor profile → 200 
+PASS slots: own clinic on own site returns slots n=478
+PASS slots: foreign clinic on own site returns none n=0
+PASS join-clinic: foreign doctor from clinic site refused status=404
+PASS join-clinic: patient stays in own clinic 
+PASS slots: clinic patient on central site cannot read another clinic n=0
+PASS slots: staff sees own clinic n=478
+PASS slots: staff cannot read another clinic n=0
+PASS db: patient cannot book another clinic's doctor (insert) 42501
+PASS db: patient can still book own clinic's doctor 
+PASS db: patient cannot switch to another clinic's doctor (update) 42501
+PASS db: status updates on existing rows unaffected 
+== 24/24 passed
+PASS [http://localhost:3105] basic: lands on login http://localhost:3105/auth/login
+PASS [http://localhost:3105] basic: session cookies cleared before=1
+PASS [http://localhost:3105] basic: protected page redirects 
+PASS [http://localhost:3105] basic: refresh does not restore session http://localhost:3105/auth/login?redirect=%2Fdashboard%2Fadmin%2Fdashboard
+PASS [http://localhost:3105] basic: other account can log in http://localhost:3105/dashboard/doctor/dashboard
+PASS [http://localhost:3105] lockHeld: lands on login http://localhost:3105/auth/login
+PASS [http://localhost:3105] lockHeld: session cookies cleared 
+PASS [http://localhost:3105] lockHeld: protected page redirects 
+PASS [http://localhost:3105] multiTab: tab B signed in http://localhost:3105/dashboard/admin/users
+PASS [http://localhost:3105] multiTab: tab A on login 
+PASS [http://localhost:3105] multiTab: tab B left the protected page by itself http://localhost:3105/auth/login
+PASS [http://localhost:3105] multiTab: tab B refresh stays logged out 
+== 12/12 passed
+PASS [http://shaked-qa.canna.localhost:3105] basic: lands on login http://shaked-qa.canna.localhost:3105/auth/login
+PASS [http://shaked-qa.canna.localhost:3105] basic: session cookies cleared before=1
+PASS [http://shaked-qa.canna.localhost:3105] basic: protected page redirects 
+PASS [http://shaked-qa.canna.localhost:3105] basic: refresh does not restore session http://shaked-qa.canna.localhost:3105/auth/login?redirect=%2Fdashboard%2Fadmin%2Fdashboard
+PASS [http://shaked-qa.canna.localhost:3105] basic: other account can log in http://shaked-qa.canna.localhost:3105/dashboard/doctor/dashboard
+PASS [http://shaked-qa.canna.localhost:3105] lockHeld: lands on login http://shaked-qa.canna.localhost:3105/auth/login
+PASS [http://shaked-qa.canna.localhost:3105] lockHeld: session cookies cleared 
+PASS [http://shaked-qa.canna.localhost:3105] lockHeld: protected page redirects 
+PASS [http://shaked-qa.canna.localhost:3105] multiTab: tab B signed in http://shaked-qa.canna.localhost:3105/dashboard/admin/users
+PASS [http://shaked-qa.canna.localhost:3105] multiTab: tab A on login 
+PASS [http://shaked-qa.canna.localhost:3105] multiTab: tab B left the protected page by itself http://shaked-qa.canna.localhost:3105/auth/login
+PASS [http://shaked-qa.canna.localhost:3105] multiTab: tab B refresh stays logged out 
+== 12/12 passed
+PASS onboarding (no clinic domain in env) → central login http://localhost:3105/auth/login?onboarding=success
+PASS onboarding: clinic + admin created 
+PASS onboarding: new admin can log in http://localhost:3105/dashboard/admin/dashboard
+PASS invite: doctor invitation created for the new clinic 
+PASS invite: invited doctor joins the right clinic as doctor {"role":"doctor","organization_id":"2e4f4090-dfbb-4bea-8545-bb13466ba49f"}
+PASS invite: invited doctor can log in to doctor dashboard http://localhost:3105/dashboard/doctor/dashboard
+PASS isolation: new doctor listed on its own clinic site 
+PASS isolation: new doctor NOT listed on another clinic site 
+PASS onboarding: redirects to the clinic subdomain once it is ready http://qa-r-mw6ze73j.canna.localhost:3105/auth/login?onboarding=success
+PASS onboarding: admin lands on dashboard on the clinic subdomain http://qa-r-mw6ze73j.canna.localhost:3105/dashboard/admin/dashboard
+PASS onboarding: clinic branding/name loaded on subdomain 
+PASS onboarding: DNS pending → clear explanation shown 
+PASS onboarding: pending → no automatic redirect 
+PASS onboarding: pending → central login fallback works 
+PASS domain-ready API: existing clinic, non-production host → not_production 
+PASS domain-ready API: invalid subdomain → 400 
+PASS domain-ready API: unknown clinic → 404 
+PASS register on clinic subdomain → patient of that clinic {"id":"a378c757-a22e-4ac2-898a-0b2291b6a42f","organization_id":"11111111-1111-4111-8111-111111111111","role":"patient"}
+PASS patient login on clinic subdomain 
+PASS booking UI: own clinic doctor offered 
+PASS booking UI: other clinics' doctors not offered 
+PASS booking: appointment created with own-clinic doctor {"organization_id":"11111111-1111-4111-8111-111111111111","doctor_id":"7642d2c1-1466-44b0-bd26-ad5bdc19ad74","status":"pending"}
+PASS register on central site → marketplace (default org) patient {"id":"0f4cdfe6-6290-4be1-ae8e-17374e59a715","organization_id":"00000000-0000-0000-0000-000000000001","role":"patient"}
+PASS marketplace booking still works (joins the doctor's clinic) {"organization_id":"22222222-2222-4222-8222-222222222222","doctor_id":"9643928b-e735-4f23-b565-cb630e1c3a55"}
+PASS login admin.a@canna.test @ localhost:3105 → admin dashboard http://localhost:3105/dashboard/admin/dashboard
+PASS login admin.a@canna.test @ shaked-qa.canna.localhost:3105 → admin dashboard http://shaked-qa.canna.localhost:3105/dashboard/admin/dashboard
+PASS login staff.a@canna.test @ localhost:3105 → staff dashboard http://localhost:3105/dashboard/staff/dashboard
+PASS login staff.a@canna.test @ shaked-qa.canna.localhost:3105 → staff dashboard http://shaked-qa.canna.localhost:3105/dashboard/staff/dashboard
+PASS login doctor.a1@canna.test @ localhost:3105 → doctor dashboard http://localhost:3105/dashboard/doctor/dashboard
+PASS login doctor.a1@canna.test @ shaked-qa.canna.localhost:3105 → doctor dashboard http://shaked-qa.canna.localhost:3105/dashboard/doctor/dashboard
+PASS login patient.a@canna.test @ localhost:3105 → patient dashboard http://localhost:3105/dashboard/patient/dashboard
+PASS login patient.a@canna.test @ shaked-qa.canna.localhost:3105 → patient dashboard http://shaked-qa.canna.localhost:3105/dashboard/patient/dashboard
+PASS login admin.b@canna.test @ localhost:3105 → admin dashboard http://localhost:3105/dashboard/admin/dashboard
+PASS login admin.b@canna.test @ shaked-qa.canna.localhost:3105 → admin dashboard http://shaked-qa.canna.localhost:3105/dashboard/admin/dashboard
+== 34/34 passed

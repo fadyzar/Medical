@@ -23,6 +23,9 @@ export type Caller = {
   id: string
   role: CallerRole
   organizationId: string | null
+  /** Clinic of the site the request came from (server-resolved host). Set only
+   *  on clinic sites; 'unknown' for an unrecognised clinic host. */
+  tenantOrgId?: string | null
 }
 
 export type ServiceResult<T> =

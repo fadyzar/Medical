@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server'
+import { resolveTenantFromHost } from '@/lib/tenant/server'
 import Anthropic from '@anthropic-ai/sdk'
 import { createServerSupabase } from '@/lib/supabase/server'
 import { resolveCaller } from '@/lib/services/appointments'
@@ -115,6 +116,9 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: 'המשתמש אינו משויך למרפאה' }, { status: 403 })
   }
   const organizationId = caller.organizationId
+  // On a clinic's own site the assistant may only list/book that clinic's doctors.
+  const tenant = await resolveTenantFromHost(req.headers.get('host'))
+  const toolCaller = { ...caller, tenantOrgId: tenant.kind === 'clinic' ? tenant.orgId : tenant.kind === 'unknown' ? 'unknown' : null }
 
   const encoder = new TextEncoder()
   const stream = new ReadableStream<Uint8Array>({
@@ -193,7 +197,7 @@ export async function POST(req: Request) {
           for (const call of toolUses) {
             send({ type: 'status', text: TOOL_STATUS[call.name as ToolName] ?? 'עובד על זה…' })
             const args = (call.input ?? {}) as Record<string, unknown>
-            const outcome = await executeTool(caller, call.name, args)
+            const outcome = await executeTool(toolCaller, call.name, args)
 
             if (outcome.kind === 'confirmation') {
               // A write. Do not execute — park it and tell the model it is pending,

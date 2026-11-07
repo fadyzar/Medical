@@ -222,7 +222,7 @@ export default function PatientAppointmentsPage() {
         .eq('patient_id', user.id)
         .order('created_at', { ascending: false })
         .limit(100)
-      // Doctor display fields come from public_doctors, never from users (migration 022).
+      // Doctor display fields come from appointment_doctors (migration 030), never from users.
       setAppointments(await withPublicDoctors(supabase, data || []) as unknown as AptWithDoctor[])
     } catch {
       // Prevents infinite loading
