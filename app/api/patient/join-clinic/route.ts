@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
 import { rateLimit } from '@/lib/security/rate-limit'
 import { z } from 'zod'
+import { resolveTenantFromHost } from '@/lib/tenant/server'
 
 const schema = z.object({ doctorId: z.string().uuid('מזהה רופא לא תקין') })
 
@@ -55,6 +56,13 @@ export async function POST(req: Request) {
 
     const orgId = (doc as { organization_id: string | null } | null)?.organization_id
     if (!orgId) return NextResponse.json({ error: 'הרופא לא נמצא' }, { status: 404 })
+
+    // Tenant isolation: on a clinic's own site a patient can only join THAT
+    // clinic — never be moved to another clinic's doctor from it.
+    const tenant = await resolveTenantFromHost(req.headers.get('host'))
+    if (tenant.kind === 'unknown' || (tenant.kind === 'clinic' && tenant.orgId !== orgId)) {
+      return NextResponse.json({ error: 'הרופא לא נמצא' }, { status: 404 })
+    }
 
     if (me.organization_id !== orgId) {
       const { error } = await admin.from('users').update({ organization_id: orgId }).eq('id', user.id)

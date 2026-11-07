@@ -21,6 +21,7 @@ import {
 } from '@/lib/services/appointments'
 import { searchPatients } from '@/lib/services/patients'
 import { parseAiSummary } from '@/lib/ai/summary-format'
+import { DEFAULT_ORG_ID } from '@/lib/tenant'
 import { assertToolAllowed, WRITE_TOOLS, type ToolName } from '@/lib/ai/assistant/registry'
 import { TOPICS, type KnowledgeTopic } from '@/lib/ai/assistant/knowledge'
 import { resolvePage } from '@/lib/ai/assistant/navigation'
@@ -564,6 +565,12 @@ async function prepareBooking(caller: Caller, args: Record<string, unknown>): Pr
 
   // Staff and doctors may only book inside their own clinic.
   if (caller.role !== 'patient' && caller.organizationId && doctor.organization_id !== caller.organizationId) {
+    return { kind: 'error', error: 'הרופא אינו שייך למרפאה שלך' }
+  }
+  // A patient who already belongs to a clinic books only that clinic's doctors
+  // (the same rule list_doctors applies); marketplace patients may book anyone.
+  if (caller.role === 'patient' && caller.organizationId && caller.organizationId !== DEFAULT_ORG_ID
+      && doctor.organization_id !== caller.organizationId) {
     return { kind: 'error', error: 'הרופא אינו שייך למרפאה שלך' }
   }
 

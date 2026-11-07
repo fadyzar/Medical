@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import PublicNav from '@/components/layout/PublicNav'
 import { createServiceRole } from '@/lib/supabase/server'
+import { getRequestTenant } from '@/lib/tenant/server'
 import { SPECIALTIES, formatPrice, languageLabels } from '@/lib/utils'
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cannaforyou.net'
@@ -36,12 +37,19 @@ function Stars({ v }: { v: number }) {
 
 export default async function DoctorsPage() {
   const supabase = createServiceRole()
+  // Tenant isolation: a clinic's site lists only that clinic's doctors; an
+  // unrecognised clinic host lists none. Resolved from the Host header, which
+  // also makes this page per-request instead of one static page for every host.
+  const tenant = await getRequestTenant()
 
-  const { data: doctors } = await supabase.from('users')
+  let query = supabase.from('users')
     .select('id, first_name, last_name, specialties, bio, consultation_price, average_rating, total_ratings, avatar_url, languages')
     .eq('role', 'doctor')
     .eq('is_active', true)
-    .order('average_rating', { ascending: false, nullsFirst: false })
+  if (tenant.kind === 'clinic') query = query.eq('organization_id', tenant.orgId)
+  const { data: doctors } = tenant.kind === 'unknown'
+    ? { data: [] }
+    : await query.order('average_rating', { ascending: false, nullsFirst: false })
 
   const typedDoctors = (doctors || []) as unknown as Array<{
     id: string; first_name: string; last_name: string

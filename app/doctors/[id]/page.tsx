@@ -3,6 +3,7 @@ import Link from 'next/link'
 import Image from 'next/image'
 import { notFound } from 'next/navigation'
 import { createServiceRole } from '@/lib/supabase/server'
+import { getRequestTenant, type RequestTenant } from '@/lib/tenant/server'
 import { SPECIALTIES, formatPrice } from '@/lib/utils'
 import { Breadcrumb } from '@/components/ui'
 
@@ -28,6 +29,11 @@ type ReviewData = {
 
 const BASE_URL = process.env.NEXT_PUBLIC_APP_URL || 'https://cannaforyou.net'
 
+function visibleOnTenant(tenant: RequestTenant, orgId: string | null): boolean {
+  if (tenant.kind === 'platform') return true
+  return tenant.kind === 'clinic' && orgId === tenant.orgId
+}
+
 function getSpecialtyLabel(id: string): string {
   return SPECIALTIES.find(s => s.id === id)?.label || id
 }
@@ -39,11 +45,14 @@ export async function generateMetadata({ params }: { params: Promise<{ id: strin
   const supabase = createServiceRole()
 
   const { data } = await supabase.from('users')
-    .select('first_name, last_name, specialties, bio, consultation_price, average_rating')
+    .select('first_name, last_name, specialties, bio, consultation_price, average_rating, organization_id')
     .eq('id', id)
     .eq('role', 'doctor')
     .eq('is_active', true)
-    .single()
+    .maybeSingle()
+  if (data && !visibleOnTenant(await getRequestTenant(), (data as { organization_id: string | null }).organization_id)) {
+    return { title: 'רופא לא נמצא' }
+  }
 
   if (!data) {
     return { title: 'רופא לא נמצא' }
@@ -83,13 +92,14 @@ export default async function DoctorProfilePage({ params }: { params: Promise<{ 
   const supabase = createServiceRole()
 
   const { data } = await supabase.from('users')
-    .select('id, first_name, last_name, specialties, bio, consultation_price, average_rating, total_ratings, avatar_url, languages, license_number, total_appointments')
+    .select('id, first_name, last_name, specialties, bio, consultation_price, average_rating, total_ratings, avatar_url, languages, license_number, total_appointments, organization_id')
     .eq('id', id)
     .eq('role', 'doctor')
     .eq('is_active', true)
-    .single()
+    .maybeSingle()
 
-  if (!data) notFound()
+  // Tenant isolation: another clinic's doctor does not exist on this clinic's site.
+  if (!data || !visibleOnTenant(await getRequestTenant(), (data as { organization_id: string | null }).organization_id)) notFound()
 
   const doc = data as unknown as DoctorData
 

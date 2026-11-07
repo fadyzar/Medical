@@ -9,6 +9,9 @@
  *   app, www, mail, api, admin
  */
 
+/** The seed placeholder organization — not a real clinic (marketplace patients). */
+export const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001'
+
 const RESERVED_SUBDOMAINS = new Set(['app', 'www', 'mail', 'api', 'admin'])
 const ROOT_DOMAINS = ['localhost', 'cannaforyou.net', 'vercel.app']
 
@@ -28,6 +31,10 @@ export function getTenantSubdomain(hostname: string): string | null {
 
   // Check if it's a plain root domain or localhost
   if (ROOT_DOMAINS.some(r => host === r || host === `www.${r}`)) return null
+
+  // Vercel deployment URLs (project-hash.vercel.app) are the platform itself,
+  // not a clinic, and an IP address has no subdomain.
+  if (host.endsWith('.vercel.app') || /^\d+\.\d+\.\d+\.\d+$/.test(host)) return null
 
   const parts = host.split('.')
 

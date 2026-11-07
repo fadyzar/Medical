@@ -2,9 +2,10 @@
 
 import { useState, useEffect, useRef, type ReactNode } from 'react'
 import { CannaAssistant } from '@/components/ai/CannaAssistant'
-import { useRouter, usePathname } from 'next/navigation'
+import { usePathname } from 'next/navigation'
 import Link from 'next/link'
 import { getClient } from '@/lib/supabase/client'
+import { logout, isLoggingOut } from '@/lib/auth/logout'
 import type { User } from '@/types/database'
 import { cn, getInitials } from '@/lib/utils'
 
@@ -283,7 +284,6 @@ const ROLE_LABELS: Record<string, string> = {
 type OrgBranding = { name: string; logo_url?: string | null; primary_color?: string | null; secondary_color?: string | null }
 
 export function DashboardLayout({ children, role }: { children: ReactNode; role: string }) {
-  const router = useRouter()
   const pathname = usePathname()
   const [user, setUser] = useState<User | null>(null)
   const [org, setOrg] = useState<OrgBranding | null>(null)
@@ -319,9 +319,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
     // Check "remember me" session expiry
     const expiresAt = localStorage.getItem('sessionExpiresAt')
     if (expiresAt && Date.now() > Number(expiresAt)) {
-      localStorage.removeItem('sessionExpiresAt')
-      localStorage.removeItem('rememberMe')
-      supabase.auth.signOut().then(() => router.push('/auth/login'))
+      void logout()
       return
     }
 
@@ -346,7 +344,7 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
           }
         })
     })
-  }, [role, router])
+  }, [role])
 
   // Close user menu on outside click
   useEffect(() => {
@@ -361,12 +359,35 @@ export function DashboardLayout({ children, role }: { children: ReactNode; role:
     if (org?.name) document.title = `${org.name} — לוח בקרה`
   }, [org?.name])
 
-  const handleLogout = async () => {
-    localStorage.removeItem('rememberMe')
-    localStorage.removeItem('sessionExpiresAt')
-    await getSupabase().auth.signOut()
-    router.push('/auth/login')
+  // Logout never fails silently: see lib/auth/logout.ts.
+  const [loggingOut, setLoggingOut] = useState(false)
+  const handleLogout = () => {
+    if (loggingOut) return
+    setLoggingOut(true)
+    setUserMenuOpen(false)
+    void logout()
   }
+
+  // Another tab logged out (Supabase broadcasts SIGNED_OUT), or the session
+  // cookies are gone when this tab regains focus: leave the protected page.
+  useEffect(() => {
+    const supabase = getSupabase()
+    const toLogin = () => { if (!isLoggingOut()) window.location.replace('/auth/login') }
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event) => {
+      if (event === 'SIGNED_OUT') toLogin()
+    })
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible') return
+      if (!document.cookie.split(';').some(c => c.trim().startsWith('sb-'))) toLogin()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    window.addEventListener('focus', onVisible)
+    return () => {
+      subscription.unsubscribe()
+      document.removeEventListener('visibilitychange', onVisible)
+      window.removeEventListener('focus', onVisible)
+    }
+  }, [])
 
   const navItems = NAV[role] || NAV.patient
   const mobileItems = navItems.slice(0, 5)

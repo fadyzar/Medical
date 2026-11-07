@@ -57,6 +57,40 @@ export default function OnboardingPage() {
   const [logoData, setLogoData] = useState<string | null>(null)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
+  // Post-onboarding: is the clinic's own address live yet?
+  //   checking → ready (redirect there) | pending (explain + offer the central site)
+  //   | central (no clinic domains in this environment → central login, as before)
+  const [domainState, setDomainState] = useState<'idle' | 'checking' | 'ready' | 'pending' | 'central'>('idle')
+  const [clinicUrl, setClinicUrl] = useState('')
+  const domainCheckRun = useRef(0)
+
+  const checkClinicDomain = useCallback(async (subdomain: string) => {
+    const run = ++domainCheckRun.current
+    setDomainState('checking')
+    const deadline = Date.now() + 60_000
+    while (run === domainCheckRun.current) {
+      let reason = 'unreachable'
+      try {
+        const r = await fetch(`/api/onboarding/domain-ready?subdomain=${encodeURIComponent(subdomain)}`, { cache: 'no-store' })
+        const d = await r.json() as { ready?: boolean; reason?: string; url?: string }
+        if (d.url) setClinicUrl(d.url)
+        if (d.ready && d.url) {
+          setDomainState('ready')
+          setTimeout(() => window.location.assign(`${d.url}/auth/login?onboarding=success`), 1500)
+          return
+        }
+        reason = d.reason || reason
+      } catch { /* network hiccup — keep trying until the deadline */ }
+      if (reason === 'not_production' || reason === 'not_found' || reason === 'invalid') {
+        setDomainState('central')
+        setTimeout(() => router.push('/auth/login?onboarding=success'), 3000)
+        return
+      }
+      if (Date.now() > deadline) { setDomainState('pending'); return }
+      await new Promise(res => setTimeout(res, 5000))
+    }
+  }, [router])
+
   // Subdomain availability
   const [subdomainAvailable, setSubdomainAvailable] = useState<boolean | null>(null)
   const [checkingSubdomain, setCheckingSubdomain] = useState(false)
@@ -262,9 +296,9 @@ export default function OnboardingPage() {
           window.location.href = data.stripeCheckoutUrl
         }, 2000)
       } else {
-        setTimeout(() => {
-          router.push(data.redirectUrl || '/auth/login?onboarding=success')
-        }, 3000)
+        // Go to the clinic's own address once it answers; until then explain
+        // and offer the central site (see checkClinicDomain).
+        void checkClinicDomain(form.subdomain)
       }
     } catch {
       setSubmitError('שגיאה בחיבור לשרת')
@@ -725,9 +759,24 @@ export default function OnboardingPage() {
               <h3 className="text-2xl font-bold text-slate-900">המרפאה נוצרה בהצלחה!</h3>
               <p className="text-slate-500">
                 {form.name} מוכנה לשימוש.
-                {form.plan !== 'free' && ' מעבירים אתכם לדף התשלום...'}
-                {form.plan === 'free' && ' מעבירים אתכם לדף ההתחברות...'}
+                {form.plan !== 'free' && domainState === 'idle' && ' מעבירים אתכם לדף התשלום...'}
+                {domainState === 'checking' && ` בודקים שהכתובת ${form.subdomain}.cannaforyou.net כבר זמינה...`}
+                {domainState === 'ready' && ` הכתובת של המרפאה מוכנה — מעבירים אתכם ל-${form.subdomain}.cannaforyou.net...`}
+                {domainState === 'central' && ' מעבירים אתכם לדף ההתחברות...'}
               </p>
+
+              {domainState === 'pending' && (
+                <div role="status" className="bg-amber-50 border border-amber-200 rounded-xl p-4 max-w-md mx-auto text-sm text-right space-y-2">
+                  <p className="font-semibold text-amber-900">הכתובת של המרפאה עדיין בהקמה</p>
+                  <p className="text-amber-800">
+                    הכתובת <span dir="ltr" className="font-medium">{form.subdomain}.cannaforyou.net</span> נרשמה,
+                    אבל הגדרת ה-DNS ותעודת האבטחה שלה עדיין מתפשטות. זה לוקח בדרך כלל כמה דקות, ולפעמים עד שעה.
+                  </p>
+                  <p className="text-amber-800">
+                    בינתיים אפשר להתחבר דרך האתר הראשי — אותו חשבון ואותה מרפאה. בהמשך תוכלו לעבור לכתובת המרפאה.
+                  </p>
+                </div>
+              )}
 
               <div className="bg-slate-50 rounded-xl p-5 max-w-sm mx-auto space-y-3 text-sm text-right">
                 <div className="flex justify-between items-center">
@@ -754,16 +803,31 @@ export default function OnboardingPage() {
                 )}
               </div>
 
-              <div className="flex justify-center">
-                <Spinner />
-              </div>
+              {domainState !== 'pending' && (
+                <div className="flex justify-center">
+                  <Spinner />
+                </div>
+              )}
 
-              <Button
-                onClick={() => router.push('/auth/login?onboarding=success')}
-                variant="outline"
-              >
-                עבור להתחברות
-              </Button>
+              <div className="flex flex-wrap justify-center gap-3">
+                <Button
+                  onClick={() => router.push('/auth/login?onboarding=success')}
+                  variant={domainState === 'pending' ? 'primary' : 'outline'}
+                >
+                  {domainState === 'pending' ? 'התחברו עכשיו דרך האתר הראשי' : 'עבור להתחברות'}
+                </Button>
+                {domainState === 'pending' && (
+                  <Button onClick={() => void checkClinicDomain(form.subdomain)} variant="outline">
+                    בדקו שוב את כתובת המרפאה
+                  </Button>
+                )}
+              </div>
+              {domainState === 'pending' && clinicUrl && (
+                <p className="text-xs text-slate-500">
+                  כשהכתובת תהיה מוכנה:{' '}
+                  <a href={`${clinicUrl}/auth/login`} dir="ltr" className="text-teal-700 underline">{clinicUrl.replace('https://', '')}</a>
+                </p>
+              )}
             </div>
           )}
         </CardContent>

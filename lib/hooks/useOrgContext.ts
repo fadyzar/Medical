@@ -1,7 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
-import { getTenantSubdomain } from '@/lib/tenant'
+import { getTenantSubdomain, DEFAULT_ORG_ID } from '@/lib/tenant'
 
 export interface OrgContext {
   id: string | null       // null = marketplace mode, no org pre-selected
@@ -24,7 +24,7 @@ const MARKETPLACE: OrgContext = {
 // The seed "default" organization is a placeholder, NOT a real clinic.
 // Patients sitting in it must be treated as marketplace so they can see
 // (and book) doctors across the whole platform.
-export const DEFAULT_ORG_ID = '00000000-0000-0000-0000-000000000001'
+export { DEFAULT_ORG_ID }
 
 type OrgData = { id: string; name: string; logo_url?: string | null; primary_color?: string | null; subdomain?: string | null }
 

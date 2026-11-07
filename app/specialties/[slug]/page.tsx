@@ -2,6 +2,7 @@ import type { Metadata } from 'next'
 import Link from 'next/link'
 import { notFound } from 'next/navigation'
 import { createServiceRole } from '@/lib/supabase/server'
+import { getRequestTenant } from '@/lib/tenant/server'
 import { SPECIALTIES, formatPrice } from '@/lib/utils'
 import { Breadcrumb } from '@/components/ui'
 
@@ -247,13 +248,17 @@ export default async function SpecialtyPage({ params }: { params: Promise<{ slug
 
   // Fetch doctors for this specialty (SSR)
   const supabase = createServiceRole()
-  const { data: doctors } = await supabase.from('users')
+  // Tenant isolation: only the active clinic's doctors (none for an unknown host).
+  const tenant = await getRequestTenant()
+  let query = supabase.from('users')
     .select('id, first_name, last_name, specialties, bio, consultation_price, average_rating, total_ratings, avatar_url, languages')
     .eq('role', 'doctor')
     .eq('is_active', true)
     .contains('specialties', [slug])
-    .order('average_rating', { ascending: false, nullsFirst: false })
-    .limit(12)
+  if (tenant.kind === 'clinic') query = query.eq('organization_id', tenant.orgId)
+  const { data: doctors } = tenant.kind === 'unknown'
+    ? { data: [] }
+    : await query.order('average_rating', { ascending: false, nullsFirst: false }).limit(12)
 
   const typedDoctors = (doctors || []) as unknown as Array<{
     id: string; first_name: string; last_name: string

@@ -4,6 +4,8 @@ import { addDays, format, parseISO, isAfter, addMinutes } from 'date-fns'
 import { fromZonedTime, toZonedTime } from 'date-fns-tz'
 import { APP_TIMEZONE } from '@/lib/utils'
 import type { AvailabilitySlot } from '@/types/database'
+import { resolveTenantFromHost } from '@/lib/tenant/server'
+import { DEFAULT_ORG_ID } from '@/lib/tenant'
 
 export const dynamic = 'force-dynamic'
 
@@ -46,6 +48,24 @@ export async function GET(req: NextRequest) {
     if (!orgId) return NextResponse.json({ error: 'Missing orgId' }, { status: 400 })
 
     const admin = createServiceRole()
+
+    // Tenant isolation, enforced here rather than trusted from the browser:
+    //  * on a clinic's site, only that clinic's doctors;
+    //  * clinic members (staff/doctor/admin) and patients who already belong to
+    //    a real clinic, only their own clinic. Marketplace patients (no clinic
+    //    yet, or the placeholder default org) may browse any clinic from the
+    //    central site — that is the marketplace booking flow.
+    const tenant = await resolveTenantFromHost(req.headers.get('host'))
+    if (tenant.kind === 'unknown' || (tenant.kind === 'clinic' && tenant.orgId !== orgId)) {
+      return NextResponse.json({ slots: [] })
+    }
+    const { data: me } = await admin.from('users').select('role, organization_id').eq('id', user.id).maybeSingle()
+    const caller = me as { role: string; organization_id: string | null } | null
+    if (!caller) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    const marketplacePatient = caller.role === 'patient' && (!caller.organization_id || caller.organization_id === DEFAULT_ORG_ID)
+    if (!marketplacePatient && caller.organization_id !== orgId) {
+      return NextResponse.json({ slots: [] })
+    }
 
     // Fetch doctors
     const query = admin
