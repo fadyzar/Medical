@@ -72,7 +72,7 @@ function StepIndicator({ current, total }: { current: number; total: number }) {
 
 // ── Component ─────────────────────────────────────────────
 
-type ClinicInfo = { id: string; name: string; logo_url?: string | null }
+type ClinicInfo = { id: string; name: string; logo_url?: string | null; subdomain?: string | null; domain_status?: string | null }
 
 export default function RegisterPage() {
   const router = useRouter()
@@ -96,14 +96,30 @@ export default function RegisterPage() {
 
   // Clinic context: set from subdomain or ?org= param
   const [clinicInfo, setClinicInfo] = useState<ClinicInfo | null>(null)
-  const [resolvedOrgId, setResolvedOrgId] = useState(orgIdParam)
+  const [, setResolvedOrgId] = useState(orgIdParam)
 
   useEffect(() => {
     // Priority 1: ?org= param → fetch org info by id
     if (orgIdParam) {
       fetch(`/api/org/by-id?id=${orgIdParam}`)
         .then(r => r.ok ? r.json() : null)
-        .then((d: ClinicInfo | null) => { if (d) { setClinicInfo(d); setResolvedOrgId(d.id) } })
+        .then((d: ClinicInfo | null) => {
+          if (!d) return
+          // Membership is decided server-side from the clinic's own site, so a
+          // share link with ?org= continues on that site.
+          const here = window.location.hostname
+          if (d.subdomain && getTenantSubdomain(here) !== d.subdomain) {
+            const target = here === 'localhost' || here === '127.0.0.1'
+              ? `${window.location.protocol}//${d.subdomain}.canna.localhost${window.location.port ? `:${window.location.port}` : ''}`
+              : here.endsWith('cannaforyou.net') && d.domain_status === 'active' ? `https://${d.subdomain}.cannaforyou.net` : null
+            if (target) {
+              const qs = new URLSearchParams(window.location.search); qs.delete('org')
+              window.location.replace(`${target}/auth/register${qs.toString() ? `?${qs}` : ''}`)
+              return
+            }
+          }
+          setClinicInfo(d); setResolvedOrgId(d.id)
+        })
         .catch(() => null)
       return
     }
@@ -153,6 +169,7 @@ export default function RegisterPage() {
     }
 
     setLoading(true)
+    const onClinicSite = !!getTenantSubdomain(window.location.hostname)
     try {
       const supabase = getClient()
       const { data, error } = await supabase.auth.signUp({
@@ -163,7 +180,9 @@ export default function RegisterPage() {
             first_name: form.first_name,
             last_name: form.last_name,
             role: 'patient',
-            ...(resolvedOrgId ? { organization_id: resolvedOrgId } : {}),
+            // Not an organization id: the clinic is resolved from this host on
+            // the server, and only if the confirmation is opened on the same site.
+            ...(onClinicSite ? { signup_host: window.location.host } : {}),
           },
           emailRedirectTo: `${window.location.origin}/api/auth/callback`,
         },
@@ -195,10 +214,11 @@ export default function RegisterPage() {
             id_number: form.id_number || null,
             date_of_birth: form.date_of_birth || null,
             gender: (form.gender as 'male' | 'female' | 'other' | 'prefer_not_to_say') || null,
-            role: 'patient',
-            ...(resolvedOrgId ? { organization_id: resolvedOrgId } : {}),
           }).eq('id', user.id)
         } catch { /* non-critical */ }
+        // Registered on a clinic's own site: join that clinic (host-derived,
+        // server-side; never moves a patient who is already in a clinic).
+        if (onClinicSite) await fetch('/api/patient/claim-clinic', { method: 'POST' }).catch(() => null)
 
         toast.success('נרשמת בהצלחה!')
         // Preserve booking deep-link through registration (internal paths only)

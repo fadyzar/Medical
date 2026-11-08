@@ -242,6 +242,16 @@ function buildConsultationSummaryHtml(data: SummaryData): string {
 
 export async function sendEmail(params: SendEmailParams, admin: SupabaseClient): Promise<SendEmailResult> {
   try {
+    // LOCAL_QA only: with no Resend key and EMAIL_OUTBOX_DIR set, write the
+    // message to disk instead of sending it, so tests can follow real links.
+    const outbox = process.env.EMAIL_OUTBOX_DIR
+    if (outbox && !process.env.RESEND_API_KEY) {
+      const { writeFile, mkdir } = await import('node:fs/promises')
+      await mkdir(outbox, { recursive: true })
+      const file = `${outbox}/${Date.now()}-${params.templateName}-${params.to.replace(/[^a-z0-9@._-]/gi, '_')}.json`
+      await writeFile(file, JSON.stringify({ to: params.to, subject: params.subject, from: params.organizationName, html: params.html }))
+      return { success: true, externalId: 'outbox' }
+    }
     const resend = getResendClient()
     const fromAddress = process.env.RESEND_FROM_EMAIL || 'noreply@cannaforyou.net'
     const fromName = params.organizationName || 'CANNA'
@@ -850,5 +860,63 @@ export async function sendPasswordResetEmail(params: {
     appointmentId: null,
     templateName: 'password_reset',
     organizationName: data.organizationName,
+  }, admin)
+}
+
+// ── Patient Invite Email ────────────────────────────
+
+const escapeHtml = (s: string) =>
+  s.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;').replace(/'/g, '&#39;')
+
+export function buildPatientInviteHtml(data: {
+  patientName: string | null
+  organizationName: string
+  inviterName: string
+  inviteUrl: string
+  primaryColor?: string | null
+  expiresDays: number
+}): string {
+  const org = escapeHtml(data.organizationName)
+  const inviter = escapeHtml(data.inviterName)
+  const greeting = data.patientName ? `שלום ${escapeHtml(data.patientName)},` : 'שלום,'
+  return wrapEmailHtml({
+    organizationName: org,
+    primaryColor: data.primaryColor && /^#[0-9a-fA-F]{3,8}$/.test(data.primaryColor) ? data.primaryColor : undefined,
+    ctaUrl: data.inviteUrl,
+    ctaText: 'לצפייה בהזמנה',
+    content: `
+      <h2 style="margin:0 0 16px;color:#1f2937;font-size:20px;">${greeting}</h2>
+      <p style="margin:0 0 20px;">${inviter} מזמין/ה אותך להצטרף כמטופל/ת ל<strong>${org}</strong>.</p>
+      <p style="margin:0 0 8px;color:#4b5563;font-size:14px;">אם עדיין אין לך חשבון — תתבקש/י ליצור אחד. אם כבר יש לך חשבון — פשוט התחבר/י ואשר/י את ההזמנה.</p>
+      <p style="margin:0 0 8px;color:#6b7280;font-size:13px;">ההזמנה אישית, חד-פעמית ותקפה ל-${data.expiresDays} ימים.</p>
+      <p style="margin:0;color:#6b7280;font-size:13px;">אם לא ציפית להזמנה הזו, אפשר להתעלם מההודעה.</p>
+    `,
+  })
+}
+
+export async function sendPatientInvite(params: {
+  email: string
+  patientName: string | null
+  organizationId: string
+  organizationName: string
+  primaryColor?: string | null
+  inviterName: string
+  inviterUserId: string
+  inviteUrl: string
+  expiresDays: number
+  admin: SupabaseClient
+}): Promise<{ success: boolean; error?: string }> {
+  const { admin, ...data } = params
+  return sendEmail({
+    to: data.email,
+    subject: `הזמנה להצטרף ל${data.organizationName}`,
+    html: buildPatientInviteHtml(data),
+    organizationId: data.organizationId,
+    userId: data.inviterUserId,
+    appointmentId: null,
+    templateName: 'patient_invite',
+    organizationName: data.organizationName,
+    // Never the link itself: it carries the single-use token.
+    variables: { email: data.email },
   }, admin)
 }

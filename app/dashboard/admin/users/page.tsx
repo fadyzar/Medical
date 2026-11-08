@@ -2,6 +2,7 @@
 export const dynamic = 'force-dynamic'
 
 import { useEffect, useState } from 'react'
+import { PatientInvitations } from '@/components/patients/PatientInvitations'
 import { getClient } from '@/lib/supabase/client'
 import { toast } from 'sonner'
 import { Button, Input, Select, Card, CardContent, Badge, PageLoading, EmptyState } from '@/components/ui'
@@ -93,7 +94,9 @@ export default function AdminUsersPage() {
       const { data: inv } = await (supabase as any).from('invitations')
         .select('id, email, role, first_name, token, expires_at')
         .eq('organization_id', profile.organization_id)
+        .neq('role', 'patient')
         .is('used_at', null)
+        .is('revoked_at', null)
         .gt('expires_at', new Date().toISOString())
         .order('created_at', { ascending: false })
       setPendingInvites((inv || []) as typeof pendingInvites)
@@ -263,6 +266,10 @@ export default function AdminUsersPage() {
         )} role="status">
           {message.text}
         </div>
+      )}
+
+      {activeTab === 'patients' && (
+        <PatientInvitations scopeLabel="כל הזמנות המטופלים של המרפאה (מנהלים ורופאים)" />
       )}
 
       {/* Invite panel */}

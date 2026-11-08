@@ -8,6 +8,7 @@ import { Button, Input, Card, Badge, PageLoading, EmptyState } from '@/component
 import { cn, formatDateTime, STATUS_LABELS, getInitials } from '@/lib/utils'
 import type { User, Appointment, Document } from '@/types/database'
 import { patientSummary } from '@/lib/ai/summary-format'
+import { PatientInvitations } from '@/components/patients/PatientInvitations'
 
 // ── Types ──────────────────────────────────────────────
 
@@ -161,6 +162,8 @@ export default function DoctorPatientsPage() {
           <p className="text-sm text-slate-500">{patients.length} מטופלים</p>
         </div>
       </div>
+
+      <PatientInvitations scopeLabel="הזמנות שלך למרפאה שלך — המטופלים שיאשרו יצטרפו למרפאה" />
 
       {/* Search */}
       <Input

@@ -223,7 +223,10 @@ export default function NewAppointmentPage() {
       // - Marketplace: use the selected doctor's org_id, and assign patient to it
       let appointmentOrgId = orgCtx.id
 
-      if (orgCtx.isMarketplace && form.doctor_id) {
+      // Also on a clinic's own site when the patient is not yet in that clinic
+      // (e.g. a marketplace account): the server joins them only if they are in
+      // no clinic at all, and refuses a patient of another clinic.
+      if (form.doctor_id && (orgCtx.isMarketplace || patientOrgId !== orgCtx.id)) {
         // Server-side: the org is derived from the doctor, not sent by the client.
         // A patient can no longer write their own organization_id (migration 019).
         const res = await fetch('/api/patient/join-clinic', {

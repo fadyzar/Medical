@@ -53,3 +53,16 @@ export const getRequestTenant = cache(async (): Promise<RequestTenant> => {
   const h = await headers()
   return resolveTenantFromHost(h.get('host'))
 })
+
+/**
+ * The origin to put in links we send (emails, redirects), from the Host header —
+ * but only for hosts we recognise (a resolved clinic host or one of the
+ * platform hosts), so a forged Host can never point a link elsewhere.
+ */
+export function trustedOrigin(h: Headers, tenant: RequestTenant): string {
+  const rawHost = (h.get('host') || '').toLowerCase().trim()
+  const host = rawHost.split(':')[0]
+  const proto = h.get('x-forwarded-proto')?.split(',')[0]?.trim() === 'https' || host.endsWith('cannaforyou.net') ? 'https' : 'http'
+  if (tenant.kind === 'clinic' || PLATFORM_HOSTS.has(host) || host.endsWith('.vercel.app')) return `${proto}://${rawHost}`
+  return (process.env.NEXT_PUBLIC_APP_URL || 'https://app.cannaforyou.net').replace(/\/$/, '')
+}

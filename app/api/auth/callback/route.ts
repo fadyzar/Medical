@@ -1,9 +1,15 @@
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
 import { sendWelcomeEmail } from '@/lib/email'
 import { NextResponse } from 'next/server'
+import { acceptPatientInvitation, claimClinicFromHost } from '@/lib/services/patient-invitations'
+import { resolveTenantFromHost, trustedOrigin } from '@/lib/tenant/server'
+import { DEFAULT_ORG_ID } from '@/lib/tenant'
 
 export async function GET(request: Request) {
-  const { searchParams, origin } = new URL(request.url)
+  const { searchParams } = new URL(request.url)
+  // Redirect back to the host the user is actually on (a clinic site keeps its
+  // own session cookies), not to whatever host the server process thinks it has.
+  const origin = trustedOrigin(request.headers, await resolveTenantFromHost(request.headers.get('host')))
   const code = searchParams.get('code')
   const next = searchParams.get('next') ?? '/dashboard/patient/dashboard'
   // Set by the invite form. When the confirmation link fails (already used,
@@ -25,52 +31,47 @@ export async function GET(request: Request) {
         const inviteToken = meta.invite_token as string | undefined
 
         // ── Process invite token if present ──────────────
-        if (inviteToken) {
+        // The token is secret and is re-validated here against this exact email;
+        // the role and clinic always come from the invitation row, never from
+        // the signup metadata (written by the browser).
+        if (inviteToken && /^[0-9a-f-]{36}$/i.test(inviteToken)) {
           type UserRole = 'patient' | 'doctor' | 'staff' | 'admin'
-          const validRoles: UserRole[] = ['patient', 'doctor', 'staff', 'admin']
-          let resolvedRole: UserRole | null = null
-          let resolvedOrgId: string | null = null
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          const invitationsTable = () => (admin as any).from('invitations')
+          const { data: inv } = await invitationsTable()
+            .select('id, organization_id, email, role, expires_at, used_at, revoked_at')
+            .eq('token', inviteToken)
+            .maybeSingle()
+          type InvRow = { id: string; organization_id: string; email: string; role: UserRole; expires_at: string; used_at: string | null; revoked_at: string | null }
+          const invite = inv as InvRow | null
 
-          // Try invite table first (may not exist yet)
-          try {
-            // eslint-disable-next-line @typescript-eslint/no-explicit-any
-            const invitationsTable = (admin as any).from('invitations')
-            const { data: inv } = await invitationsTable
-              .select('id, organization_id, email, role, expires_at, used_at')
-              .eq('token', inviteToken)
-              .maybeSingle()
+          if (invite?.role === 'patient') {
+            // Atomic, single-clinic (migration 031). Whatever the outcome, the
+            // invitation page explains it.
+            await acceptPatientInvitation(inviteToken, user.id).catch(() => null)
+            return NextResponse.redirect(`${origin}/auth/invite/${inviteToken}`)
+          }
 
-            type InvRow = { id: string; organization_id: string; email: string; role: string; expires_at: string; used_at: string | null }
-            const invite = inv as InvRow | null
-
-            if (
-              invite &&
-              !invite.used_at &&
-              new Date(invite.expires_at) > new Date() &&
-              invite.email.toLowerCase() === user.email?.toLowerCase()
-            ) {
-              resolvedRole = validRoles.includes(invite.role as UserRole) ? (invite.role as UserRole) : null
-              resolvedOrgId = invite.organization_id
-              // Mark as used
-              await invitationsTable
-                .update({ used_at: new Date().toISOString() })
-                .eq('id', invite.id)
+          if (
+            invite &&
+            !invite.used_at &&
+            !invite.revoked_at &&
+            new Date(invite.expires_at) > new Date() &&
+            invite.email.toLowerCase() === user.email?.toLowerCase()
+          ) {
+            // Claim atomically (single use), then apply role + clinic.
+            const { data: claimed } = await invitationsTable()
+              .update({ used_at: new Date().toISOString(), accepted_by: user.id })
+              .eq('id', invite.id).is('used_at', null).is('revoked_at', null)
+              .select('id').maybeSingle()
+            if (claimed) {
+              await admin.from('users').update({ role: invite.role, organization_id: invite.organization_id }).eq('id', user.id)
             }
-          } catch {
-            // invitations table may not exist yet — fall through to metadata fallback
           }
-
-          // No fallback to the signup metadata: it is written by the browser, so a
-          // forged `role`/`organization_id` would make anyone an admin of any
-          // clinic once their email was confirmed. Elevated roles come only from
-          // a valid, unused invitation for this exact email (same rule as 019).
-
-          // Apply resolved role + org to the user profile
-          if (resolvedRole) {
-            const updatePayload: Record<string, unknown> = { role: resolvedRole }
-            if (resolvedOrgId) updatePayload.organization_id = resolvedOrgId
-            await admin.from('users').update(updatePayload).eq('id', user.id)
-          }
+        } else if (meta.signup_host && meta.signup_host === request.headers.get('host')) {
+          // Registered on a clinic's own site and confirmed on that same site:
+          // join that clinic. The clinic is resolved from the host server-side.
+          await claimClinicFromHost(user.id, await resolveTenantFromHost(request.headers.get('host'))).catch(() => null)
         }
 
         let { data: profile } = await admin.from('users')
@@ -83,12 +84,10 @@ export async function GET(request: Request) {
           // Self-service profiles are always patients (see the invite rule above).
           const safeRole = 'patient'
 
-          // Get first org as fallback
-          const { data: org } = await admin.from('organizations').select('id').order('created_at').limit(1).single()
-
+          // Never a fallback clinic: the user starts outside any clinic.
           const profileData: Record<string, unknown> = {
             id: user.id,
-            organization_id: org?.id ?? null,
+            organization_id: DEFAULT_ORG_ID,
             email: user.email!,
             first_name: (meta.first_name as string) || '',
             last_name: (meta.last_name as string) || '',

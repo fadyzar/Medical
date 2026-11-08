@@ -182,10 +182,15 @@ const T = {
     const email = `pat+${RUN}@qa-reg.test`
     const ctx = await browser.newContext(); const page = await ctx.newPage()
     const u = await register(page, H('shaked-qa'), email)
-    log('register on clinic subdomain → patient of that clinic', u?.role === 'patient' && u.organization_id === ORG_A, JSON.stringify(u))
+    // 031: the clinic is granted server-side (host-derived) once the email is
+    // verified — never from signup metadata.
+    log('register on clinic subdomain → not in a clinic before email verification', u?.role === 'patient' && u.organization_id === '00000000-0000-0000-0000-000000000001', JSON.stringify(u))
     await confirmEmail(email)
     await login(page, H('shaked-qa'), email)
     log('patient login on clinic subdomain', page.url().includes('/dashboard/patient/'))
+    await sleep(1000)
+    const { data: joined } = await admin.from('users').select('organization_id').eq('id', u.id).single()
+    log('register on clinic subdomain → patient of that clinic after verification', joined?.organization_id === ORG_A, JSON.stringify(joined))
     await page.goto(`${H('shaked-qa')}/dashboard/patient/new-appointment`)
     await page.getByText('רפואה כללית').first().click()
     await page.waitForTimeout(2500)

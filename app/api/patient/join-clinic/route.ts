@@ -3,6 +3,7 @@ import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
 import { rateLimit } from '@/lib/security/rate-limit'
 import { z } from 'zod'
 import { resolveTenantFromHost } from '@/lib/tenant/server'
+import { ACCEPT_MESSAGES } from '@/lib/services/patient-invitations'
 
 const schema = z.object({ doctorId: z.string().uuid('מזהה רופא לא תקין') })
 
@@ -17,7 +18,8 @@ const schema = z.object({ doctorId: z.string().uuid('מזהה רופא לא תק
  * which only worked because the users_update_own policy had no WITH CHECK — the
  * same hole that let anyone set their own role to admin. Migration 019 closes it,
  * so the move happens here instead, with the target org derived from the doctor
- * rather than taken from the caller.
+ * rather than taken from the caller. Only a patient who is not yet in any clinic
+ * can join; a patient of another clinic is refused (single-clinic rule, 031).
  */
 export async function POST(req: Request) {
   try {
@@ -64,10 +66,16 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: 'הרופא לא נמצא' }, { status: 404 })
     }
 
+    // Single-clinic rule (031): a patient outside any clinic joins this one; a
+    // patient of another clinic is never moved — atomically, in the database.
     if (me.organization_id !== orgId) {
-      const { error } = await admin.from('users').update({ organization_id: orgId }).eq('id', user.id)
-      if (error) {
-        console.error('[join-clinic] update failed', error.message)
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      const { data: outcome, error } = await (admin as any).rpc('claim_patient_clinic', { p_user: user.id, p_org: orgId })
+      if (outcome === 'other_clinic' || error?.code === '23514') {
+        return NextResponse.json({ error: ACCEPT_MESSAGES.other_clinic, outcome: 'other_clinic' }, { status: 409 })
+      }
+      if (error || (outcome !== 'joined' && outcome !== 'already_member')) {
+        console.error('[join-clinic] claim failed', error?.code || outcome)
         return NextResponse.json({ error: 'שגיאה בשיוך למרפאה' }, { status: 500 })
       }
     }

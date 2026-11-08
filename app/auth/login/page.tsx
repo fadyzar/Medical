@@ -65,6 +65,13 @@ export default function LoginPage() {
 
     await supabase.from('users').update({ last_login_at: new Date().toISOString() }).eq('id', user.id)
 
+    // First sign-in after registering on this clinic's own site (e.g. the email
+    // confirmation opened elsewhere): join it. Server-side and host-derived; a
+    // no-op for everyone else.
+    if (user.user_metadata?.signup_host === window.location.host) {
+      await fetch('/api/patient/claim-clinic', { method: 'POST' }).catch(() => null)
+    }
+
     // Remember me logic
     if (rememberMe) {
       localStorage.setItem('rememberMe', 'true')

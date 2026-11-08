@@ -3,6 +3,7 @@ import { createServerSupabase } from '@/lib/supabase/server'
 import { resolveCaller } from '@/lib/services/appointments'
 import { inviteMember } from '@/lib/services/invitations'
 import { rateLimit } from '@/lib/security/rate-limit'
+import { resolveTenantFromHost, trustedOrigin } from '@/lib/tenant/server'
 import { z } from 'zod'
 
 const inviteSchema = z.object({
@@ -34,7 +35,7 @@ export async function POST(req: NextRequest) {
     if (!caller || caller.role !== 'admin') return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
     // The real request origin, so invite links work on any domain (Vercel, custom, localhost).
-    const result = await inviteMember({ caller, ...parsed.data, baseUrl: req.nextUrl.origin })
+    const result = await inviteMember({ caller, ...parsed.data, baseUrl: trustedOrigin(req.headers, await resolveTenantFromHost(req.headers.get('host'))) })
     if (!result.ok) return NextResponse.json({ error: result.error }, { status: result.status })
 
     return NextResponse.json({ success: true, ...result.data })

@@ -70,8 +70,8 @@ export async function inviteMember(params: {
   let token: string | undefined
   const { data: existing } = await invitations()
     .select('token')
-    .eq('organization_id', orgId).eq('email', email)
-    .is('used_at', null).gt('expires_at', new Date().toISOString())
+    .eq('organization_id', orgId).eq('email', email).eq('role', role)
+    .is('used_at', null).is('revoked_at', null).gt('expires_at', new Date().toISOString())
     .maybeSingle()
   if (existing) {
     token = (existing as { token: string }).token

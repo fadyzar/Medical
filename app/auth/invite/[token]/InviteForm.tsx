@@ -11,12 +11,14 @@ const ROLE_LABELS: Record<string, string> = {
   doctor: 'רופא',
   staff: 'איש צוות',
   admin: 'מנהל',
+  patient: 'מטופל',
 }
 
 const ROLE_COLORS: Record<string, string> = {
   doctor:  'bg-teal-100 text-teal-700 border-teal-200',
   staff:   'bg-purple-100 text-purple-700 border-purple-200',
   admin:   'bg-amber-100 text-amber-700 border-amber-200',
+  patient: 'bg-sky-100 text-sky-700 border-sky-200',
 }
 
 interface Props {
@@ -24,11 +26,12 @@ interface Props {
   email: string
   role: string
   orgName: string
-  orgId: string
   firstName?: string | null
 }
 
-export default function InviteForm({ token, email, role, orgName, orgId, firstName }: Props) {
+export default function InviteForm({ token, email, role, orgName, firstName }: Props) {
+  const isPatient = role === 'patient'
+  const [agreeTerms, setAgreeTerms] = useState(false)
   const router = useRouter()
   const [form, setForm] = useState({
     first_name: firstName || '',
@@ -55,6 +58,7 @@ export default function InviteForm({ token, email, role, orgName, orgId, firstNa
     if (form.last_name.length < 2) errs.last_name = 'שם משפחה חייב להכיל לפחות 2 תווים'
     if (form.password.length < 8) errs.password = 'סיסמה חייבת להכיל לפחות 8 תווים'
     if (form.password !== form.confirm_password) errs.confirm_password = 'הסיסמאות אינן תואמות'
+    if (isPatient && !agreeTerms) errs.agree_terms = 'יש לאשר את תנאי השימוש ומדיניות הפרטיות'
     setErrors(errs)
     return Object.keys(errs).length === 0
   }
@@ -77,7 +81,6 @@ export default function InviteForm({ token, email, role, orgName, orgId, firstNa
             last_name: form.last_name,
             role,
             invite_token: token,
-            organization_id: orgId,
           },
           // `invite` lets the callback send a failed or reused link back here.
           emailRedirectTo: `${window.location.origin}/api/auth/callback?invite=${encodeURIComponent(token)}`,
@@ -114,14 +117,15 @@ export default function InviteForm({ token, email, role, orgName, orgId, firstNa
           body: JSON.stringify({ token }),
         })
 
+        const body = await res.json().catch(() => ({})) as { error?: string; redirect?: string | null }
         if (!res.ok) {
-          const body = await res.json() as { error?: string }
           toast.error(body.error || 'שגיאה בעיבוד ההזמנה')
           setLoading(false)
           return
         }
 
         toast.success('ברוך הבא! ההרשמה הושלמה.')
+        if (isPatient) { window.location.assign(body.redirect || '/dashboard/patient/dashboard'); return }
 
         // Redirect based on role
         const dashboards: Record<string, string> = {
@@ -242,6 +246,16 @@ export default function InviteForm({ token, email, role, orgName, orgId, firstNa
           autoComplete="new-password"
           required
         />
+
+        {isPatient && (
+          <div>
+            <label className="flex items-start gap-2 text-sm text-slate-600">
+              <input type="checkbox" checked={agreeTerms} onChange={e => { setAgreeTerms(e.target.checked); setErrors(p => { const n = { ...p }; delete n.agree_terms; return n }) }} className="mt-1" aria-describedby={errors.agree_terms ? 'agree-terms-error' : undefined} />
+              <span>קראתי ואני מסכים/ה ל<Link href="/terms" className="text-teal-600 hover:underline" target="_blank">תנאי השימוש</Link> ול<Link href="/privacy" className="text-teal-600 hover:underline" target="_blank">מדיניות הפרטיות</Link></span>
+            </label>
+            {errors.agree_terms && <p id="agree-terms-error" className="text-xs text-red-600 mt-1">{errors.agree_terms}</p>}
+          </div>
+        )}
 
         <Button type="submit" loading={loading} className="w-full" size="lg">
           השלם הרשמה
