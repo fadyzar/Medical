@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
 import { rateLimit } from '@/lib/security/rate-limit'
+import { sendLifecycleEmail } from '@/lib/appointments/lifecycle-emails'
 
 export async function POST(req: NextRequest) {
   try {
@@ -60,8 +61,11 @@ export async function POST(req: NextRequest) {
     }
 
     // Use optimistic locking: only update if still 'completed'
+    // Records a refund the clinic performed in the payment provider's console.
+    // No provider refund API is called from here.
     const { error: aptError, data: aptData } = await admin.from('appointments').update({
       payment_status: 'refunded',
+      refund_status: 'completed',
     }).eq('id', appointmentId).eq('payment_status', 'completed').select('id')
 
     if (aptError) {
@@ -100,6 +104,8 @@ export async function POST(req: NextRequest) {
         refunded_at: new Date().toISOString(),
       },
     })
+
+    await sendLifecycleEmail('appointment_refund_completed', appointmentId, admin)
 
     return NextResponse.json({
       success: true,

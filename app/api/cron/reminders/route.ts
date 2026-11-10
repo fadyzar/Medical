@@ -17,7 +17,24 @@ export async function GET(req: Request) {
 
     const admin = createServiceRole()
     const now = new Date()
-    const results = { reminders24h: 0, reminders1h: 0, whatsapp1h: 0, errors: 0 }
+    const results = { reminders24h: 0, reminders1h: 0, whatsapp1h: 0, expiredPaymentHolds: 0, errors: 0 }
+
+    // ── Release slots held by unpaid online bookings (30 min to pay) ─────
+    // A Tranzila payment that still arrives later is recorded by the webhook
+    // and flagged for refund; it never revives the booking.
+    const { data: expired } = await admin
+      .from('appointments')
+      .update({
+        status: 'cancelled_patient',
+        cancelled_at: now.toISOString(),
+        cancellation_reason: 'התשלום לא הושלם בזמן',
+      })
+      .eq('status', 'payment_pending')
+      .eq('payment_collection', 'online')
+      .neq('payment_status', 'completed')
+      .lt('created_at', new Date(now.getTime() - 30 * 60000).toISOString())
+      .select('id')
+    results.expiredPaymentHolds = expired?.length ?? 0
 
     // ── 24h reminders: 23-25 hours from now ──────────
     const h23 = new Date(now.getTime() + 23 * 3600000).toISOString()
@@ -26,7 +43,7 @@ export async function GET(req: Request) {
     const { data: apts24h } = await admin
       .from('appointments')
       .select('id, organization_id')
-      .in('status', ['scheduled', 'paid', 'ready'])
+      .eq('status', 'confirmed') // only doctor-approved visits get reminders (and video links)
       .not('scheduled_at', 'is', null)
       .gte('scheduled_at', h23)
       .lte('scheduled_at', h25)
@@ -74,7 +91,7 @@ export async function GET(req: Request) {
     const { data: apts1h } = await admin
       .from('appointments')
       .select('id, organization_id')
-      .in('status', ['scheduled', 'paid', 'ready'])
+      .eq('status', 'confirmed') // only doctor-approved visits get reminders (and video links)
       .not('scheduled_at', 'is', null)
       .gte('scheduled_at', m45)
       .lte('scheduled_at', m75)

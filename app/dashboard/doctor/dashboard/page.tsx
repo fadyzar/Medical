@@ -10,6 +10,7 @@ import { ChartCard, BarTrend, MED } from '@/components/ui/medical'
 import { STATUS_LABELS, formatDateTime, formatTime, getInitials, cn, specialtyLabels } from '@/lib/utils'
 import type { Appointment, User } from '@/types/database'
 import { useDataChanged } from '@/lib/hooks/useDataChanged'
+import { PendingRequests, pendingRequestsOf } from '@/components/appointments/PendingRequests'
 
 // ── small helpers ──────────────────────────────────────────────────
 function PatientAvatar({ first, last, size = 'md' }: { first: string; last: string; size?: 'sm' | 'md' | 'lg' }) {
@@ -21,11 +22,6 @@ function PatientAvatar({ first, last, size = 'md' }: { first: string; last: stri
   )
 }
 
-function TriageBadge({ score }: { score: number }) {
-  if (score >= 7) return <Badge variant="danger">דחיפות גבוהה {score}/10</Badge>
-  if (score >= 4) return <Badge variant="warning">דחיפות בינונית {score}/10</Badge>
-  return <Badge variant="success">דחיפות נמוכה {score}/10</Badge>
-}
 
 // ── quick-action card ──────────────────────────────────────────────
 function QuickAction({ icon, label, description, onClick, accent = 'blue' }: {
@@ -154,7 +150,6 @@ export default function DoctorDashboard() {
   const [loading, setLoading] = useState(true)
   // Ticks so the day-boundary filters and the greeting stay correct without a reload.
   const now = useNow(60_000)
-  const [confirmingId, setConfirmingId] = useState<string | null>(null)
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null)
   const supabase = getClient()
 
@@ -195,29 +190,12 @@ export default function DoctorDashboard() {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read_at: new Date().toISOString() } : n))
   }
 
-  const confirmAppointment = async (id: string) => {
-    setConfirmingId(id)
-    setMessage(null)
-    try {
-      const { error } = await supabase.from('appointments').update({ status: 'doctor_confirmed', doctor_accepted_at: new Date().toISOString() }).eq('id', id)
-      if (error) {
-        setMessage({ type: 'error', text: 'שגיאה באישור התור' })
-      } else {
-        setMessage({ type: 'success', text: 'התור אושר בהצלחה' })
-        setTimeout(() => setMessage(null), 3000)
-      }
-    } catch {
-      setMessage({ type: 'error', text: 'שגיאה באישור התור' })
-    }
-    setConfirmingId(null)
-    loadData()
-  }
-
-
   if (loading) return <PageLoading />
 
-  const pending   = appointments.filter(a => ['pending', 'payment_pending'].includes(a.status))
-  const active    = appointments.filter(a => ['doctor_confirmed', 'scheduled', 'ready', 'in_progress'].includes(a.status))
+  const pending   = pendingRequestsOf(appointments, now)
+  // Only doctor-approved visits can open a video consultation.
+  const VIDEO_READY = ['confirmed', 'in_progress']
+  const active    = appointments.filter(a => ['confirmed', 'in_progress', 'scheduled', 'ready'].includes(a.status))
   const todayKey  = new Date(now).toDateString()
   const today     = appointments.filter(a => a.scheduled_at && new Date(a.scheduled_at).toDateString() === todayKey)
   const completed = appointments.filter(a => a.status === 'completed')
@@ -259,12 +237,12 @@ export default function DoctorDashboard() {
           </p>
         </div>
         <div className="flex gap-2">
-          {active.some(a => ['ready', 'in_progress', 'scheduled'].includes(a.status)) && (
+          {active.some(a => VIDEO_READY.includes(a.status)) && (
             <Button
               size="sm"
               className="bg-green-600 hover:bg-green-700 gap-2"
               onClick={() => {
-                const next = active.find(a => ['ready', 'in_progress', 'scheduled'].includes(a.status))
+                const next = active.find(a => a.status === 'in_progress') || active.find(a => VIDEO_READY.includes(a.status))
                 if (next) router.push(`/video-call?id=${next.id}`)
               }}
             >
@@ -420,76 +398,12 @@ export default function DoctorDashboard() {
         </CardContent>
       </Card>
 
-      {/* ── pending approval — urgent ── */}
-      {pending.length > 0 && (
-        <Card className="border-orange-300 shadow-orange-100 shadow-md">
-          <CardHeader className="bg-gradient-to-l from-orange-50 to-amber-50 border-b border-orange-200">
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2.5">
-                <div className="w-9 h-9 rounded-full bg-orange-100 flex items-center justify-center">
-                  <svg className="w-5 h-5 text-orange-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
-                  </svg>
-                </div>
-                <div>
-                  <h3 className="font-bold text-orange-900">בקשות ממתינות לאישורך</h3>
-                  <p className="text-xs text-orange-600">מטופלים אלו מחכים לאישורך כדי לקבוע מועד</p>
-                </div>
-              </div>
-              <span className="bg-orange-500 text-white text-sm font-bold w-7 h-7 rounded-full flex items-center justify-center shrink-0">
-                {pending.length}
-              </span>
-            </div>
-          </CardHeader>
-
-          <div className="divide-y divide-orange-100">
-            {pending.map(apt => {
-              const patient = apt.patient as unknown as User
-              return (
-                <div key={apt.id} className="px-5 py-4 hover:bg-orange-50/50 transition-colors">
-                  <div className="flex items-start gap-3">
-                    <PatientAvatar first={patient?.first_name || ''} last={patient?.last_name || ''} />
-                    <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 flex-wrap">
-                        <p className="font-semibold text-slate-900">{patient?.first_name} {patient?.last_name}</p>
-                        {apt.ai_triage_score != null && <TriageBadge score={apt.ai_triage_score} />}
-                      </div>
-                      <p className="text-sm text-slate-700 mt-0.5 font-medium">{apt.chief_complaint}</p>
-                      {apt.complaint_description && (
-                        <p className="text-xs text-slate-400 mt-0.5 line-clamp-2">{apt.complaint_description}</p>
-                      )}
-                      <div className="flex items-center gap-3 mt-1.5 flex-wrap">
-                        {apt.ai_triage_category && (
-                          <span className="text-xs text-slate-500 bg-slate-100 px-2 py-0.5 rounded-full">{apt.ai_triage_category}</span>
-                        )}
-                        <span className="text-xs text-slate-400">התקבל {formatDateTime(apt.created_at)}</span>
-                      </div>
-                    </div>
-                    <div className="flex flex-col gap-2 shrink-0">
-                      <Button
-                        size="sm"
-                        loading={confirmingId === apt.id}
-                        onClick={() => confirmAppointment(apt.id)}
-                        className="bg-orange-600 hover:bg-orange-700"
-                      >
-                        אשר תור
-                      </Button>
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="border-orange-200 text-orange-700 hover:bg-orange-50"
-                        onClick={() => router.push(`/dashboard/doctor/appointments?id=${apt.id}`)}
-                      >
-                        פרטים
-                      </Button>
-                    </div>
-                  </div>
-                </div>
-              )
-            })}
-          </div>
-        </Card>
-      )}
+      {/* ── pending appointment requests (approve / reject) ── */}
+      <PendingRequests
+        appointments={pending}
+        onChanged={loadData}
+        onOpen={id => router.push(`/dashboard/doctor/appointments?id=${id}`)}
+      />
 
       {/* ── active appointments ── */}
       <Card>
@@ -517,7 +431,7 @@ export default function DoctorDashboard() {
           <div className="divide-y">
             {active.map(apt => {
               const patient = apt.patient as unknown as User
-              const canVideo = ['ready', 'in_progress', 'scheduled'].includes(apt.status)
+              const canVideo = VIDEO_READY.includes(apt.status)
               const isInProgress = apt.status === 'in_progress'
 
               return (

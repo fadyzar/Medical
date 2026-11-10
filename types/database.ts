@@ -31,7 +31,7 @@ export type Database = {
 }
 
 export type UserRole = 'patient' | 'doctor' | 'staff' | 'admin'
-export type AppointmentStatus = 'draft' | 'pending' | 'doctor_confirmed' | 'time_selected' | 'payment_pending' | 'paid' | 'scheduled' | 'ready' | 'in_progress' | 'completed' | 'cancelled_patient' | 'cancelled_doctor' | 'no_show_patient' | 'no_show_doctor'
+export type AppointmentStatus = 'draft' | 'pending' | 'doctor_confirmed' | 'time_selected' | 'payment_pending' | 'paid' | 'scheduled' | 'ready' | 'in_progress' | 'completed' | 'cancelled_patient' | 'cancelled_doctor' | 'no_show_patient' | 'no_show_doctor' | 'pending_approval' | 'confirmed' | 'rejected'
 export type PaymentStatus = 'pending' | 'processing' | 'completed' | 'failed' | 'refunded'
 
 /**
@@ -124,6 +124,12 @@ export type Appointment = {
   completed_at: string | null; patient_rating: number | null; patient_feedback: string | null
   cancelled_at: string | null; cancellation_reason: string | null
   no_show_recorded_at: string | null
+  // Approval lifecycle (migration 033)
+  approved_at?: string | null; approved_by?: string | null
+  rejected_at?: string | null; rejected_by?: string | null; rejection_reason?: string | null
+  payment_collection?: 'online' | 'clinic' | 'none' | null
+  refund_status?: string | null; refund_requested_at?: string | null
+  timezone?: string
   reminder_24h_sent_at: string | null; reminder_1h_sent_at: string | null
   created_at: string; updated_at: string
   // Joined

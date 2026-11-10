@@ -5,6 +5,7 @@ import { generateInvoice } from '@/lib/invoice'
 import { sendPaymentReceipt } from '@/lib/email'
 import { rateLimit } from '@/lib/security/rate-limit'
 import crypto from 'crypto'
+import { markPaymentVerified } from '@/lib/appointments/lifecycle'
 
 // ── Tranzila signature validation ─────────────────────
 function validateTranzilaSignature(params: URLSearchParams): boolean {
@@ -118,19 +119,32 @@ export async function POST(req: Request) {
 
     // ── Process payment result ────────────────────────────
     if (responseCode === '000') {
-      // Success — update appointment atomically
-      const { error: updateError } = await admin.from('appointments').update({
-        payment_status: 'completed',
-        payment_transaction_id: transactionId,
-        payment_completed_at: new Date().toISOString(),
-        payment_method: maskedCard || null,
-        status: 'paid',
-      }).eq('id', apt.id)
-        .eq('payment_status', 'pending') // Extra guard: only update if still pending
-
-      if (updateError) {
-        console.error('[Payment Webhook] Update failed:', updateError.message)
-        return NextResponse.json({ error: 'Update failed' }, { status: 500 })
+      // Verified, signed provider notification. A booking waiting for payment
+      // moves to pending_approval (the doctor still has to approve it). A
+      // payment that arrives for a booking that is no longer waiting (expired
+      // or cancelled meanwhile) is recorded and flagged for refund — it never
+      // revives or confirms the booking.
+      let late = false
+      if (apt.status === 'payment_pending') {
+        const { transitioned } = await markPaymentVerified({
+          appointmentId: apt.id, transactionId, method: maskedCard || null, admin,
+        })
+        if (!transitioned) return NextResponse.json({ status: 'already_processed' })
+      } else {
+        late = true
+        const { data: flagged, error: updateError } = await admin.from('appointments').update({
+          payment_status: 'completed',
+          payment_transaction_id: transactionId,
+          payment_completed_at: new Date().toISOString(),
+          payment_method: maskedCard || null,
+          refund_status: 'pending',
+          refund_requested_at: new Date().toISOString(),
+        }).eq('id', apt.id).neq('payment_status', 'completed').select('id')
+        if (updateError) {
+          console.error('[Payment Webhook] Update failed:', updateError.message)
+          return NextResponse.json({ error: 'Update failed' }, { status: 500 })
+        }
+        if (!flagged?.length) return NextResponse.json({ status: 'already_processed' })
       }
 
       // ── Create payment record ───────────────────────────
@@ -157,7 +171,7 @@ export async function POST(req: Request) {
       await admin.from('audit_logs').insert({
         organization_id: apt.organization_id,
         user_id: apt.patient_id,
-        action: 'PAYMENT_COMPLETED',
+        action: late ? 'PAYMENT_RECEIVED_FOR_INACTIVE_BOOKING' : 'PAYMENT_COMPLETED',
         resource_type: 'appointment',
         resource_id: apt.id,
         metadata: {
@@ -170,6 +184,8 @@ export async function POST(req: Request) {
       })
 
       // ── Post-payment actions (best-effort, non-blocking) ──
+
+      if (late) return NextResponse.json({ status: 'ok', refund: 'pending' })
 
       // WhatsApp confirmation
       try {
@@ -189,15 +205,9 @@ export async function POST(req: Request) {
           .eq('id', apt.organization_id)
           .single()
 
-        const { data: aptFull } = await admin.from('appointments')
-          .select('chief_complaint')
-          .eq('id', apt.id)
-          .single()
-
-        if (patient && org && aptFull && apt.payment_amount) {
+        if (patient && org && apt.payment_amount) {
           const typedPatient = patient as unknown as { first_name: string; last_name: string; email: string; phone: string | null }
           const typedOrg = org as unknown as { name: string }
-          const typedApt = aptFull as unknown as { chief_complaint: string }
 
           const result = await generateInvoice({
             appointmentId: apt.id,
@@ -205,7 +215,7 @@ export async function POST(req: Request) {
             patientName: `${typedPatient.first_name} ${typedPatient.last_name}`,
             patientEmail: typedPatient.email,
             patientPhone: typedPatient.phone,
-            description: `ייעוץ רפואי — ${typedApt.chief_complaint}`,
+            description: 'ייעוץ רפואי',
             organizationName: typedOrg.name,
             admin,
           })

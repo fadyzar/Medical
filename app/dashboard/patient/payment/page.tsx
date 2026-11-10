@@ -9,9 +9,10 @@ import { formatPrice, formatDateTime, cn, specialtyLabels } from '@/lib/utils'
 import type { Appointment, User } from '@/types/database'
 import { withPublicDoctors } from '@/lib/doctors/public'
 
-// ── Payment mode detection ────────────────────────────────────────
-// If TRANZILA terminal is configured → real payment, otherwise → fake card form
-const USE_FAKE_PAYMENT = !process.env.NEXT_PUBLIC_TRANZILA_TERMINAL
+// ── Payment mode ─────────────────────────────────────────────────
+// Decided by the server (/api/payments/mode): 'tranzila' (real), 'simulated'
+// (LOCAL QA only — never production) or 'none' (no online payment).
+type PaymentMode = 'tranzila' | 'simulated' | 'none'
 
 type PaymentState = 'loading' | 'summary' | 'card_form' | 'paying' | 'tranzila' | 'success' | 'failed' | 'error' | 'already_paid'
 
@@ -58,12 +59,16 @@ export default function PaymentPage() {
   const [card, setCard]             = useState<CardForm>({ number: '', name: '', expiry: '', cvv: '' })
   const [cardErrors, setCardErrors] = useState<Partial<CardForm>>({})
   const [processing, setProcessing] = useState(false)
+  const [mode, setMode]             = useState<PaymentMode | null>(null)
+  const USE_FAKE_PAYMENT = mode === 'simulated'
 
   const pollRef      = useRef<ReturnType<typeof setInterval>>(undefined)
   const pollStartRef = useRef<number>(0)
 
   useEffect(() => {
     if (!appointmentId) { setError('חסר מזהה תור'); setState('error'); return }
+    fetch('/api/payments/mode', { cache: 'no-store' })
+      .then(r => r.json()).then((d: { mode: PaymentMode }) => setMode(d.mode)).catch(() => setMode('none'))
     loadAppointment(appointmentId)
     return () => { if (pollRef.current) clearInterval(pollRef.current) }
   }, [appointmentId])
@@ -96,6 +101,11 @@ export default function PaymentPage() {
 
       if (typedApt.payment_status === 'completed') {
         setState('already_paid')
+      } else if (typedApt.status !== 'payment_pending') {
+        // Nothing to pay online for this booking (clinic-settled, free, or not
+        // waiting for payment): the appointments page shows where it stands.
+        router.replace('/dashboard/patient/appointments')
+        return
       } else if (urlStatus === 'success') {
         setState('success')
       } else if (urlStatus === 'failed') {
@@ -242,7 +252,7 @@ export default function PaymentPage() {
               </svg>
             </div>
             <h2 className="text-xl font-bold text-teal-800">תור זה כבר שולם</h2>
-            <p className="text-slate-500">התשלום עבור תור זה כבר בוצע.</p>
+            <p className="text-slate-500">התשלום עבור תור זה כבר בוצע. מצב האישור מופיע בעמוד התורים שלך.</p>
             <Button onClick={() => router.push('/dashboard/patient/appointments')}>לתורים שלי</Button>
           </CardContent>
         </Card>
@@ -260,8 +270,8 @@ export default function PaymentPage() {
                 <path d="M22 11.08V12a10 10 0 11-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
               </svg>
             </div>
-            <h2 className="text-2xl font-bold text-green-800">התשלום בוצע בהצלחה!</h2>
-            <p className="text-slate-500">התור שלך אושר ומוכן. תתחבר לשיחת הווידאו בזמן הנקוב.</p>
+            <h2 className="text-2xl font-bold text-green-800">התשלום התקבל</h2>
+            <p className="text-slate-500">הבקשה הועברה לאישור הרופא. התור ייקבע סופית לאחר האישור, ותקבל/י על כך הודעה במייל.</p>
             {appointment?.payment_amount && (
               <p className="text-xl font-bold text-green-700">{formatPrice(appointment.payment_amount)}</p>
             )}
@@ -278,11 +288,6 @@ export default function PaymentPage() {
               <Button onClick={() => router.push('/dashboard/patient/appointments')}>
                 לתורים שלי
               </Button>
-              {appointment && (
-                <Button variant="outline" onClick={() => router.push(`/video-call?id=${appointment.id}`)}>
-                  כניסה לשיחת וידאו
-                </Button>
-              )}
             </div>
           </CardContent>
         </Card>
@@ -393,8 +398,8 @@ export default function PaymentPage() {
                 <circle cx="12" cy="12" r="10" /><line x1="12" y1="8" x2="12" y2="12" /><line x1="12" y1="16" x2="12.01" y2="16" />
               </svg>
               <div>
-                <p className="text-xs font-semibold text-amber-700">מצב פיתוח — תשלום מדומה</p>
-                <p className="text-xs text-amber-600 mt-0.5">הזן כל מספר כרטיס 13+ ספרות. תשלום יאושר אוטומטית.</p>
+                <p className="text-xs font-semibold text-amber-700">סביבת בדיקות מקומית — תשלום מדומה</p>
+                <p className="text-xs text-amber-600 mt-0.5">אין חיוב אמיתי. זמין רק בסביבת QA מקומית, לעולם לא בייצור.</p>
               </div>
             </div>
 
@@ -510,8 +515,18 @@ export default function PaymentPage() {
         </Card>
       )}
 
+      {mode === 'none' && state === 'summary' && (
+        <Card>
+          <CardContent className="py-6 text-center space-y-3">
+            <p className="font-semibold text-slate-800">תשלום מקוון אינו פעיל במרפאה זו</p>
+            <p className="text-sm text-slate-500">לא יבוצע חיוב באתר. הבקשה ממתינה לאישור הרופא, והתשלום יוסדר מול המרפאה.</p>
+            <Button variant="outline" onClick={() => router.push('/dashboard/patient/appointments')}>לתורים שלי</Button>
+          </CardContent>
+        </Card>
+      )}
+
       {/* ── Real Tranzila flow ── */}
-      {!USE_FAKE_PAYMENT && state === 'summary' && (
+      {mode === 'tranzila' && state === 'summary' && (
         <div className="space-y-4">
           <p className="text-xs text-center text-slate-400">
             התשלום מאובטח ומעובד על ידי Tranzila. פרטי הכרטיס שלך לא נשמרים אצלנו.
@@ -522,7 +537,7 @@ export default function PaymentPage() {
         </div>
       )}
 
-      {!USE_FAKE_PAYMENT && state === 'tranzila' && iframeUrl && (
+      {mode === 'tranzila' && state === 'tranzila' && iframeUrl && (
         <Card>
           <CardHeader className="border-b border-slate-100">
             <div className="flex items-center justify-between">

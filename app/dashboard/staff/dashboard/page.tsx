@@ -159,7 +159,7 @@ export default function StaffDashboard() {
   }
 
   const isActive = (apt: StaffAppointment) =>
-    ['doctor_confirmed', 'time_selected', 'paid', 'scheduled', 'ready', 'in_progress'].includes(apt.status)
+    ['confirmed', 'doctor_confirmed', 'time_selected', 'paid', 'scheduled', 'ready', 'in_progress'].includes(apt.status)
 
   const isCancelled = (apt: StaffAppointment) =>
     apt.status.startsWith('cancelled') || apt.status.startsWith('no_show')

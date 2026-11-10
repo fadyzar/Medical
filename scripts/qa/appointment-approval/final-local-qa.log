@@ -1,0 +1,99 @@
+### LOCAL_QA 2026-11-10T20:50:58Z tree=9f39666+working-tree (release candidate)
+### unit (npm test)
+ℹ tests 120
+ℹ pass 120
+ℹ fail 0
+### db-security
+✔ patients cannot write payment, approval or status through the REST role (32.184958ms)
+✔ a patient booking is priced from the doctor, starts pending, with no payment/approval state (5.630667ms)
+✔ doctors cannot confirm from the browser; approve/reject are not callable by API roles (8.379541ms)
+✔ approval: assigned doctor or same-clinic admin only; payment verified; duplicate is a no-op (11.9085ms)
+✔ approval refuses past, unscheduled and overlapping bookings (no double-booking) (7.451167ms)
+✔ rejection frees the slot and flags a refund for captured payments (6.526625ms)
+✔ concurrent approvals: exactly one wins (same appointment, and overlapping appointments) (19.762125ms)
+ℹ pass 7
+ℹ fail 0
+### approval-e2e
+PASS booking: server sets price from doctor (250) and asks for payment payment_pending
+PASS booking: patient lands on the payment page 
+PASS unpaid booking: no video access "not_confirmed"
+PASS payment verified server-side → pending_approval (not confirmed) pending_approval
+PASS payment success screen no longer offers a video link 
+PASS doctor email: new request awaiting approval 
+PASS patient email: request received, awaiting doctor 
+PASS emails contain no complaint text 
+PASS repeat payment call is idempotent (already paid) 
+PASS REST: patient cannot mark paid / confirm / reprice 42501,42501,42501
+PASS Tranzila session refused when Tranzila is not configured 
+PASS webhook with forged signature rejected 403
+PASS simulated payment refused for a booking not awaiting payment 
+PASS pending card: patient name, requested time, type, payment status דנה מזרחי יום ד׳, 11 בנוב׳ 2026, 11:00 (שעון ישראל) ייעוץ וידאו תשלום: שולם ואומת · ‏250.00 ‏₪ אשר דחה פרטים
+PASS pending card has approve + reject actions 
+PASS doctor approval → confirmed confirmed
+PASS approval email: clinic, doctor, date, time, timezone 11/11/2026 11:00
+PASS approval email: no medical details 
+PASS duplicate approval → 409 already confirmed, no second email 
+PASS 4 concurrent approvals → exactly one succeeds 200,409,409,409
+PASS approve/reject: other doctor, other clinic doctor/admin, staff, patient all refused 403,403,403,403,403
+PASS same-clinic admin may approve 
+PASS rejection → rejected + refund pending 
+PASS patient emails: rejected + refund initiated 
+PASS rejection email omits the doctor's free-text reason 
+PASS rejected slot can be booked again 
+PASS rejected appointment: video denied 
+PASS admin records refund → refund completed + email 
+PASS T-20min: waiting room closed (too early) too_early
+PASS T-20min: token refused 
+PASS T-15min-20s: still too early 
+PASS T-15min (opening boundary): waiting room open waiting_room
+PASS waiting room: no LiveKit token before start (425) 
+PASS waiting-room UI shows the countdown and a disabled join button 
+PASS T+1min: consultation open, token issued 
+PASS token: bound to this appointment's room only, identity = user 
+PASS token: expires within 10 minutes of issue 600s
+PASS assigned doctor gets a token too 
+PASS after the slot ended (not started): denied 
+PASS in progress: rejoin allowed during overrun 
+PASS in progress beyond overrun cap: denied 
+PASS pending_approval: token refused 
+PASS legacy scheduled (unapproved): token refused 
+PASS completed: token refused 
+PASS cancelled: token refused 
+PASS old appointment (3 days ago): denied 
+PASS token: unauthenticated 401, other clinic / other patient / staff / unassigned doctor 404, bad id 400 401,404,404,404,404,400
+PASS token via another clinic's site refused 403
+PASS control: own approved appointment in window gets a token 
+PASS two patients, same slot: exactly one booking stored 
+PASS available slots exclude the confirmed booking 
+PASS patient appointments page renders statuses 
+PASS doctor appointments page renders 
+PASS admin appointments page renders 
+PASS staff appointments page renders 
+PASS no-provider server reports mode none 
+PASS no provider: priced booking goes straight to doctor approval, nothing marked paid pending_approval/clinic/null
+PASS no provider: simulated payment endpoint disabled (404) 
+PASS no provider: doctor notified 
+PASS no provider: payment page shows no card form 
+PASS free doctor: booking awaits approval with no payment 
+
+61/61 passed
+### lifecycle-extra
+PASS doctor client: confirmed → in_progress allowed 
+PASS doctor client: SOAP notes still writable 
+PASS patient submit without a time → open request (stays pending) {"status":"pending","next":"open_request"}
+PASS approve without a time → 409 asks for a time {"error":"יש לקבוע מועד לפני האישור","code":"no_time"}
+PASS doctor sets the time, then approves → confirmed 200/200/confirmed
+PASS doctor moves a confirmed visit → stays confirmed {"ok":true,"status":"confirmed","scheduledAt":"2026-11-16T21:00:00.000Z","isRequest":false}
+PASS patient moves a confirmed visit → back to doctor approval, approval cleared {"status":"pending_approval","approved_at":null}
+PASS cron: unpaid hold older than 30 min released; fresh hold kept cancelled_patient/payment_pending/1
+all passed
+### regression: tenant-logout-onboarding/isolation
+  24 PASS
+### regression: tenant-logout-onboarding/doctors-lockdown
+  64 PASS
+### regression: tenant-logout-onboarding/regression
+  35 PASS
+### regression: tenant-logout-onboarding/logout
+  12 PASS
+### regression: patient-invitations
+ 130 PASS

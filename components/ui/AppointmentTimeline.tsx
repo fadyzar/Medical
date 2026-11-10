@@ -40,11 +40,11 @@ export function AppointmentTimeline({
   })
 
   // Step 2: Doctor confirmed
-  const doctorConfirmed = ['doctor_confirmed', 'payment_pending', 'paid', 'scheduled', 'ready', 'in_progress', 'completed'].includes(status)
+  const doctorConfirmed = ['confirmed', 'doctor_confirmed', 'paid', 'scheduled', 'ready', 'in_progress', 'completed'].includes(status)
   steps.push({
     label: 'אושר על ידי רופא',
-    status: doctorConfirmed ? 'completed' : status === 'pending' ? 'current' : 'pending',
-    description: doctorConfirmed ? 'הרופא אישר את התור' : 'ממתין לאישור רופא',
+    status: doctorConfirmed ? 'completed' : status === 'pending' || status === 'pending_approval' ? 'current' : status === 'rejected' ? 'skipped' : 'pending',
+    description: doctorConfirmed ? 'הרופא אישר את התור' : status === 'rejected' ? 'הבקשה לא אושרה' : 'ממתין לאישור רופא',
   })
 
   // Step 3: Payment (if required)
@@ -58,7 +58,7 @@ export function AppointmentTimeline({
   }
 
   // Step 4: Scheduled
-  const isScheduled = scheduledAt && ['scheduled', 'ready', 'in_progress', 'completed'].includes(status)
+  const isScheduled = scheduledAt && ['confirmed', 'scheduled', 'ready', 'in_progress', 'completed'].includes(status)
   steps.push({
     label: 'קבעו תאריך ושעה',
     status: isScheduled ? 'completed' : ['paid', 'payment_pending', 'doctor_confirmed'].includes(status) ? 'current' : 'pending',

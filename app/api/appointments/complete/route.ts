@@ -33,7 +33,7 @@ export async function POST(req: NextRequest) {
     const isPatient = apt.patient_id === user.id
     if (!isDoctor && !isPatient) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
 
-    const TERMINAL = ['cancelled_patient', 'cancelled_doctor', 'no_show_patient', 'no_show_doctor']
+    const TERMINAL = ['cancelled_patient', 'cancelled_doctor', 'no_show_patient', 'no_show_doctor', 'rejected', 'pending_approval', 'payment_pending']
     if (TERMINAL.includes(apt.status)) {
       return NextResponse.json({ error: 'התור אינו פעיל' }, { status: 409 })
     }

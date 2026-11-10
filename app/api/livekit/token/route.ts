@@ -1,54 +1,46 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { AccessToken } from 'livekit-server-sdk'
-import { createServerSupabase } from '@/lib/supabase/server'
+import { createServiceRole } from '@/lib/supabase/server'
 import { appointmentIdSchema } from '@/lib/validation/schemas'
+import { rateLimit } from '@/lib/security/rate-limit'
+import { checkVideoAccess } from '@/lib/video/server'
+import { tokenTtlSeconds, VIDEO_DENY_MESSAGES } from '@/lib/video/access'
 
+/**
+ * POST /api/livekit/token — the only place a LiveKit token is minted.
+ *
+ * Issued only to the appointment's own patient or assigned doctor, in the
+ * appointment's clinic, for a doctor-approved appointment, from its start time
+ * until the end of its window (see lib/video/access.ts). The token is bound to
+ * this appointment's room, carries the user's id as identity, and lives at most
+ * 10 minutes (only long enough to connect).
+ */
 export async function POST(req: NextRequest) {
   try {
-    const supabase = await createServerSupabase()
-    const { data: { user }, error: authError } = await supabase.auth.getUser()
-    if (authError || !user) {
-      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
-    }
-
-    const body = await req.json()
-    const parsed = appointmentIdSchema.safeParse(body)
+    const parsed = appointmentIdSchema.safeParse(await req.json().catch(() => null))
     if (!parsed.success) {
-      return NextResponse.json({ error: 'נתונים לא תקינים', details: parsed.error.flatten().fieldErrors }, { status: 400 })
+      return NextResponse.json({ error: 'נתונים לא תקינים' }, { status: 400 })
     }
     const { appointmentId } = parsed.data
 
-    // Verify user is patient or doctor of this appointment
-    const { data: apt } = await supabase.from('appointments')
-      .select('id, patient_id, doctor_id, organization_id, status')
-      .eq('id', appointmentId)
-      .single()
+    const check = await checkVideoAccess(req.headers.get('host'), appointmentId)
+    if (check.kind === 'unauthenticated') return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    if (check.kind === 'not_found') return NextResponse.json({ error: 'Appointment not found' }, { status: 404 })
 
-    if (!apt) {
-      return NextResponse.json({ error: 'Appointment not found' }, { status: 404 })
+    const limit = rateLimit(`livekit-token:${check.user.id}`, { maxRequests: 30, windowMs: 10 * 60 * 1000 })
+    if (!limit.allowed) return NextResponse.json({ error: 'יותר מדי בקשות' }, { status: 429 })
+
+    const { access, now, user } = check
+    if (!access.allowed) {
+      return NextResponse.json({ error: VIDEO_DENY_MESSAGES[access.code], code: access.code }, { status: 403 })
     }
-    if (apt.patient_id !== user.id && apt.doctor_id !== user.id) {
-      return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
+    if (access.phase !== 'open') {
+      // Waiting room: the consultation itself opens at the scheduled time.
+      return NextResponse.json({
+        error: 'הייעוץ טרם התחיל — ניתן להמתין בחדר ההמתנה', code: 'waiting_room',
+        startsAt: access.startsAt, serverNow: now.toISOString(),
+      }, { status: 425 })
     }
-
-    // Cannot join a cancelled / finished appointment's room
-    if (['cancelled_patient', 'cancelled_doctor', 'no_show_patient', 'no_show_doctor', 'completed'].includes(apt.status)) {
-      return NextResponse.json({ error: 'התור אינו פעיל' }, { status: 409 })
-    }
-
-    // Get user profile for display name
-    const { data: profile } = await supabase.from('users')
-      .select('first_name, last_name, role')
-      .eq('id', user.id)
-      .single()
-
-    const displayName = profile
-      ? profile.role === 'doctor'
-        ? `ד"ר ${profile.first_name} ${profile.last_name}`
-        : `${profile.first_name} ${profile.last_name}`
-      : 'משתתף'
-
-    const roomName = `apt-${appointmentId}`
 
     const apiKey = process.env.LIVEKIT_API_KEY
     const apiSecret = process.env.LIVEKIT_API_SECRET
@@ -56,13 +48,17 @@ export async function POST(req: NextRequest) {
       return NextResponse.json({ error: 'LiveKit not configured' }, { status: 500 })
     }
 
-    // Generate LiveKit JWT token
+    const displayName = access.role === 'doctor'
+      ? `ד"ר ${user.first_name ?? ''} ${user.last_name ?? ''}`.trim()
+      : `${user.first_name ?? ''} ${user.last_name ?? ''}`.trim() || 'משתתף'
+
+    const roomName = `apt-${appointmentId}`
     const at = new AccessToken(apiKey, apiSecret, {
       identity: user.id,
       name: displayName,
-      ttl: '2h',
+      ttl: tokenTtlSeconds(access.closesAt, now),
+      metadata: JSON.stringify({ role: access.role }),
     })
-
     at.addGrant({
       roomJoin: true,
       room: roomName,
@@ -70,16 +66,13 @@ export async function POST(req: NextRequest) {
       canSubscribe: true,
       canPublishData: true,
     })
-
     const token = await at.toJwt()
 
-    // Update appointment with room info
-    await supabase.from('appointments').update({
-      video_room_name: roomName,
-      video_room_id: roomName,
-    }).eq('id', appointmentId)
+    const admin = createServiceRole()
+    await admin.from('appointments').update({ video_room_name: roomName, video_room_id: roomName })
+      .eq('id', appointmentId).is('video_room_name', null)
 
-    return NextResponse.json({ token, room: roomName })
+    return NextResponse.json({ token, room: roomName, expiresInSeconds: tokenTtlSeconds(access.closesAt, now) })
   } catch (err) {
     console.error('[livekit/token]', err instanceof Error ? err.message : 'error')
     return NextResponse.json({ error: 'Internal error' }, { status: 500 })

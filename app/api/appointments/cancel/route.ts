@@ -18,7 +18,7 @@ export async function POST(req: NextRequest) {
 
     const { data: apt } = await admin
       .from('appointments')
-      .select('id, patient_id, doctor_id, status, organization_id, scheduled_at')
+      .select('id, patient_id, doctor_id, status, organization_id, scheduled_at, payment_status')
       .eq('id', appointmentId)
       .single()
     if (!apt) return NextResponse.json({ error: 'Not found' }, { status: 404 })
@@ -37,7 +37,7 @@ export async function POST(req: NextRequest) {
     }
 
     // Cannot cancel already-finished/cancelled appointments
-    const terminal = ['completed', 'cancelled_patient', 'cancelled_doctor', 'no_show_patient', 'no_show_doctor']
+    const terminal = ['completed', 'cancelled_patient', 'cancelled_doctor', 'no_show_patient', 'no_show_doctor', 'rejected']
     if (terminal.includes(apt.status)) {
       return NextResponse.json({ error: 'התור כבר אינו פעיל' }, { status: 409 })
     }
@@ -45,12 +45,23 @@ export async function POST(req: NextRequest) {
     const newStatus = isPatientOwner ? 'cancelled_patient' : 'cancelled_doctor'
     const trimmedReason = typeof reason === 'string' ? reason.trim().slice(0, 500) : ''
 
-    await admin.from('appointments').update({
+    // Money taken for a booking the doctor never approved, or for one the clinic
+    // cancels, is flagged for refund (performed by the clinic in the provider,
+    // then recorded with /api/payments/refund). A patient cancelling a
+    // confirmed, paid visit is left to the clinic's cancellation policy.
+    const refundDue = apt.payment_status === 'completed' &&
+      (['pending_approval', 'payment_pending'].includes(apt.status) || !isPatientOwner)
+
+    const { data: changed } = await admin.from('appointments').update({
       status: newStatus,
       cancelled_by: user.id,
       cancelled_at: new Date().toISOString(),
       cancellation_reason: trimmedReason || null,
-    }).eq('id', appointmentId)
+      ...(refundDue ? { refund_status: 'pending', refund_requested_at: new Date().toISOString() } : {}),
+    }).eq('id', appointmentId).eq('status', apt.status).select('id')
+    if (!changed?.length) {
+      return NextResponse.json({ error: 'מצב התור השתנה. רענן ונסה שוב.' }, { status: 409 })
+    }
 
     // Audit log (best-effort)
     try {
@@ -61,7 +72,7 @@ export async function POST(req: NextRequest) {
         resource_type: 'appointment',
         resource_id: appointmentId,
         description: isPatientOwner ? 'המטופל ביטל תור' : 'המרפאה ביטלה תור',
-        metadata: { by_role: role, reason: trimmedReason || null, previous_status: apt.status },
+        metadata: { by_role: role, reason: trimmedReason || null, previous_status: apt.status, refund_due: refundDue },
       })
     } catch { /* audit is best-effort */ }
 

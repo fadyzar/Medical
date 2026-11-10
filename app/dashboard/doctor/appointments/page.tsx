@@ -62,7 +62,6 @@ function SchedulePanel({ apt, onScheduled }: {
   apt: Appointment
   onScheduled: (updated: Partial<Appointment>) => void
 }) {
-  const supabase = getClient()
   const [mode, setMode] = useState<'closed' | 'accept' | 'propose'>('closed')
   const [altDate, setAltDate] = useState('')
   const [duration, setDuration] = useState(apt.duration_minutes ?? 30)
@@ -77,24 +76,26 @@ function SchedulePanel({ apt, onScheduled }: {
     return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`
   }
 
+  // Approval is a server decision (/api/appointments/decision → locked DB
+  // function): it checks payment, the doctor's other confirmed visits and the
+  // status, then emails the patient. Nothing is confirmed from the browser.
+  const approve = async (): Promise<boolean> => {
+    const res = await fetch('/api/appointments/decision', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ appointmentId: apt.id, decision: 'approve', durationMinutes: duration }),
+    })
+    const body = await res.json().catch(() => ({})) as { error?: string; status?: string }
+    if (!res.ok) { toast.error(body.error || 'האישור נכשל'); return false }
+    onScheduled({ status: 'confirmed', duration_minutes: duration, approved_at: new Date().toISOString() } as Partial<Appointment>)
+    toast.success('התור אושר. המטופל קיבל אישור במייל.')
+    setMode('closed')
+    return true
+  }
+
   const confirmAccepted = async () => {
     setSaving(true)
-    try {
-      const updates: Record<string, unknown> = {
-        status: 'scheduled',
-        doctor_accepted_at: new Date().toISOString(),
-        duration_minutes: duration,
-      }
-      const { error } = await supabase.from('appointments').update(updates).eq('id', apt.id)
-      if (error) throw error
-      onScheduled(updates as Partial<Appointment>)
-      setMode('closed')
-      fetch('/api/notifications/trigger', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ appointmentId: apt.id, event: 'appointment_scheduled' }),
-      }).catch(() => {})
-    } catch { /* ignore */ } finally { setSaving(false) }
+    try { await approve() } catch { toast.error('שגיאת רשת') } finally { setSaving(false) }
   }
 
   const confirmManual = async () => {
@@ -102,22 +103,17 @@ function SchedulePanel({ apt, onScheduled }: {
     setSaving(true)
     try {
       const isoDate = new Date(altDate).toISOString()
-      const updates: Record<string, unknown> = {
-        status: 'scheduled',
-        scheduled_at: isoDate,
-        doctor_accepted_at: new Date().toISOString(),
-        duration_minutes: duration,
-      }
-      const { error } = await supabase.from('appointments').update(updates).eq('id', apt.id)
-      if (error) throw error
-      onScheduled(updates as Partial<Appointment>)
-      setMode('closed')
-      fetch('/api/notifications/trigger', {
+      const res = await fetch('/api/appointments/reschedule', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ appointmentId: apt.id, event: 'appointment_scheduled' }),
-      }).catch(() => {})
-    } catch { /* ignore */ } finally { setSaving(false) }
+        body: JSON.stringify({ appointmentId: apt.id, scheduledAt: isoDate, durationMinutes: duration }),
+      })
+      const body = await res.json().catch(() => ({})) as { error?: string; status?: string }
+      if (!res.ok) { toast.error(body.error || 'שגיאה בשינוי המועד'); return }
+      onScheduled({ status: body.status, scheduled_at: isoDate, duration_minutes: duration } as Partial<Appointment>)
+      if (body.status !== 'confirmed') await approve()
+      else setMode('closed')
+    } catch { toast.error('שגיאת רשת') } finally { setSaving(false) }
   }
 
   const proposeAlternative = async () => {
@@ -147,13 +143,6 @@ function SchedulePanel({ apt, onScheduled }: {
   }
 
   const openPanel = () => {
-    if (!apt.doctor_accepted_at) {
-      fetch('/api/notifications/trigger', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ appointmentId: apt.id, event: 'appointment_confirmed' }),
-      }).catch(() => {})
-    }
     if (hasPatientSlot) {
       setMode('accept')
     } else {
@@ -544,7 +533,9 @@ export default function DoctorAppointmentsPage() {
 
   const FILTER_OPTIONS = [
     { value: 'all',             label: 'הכל' },
-    { value: 'pending',         label: 'ממתינים לאישור' },
+    { value: 'pending_approval', label: 'ממתינים לאישורך' },
+    { value: 'confirmed',       label: 'מאושרים' },
+    { value: 'pending',         label: 'בקשות פתוחות' },
     { value: 'payment_pending', label: 'ממתינים לתשלום' },
     { value: 'doctor_confirmed',label: 'אושרו' },
     { value: 'scheduled',       label: 'מתוזמנים' },
@@ -912,7 +903,7 @@ export default function DoctorAppointmentsPage() {
                 )}
 
                 {/* ── AI pre-visit brief ── */}
-                {['pending', 'payment_pending', 'doctor_confirmed', 'scheduled', 'ready', 'in_progress'].includes(selected.status) && (
+                {['pending', 'payment_pending', 'pending_approval', 'confirmed', 'doctor_confirmed', 'scheduled', 'ready', 'in_progress'].includes(selected.status) && (
                   <Card className="border-purple-300 overflow-hidden">
                     <CardHeader className="bg-gradient-to-l from-purple-600 to-violet-700 py-3 px-4 border-0">
                       <div className="flex items-center justify-between">
@@ -1023,14 +1014,14 @@ export default function DoctorAppointmentsPage() {
                   </Button>
 
                   {/* ── Confirm + Schedule (for pending/payment_pending) ── */}
-                  {['pending', 'payment_pending', 'doctor_confirmed', 'time_selected', 'scheduled', 'paid', 'ready'].includes(selected.status) && (
+                  {['pending_approval', 'pending', 'doctor_confirmed', 'time_selected', 'scheduled', 'paid', 'ready'].includes(selected.status) && (
                     <SchedulePanel apt={selected} onScheduled={apt => {
                       setAppointments(prev => prev.map(a => a.id === apt.id ? { ...a, ...apt } : a))
                       setSelected(prev => prev ? { ...prev, ...apt } : prev)
                     }} />
                   )}
 
-                  {['pending', 'payment_pending', 'doctor_confirmed', 'time_selected', 'paid', 'scheduled', 'ready', 'in_progress'].includes(selected.status) && (
+                  {['confirmed', 'in_progress'].includes(selected.status) && (
                     <Button
                       onClick={() => router.push(`/video-call?id=${selected.id}`)}
                       className="bg-green-600 hover:bg-green-700 gap-2"
@@ -1042,7 +1033,7 @@ export default function DoctorAppointmentsPage() {
                     </Button>
                   )}
 
-                  {selected.status !== 'completed' && (
+                  {!['completed', 'pending_approval', 'payment_pending', 'rejected', 'cancelled_patient', 'cancelled_doctor'].includes(selected.status) && (
                     <Button onClick={completeAppointment} loading={saving} variant="danger" className="gap-2 mr-auto">
                       <svg className="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="20 6 9 17 4 12" />

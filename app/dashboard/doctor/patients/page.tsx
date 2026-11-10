@@ -81,7 +81,7 @@ export default function DoctorPatientsPage() {
       }
 
       // Track next upcoming visit
-      if (['scheduled', 'ready', 'doctor_confirmed', 'paid'].includes(apt.status) && apt.scheduled_at) {
+      if (['confirmed', 'pending_approval', 'scheduled', 'ready', 'doctor_confirmed', 'paid'].includes(apt.status) && apt.scheduled_at) {
         const now = new Date().toISOString()
         if (apt.scheduled_at > now) {
           if (!p.next_visit || apt.scheduled_at < p.next_visit) {

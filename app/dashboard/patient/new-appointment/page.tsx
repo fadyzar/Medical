@@ -88,6 +88,7 @@ export default function NewAppointmentPage() {
   const [doctors, setDoctors]     = useState<DoctorRow[]>([])
   const [loadingDocs, setLoadingDocs] = useState(false)
   const [success, setSuccess]     = useState(false)
+  const [nextStep, setNextStep] = useState<'payment' | 'awaiting_approval'>('awaiting_approval')
   const [patientOrgId, setPatientOrgId] = useState<string | null | undefined>(undefined)
 
   const [slots, setSlots]             = useState<Slot[]>([])
@@ -254,13 +255,15 @@ export default function NewAppointmentPage() {
       const { data: apt, error } = await supabase.from('appointments').insert({
         organization_id: appointmentOrgId,
         patient_id: user.id,
-        doctor_id: form.doctor_id || null,
+        // A slot belongs to one doctor: choosing it without choosing a doctor
+        // books that slot's doctor.
+        doctor_id: form.doctor_id || slots.find(sl => sl.datetime === selectedSlot)?.doctorId || null,
         requested_specialty: form.specialty,
         chief_complaint: form.chief_complaint,
         complaint_description: form.complaint_description || null,
         urgency_level: form.urgency_level,
         appointment_type: form.appointment_type,
-        payment_amount: selectedDoctor?.consultation_price || null,
+        // payment_amount is set by the server from the doctor's profile
         scheduled_at: selectedSlot || null,
         status: 'pending',
       }).select('id').single()
@@ -307,20 +310,32 @@ export default function NewAppointmentPage() {
         })
       } catch { /* non-critical */ }
 
+      // The server sets the price, decides how payment is collected, and
+      // either asks for online payment or sends the request to the doctor.
+      let next: 'payment' | 'awaiting_approval' = 'awaiting_approval'
       try {
-        await fetch('/api/notifications/trigger-patient-created', {
+        const res = await fetch('/api/appointments/submit', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ appointmentId: apt.id }),
         })
-      } catch { /* non-critical */ }
+        const out = await res.json().catch(() => ({})) as { next?: 'payment' | 'awaiting_approval' | 'open_request'; error?: string }
+        if (!res.ok) {
+          setErrors({ submit: out.error || 'שליחת הבקשה נכשלה' })
+          toast.error(out.error || 'שליחת הבקשה נכשלה')
+          setLoading(false)
+          return
+        }
+        if (out.next === 'payment') next = 'payment'
+      } catch { /* the doctor's approval also submits a lost request */ }
 
+      setNextStep(next)
       setSuccess(true)
-      toast.success('הבקשה נשלחה בהצלחה!')
+      toast.success(next === 'payment' ? 'הבקשה נשמרה — נותר לשלם' : 'הבקשה נשלחה לאישור הרופא')
       setTimeout(() => {
-        router.push(selectedDoctor?.consultation_price
+        router.push(next === 'payment'
           ? `/dashboard/patient/payment?id=${apt.id}`
-          : '/dashboard/patient/dashboard')
+          : '/dashboard/patient/appointments')
       }, 1800)
     } catch {
       setErrors({ submit: 'שגיאה ביצירת התור. נסה שוב.' })
@@ -343,11 +358,11 @@ export default function NewAppointmentPage() {
             </svg>
           </div>
           <div>
-            <h2 className="text-2xl font-bold text-slate-900">הבקשה נשלחה!</h2>
+            <h2 className="text-2xl font-bold text-slate-900">{nextStep === 'payment' ? 'הבקשה נשמרה' : 'הבקשה נשלחה לאישור הרופא'}</h2>
             <p className="text-slate-500 mt-2">
-              {selectedDoctor?.consultation_price
-                ? 'מעביר אותך לדף התשלום...'
-                : 'התור נוצר. נעדכן אותך ברגע שהרופא יאשר.'}
+              {nextStep === 'payment'
+                ? 'מעביר אותך לדף התשלום. לאחר התשלום הבקשה תועבר לאישור הרופא.'
+                : 'התור אינו סופי עד שהרופא יאשר אותו. נעדכן אותך במייל.'}
             </p>
           </div>
           <Spinner className="mx-auto" />
@@ -861,11 +876,9 @@ export default function NewAppointmentPage() {
               </div>
 
               <p className="text-xs text-slate-400 text-center">
-                {selectedDoctor?.consultation_price
-                  ? 'התשלום יתבצע בשלב הבא לאחר אישור הרופא'
-                  : selectedSlot
-                    ? 'הרופא יאשר את המועד שבחרת — נשלח לך אישור'
-                    : 'לאחר שהרופא יאשר, ניצור איתך קשר לתיאום מועד'}
+                {selectedSlot
+                  ? 'התור ייקבע סופית רק לאחר אישור הרופא. אם נדרש תשלום מקוון, הבקשה תועבר לרופא לאחר התשלום. נשלח לך אישור במייל.'
+                  : 'המרפאה תתאם איתך מועד; התור ייקבע סופית רק לאחר אישור הרופא.'}
               </p>
             </div>
           )}

@@ -1,64 +1,41 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerSupabase, createServiceRole } from '@/lib/supabase/server'
-import { notify } from '@/lib/notifications'
+import { appointmentIdSchema } from '@/lib/validation/schemas'
+import { paymentMode } from '@/lib/payments/mode'
+import { markPaymentVerified } from '@/lib/appointments/lifecycle'
 
-// Fake payment endpoint — simulates a successful payment.
-// Used during development / before Tranzila credentials are configured.
-
-// Statuses that are "ahead" of scheduled — do NOT downgrade them
-const ADVANCED_STATUSES = new Set(['in_progress', 'completed', 'cancelled', 'no_show'])
-
+/**
+ * LOCAL QA payment simulator. Refuses unless paymentMode() is 'simulated',
+ * which requires PAYMENTS_SIMULATION=enabled, a non-production environment and
+ * a localhost Supabase — so production can never record a payment that did
+ * not happen. A simulated payment moves the booking to pending_approval (the
+ * doctor still has to approve); it never confirms or schedules it.
+ */
 export async function POST(req: NextRequest) {
+  if (paymentMode() !== 'simulated') {
+    return NextResponse.json({ error: 'תשלום מדומה אינו זמין בסביבה זו' }, { status: 404 })
+  }
+
   const supabase = await createServerSupabase()
   const { data: { user } } = await supabase.auth.getUser()
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
 
-  const { appointmentId } = await req.json()
-  if (!appointmentId) return NextResponse.json({ error: 'Missing appointmentId' }, { status: 400 })
+  const parsed = appointmentIdSchema.safeParse(await req.json().catch(() => null))
+  if (!parsed.success) return NextResponse.json({ error: 'Missing appointmentId' }, { status: 400 })
+  const { appointmentId } = parsed.data
 
-  // Verify caller is the patient of this appointment (using user client — RLS ensures ownership)
-  const { data: apt } = await supabase
-    .from('appointments')
-    .select('id, patient_id, payment_status, payment_amount, doctor_id, organization_id, status')
-    .eq('id', appointmentId)
-    .single()
-
-  if (!apt) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-  if (apt.patient_id !== user.id) return NextResponse.json({ error: 'Forbidden' }, { status: 403 })
-  if (apt.payment_status === 'completed') return NextResponse.json({ ok: true, alreadyPaid: true })
-
-  // Simulate slight processing delay (realistic UX)
-  await new Promise(r => setTimeout(r, 800))
-
-  const idempotencyKey = `fake-${appointmentId}-${user.id}`
-
-  // ── Use service role for the update ────────────────────────────────
-  // Patients don't have RLS UPDATE permission on payment fields —
-  // payment confirmation is a trusted server operation.
   const admin = createServiceRole()
-
-  // Only set status = 'scheduled' if it hasn't moved past that point already
-  // (e.g. if doctor already started the call → status = 'in_progress')
-  const newStatus = ADVANCED_STATUSES.has(apt.status as string) ? apt.status : 'scheduled'
-
-  const { error } = await admin
-    .from('appointments')
-    .update({
-      payment_status: 'completed',
-      payment_idempotency_key: idempotencyKey,
-      status: newStatus,
-    })
-    .eq('id', appointmentId)
-
-  if (error) {
-    console.error('[FakePayment] update error:', error.message)
-    return NextResponse.json({ error: 'Failed to update appointment' }, { status: 500 })
+  const { data: apt } = await admin.from('appointments')
+    .select('id, patient_id, status, payment_status, payment_collection')
+    .eq('id', appointmentId).maybeSingle()
+  if (!apt || apt.patient_id !== user.id) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+  if (apt.payment_status === 'completed') return NextResponse.json({ ok: true, alreadyPaid: true, status: apt.status })
+  if (apt.status !== 'payment_pending' || apt.payment_collection !== 'online') {
+    return NextResponse.json({ error: 'התור אינו ממתין לתשלום' }, { status: 409 })
   }
 
-  // Send notification to patient
-  try {
-    await notify('payment_success', appointmentId, admin)
-  } catch { /* non-critical */ }
-
-  return NextResponse.json({ ok: true })
+  const { transitioned } = await markPaymentVerified({
+    appointmentId, transactionId: `sim-${appointmentId.slice(0, 8)}-${Date.now()}`, method: 'simulated', admin,
+  })
+  return NextResponse.json({ ok: true, transitioned, status: 'pending_approval' })
 }

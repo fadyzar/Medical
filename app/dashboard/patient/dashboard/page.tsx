@@ -178,7 +178,7 @@ export default function PatientDashboard() {
   if (!profile) return null
 
   const now = new Date(nowMs)
-  const DONE = ['completed', 'cancelled_patient', 'cancelled_doctor', 'no_show_patient', 'no_show_doctor']
+  const DONE = ['completed', 'cancelled_patient', 'cancelled_doctor', 'no_show_patient', 'no_show_doctor', 'rejected']
   const active    = appointments.filter(a => !DONE.includes(a.status))
   const completed = appointments.filter(a => a.status === 'completed')
   const upcoming  = active
@@ -453,7 +453,7 @@ export default function PatientDashboard() {
                   </Button>
                 )}
                 {(nextApt.status === 'in_progress' ||
-                  (['ready', 'scheduled', 'paid'].includes(nextApt.status) &&
+                  (nextApt.status === 'confirmed' &&
                     nextApt.scheduled_at && nowMs > 0 &&
                     (new Date(nextApt.scheduled_at).getTime() - nowMs) <= 15 * 60 * 1000)
                 ) && (
@@ -464,7 +464,7 @@ export default function PatientDashboard() {
                     הצטרף לשיחה
                   </Button>
                 )}
-                <Badge variant={nextApt.status === 'pending' ? 'warning' : 'info'}>{STATUS_LABELS[nextApt.status]}</Badge>
+                <Badge variant={nextApt.status === 'pending' || nextApt.status === 'pending_approval' ? 'warning' : 'info'}>{STATUS_LABELS[nextApt.status]}</Badge>
               </div>
             </div>
           </CardContent>

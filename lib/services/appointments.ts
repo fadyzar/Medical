@@ -34,7 +34,7 @@ export type ServiceResult<T> =
 
 const TERMINAL_STATUSES = [
   'completed', 'cancelled_patient', 'cancelled_doctor',
-  'no_show_patient', 'no_show_doctor',
+  'no_show_patient', 'no_show_doctor', 'rejected',
 ]
 
 /** Slot granularity used across booking, availability and conflict checks. */
@@ -64,9 +64,11 @@ type AppointmentRow = {
   duration_minutes: number | null
   chief_complaint: string | null
   payment_status: string | null
+  /** Set for bookings made through the approval lifecycle (migration 033). */
+  payment_collection?: string | null
 }
 
-const APT_FIELDS = 'id, organization_id, patient_id, doctor_id, status, scheduled_at, duration_minutes, chief_complaint, payment_status'
+const APT_FIELDS = 'id, organization_id, patient_id, doctor_id, status, scheduled_at, duration_minutes, chief_complaint, payment_status, payment_collection'
 
 /**
  * Can this caller act on this appointment?
@@ -200,21 +202,41 @@ export async function rescheduleAppointment(params: {
   const admin = createServiceRole()
 
   // A patient asks; the clinic decides. Anyone else sets the time outright.
+  //
+  // Approval lifecycle bookings (payment_collection set) never become
+  // video-eligible by a time change alone: a patient's new time, or a time
+  // set by clinic staff, goes back to the doctor's approval queue. The
+  // assigned doctor or a clinic admin moving a confirmed booking keeps it
+  // confirmed (they are the ones who approve).
+  const lifecycle = !!apt.payment_collection
+  let nextStatus: string
+  if (!lifecycle) {
+    nextStatus = isPatient ? 'pending' : 'scheduled'
+  } else if (apt.status === 'payment_pending') {
+    nextStatus = 'payment_pending'
+  } else if (apt.status === 'confirmed' && !isPatient && (caller.role === 'admin' || caller.id === apt.doctor_id)) {
+    nextStatus = 'confirmed'
+  } else {
+    nextStatus = 'pending_approval'
+  }
+  const reapproval = lifecycle && nextStatus === 'pending_approval' && apt.status === 'confirmed'
+
   const updates: Record<string, unknown> = isPatient
     ? {
         scheduled_at: when.toISOString(),
         duration_minutes: duration,
-        status: 'pending',
+        status: nextStatus,
         doctor_proposed_at: null,
         patient_confirmed_proposed_at: null,
       }
     : {
         scheduled_at: when.toISOString(),
         duration_minutes: duration,
-        status: 'scheduled',
+        status: nextStatus,
         doctor_proposed_at: new Date().toISOString(),
         patient_confirmed_proposed_at: null,
       }
+  if (reapproval) { updates.approved_at = null; updates.approved_by = null }
 
   const { error } = await admin.from('appointments').update(updates).eq('id', appointmentId)
   if (error) {
@@ -268,13 +290,20 @@ export async function cancelAppointment(params: {
   const newStatus = isPatientOwner ? 'cancelled_patient' : 'cancelled_doctor'
   const reason = params.reason?.trim().slice(0, 500) || null
 
+  // Money taken for a booking the doctor never approved, or for one the clinic
+  // cancels, is flagged for refund. A patient cancelling a confirmed, paid
+  // visit is left to the clinic's cancellation policy.
+  const refundDue = apt.payment_status === 'completed' &&
+    (['pending_approval', 'payment_pending'].includes(apt.status) || !isPatientOwner)
+
   const admin = createServiceRole()
   const { error } = await admin.from('appointments').update({
     status: newStatus,
     cancelled_at: new Date().toISOString(),
     cancelled_by: caller.id,
     cancellation_reason: reason,
-  }).eq('id', appointmentId)
+    ...(refundDue ? { refund_status: 'pending', refund_requested_at: new Date().toISOString() } : {}),
+  }).eq('id', appointmentId).eq('status', apt.status as never)
 
   if (error) {
     console.error('[cancel]', error.message)
@@ -287,7 +316,7 @@ export async function cancelAppointment(params: {
     action: 'APPOINTMENT_CANCELLED',
     appointmentId,
     description: isPatientOwner ? 'המטופל ביטל תור' : 'המרפאה ביטלה תור',
-    metadata: { by_role: caller.role, reason, previous_status: apt.status },
+    metadata: { by_role: caller.role, reason, previous_status: apt.status, refund_due: refundDue },
   })
 
   return { ok: true, data: { status: newStatus } }

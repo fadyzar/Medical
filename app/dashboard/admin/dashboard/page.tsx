@@ -189,7 +189,7 @@ export default function AdminDashboard() {
         supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('organization_id', orgId),
         supabase.from('appointments').select('payment_amount').eq('organization_id', orgId).eq('status', 'completed'),
         supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('organization_id', orgId).eq('status', 'pending'),
-        supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('organization_id', orgId).in('status', ['doctor_confirmed', 'time_selected', 'paid', 'scheduled', 'ready', 'in_progress']),
+        supabase.from('appointments').select('id', { count: 'exact', head: true }).eq('organization_id', orgId).in('status', ['confirmed', 'doctor_confirmed', 'time_selected', 'paid', 'scheduled', 'ready', 'in_progress']),
 
         supabase.from('ai_conversations').select('id', { count: 'exact', head: true }).eq('organization_id', orgId),
 

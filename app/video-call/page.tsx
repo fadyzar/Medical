@@ -23,7 +23,22 @@ import { Track, RoomEvent, ConnectionQuality } from 'livekit-client'
 import { withPublicDoctors } from '@/lib/doctors/public'
 import { cn } from '@/lib/utils'
 
-type VideoState = 'checking' | 'payment_required' | 'waiting' | 'connecting' | 'connected' | 'disconnected' | 'error'
+type VideoState = 'checking' | 'payment_required' | 'denied' | 'waiting' | 'connecting' | 'connected' | 'disconnected' | 'error'
+
+/** Server answer from /api/video/access (the server clock decides). */
+type AccessInfo = {
+  allowed: boolean
+  code?: string
+  error?: string
+  phase?: 'waiting_room' | 'open'
+  opensAt?: string | null
+  startsAt?: string | null
+  closesAt?: string | null
+  serverNow: string
+}
+
+const timeIL = (iso: string) =>
+  new Intl.DateTimeFormat('he-IL', { timeZone: 'Asia/Jerusalem', hour: '2-digit', minute: '2-digit' }).format(new Date(iso))
 
 export default function VideoCallPage() {
   const searchParams = useSearchParams()
@@ -37,6 +52,10 @@ export default function VideoCallPage() {
   const [appointment, setAppointment] = useState<Appointment | null>(null)
   const [token, setToken] = useState('')
   const [roomName, setRoomName] = useState('')
+  const [access, setAccess] = useState<AccessInfo | null>(null)
+  // server time − browser time, so countdowns follow the server clock
+  const [skewMs, setSkewMs] = useState(0)
+  const [nowTick, setNowTick] = useState(() => Date.now())
   const [hasCamera, setHasCamera] = useState(false)
   const [hasMic, setHasMic] = useState(false)
   const [previewStream, setPreviewStream] = useState<MediaStream | null>(null)
@@ -74,10 +93,16 @@ export default function VideoCallPage() {
       setProfile(prof as unknown as User)
       setAppointment(typedApt)
 
-      // Payment wall — doctors bypass, patients must pay
-      const isDoctor = (prof as unknown as User)?.role === 'doctor'
-      if (!isDoctor && typedApt.payment_amount && typedApt.payment_amount > 0 && typedApt.payment_status !== 'completed') {
-        setState('payment_required')
+      // Access is decided by the server: participant, clinic, doctor approval
+      // and the time window. The LiveKit token route checks again on join.
+      const accessRes = await fetch(`/api/video/access?appointmentId=${appointmentId}`, { cache: 'no-store' })
+      const info = await accessRes.json().catch(() => null) as AccessInfo | null
+      if (!info) { setError('שגיאה בבדיקת הרשאת הכניסה'); setState('error'); return }
+      setSkewMs(new Date(info.serverNow).getTime() - Date.now())
+      setAccess(info)
+      if (!accessRes.ok || !info.allowed) {
+        setError(info.error || 'אין גישה לשיחה זו')
+        setState('denied')
         return
       }
 
@@ -120,6 +145,14 @@ export default function VideoCallPage() {
         body: JSON.stringify({ appointmentId: id }),
       })
 
+      if (res.status === 425) {
+        // Still in the waiting room (server clock): go back to it.
+        const data = await res.json().catch(() => ({})) as { serverNow?: string }
+        if (data.serverNow) setSkewMs(new Date(data.serverNow).getTime() - Date.now())
+        setState('waiting')
+        if (id) init(id)
+        return
+      }
       if (!res.ok) {
         const data = await res.json()
         throw new Error(data.error || 'שגיאה בקבלת טוקן')
@@ -204,6 +237,25 @@ export default function VideoCallPage() {
       // Non-critical — video session continues regardless
     }
   }, [id, supabase])
+
+  // Countdown on the server's clock while in the waiting room / before it opens.
+  useEffect(() => {
+    if (state !== 'waiting' && state !== 'denied') return
+    const t = setInterval(() => setNowTick(Date.now()), 1000)
+    return () => clearInterval(t)
+  }, [state])
+  const serverNowMs = nowTick + skewMs
+  const startsAtMs = access?.startsAt ? new Date(access.startsAt).getTime() : null
+  const secondsToStart = startsAtMs ? Math.max(0, Math.ceil((startsAtMs - serverNowMs) / 1000)) : 0
+  const consultationOpen = state === 'waiting' && secondsToStart === 0
+  const tooEarly = state === 'denied' && access?.code === 'too_early'
+  const opensAtMs = access?.opensAt ? new Date(access.opensAt).getTime() : null
+  useEffect(() => {
+    // The waiting room opened: ask the server again (it decides, not the browser).
+    if (tooEarly && opensAtMs && serverNowMs >= opensAtMs && id) { setState('checking'); init(id) }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tooEarly, opensAtMs, serverNowMs >= (opensAtMs ?? Infinity)])
+  const mmss = (sec: number) => `${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, '0')}`
 
   const otherParty = appointment
     ? profile?.role === 'doctor'
@@ -291,7 +343,13 @@ export default function VideoCallPage() {
           <Card className="max-w-md w-full bg-slate-800 border-slate-700">
             <CardContent className="p-6 text-center space-y-4">
               <h2 className="text-xl font-bold">חדר המתנה</h2>
-              <p className="text-slate-400">בדיקת חומרה — לחצו ״הצטרף לשיחה״ כשתהיו מוכנים</p>
+              {consultationOpen ? (
+                <p className="text-slate-400">הייעוץ פתוח — לחצו ״הצטרף לשיחה״ כשתהיו מוכנים</p>
+              ) : (
+                <p className="text-slate-300" role="status" aria-live="polite">
+                  הייעוץ יתחיל ב-{access?.startsAt ? timeIL(access.startsAt) : ''} (שעון ישראל) · בעוד <span className="font-mono" data-testid="countdown">{mmss(secondsToStart)}</span>
+                </p>
+              )}
 
               {/* Preview */}
               <div className="relative bg-slate-900 rounded-xl overflow-hidden aspect-video">
@@ -333,9 +391,9 @@ export default function VideoCallPage() {
                 onClick={joinCall}
                 size="lg"
                 className="w-full bg-green-600 hover:bg-green-700"
-                disabled={!hasMic || !livekitUrl}
+                disabled={!hasMic || !livekitUrl || !consultationOpen}
               >
-                הצטרף לשיחה
+                {consultationOpen ? 'הצטרף לשיחה' : 'הכניסה תיפתח במועד התור'}
               </Button>
             </CardContent>
           </Card>
@@ -485,6 +543,24 @@ export default function VideoCallPage() {
               </Button>
             </div>
           </div>
+        )}
+
+        {state === 'denied' && (
+          <Card className="max-w-md w-full bg-slate-800 border-slate-700" data-testid="video-denied" data-code={access?.code || ''}>
+            <CardContent className="p-6 text-center space-y-4">
+              <h2 className="text-xl font-bold">{tooEarly ? 'חדר ההמתנה עדיין סגור' : 'אין גישה לשיחה'}</h2>
+              <p className="text-slate-300">{error}</p>
+              {tooEarly && access?.opensAt && (
+                <p className="text-slate-400 text-sm" role="status">
+                  ייפתח ב-{timeIL(access.opensAt)} (שעון ישראל) · מועד התור {access.startsAt ? timeIL(access.startsAt) : ''}
+                </p>
+              )}
+              <Button onClick={() => router.push(profile?.role === 'doctor' ? '/dashboard/doctor/appointments' : '/dashboard/patient/appointments')}
+                variant="outline" className="border-slate-600 text-white">
+                לתורים שלי
+              </Button>
+            </CardContent>
+          </Card>
         )}
 
         {state === 'error' && (

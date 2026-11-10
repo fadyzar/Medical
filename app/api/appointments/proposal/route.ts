@@ -36,7 +36,7 @@ export async function POST(req: Request) {
 
     const admin = createServiceRole()
     const { data: apt } = await admin.from('appointments')
-      .select('id, patient_id, organization_id, status, scheduled_at, doctor_proposed_at, patient_confirmed_proposed_at')
+      .select('id, patient_id, organization_id, status, scheduled_at, doctor_proposed_at, patient_confirmed_proposed_at, payment_collection')
       .eq('id', appointmentId)
       .maybeSingle()
 
@@ -46,13 +46,21 @@ export async function POST(req: Request) {
     if (!apt.doctor_proposed_at || apt.patient_confirmed_proposed_at) {
       return NextResponse.json({ error: 'אין הצעת מועד ממתינה לתור זה' }, { status: 409 })
     }
-    if (['in_progress', 'completed', 'cancelled_patient', 'cancelled_doctor', 'cancelled_admin', 'no_show_patient', 'no_show_doctor'].includes(apt.status)) {
+    if (['in_progress', 'completed', 'cancelled_patient', 'cancelled_doctor', 'cancelled_admin', 'no_show_patient', 'no_show_doctor', 'rejected'].includes(apt.status)) {
       return NextResponse.json({ error: 'התור אינו פעיל' }, { status: 409 })
     }
 
-    const updates = decision === 'accept'
-      ? { patient_confirmed_proposed_at: new Date().toISOString(), status: 'scheduled' as const }
-      : { scheduled_at: null, doctor_proposed_at: null, patient_confirmed_proposed_at: null, status: 'pending' as const }
+    // Approval lifecycle bookings: accepting a proposed time never confirms by
+    // itself — a booking that is not confirmed yet waits for the doctor's
+    // approval (and one awaiting payment keeps waiting for it).
+    const lifecycle = !!apt.payment_collection
+    const keep = apt.status === 'payment_pending' || apt.status === 'confirmed'
+    const updates: Record<string, unknown> = decision === 'accept'
+      ? { patient_confirmed_proposed_at: new Date().toISOString(),
+          status: lifecycle ? (keep ? apt.status : 'pending_approval') : 'scheduled' }
+      : { scheduled_at: null, doctor_proposed_at: null, patient_confirmed_proposed_at: null,
+          status: lifecycle ? (apt.status === 'payment_pending' ? 'payment_pending' : 'pending_approval') : 'pending',
+          ...(lifecycle ? { approved_at: null, approved_by: null } : {}) }
 
     const { error } = await admin.from('appointments').update(updates).eq('id', appointmentId)
     if (error) {

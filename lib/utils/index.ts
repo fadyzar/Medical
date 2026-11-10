@@ -45,6 +45,7 @@ export const STATUS_LABELS: Record<string, string> = {
   scheduled: 'מתוזמן', ready: 'מוכן', in_progress: 'בתהליך', completed: 'הושלם',
   cancelled_patient: 'בוטל', cancelled_doctor: 'בוטל ע"י רופא',
   no_show_patient: 'לא הגיע', no_show_doctor: 'רופא לא הגיע',
+  pending_approval: 'ממתין לאישור הרופא', confirmed: 'מאושר', rejected: 'נדחה',
 }
 
 export const STATUS_COLORS: Record<string, string> = {
@@ -53,6 +54,8 @@ export const STATUS_COLORS: Record<string, string> = {
   ready: 'bg-indigo-100 text-indigo-800', in_progress: 'bg-purple-100 text-purple-800',
   completed: 'bg-green-100 text-green-800', cancelled_patient: 'bg-red-100 text-red-800',
   cancelled_doctor: 'bg-red-100 text-red-800', payment_pending: 'bg-orange-100 text-orange-800',
+  pending_approval: 'bg-amber-100 text-amber-800', confirmed: 'bg-emerald-100 text-emerald-800',
+  rejected: 'bg-red-100 text-red-800',
 }
 
 export const SPECIALTIES = [

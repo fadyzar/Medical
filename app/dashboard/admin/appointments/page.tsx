@@ -30,7 +30,7 @@ const FILTERS: { key: FilterKey; label: string; color?: string }[] = [
 ]
 
 const CANCELLED_STATUSES = ['cancelled_patient', 'cancelled_doctor', 'no_show_patient', 'no_show_doctor']
-const ACTIVE_STATUSES    = ['doctor_confirmed', 'time_selected', 'payment_pending', 'paid', 'scheduled', 'ready', 'in_progress']
+const ACTIVE_STATUSES    = ['confirmed', 'doctor_confirmed', 'time_selected', 'payment_pending', 'paid', 'scheduled', 'ready', 'in_progress']
 
 function isToday(apt: FullAppointment): boolean {
   const date = apt.scheduled_at || apt.created_at
@@ -151,7 +151,7 @@ export default function AdminAppointmentsPage() {
   // Filtering
   const applyFilter = (a: FullAppointment) => {
     if (filter === 'today')     return isToday(a)
-    if (filter === 'pending')   return a.status === 'pending'
+    if (filter === 'pending')   return a.status === 'pending' || a.status === 'pending_approval'
     if (filter === 'active')    return ACTIVE_STATUSES.includes(a.status)
     if (filter === 'completed') return a.status === 'completed'
     if (filter === 'cancelled') return CANCELLED_STATUSES.includes(a.status)
@@ -177,7 +177,7 @@ export default function AdminAppointmentsPage() {
   const countFor = (k: FilterKey) => {
     if (k === 'all')       return appointments.length
     if (k === 'today')     return appointments.filter(isToday).length
-    if (k === 'pending')   return appointments.filter(a => a.status === 'pending').length
+    if (k === 'pending')   return appointments.filter(a => a.status === 'pending' || a.status === 'pending_approval').length
     if (k === 'active')    return appointments.filter(a => ACTIVE_STATUSES.includes(a.status)).length
     if (k === 'completed') return appointments.filter(a => a.status === 'completed').length
     if (k === 'cancelled') return appointments.filter(a => CANCELLED_STATUSES.includes(a.status)).length
@@ -188,7 +188,7 @@ export default function AdminAppointmentsPage() {
 
   // Summary stats
   const todayTotal   = appointments.filter(isToday).length
-  const pendingTotal = appointments.filter(a => a.status === 'pending').length
+  const pendingTotal = appointments.filter(a => a.status === 'pending' || a.status === 'pending_approval').length
   const activeTotal  = appointments.filter(a => ACTIVE_STATUSES.includes(a.status)).length
   const revenue      = appointments.filter(a => a.status === 'completed' && a.payment_amount).reduce((s, a) => s + (a.payment_amount || 0), 0)
 

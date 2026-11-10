@@ -27,14 +27,14 @@ const FILTERS: { key: FilterKey; label: string }[] = [
   { key: 'cancelled', label: 'בוטלו' },
 ]
 
-const CANCELLED_STATUSES = ['cancelled_patient', 'cancelled_doctor', 'no_show_patient', 'no_show_doctor']
-const ACTIVE_STATUSES    = ['pending', 'doctor_confirmed', 'time_selected', 'payment_pending', 'paid']
-const UPCOMING_STATUSES  = ['scheduled', 'ready', 'in_progress']
+const CANCELLED_STATUSES = ['cancelled_patient', 'cancelled_doctor', 'no_show_patient', 'no_show_doctor', 'rejected']
+const ACTIVE_STATUSES    = ['pending', 'doctor_confirmed', 'time_selected', 'payment_pending', 'paid', 'pending_approval']
+const UPCOMING_STATUSES  = ['confirmed', 'scheduled', 'ready', 'in_progress']
 
 function statusBadgeVariant(s: string): 'success' | 'danger' | 'warning' | 'info' | 'default' {
   if (s === 'completed') return 'success'
   if (CANCELLED_STATUSES.includes(s)) return 'danger'
-  if (s === 'pending') return 'warning'
+  if (s === 'pending' || s === 'pending_approval') return 'warning'
   if (UPCOMING_STATUSES.includes(s)) return 'success'
   return 'info'
 }
@@ -42,7 +42,7 @@ function statusBadgeVariant(s: string): 'success' | 'danger' | 'warning' | 'info
 function statusBar(s: string) {
   if (s === 'completed') return 'bg-emerald-400'
   if (s === 'in_progress' || s === 'ready') return 'bg-teal-500'
-  if (s === 'pending') return 'bg-amber-400'
+  if (s === 'pending' || s === 'pending_approval') return 'bg-amber-400'
   if (CANCELLED_STATUSES.includes(s)) return 'bg-red-400'
   return 'bg-indigo-400'
 }
@@ -191,7 +191,7 @@ export default function PatientAppointmentsPage() {
   useEffect(() => { load() }, [])
   useDataChanged(() => { load() })
 
-  const CANCELLABLE = ['pending', 'doctor_confirmed', 'time_selected', 'payment_pending', 'paid', 'scheduled', 'ready']
+  const CANCELLABLE = ['pending', 'doctor_confirmed', 'time_selected', 'payment_pending', 'paid', 'scheduled', 'ready', 'pending_approval', 'confirmed']
 
   const doCancel = async (id: string) => {
     setCancelBusy(true)
@@ -371,8 +371,9 @@ export default function PatientAppointmentsPage() {
               const isNearTime = apt.scheduled_at && now > 0
                 ? (new Date(apt.scheduled_at).getTime() - now) <= 15 * 60 * 1000
                 : false
+              // Only doctor-approved visits; the server re-checks the window.
               const canVideo = apt.status === 'in_progress' ||
-                ((['ready', 'scheduled', 'paid'].includes(apt.status)) && isNearTime)
+                (apt.status === 'confirmed' && apt.appointment_type !== 'clinic' && isNearTime)
               const needsPayment = apt.status === 'payment_pending' || apt.payment_status === 'failed'
               const isCompleted = apt.status === 'completed'
               const doctorProposedPending = !!apt.doctor_proposed_at && !apt.patient_confirmed_proposed_at
@@ -441,6 +442,20 @@ export default function PatientAppointmentsPage() {
                             prev.map(a => a.id === apt.id ? { ...a, ...updated } : a)
                           )}
                         />
+                      )}
+
+                      {apt.status === 'pending_approval' && (
+                        <p className="text-sm text-amber-800 bg-amber-50 border border-amber-200 rounded-xl px-3 py-2" role="status">
+                          הבקשה ממתינה לאישור הרופא. התור אינו סופי עד לאישור, ותקבל/י הודעה במייל.
+                        </p>
+                      )}
+                      {apt.status === 'rejected' && (
+                        <div className="text-sm text-red-800 bg-red-50 border border-red-200 rounded-xl px-3 py-2 space-y-1" role="status">
+                          <p>הבקשה לא אושרה על ידי הרופא והמועד שוחרר.</p>
+                          {apt.rejection_reason && <p className="text-red-700">סיבה: {apt.rejection_reason}</p>}
+                          {apt.refund_status === 'pending' && <p>החזר התשלום בטיפול המרפאה.</p>}
+                          {apt.refund_status === 'completed' && <p>התשלום הוחזר.</p>}
+                        </div>
                       )}
 
                       {/* Quick actions */}

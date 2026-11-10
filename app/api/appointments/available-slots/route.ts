@@ -92,7 +92,9 @@ export async function GET(req: NextRequest) {
       .select('doctor_id, scheduled_at')
       .in('doctor_id', doctorIds)
       .not('scheduled_at', 'is', null)
-      .in('status', ['pending', 'scheduled', 'paid', 'ready', 'in_progress', 'doctor_confirmed', 'time_selected'])
+      // Every booking that still holds its slot (incl. payment_pending,
+      // pending_approval and confirmed); rejected/cancelled/finished free it.
+      .not('status', 'in', '(draft,cancelled_patient,cancelled_doctor,no_show_patient,no_show_doctor,completed,rejected)')
       .gte('scheduled_at', rangeStart.toISOString())
       .lte('scheduled_at', rangeEnd.toISOString())
 

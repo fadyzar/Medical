@@ -34,7 +34,10 @@ test('the worker endpoint needs the shared secret, both consents and deleted aud
 
 test('joining the call never depends on transcription consent; the indicator is visible in the call', () => {
   const page = read('app/video-call/page.tsx')
-  assert.match(page, /disabled=\{!hasMic \|\| !livekitUrl\}/)
+  // Join waits only for a microphone, LiveKit config and the server-defined
+  // start time (approval lifecycle) — never for transcription consent.
+  assert.match(page, /disabled=\{!hasMic \|\| !livekitUrl \|\| !consultationOpen\}/)
+  assert.doesNotMatch(page, /disabled=\{[^}]*[Cc]onsent/)
   assert.match(page, /<TranscriptionIndicator appointmentId=\{appointmentId\} \/>/)
   const ui = read('components/clinical/TranscriptionConsent.tsx')
   assert.match(ui, /הפסק תמלול/)

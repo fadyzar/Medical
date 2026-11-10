@@ -77,7 +77,7 @@ function getSpecialtyLabel(id: string | null): string {
 
 // ── HTML Base Wrapper ────────────────────────────────
 
-function wrapEmailHtml(params: {
+export function wrapEmailHtml(params: {
   content: string
   ctaUrl: string
   ctaText: string
@@ -342,7 +342,7 @@ async function fetchAppointmentContext(appointmentId: string, admin: SupabaseCli
 
 // ── Helper: Check idempotency ────────────────────────
 
-async function alreadySent(appointmentId: string, templateName: string, admin: SupabaseClient): Promise<boolean> {
+export async function alreadySent(appointmentId: string, templateName: string, admin: SupabaseClient): Promise<boolean> {
   const { data } = await admin.from('notifications')
     .select('id')
     .eq('appointment_id', appointmentId)
